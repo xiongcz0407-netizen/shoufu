@@ -1,0 +1,125 @@
+{
+ "_说明": "新手目标链（第 P-06 项，设计25 第四节）。kind 是怎么判：act 亲自上阵、event 处理经营事件、rep60 一家店口碑 60（这三个和 manager 由开发1 的经营代码 mark）、food 开小吃摊、hire 招员工、stock 买股票、date 跟夏芷晴约会、course 上课、nw 身价、beat 打赢某个对手、manager 雇店长、lu 陆诗雨加入。reward：cash 现金（个人，类别「新手奖励」）、rep 口碑、favor 好感、energy 精力上限、hint 看盘提示、love 爱慕、course 免费一节课、mgrHalf 店长首月工资减半、none。line：做完弹的剧情（设计按设计02 的性格写好后替换）。验收发布准备：9、12 改成身价 60 万 / 80 万（陆诗雨照原剧情 50 万加入，不挂目标链）；台词是设计写的正式版",
+ "who": "s09_xia",
+ "list": [
+  {
+   "id": "g01",
+   "text": "第一次亲自上阵（任一经营动作）",
+   "kind": "act",
+   "reward": {
+    "cash": 2000
+   },
+   "line": "老板亲自去批发市场？我还以为您只会签字呢。"
+  },
+  {
+   "id": "g02",
+   "text": "第一次处理经营事件",
+   "kind": "event",
+   "reward": {
+    "rep": 3
+   },
+   "rewardText": "这家店口碑 +3",
+   "line": "这种事以后多着呢，您拿主意，我来跑腿。"
+  },
+  {
+   "id": "g03",
+   "text": "把一家店的口碑做到 60",
+   "kind": "rep60",
+   "reward": {
+    "favor": 5
+   },
+   "rewardText": "夏芷晴好感 +5",
+   "line": "隔壁阿姨说，现在买东西就认我们家。"
+  },
+  {
+   "id": "g04",
+   "text": "开第一个小吃摊",
+   "kind": "food",
+   "reward": {
+    "cash": 5000
+   },
+   "line": "第二家店了，我去给你订个蛋糕。"
+  },
+  {
+   "id": "g05",
+   "text": "招第一个员工",
+   "kind": "hire",
+   "reward": {
+    "energy": 5
+   },
+   "rewardText": "精力上限 +5（永久）",
+   "line": "有人帮忙了，您今天能早点下班吗？"
+  },
+  {
+   "id": "g06",
+   "text": "买第一只股票",
+   "kind": "stock",
+   "reward": {
+    "hint": 1
+   },
+   "rewardText": "送一次「看盘」提示（一定准）",
+   "line": "我表哥说炒股七亏二平一赚……您是那个一吗？"
+  },
+  {
+   "id": "g07",
+   "text": "跟夏芷晴约一次会",
+   "kind": "date",
+   "reward": {
+    "love": 1
+   },
+   "rewardText": "夏芷晴爱慕 +1",
+   "line": "今天……谢谢您。下次换我请。"
+  },
+  {
+   "id": "g08",
+   "text": "给秘书上一门课",
+   "kind": "course",
+   "reward": {
+    "course": 1
+   },
+   "rewardText": "下一节课免费",
+   "line": "上课好累，不过我不会给您丢人的。"
+  },
+  {
+   "id": "g09",
+   "text": "身价到 60 万",
+   "kind": "nw",
+   "n": 600000,
+   "reward": {
+    "cash": 10000
+   },
+   "line": "六十万了！我妈问我是不是跟对人了。"
+  },
+  {
+   "id": "g10",
+   "text": "打赢鑫鑫便利一次",
+   "kind": "beat",
+   "rival": "xinxin",
+   "reward": {
+    "energy": 5
+   },
+   "rewardText": "精力上限 +5（永久）",
+   "line": "鑫鑫的老板今天没敢出门。"
+  },
+  {
+   "id": "g11",
+   "text": "雇第一个店长",
+   "kind": "manager",
+   "reward": {
+    "mgrHalf": 1
+   },
+   "rewardText": "店长第一个月工资减半",
+   "line": "店长到位，您终于不用天天守店了。"
+  },
+  {
+   "id": "g12",
+   "text": "身价到 80 万",
+   "kind": "nw",
+   "n": 800000,
+   "reward": {
+    "cash": 20000
+   },
+   "line": "再加把劲，就是小老板了。"
+  }
+ ]
+}

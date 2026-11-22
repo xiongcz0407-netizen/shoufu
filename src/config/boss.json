@@ -1,0 +1,39 @@
+{
+  "_说明": "老板属性（设计09 第一节）：每件东西加 系数 × log10(价格万元)；同类按价格从高到低 100% / 60% / 40% / 之后 20%；豪宅每个城市第一套 ×1.5",
+  "coef": {
+    "car": {
+      "aura": 2
+    },
+    "house": {
+      "network": 4
+    },
+    "plane": {
+      "vision": 4
+    }
+  },
+  "rank": [
+    1,
+    0.6,
+    0.4,
+    0.2
+  ],
+  "houseFirstInCity": 1.5,
+  "networkPerAcquire": 3,
+  "visionPerBranch": 0.3,
+  "visionPerTitle": 3,
+  "effects": {
+    "battlePerAura": 0.002,
+    "battleAuraMax": 0.15,
+    "acquirePerNetwork": 0.003,
+    "acquireNetworkMax": 0.2,
+    "incomePerVision": 0.002,
+    "incomeVisionMax": 0.3,
+    "offlinePerVision": 0.01,
+    "offlineVisionMaxH": 8,
+    "visionFrom": 5,
+    "_visionFrom": "眼光到 5 以上，多出来的部分才加产钱和离线上限",
+    "battlePerVision": 0.001,
+    "battleVisionMax": 0.1,
+    "_battleVision": "眼光：商战看穿对方底牌，胜率 + 眼光 × 0.1%（最多 +10%）（第 2-13 项）"
+  }
+}

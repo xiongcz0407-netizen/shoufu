@@ -1,0 +1,29 @@
+{
+ "_说明": "举牌、要约、换股收购（第 3-05 项，设计23 第七节）。要约价 ≥ 最近 avgDays 个游戏天均价（现实 30 天 ÷ profitMul ≈ 3 个游戏天），可以加溢价；要约期 offerDays 个游戏天；股东接受比例 = base + (要约价 / 现价 − 1) × perPremium，限在 min～max；到 controlLine 控股；换股最多付收购价 swapMax",
+ "avgDays": 3,
+ "offerDays": 3,
+ "targets": [
+  0.51,
+  0.75,
+  1.0
+ ],
+ "premiums": [
+  0,
+  0.1,
+  0.2,
+  0.3
+ ],
+ "accept": {
+  "base": 0.3,
+  "perPremium": 2.5,
+  "min": 0.05,
+  "max": 0.95
+ },
+ "priceToOffer": 0.97,
+ "controlLine": 0.5,
+ "ctrlPE": 15,
+ "ctrlNetwork": 8,
+ "swapMax": 0.5,
+ "transferTax": 0.2,
+ "_个人转公司": "个人持有的按现价转给公司，个人交 (现价 − 成本) × 20% 财产转让所得"
+}

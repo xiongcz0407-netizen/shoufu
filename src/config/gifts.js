@@ -1,0 +1,43 @@
+// 礼物 36 件（设计13；表在 美术/礼物/礼物和藏品表.md，图 gift_01～36）。tier 档 1～4；price 元；favor 好感
+// 送她最喜欢的 3 样：好感 ×2、爱慕 +1；别的只加好感
+export const GIFT_TIERS = ['', '小心意', '用心', '贵重', '珍宝'];
+export const GIFTS = [
+  { id: 'gift_01', name: '奶茶', tier: 1, price: 30, favor: 2 },
+  { id: 'gift_02', name: '零食礼盒', tier: 1, price: 200, favor: 3 },
+  { id: 'gift_03', name: '小盆栽', tier: 1, price: 150, favor: 3 },
+  { id: 'gift_04', name: '电影票', tier: 1, price: 100, favor: 3 },
+  { id: 'gift_05', name: '白玫瑰花束', tier: 1, price: 500, favor: 4 },
+  { id: 'gift_06', name: '草莓蛋糕', tier: 1, price: 300, favor: 3 },
+  { id: 'gift_07', name: '精品咖啡豆', tier: 1, price: 400, favor: 3 },
+  { id: 'gift_08', name: '手工巧克力', tier: 1, price: 400, favor: 3 },
+  { id: 'gift_09', name: '猫咪马克杯', tier: 1, price: 150, favor: 3 },
+  { id: 'gift_10', name: '毛绒公仔', tier: 2, price: 800, favor: 5 },
+  { id: 'gift_11', name: '香薰蜡烛', tier: 2, price: 600, favor: 5 },
+  { id: 'gift_12', name: '羊绒围巾', tier: 2, price: 3000, favor: 6 },
+  { id: 'gift_13', name: '精装小说', tier: 2, price: 300, favor: 5 },
+  { id: 'gift_14', name: '钢笔', tier: 2, price: 3000, favor: 6 },
+  { id: 'gift_15', name: '运动鞋', tier: 2, price: 1500, favor: 5 },
+  { id: 'gift_16', name: '球赛门票', tier: 2, price: 2000, favor: 6 },
+  { id: 'gift_17', name: '动漫手办', tier: 2, price: 2000, favor: 6 },
+  { id: 'gift_18', name: '手账套装', tier: 2, price: 500, favor: 5 },
+  { id: 'gift_19', name: '香水', tier: 3, price: 3000, favor: 8 },
+  { id: 'gift_20', name: '口红礼盒', tier: 3, price: 2000, favor: 7 },
+  { id: 'gift_21', name: '珍珠项链', tier: 3, price: 20000, favor: 10 },
+  { id: 'gift_22', name: '金手链', tier: 3, price: 15000, favor: 9 },
+  { id: 'gift_23', name: '名庄红酒', tier: 3, price: 20000, favor: 9 },
+  { id: 'gift_24', name: '女士腕表', tier: 3, price: 50000, favor: 10 },
+  { id: 'gift_25', name: '演唱会 VIP 票', tier: 3, price: 8000, favor: 9 },
+  { id: 'gift_26', name: '真丝丝巾', tier: 3, price: 4000, favor: 8 },
+  { id: 'gift_27', name: '红底高跟鞋', tier: 3, price: 8000, favor: 8 },
+  { id: 'gift_28', name: '钻石项链', tier: 4, price: 300000, favor: 15 },
+  { id: 'gift_29', name: '钻石耳环', tier: 4, price: 200000, favor: 14 },
+  { id: 'gift_30', name: '翡翠手镯', tier: 4, price: 500000, favor: 15 },
+  { id: 'gift_31', name: '祖母绿戒指', tier: 4, price: 800000, favor: 16 },
+  { id: 'gift_32', name: '蓝宝石胸针', tier: 4, price: 400000, favor: 15 },
+  { id: 'gift_33', name: '粉钻戒指', tier: 4, price: 5000000, favor: 20 },
+  { id: 'gift_34', name: '珠宝套装', tier: 4, price: 2000000, favor: 18 },
+  { id: 'gift_35', name: '名贵腕表套盒', tier: 4, price: 1000000, favor: 16 },
+  { id: 'gift_36', name: '星空投影灯', tier: 2, price: 3000, favor: 6 },
+];
+export const GIFT_BY_NAME = Object.fromEntries(GIFTS.map((g) => [g.name, g]));
+export const GIFT_BY_ID = Object.fromEntries(GIFTS.map((g) => [g.id, g]));

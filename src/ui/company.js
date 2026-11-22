@@ -1,0 +1,311 @@
+// 「公司」页签：产业（摘要卡 + 产业线卡 → 产业线详情）、人事（员工、招聘、裁员）；分红到个人
+import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=1236a42d';
+import { TITLES } from '../config/titles.js?v=1236a42d';
+import { SEC_BY_ID } from '../config/secretaries.js?v=1236a42d';
+import * as E from '../core/economy.js?v=1236a42d';
+import * as CB from '../core/calib.js?v=1236a42d';
+import * as ST from '../core/staff.js?v=1236a42d';
+import * as CT from '../core/companytax.js?v=1236a42d';
+import { MONTH_MS, monthIndex } from '../core/gametime.js?v=1236a42d';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=1236a42d';
+import { asset, hasAsset } from '../platform/assets.js?v=1236a42d';
+import { now } from '../core/clock.js?v=1236a42d';
+import { game } from '../game.js?v=1236a42d';
+import { h, openPanel, toast, liveRender } from './dom.js?v=1236a42d';
+import * as AC from '../core/accrual.js?v=1236a42d';
+import * as PO from '../core/posts.js?v=1236a42d';
+import { dividendAdvice } from '../core/postwork.js?v=1236a42d';
+import { openPost } from './posts.js?v=1236a42d';
+import { openRealEstate } from './realestate.js?v=1236a42d';
+import * as RE from '../core/realestate.js?v=1236a42d';
+import * as LGI from '../core/logistics.js?v=1236a42d';
+import * as TC from '../core/tech.js?v=1236a42d';
+import * as MD from '../core/media.js?v=1236a42d';
+import * as CY from '../core/cities.js?v=1236a42d';
+import * as RVY from '../core/rivalry.js?v=1236a42d';
+import { hintLater } from './guide2.js?v=1236a42d';
+import * as MG from '../core/manage.js?v=1236a42d'; // P-05 亲自经营
+import { isTraining } from '../core/training.js?v=1236a42d';
+
+const sum = (o) => Object.values(o || {}).reduce((a, b) => a + b, 0);
+/** 本月到现在：营收、进货、预估人工和房租、利润（月底才真正扣人工、房租、税） */
+/** 本月到现在（权责）：营收、进货、已计提的人工 / 房租 / 增值税附加、利润 */
+export function monthSoFar(s, t) {
+  const p = s.period || {}; const frac = ((t - s.createdAt) % MONTH_MS) / MONTH_MS;
+  const rev = sum(p.rev), cogs = sum(p.cogs);
+  const P = AC.payables(s); const tax = P.vat + P.surcharge;
+  return { rev, cogs, labor: P.labor, rent: P.rent, tax, profit: rev - cogs - P.labor - P.rent - tax, frac, laborMonth: ST.monthlyLabor(s).total, rentMonth: AC.monthlyRent(s), P };
+}
+/** 花公司的钱之前：超过「可用」就提醒会影响发工资 */
+export function okToSpend(s, cost, what) {
+  const av = AC.available(s);
+  if (cost <= av) return true;
+  return confirm(`${what}要 ${fmtMoney(cost)}，超过可用的 ${fmtMoney(Math.max(0, av))}（余额 ${fmtMoney(s.company)} 里有 ${fmtMoney(AC.payables(s).total)} 是要付的工资、房租和税）。\n花了月底可能发不出工资，还要继续吗？`);
+}
+const lineMonth = (s, id) => { const p = s.period || {}; return { rev: (p.rev || {})[id] || 0, cogs: (p.cogs || {})[id] || 0 }; };
+const managerOf = (s, id) => (s.positions || {})['manager_' + id];
+
+function summary(s, t) {
+  const m = monthSoFar(s, t);
+  const av = s.company - m.P.total;
+  const box = h('div', 'sum-card', `
+    <div><small>公司账户余额</small><b class="${s.company < 0 ? 'neg' : ''}">${fmtMoney(s.company)}</b></div>
+    <div><small>可用（减掉应付）</small><b class="${av < 0 ? 'neg' : ''}">${fmtMoney(av)}</b></div>
+    <div><small>本月营收</small><b class="pos">${fmtMoney(m.rev)}</b></div>
+    <div><small>本月利润（权责）</small><b class="${m.profit < 0 ? 'neg' : 'pos'}">${fmtMoney(m.profit)}</b></div>
+    <div><small>员工</small><b>${ST.totalStaff(s)} 人</b></div>
+    <div><small>应付</small><b class="neg">${fmtMoney(m.P.total)}</b></div>`);
+  const tip = h('div', 'tr-gain', `应付 = 已计提的工资社保 ${fmtMoney(m.P.labor)} + 房租 ${fmtMoney(m.P.rent)} + 税 ${fmtMoney(m.P.vat + m.P.surcharge + m.P.cit)}${m.P.owed ? ` + 拖欠工资 ${fmtMoney(m.P.owed)}` : ''}；月底（还有 ${fmtDuration((1 - m.frac) * MONTH_MS / 1000)}）实际付。整月工资 ${fmtMoney(m.laborMonth)}、房租 ${fmtMoney(m.rentMonth)}${s.payroll && s.payroll.arrears ? '　<span class="neg">⚠️ 拖欠工资 ' + s.payroll.arrears + ' 个月</span>' : ''}`);
+  return [box, tip];
+}
+
+export function renderIndustry(body, ctx) {
+  const wrap = h('div'); body.appendChild(wrap);
+  ctx.onCleanup(liveRender(wrap, () => { wrap.innerHTML = ''; drawIndustry(wrap, ctx); }, (fn) => game.onChange(fn), body));
+}
+function drawIndustry(body, ctx) {
+  const s = game.state; const t = now();
+  body.append(...summary(s, t));
+  const dv = h('button', 'btn gold big', '分红到个人（代扣 20% 个税）');
+  dv.onclick = () => openDividend(ctx);
+  for (const cfg of INDUSTRIES) {
+    const ind = s.inds[cfg.id];
+    if (!ind) {
+      const lk = `assets/ind/${cfg.img[0]}.webp`;
+      body.appendChild(h('div', 'ind-card locked', `${hasAsset(lk) ? `<img class="ind-img gray" src="${asset(lk)}" alt="">` : ''}<div class="ind-info"><div class="ind-name">${cfg.name}</div><div class="ind-lock">升到「${TITLES[cfg.unlockTitle].name}」或收购同行解锁</div></div>`));
+      continue;
+    }
+    if (cfg.id === 'realestate') { body.appendChild(reCard(s, cfg)); continue; } // 地产是项目制，卡片和详情另做
+    const look = E.lookIndex(cfg, ind.level); const lm = lineMonth(s, cfg.id);
+    const est = ST.estTotal(s, cfg.id), on = ST.onDuty(s, cfg.id), f = ST.staffFactor(s, cfg.id);
+    const mgr = managerOf(s, cfg.id);
+    const card = h('button', 'ind-card line', `${hasAsset(`assets/ind/${cfg.img[look]}.webp`) ? `<img class="ind-img" src="${asset(`assets/ind/${cfg.img[look]}.webp`)}" alt="">` : `<div class="ind-img ph">${cfg.lookNames[look]}</div>`}
+      <div class="ind-info"><div class="ind-name">${cfg.name}<small>${cfg.lookNames[look]} · ${ind.level} 级 · ${ind.branches} 家</small></div>
+      <div class="ind-line">在岗 <b class="${on < est ? 'neg' : ''}">${on}</b> / 编制 ${est}${f === 0 ? '　<span class="neg">停业</span>' : f < 1 ? `　缺编，收入 ×${Math.round(f * 100)}%` : ''}${ST.pendingHires(s, cfg.id) ? `　招聘中 ${ST.pendingHires(s, cfg.id)}` : ''}</div>
+      <div class="ind-line">本月营收 ${fmtMoney(lm.rev)}　毛利 ${fmtMoney(lm.rev - lm.cogs)}</div>${cfg.retail ? `<div class="ind-line">口碑 ${'★'.repeat(MG.stars(MG.line(s, cfg.id).rep))}${'☆'.repeat(5 - MG.stars(MG.line(s, cfg.id).rep))} ${Math.round(MG.line(s, cfg.id).rep)}</div>` : ''}
+      <div class="ind-line">店长：${PO.isSec(mgr) ? `${SEC_BY_ID[mgr].name}（+${Math.round((PO.managerRevMult(s, cfg.id) - 1) * 100)}%）${PO.postMeta(s, 'manager_' + cfg.id).host.on ? ' · 托管中' : ''}` : mgr === PO.OUT ? '职业经理人（外包）' : '没有（点详情里「店长」安排）'}</div></div>`);
+    card.onclick = () => openLine(cfg.id, ctx);
+    body.appendChild(card);
+  }
+  body.appendChild(dv);
+}
+
+// 地产卡：在做项目、楼市、本月回款
+function reCard(s, cfg) {
+  const act = RE.activeProjects(s); const k = 'assets/ind/ind_realestate_1.webp';
+  const next = act.filter((p) => p.at).sort((a, b) => a.at - b.at)[0]; const ready = act.filter((p) => p.stage === 'ready' || p.stage === 'built').length;
+  const rev = (s.ledger || []).filter((r) => r.cat === 'presale' && r.t >= s.createdAt + monthIndex(s, now()) * MONTH_MS).reduce((a, r) => a + r.amount, 0);
+  const card = h('button', 'ind-card line', `${hasAsset(k) ? `<img class="ind-img" src="${asset(k)}" alt="">` : `<div class="ind-img ph">地产</div>`}
+    <div class="ind-info"><div class="ind-name">地产<small>项目制 · 楼市${RE.heatOf(s).name}</small></div>
+    <div class="ind-line">在做 ${act.length} / ${RE.maxProjects(s)} 个项目${ready ? `　<span class="pos">${ready} 个等你拍板</span>` : ''}</div>
+    <div class="ind-line">${next ? `${next.name}：${RE.STAGE[next.stage]}，还剩 ${fmtDuration(Math.max(0, (next.at - now()) / 1000))}` : act.length ? '' : '去土地市场拿第一块地'}</div>
+    <div class="ind-line">本月售房回款 ${fmtMoney(rev)}　在岗 ${ST.onDuty(s, 'realestate')} / ${ST.estTotal(s, 'realestate')}</div></div>`);
+  card.onclick = () => openRealEstate();
+  return card;
+}
+
+// 科技详情：产品（立项 → 研发 → 上线 → 用户 S 曲线 → 止损）
+function techBlock(s) {
+  const C = TC.TECH_CFG; const t = now(); const X = TC.tech(s);
+  const list = X.products.filter((p) => p.stage !== 'closed').map((p) => {
+    const D = C.directions[p.dir];
+    if (p.stage === 'dev') return `<div class="tr-course"><div><b>${p.name}</b><div class="tr-gain">研发中，还剩 ${fmtDuration(Math.max(0, (p.at - t) / 1000))}（研发费 ${fmtMoney(p.cost)}）</div></div></div>`;
+    const cf = TC.capFactor(s, t); const u = TC.usersNow(s, p, t), cap = TC.userCap(p); const rev = TC.productRev(s, p, t) * cf * MONTH_MS / 1000;
+    return `<div class="tr-course"><div><b>${p.name}</b><div class="tr-gain">用户 ${u.toLocaleString()}${cf < 1 ? `<span class="neg">（人手不够，用户涨不动了，去招人 / 升级）</span>` : u < cap * 0.97 ? `（还在涨，看势头能到 ${cap.toLocaleString()}）` : '（到顶了）'} · 月收入 ${fmtMoney(rev)}（${D.arpu} 元/人/月）<br>研发费 ${fmtMoney(p.cost)}，累计收入 ${fmtMoney(p.revTotal)}</div></div><button class="btn tc-close" data-i="${p.id}">止损</button></div>`;
+  }).join('');
+  const dirs = Object.entries(C.directions).map(([k, D]) => { const why = TC.whyNotStart(s, k); return `<button class="tr-course tc-new" data-d="${k}" ${why ? 'disabled' : ''}><div><b>立项：${D.name}</b><div class="tr-gain">${why || `研发费 ${fmtMoney(TC.devCost(s, k))}，研发 ${+CB.gm(D.devMonths).toFixed(1)} 个游戏月、上线后 ${+CB.gm(D.rampMonths).toFixed(1)} 个月爬到顶`}　${D.note}</div></div></button>`; }).join('');
+  return `<div class="sd-rec-title">产品（${TC.liveProducts(s).length}/${TC.maxProducts(s)}）</div><div class="tr-gain">人效上限：全部产品月收入 ≤ 在岗 ${ST.onDuty(s, 'tech')} 人 × ${fmtMoney(CB.headCap('tech', ST.lookOf(s, 'tech'), TC.TECH_CFG.real))} = ${fmtMoney(TC.revCapPerSec(s) * MONTH_MS / 1000)}</div>${list || '<div class="tr-gain">还没有产品，先立项。研发期只花钱，上线后用户按 S 曲线涨，毛利 70%；成不成看产品经理（科技经理）的智慧和你的眼光。</div>'}
+    ${dirs}<div class="tr-gain">人工占成本大头（程序员 2.5 万、产品经理 2.8 万）；增值税 6%；研发费用（立项费 + 研发人员工资 60%）加计扣除 100%，有财务总监自动申报；电商工具是软件产品，实际税负超 3% 即征即退。有科技以后所有产业管理效率 +3%。</div>`;
+}
+
+// 娱乐传媒详情：直播分成、片子
+function mediaBlock(s) {
+  const C = MD.MEDIA_CFG; const t = now(); const L = C.live; const X = MD.media(s);
+  const an = ST.onDutyRole(s, 'media', 'anchor'); const flow = an * L.flowPerAnchor; const live = MD.liveRevPerSec(s) * MONTH_MS / 1000;
+  const films = X.films.slice().reverse().slice(0, 8).map((f) => {
+    const K = C.kinds[f.kind]; const R = f.result;
+    const head = `<b>《${f.title}》</b> ${K.name} · ${f.genre}${f.hot ? '（当月热门）' : ''} · ${C.directors[f.dir].name} · ${C.casts[f.cast].name} · 宣发${C.publicity[f.pub].name}　总成本 ${fmtMoney(f.cost.total)}`;
+    if (!R) return `<div class="tr-course"><div>${head}<div class="tr-gain">${f.stage === 'shoot' ? '拍摄中' : f.stage === 'post' ? '后期中' : f.kind === 'film' ? '上映中' : '播出中'}，这一步还剩 ${(Math.max(0, f.at - t) / MONTH_MS).toFixed(1)} 个游戏月</div></div></div>`;
+    const body = f.kind === 'film' ? `票房 ${fmtMoney(R.gross)}：专项资金 5% ${fmtMoney(R.fund)}、税金附加 3.3% ${fmtMoney(R.sur)}、院线影院 57% ${fmtMoney(R.cinema)}、发行 4% ${fmtMoney(R.dist)} → 片方 ${fmtMoney(R.producer)} + 网络版权 ${fmtMoney(R.rights)}` : `平台采购 ${fmtMoney(R.fixed)} + 分账 ${fmtMoney(R.share)}`;
+    return `<div class="tr-course"><div>${head}<div class="tr-gain">${body}<br><b class="${R.profit >= 0 ? 'pos' : 'neg'}">${R.profit >= 0 ? '赚' : '亏'} ${fmtMoney(Math.abs(R.profit))}</b></div></div></div>`;
+  }).join('');
+  return `<div class="sd-rec-title">直播</div><div class="tr-gain">在岗主播 ${an} 人 × 月流水 ${fmtMoney(L.flowPerAnchor)} = ${fmtMoney(flow)}；平台抽 50%，进公司 ${fmtMoney(live)}/月，主播再分一半（记在进货成本）。人效上限：在岗 × ${fmtMoney(CB.headCap('media', ST.lookOf(s, 'media'), MD.MEDIA_CFG.real))} / 月。直播里 30% 算广告，交 3% 文化事业建设费。</div>
+    <div class="sd-rec-title">投拍（${MD.shooting(s).length}/${MD.slots(s)} 部，这个月观众爱看「${MD.hotGenre(s, t)}」）</div>${films || '<div class="tr-gain">升到 15 级「影视公司」有制片人以后能投拍：每 4 个制片管 1 部。</div>'}
+    <button class="btn gold md-shoot" style="width:100%" ${MD.slots(s) <= MD.shooting(s).length ? 'disabled' : ''}>投拍一部</button>
+    <div class="tr-gain">增值税 6%。有娱乐传媒以后服装、餐饮收入 +5%（广告），地产开盘去化 +10%（宣发）。</div>`;
+}
+/** 投拍：选种类、题材、导演、演员、宣发 */
+function openShoot() {
+  const C = MD.MEDIA_CFG; const o = { kind: 'film', genre: MD.hotGenre(game.state, now()), dir: 1, cast: 1, pub: 1, title: ['长夜', '归途', '风起时', '星河渡口', '无名之辈', '烈火', '海上明月', '逆光'][Math.floor(Math.random() * 8)] };
+  const p = openPanel('投拍');
+  const row = (label, key, opts) => `<div class="sd-rec-title">${label}</div><div class="tabs">${opts.map(([v, n]) => `<button class="tab ${o[key] === v ? 'on' : ''}" data-k="${key}" data-v="${v}">${n}</button>`).join('')}</div>`;
+  const render = () => {
+    const s = game.state; const c = MD.costOf(o); const why = MD.whyNotShoot(s, o);
+    p.body.innerHTML = `<div class="sd-rec-title">片名</div><input class="md-title" maxlength="12" value="${o.title}" style="width:100%;padding:10px;border-radius:8px;border:1px solid #34425c;background:#18223a;color:var(--paper);font-size:16px">` + row('种类', 'kind', Object.entries(C.kinds).map(([k, K]) => [k, K.name])) + row('题材', 'genre', C.genres.map((g) => [g, g === MD.hotGenre(s, now()) ? g + '🔥' : g]))
+      + row('导演', 'dir', C.directors.map((d, i) => [i, `${d.name} ${fmtMoney(d.cost)}`])) + row('演员', 'cast', C.casts.map((d, i) => [i, `${d.name} ${fmtMoney(d.cost)}`])) + row('宣发', 'pub', C.publicity.map((d, i) => [i, `${d.name} ${fmtMoney(d.cost)}`]))
+      + `<div class="rate">总成本 ${fmtMoney(c.total)}（制作 ${fmtMoney(c.make)} + 宣发 ${fmtMoney(c.pub)}；演员占 ${Math.round(c.cast / c.total * 100)}%）${why ? `<br><span class="sc-cond">${why}</span>` : ''}</div>
+      <div class="tr-gain">${o.kind === 'film' ? '电影看票房：大部分不赚，少数爆款。片方拿票房的约 36%（专项资金、税金附加、院线、发行先分走）。' : '电视剧卖给视频平台：固定价约总成本 1.05 倍，拍得好再分账，稳。'}</div>
+      <button class="btn gold big go" ${why ? 'disabled' : ''}>开机（${(() => { const m = MD.filmMonths(o.kind); return o.kind === 'film' ? `拍 ${+m.shoot.toFixed(1)} + 后期 ${+m.post.toFixed(1)} + 上映 ${+m.release.toFixed(1)}` : `拍 ${+m.shoot.toFixed(1)} + 交平台 ${+m.release.toFixed(1)}`; })()} 个游戏月）</button>`;
+    const ti = p.body.querySelector('.md-title'); ti.oninput = () => { o.title = ti.value; };
+    p.body.querySelectorAll('[data-k]').forEach((b) => (b.onclick = () => { const k = b.dataset.k; o[k] = ['dir', 'cast', 'pub'].includes(k) ? +b.dataset.v : b.dataset.v; render(); }));
+    p.body.querySelector('.go').onclick = () => { const r = MD.shoot(game.state, { ...o }, now()); if (!r.ok) { toast(r.why); return; } toast(`《${r.film.title}》开机了，合同进档案柜`); game.changed(); game.save(); p.close(); };
+  };
+  render();
+}
+
+// 物流详情里的车队、件量、双十一
+function logiBlock(s) {
+  const C = LGI.LOGI_CFG; const g = LGI.fleetGap(s); const X = LGI.logi(s); const ff = LGI.fleetFactor(s);
+  const perDay = Math.round(LGI.baseRevPerSec(s) * ff * LGI.complainMult(s) * (MONTH_MS / 1000) / 30 / C.ticketPrice);
+  return `<div class="sd-rec-title">车队（公司资产）</div>
+    <div class="tr-gain">运力 ${LGI.fleetUnits(s)} / 需要 ${LGI.fleetNeed(s)}（厢式货车 1、重卡 3；每 ${C.fleet.headsPerUnit} 个人要 1 份运力）${ff < 1 ? `　<span class="neg">缺车，收入 ×${Math.round(ff * 100)}%</span>` : ''}<br>账面价值 ${fmtMoney(LGI.fleetValue(s))}，按 4 年折旧进利润表；买车付购置税 10%，13% 进项抵扣</div>
+    ${g.n ? `<button class="btn gold fleet" style="width:100%">补 ${g.n} 辆${g.name}（${fmtMoney(g.price)}/辆，含购置税共 ${fmtMoney(g.cost)}）</button>` : ''}
+    <div class="tr-gain">日均件量约 ${perDay.toLocaleString()} 件 × 单票 ${C.ticketPrice} 元；场地按人头 ${fmtMoney(C.rentPerHead)}/人/月；油费路桥、中转包材占营收 34%；增值税运输 9% + 收派 6%。有物流以后便利店、服装进货 −2%。${LGI.complaining(s) ? `<br><b class="neg">双十一爆仓的投诉还没消：件量 −${Math.round(C.d11.complainCut * 100)}%，${fmtDuration(Math.max(0, (X.complain.until - now()) / 1000))}后恢复</b>` : ''}${X.d11 && X.d11.on ? '<br><b class="pos">双十一进行中：件量 ×3</b>' : '<br>双十一（每年 11 月 11 日）件量 ×3，要平时 2 倍的人，提前用劳务派遣补'}</div>`;
+}
+
+/** 城市（分公司）一行一个：状态、系数、注册按钮；onPick(c) 给开店用 */
+export function cityRows(s, onPick, label = (c) => '') {
+  const t = now();
+  return CY.CITY_IDS.map((c) => { const st = CY.cityStatus(s, c, t); const x = (s.cities || {})[c] || {};
+    const act = st === 'hq' || st === 'ok' ? (onPick ? `<button class="btn gold" data-pick="${c}">${label(c) || '在这开'}</button>` : `<em>${st === 'hq' ? '总部' : '分公司'}</em>`)
+      : st === 'pending' ? `<button class="btn" disabled>办理中 ${fmtDuration(Math.max(0, (x.at - t) / 1000))}</button>` : `<button class="btn" data-reg="${c}">注册分公司<br><small>${fmtMoney(CY.CITY_CFG.registerFee)} · ${CY.CITY_CFG.registerMin} 分钟</small></button>`;
+    const turf = cityRows.ind ? RVY.turfText(s, cityRows.ind, c) : ''; return `<div class="tr-course"><div><b>${CY.cityName(c)}</b>${st === 'hq' ? ' <small>总部</small>' : ''}<div class="tr-gain">系数 ${CY.cityK(c)}（工资、房租、收入、开店费）${turf ? `<br><span class="neg">${turf}</span>` : ''}</div></div>${act}</div>`; }).join('');
+}
+export function bindCityRows(el, s, onPick, done) {
+  el.querySelectorAll('[data-reg]').forEach((b) => (b.onclick = () => { const r = CY.registerCity(s, b.dataset.reg, now()); if (!r.ok) toast(r.why); else { toast(`${CY.cityName(b.dataset.reg)}分公司在办，${CY.CITY_CFG.registerMin} 分钟`); game.changed(); game.save(); done && done(); } }));
+  el.querySelectorAll('[data-pick]').forEach((b) => (b.onclick = () => onPick(b.dataset.pick)));
+}
+/** 开分店：选城市 */
+function openCityPick(id, done) {
+  const p = openPanel(`${IND_BY_ID[id].name} · 开在哪`); hintLater('city');
+  const render = () => {
+    const s = game.state; const cfg = IND_BY_ID[id]; const ind = s.inds[id]; const cs = CY.lineCities(s, id);
+    cityRows.ind = id;
+    p.body.innerHTML = `<div class="tr-gain">第一次在一个城市开店要先注册分公司（营业执照、税务登记，${CY.CITY_CFG.registerMin} 分钟）。广州便宜，但客单价也低。</div>` + cityRows(s, true, (c) => `开第 ${(cs[c] || 0) + 1} 家<br><small>${fmtMoney(E.brCostOf(s, id, c))}</small>`);
+    bindCityRows(p.body, s, (c) => { const cost = E.brCostOf(s, id, c); if (!okToSpend(s, cost, '开分店')) return; if (E.openBranch(s, id, now(), '', c)) { toast(`${CY.cityName(c)}开了一家，要招人`); game.changed(); game.save(); p.close(); done && done(); } else toast(E.whyNotBranch(s, id) || '公司账户不够'); }, render);
+  };
+  liveRender(p.body, render, (fn) => game.onChange(fn));
+}
+
+/** 产业线详情（底部抽屉）：门店、升级、开分店、编制和招聘 */
+export function openLine(id, ctx) {
+  const p = openPanel(IND_BY_ID[id].name);
+  if (['logistics', 'tech', 'media'].includes(id)) setTimeout(() => import('./guide.js?v=1236a42d').then((G) => G.hint(id)), 400);
+  const render = () => {
+    const s = game.state; const cfg = IND_BY_ID[id]; const ind = s.inds[id];
+    const upC = E.upCostOf(s, id); const brWhy = E.whyNotBranch(s, id); const upWhy = E.whyNotUpgrade(s, id); const brC = brWhy ? null : E.brCostOf(s, id);
+    const look = E.lookIndex(cfg, ind.level); const next = cfg.looks[look + 1];
+    const est = ST.establishment(s, id); const short = ST.shortage(s, id);
+    p.body.innerHTML = `<div class="tr-gain">公司账户 ${fmtMoney(s.company)}（可用 ${fmtMoney(AC.available(s))}）　本月营收 ${fmtMoney(lineMonth(s, id).rev)}　门店 ${ind.branches} 家 × ${cfg.lookNames[look]}（${ind.level} 级）${next ? `　${next} 级升${cfg.lookNames[look + 1]}（编制会变大）` : ''}</div>
+      ${cfg.kind ? '' : `<div class="tr-gain">城市：${Object.entries(CY.lineCities(s, id)).filter(([, n]) => n).map(([c, n]) => `${CY.cityName(c)} ${n} 家`).join(' · ')}（收入、工资、房租按城市系数）</div>`}
+      ${cfg.retail ? personalHtml(s, id) : ''}
+      <div class="sd-rec-title">编制和在岗（${id === 'logistics' ? '全部网点' : cfg.kind ? '全公司' : '全部门店'}）</div>
+      <div class="staff-tbl">${Object.entries(est).map(([r, n]) => `<div><span>${ST.PAY.roles[r].name}</span><b class="${ST.onDutyRole(s, id, r) < n ? 'neg' : ''}">${ST.onDutyRole(s, id, r)}</b>/${n}<small>${fmtMoney(ST.wage(r))}/月</small></div>`).join('')}</div>
+      ${id === 'media' ? mediaBlock(s) : id === 'tech' ? techBlock(s) : id === 'logistics' ? logiBlock(s) : `<div class="tr-gain">房租 ${fmtMoney(cfg.rent[look] * ind.branches)}/月　进货占营收 ${Math.round(E.baseCogs(s, id) * 100)}%${cfg.retail ? `　水电杂费 ${fmtMoney(CB.storeOther(cfg, ind.level) * ind.branches)}/月` : ''}</div>`}
+      <button class="btn mgr" style="width:100%;margin-top:8px">店长：${PO.holder(s, 'manager_' + id) ? (PO.isSec(PO.holder(s, 'manager_' + id)) ? SEC_BY_ID[PO.holder(s, 'manager_' + id)].name : '职业经理人') : '空缺'} ›（任命、托管、授权）</button>
+      <div class="ind-btns" style="margin-top:10px">
+        <button class="btn up">升级<br><small>${upWhy ? upWhy : fmtMoney(upC)}</small></button>
+        <button class="btn br">${brC == null ? `开分店<br><small>${brWhy}</small>` : `开分店（${ind.branches}/${E.maxBranches(s, id)}）<br><small>${fmtMoney(brC)}</small>`}</button>
+        <button class="btn hire gold">招聘${sum(short) ? `<br><small>缺 ${sum(short)} 人</small>` : ''}</button></div>`;
+    const up = p.body.querySelector('.up'); up.disabled = !!upWhy || s.company < upC;
+    up.onclick = () => { if (!okToSpend(s, upC, '升级')) return; if (E.upgrade(s, id, now())) { game.changed(); render(); if (ST.lookOf(s, id) !== look) toast('门店升级了，编制变大，记得招人'); } };
+    const br = p.body.querySelector('.br'); br.disabled = brC == null || s.company < brC;
+    br.onclick = () => openCityPick(id, render); // 选城市开店（新城市先注册分公司）
+    p.body.querySelector('.hire').onclick = () => openHire(id, render);
+    const sh = p.body.querySelector('.md-shoot'); if (sh) sh.onclick = () => openShoot();
+    p.body.querySelectorAll('.tc-new').forEach((b) => (b.onclick = () => { const r = TC.startProduct(s, b.dataset.d, now()); if (!r.ok) toast(r.why); else { toast(`立项「${r.product.name}」，研发 ${+CB.gm(TC.TECH_CFG.directions[b.dataset.d].devMonths).toFixed(1)} 个游戏月`); game.changed(); game.save(); } }));
+    p.body.querySelectorAll('.tc-close').forEach((b) => (b.onclick = () => { if (!confirm('止损关掉这个产品？研发费收不回来。')) return; TC.closeProduct(s, +b.dataset.i, now()); game.changed(); game.save(); }));
+    const fb = p.body.querySelector('.fleet'); if (fb) fb.onclick = () => { const r = LGI.buyFleet(s, undefined, now()); if (!r.ok) toast(r.why); else { toast(`买了 ${r.n} 辆车，含购置税 ${fmtMoney(r.cost)}`); game.changed(); game.save(); } };
+    p.body.querySelector('.mgr').onclick = () => openPost('manager_' + id);
+    p.body.querySelectorAll('.pa-sec').forEach((b) => (b.onclick = () => { paSec = paSec === b.dataset.s ? null : b.dataset.s; render(); }));
+    p.body.querySelectorAll('.pa-act').forEach((b) => (b.onclick = () => { const r = MG.doAct(game.state, id, b.dataset.a, now(), paSec); toast(r.ok ? r.text : r.why, 3200); game.changed(); game.save(); }));
+    p.body.querySelectorAll('.pa-big').forEach((b) => (b.onclick = () => { const r = MG.doBig(game.state, b.dataset.k, now(), id); toast(r.ok ? r.text : r.why, 3200); game.changed(); game.save(); }));
+  };
+  paSec = null;
+  liveRender(p.body, render, (fn) => game.onChange(fn));
+}
+
+/** P-05 亲自上阵：精力、口碑、四个动作（带不带秘书）、行情；老板以后多两件大事 */
+function personalHtml(s, id) {
+  const t = now(); const L = MG.line(s, id); const A = MG.MANAGE_CFG.actions; const today = MG.dayIndex(s, t);
+  const fx = L.fx.filter((f) => f.until > t); const rev = fx.reduce((k, f) => k * (1 + (f.rev || 0)), 1) - 1, cg = fx.reduce((k, f) => k * (1 + (f.cogs || 0)), 1) - 1;
+  return `<div class="sd-rec-title">亲自上阵 <small>精力 ${Math.floor(MG.energy(s, t))}/${MG.energyMax(s)} · ${MG.tip(s)}</small></div>
+    <div class="tr-gain">口碑 ${'★'.repeat(MG.stars(L.rep))}${'☆'.repeat(5 - MG.stars(L.rep))} ${Math.round(L.rep)}（营业额 ${MG.repK(L.rep) >= 1 ? '+' : ''}${((MG.repK(L.rep) - 1) * 100).toFixed(1)}%）${MG.marketText(s) ? `　${MG.marketText(s)}` : ''}${fx.length ? `<br>今天：营业额 ${rev >= 0 ? '+' : ''}${(rev * 100).toFixed(1)}%　进货 ${(cg * 100).toFixed(1)}%` : ''}${MG.autoEff(s, id) ? `<br>店长每天自动砍价、拉熟客（效果 ${Math.round(MG.autoEff(s, id) * 100)}%）` : '<br><span class="neg">没人管：每 3 个游戏天口碑 −1（最低 40）</span>'}</div>
+    <div class="tabs">${Object.keys(s.secs).map((sid) => `<button class="tab pa-sec ${paSec === sid ? 'on' : ''}" data-s="${sid}" ${isTraining(s, sid) ? 'disabled' : ''}>带${SEC_BY_ID[sid].name}</button>`).join('')}</div>
+    <div class="ind-btns pa-grid">${Object.entries(A).map(([k, a]) => { const why = MG.whyNot(s, id, k, t, paSec); return `<button class="btn pa-act ${L.act[k] === today ? '' : 'gold'}" data-a="${k}" ${why ? 'disabled' : ''}>${a.name}<br><small>${L.act[k] === today ? '今天做过了' : `精力 ${a.energy}`}</small></button>`; }).join('')}</div>
+    ${(s.title || 0) >= 2 ? `<div class="ind-btns">${['inspect', 'supplier'].map((k) => `<button class="btn pa-big" data-k="${k}" ${MG.whyNotBig(s, k, t, id) ? 'disabled' : ''}>${MG.MANAGE_CFG.big[k].name}<br><small>精力 ${MG.MANAGE_CFG.big[k].energy}</small></button>`).join('')}</div>` : ''}`;
+}
+let paSec = null;
+/** 招聘：选岗位 → 人数 → 渠道 */
+export function openHire(id, done) {
+  const s = game.state; const short = ST.shortage(s, id);
+  let role = Object.keys(short)[0] || Object.keys(ST.establishment(s, id))[0];
+  let n = short[role] || 1; let ch = 'door';
+  const p = openPanel(`${IND_BY_ID[id].name} · 招聘`);
+  const render = () => {
+    const why = ST.whyNotHire(s, id, role, n, ch);
+    p.body.innerHTML = `<div class="sd-rec-title">岗位</div><div class="tabs">${Object.keys(ST.establishment(s, id)).map((r) => `<button class="tab ${r === role ? 'on' : ''}" data-r="${r}">${ST.PAY.roles[r].name}${short[r] ? `（缺 ${short[r]}）` : ''}</button>`).join('')}</div>
+      <div class="sd-rec-title">人数</div><div class="stepper"><button class="btn m">−</button><b>${n}</b><button class="btn p">＋</button></div>
+      <div class="sd-rec-title">渠道</div>${Object.entries(ST.PAY.channels).map(([k, c]) => `<button class="tr-course ch ${k === ch ? 'on' : ''}" data-c="${k}"><div><b>${c.name}</b><div class="tr-gain">${k === 'agency' ? `立刻到岗，每月多付 ${Math.round(c.markup * 100)}%` : `${c.minMin}～${c.maxMin} 分钟到岗`}${c.roles ? '（只招店长、主管、总部）' : ''}</div></div><span>${k === 'agency' ? '' : fmtMoney(ST.hireCost(k, role, n))}</span></button>`).join('')}
+      <div class="rate">${why ? `<span class="sc-cond">${why}</span>` : `招 ${n} 个${ST.PAY.roles[role].name}，月薪 ${fmtMoney(ST.wage(role) * n)} + 社保 30%`}</div>
+      <button class="btn gold big go">招聘</button>`;
+    p.body.querySelectorAll('[data-r]').forEach((b) => (b.onclick = () => { role = b.dataset.r; n = short[role] || 1; render(); }));
+    p.body.querySelectorAll('[data-c]').forEach((b) => (b.onclick = () => { ch = b.dataset.c; render(); }));
+    p.body.querySelector('.m').onclick = () => { n = Math.max(1, n - 1); render(); };
+    p.body.querySelector('.p').onclick = () => { n += 1; render(); };
+    const go = p.body.querySelector('.go'); go.disabled = !!why;
+    go.onclick = () => { const r = ST.hire(s, id, role, n, ch, now()); if (!r.ok) { toast(r.why); return; } import('../core/daily.js?v=1236a42d').then((D) => D.bump(s, now(), 'hire')); toast(ch === 'agency' ? '派遣员工已到岗' : `${Math.ceil((r.at - now()) / 60000)} 分钟后到岗`); game.changed(); game.save(); p.close(); done && done(); };
+  };
+  render();
+}
+
+export function renderHR(body, ctx) {
+  const wrap = h('div'); body.appendChild(wrap);
+  ctx.onCleanup(liveRender(wrap, () => { wrap.innerHTML = ''; drawHR(wrap, ctx); }, (fn) => game.onChange(fn), body));
+}
+function drawHR(body, ctx) {
+  const s = game.state; const L = ST.monthlyLabor(s);
+  const m = monthSoFar(s, now());
+  body.appendChild(h('div', 'sum-card', `<div><small>员工总数</small><b>${ST.totalStaff(s)} 人</b></div><div><small>月人工成本</small><b>${fmtMoney(L.total)}</b></div>
+    <div><small>占营收（本月）</small><b>${m.rev ? Math.round(m.labor / m.rev * 100) + '%' : '—'}</b></div><div><small>总部</small><b>${ST.hqStaff(s)} 人</b></div>`));
+  body.appendChild(h('div', 'tr-gain', `工资 ${fmtMoney(L.wages)} + 社保公积金 30% ${fmtMoney(L.social)}${L.agency ? ` + 派遣 ${fmtMoney(L.agency)}` : ''}；代扣个税 ${fmtMoney(L.iit)}/月（从员工工资里扣，不算公司成本）。门店满 ${ST.PAY.hqFromStaff} 人起有总部员工（6%）。月流失：零售 5%、餐饮 7%`));
+  for (const id of Object.keys(s.inds)) {
+    const est = ST.establishment(s, id); const x = s.inds[id];
+    const rows = Object.entries(est).map(([r, n]) => `<div><span>${ST.PAY.roles[r].name}</span><b class="${ST.onDutyRole(s, id, r) < n ? 'neg' : ''}">${ST.onDutyRole(s, id, r)}</b>/${n}${(x.agency || {})[r] ? `<small>派遣 ${x.agency[r]}</small>` : ''}<button class="mini fire" data-r="${r}">裁</button></div>`).join('');
+    const card = h('div', 'ind-card col', `<div class="ind-name">${IND_BY_ID[id].name}<small>在岗 ${ST.onDuty(s, id)} / 编制 ${ST.estTotal(s, id)}</small></div><div class="staff-tbl">${rows}</div><button class="btn gold hire">招聘</button>`);
+    card.querySelector('.hire').onclick = () => openHire(id, ctx.rerender);
+    card.querySelectorAll('.fire').forEach((b) => (b.onclick = () => {
+      const r = b.dataset.r; const yrs = 0;
+      if (!confirm(`裁 1 个${ST.PAY.roles[r].name}？要赔 N+1 个月工资`)) return;
+      const res = ST.fire(s, id, r, 1, now()); if (!res.ok) { toast(res.why); return; }
+      toast(res.comp ? `赔了 ${fmtMoney(res.comp)}` : '退回了一个派遣员工'); game.changed(); game.save(); ctx.rerender();
+    }));
+    body.appendChild(card);
+  }
+  const bm = s.payroll.bonusMonths ?? 1;
+  const b = h('div', 'tr-course', `<div><b>年终奖</b><div class="tr-gain">游戏年底按全年利润发，现在 ${bm} 个月工资（0～3）</div></div><div class="stepper"><button class="btn m">−</button><b>${bm}</b><button class="btn p">＋</button></div>`);
+  b.querySelector('.m').onclick = () => { s.payroll.bonusMonths = Math.max(0, bm - 1); game.save(); ctx.rerender(); };
+  b.querySelector('.p').onclick = () => { s.payroll.bonusMonths = Math.min(3, bm + 1); game.save(); ctx.rerender(); };
+  body.appendChild(b);
+}
+
+export function openDividend(ctx) {
+  const s = game.state; let pct = 30;
+  setTimeout(() => import('./guide.js?v=1236a42d').then((g) => g.hint('wallets')), 400);
+  const p = openPanel('分红到个人');
+  const render = () => {
+    const av = Math.max(0, Math.floor(AC.available(s)));
+    const amt = Math.floor(av * pct / 100);
+    p.body.innerHTML = `<div class="tr-gain">公司的钱和你自己的钱是分开的：车、房、衣服、礼物只能用个人现金。分红时公司代扣 20% 个税。</div>
+      <div class="rate">最多能分「可用」的 <b>${fmtMoney(av)}</b><br><small>余额 ${fmtMoney(s.company)} − 应付工资房租税 ${fmtMoney(AC.payables(s).total)}</small></div>
+      ${PO.isSec(PO.holder(s, 'cfo')) ? `<div class="tr-gain">💬 ${SEC_BY_ID[PO.holder(s, 'cfo')].name}（财务总监）：留够 3 个月工资和房租，这个月能安全分 <b>${fmtMoney(dividendAdvice(s))}</b>。</div>` : ''}
+      <div class="tabs" style="margin-top:10px">${[10, 30, 50, 80].map((v) => `<button class="tab ${v === pct ? 'on' : ''}" data-v="${v}">${v}%</button>`).join('')}</div>
+      <div class="rate">按可用的 ${pct}% 拿 <b>${fmtMoney(amt)}</b><br><small>代扣个税 ${fmtMoney(amt * 0.2)}，到手 ${fmtMoney(amt * 0.8)}</small></div>
+      <div class="tr-gain">月底整月工资大约 ${fmtMoney(ST.monthlyLabor(s).total)}，后半个月还会继续计提，别把可用的分空了</div>
+      <button class="btn gold big go">分红</button>`;
+    p.body.querySelectorAll('[data-v]').forEach((b) => (b.onclick = () => { pct = +b.dataset.v; render(); }));
+    const go = p.body.querySelector('.go'); go.disabled = amt < 1;
+    go.onclick = () => { const r = AC.payDividend(s, amt, now()); if (!r.ok) { toast(r.why); return; } toast(`到手 ${fmtMoney(r.net)}，个税 ${fmtMoney(r.tax)}`); game.changed(); game.save(); p.close(); ctx && ctx.rerender(); };
+  };
+  render();
+}

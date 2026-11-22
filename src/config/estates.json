@@ -1,0 +1,295 @@
+{
+ "_说明": "房产（设计19）：26 处；region china 阶段一能买（不看限购）；hk / overseas 阶段二（要先开境外账户）。check：none 只要钱 / verify 验资冻结 10 分钟 / proof 验资 + 身价 ≥ 房价 3 倍、冻结 20 分钟 / auction 拍卖（人脉 ≥ 40，保证金 10%） / abroad 境外",
+ "houses": [
+  {
+   "id": "house_sh_1",
+   "name": "前滩三居",
+   "city": "上海",
+   "region": "china",
+   "area": 150,
+   "price": 15000000,
+   "check": "none"
+  },
+  {
+   "id": "house_sh_2",
+   "name": "陆家嘴江景大平层（汤辰一品）",
+   "city": "上海",
+   "region": "china",
+   "area": 600,
+   "price": 120000000,
+   "check": "proof"
+  },
+  {
+   "id": "house_03_shanghai",
+   "name": "外滩顶层",
+   "city": "上海",
+   "region": "china",
+   "area": 800,
+   "price": 200000000,
+   "check": "proof"
+  },
+  {
+   "id": "house_sh_4",
+   "name": "佘山独栋别墅",
+   "city": "上海",
+   "region": "china",
+   "area": 1200,
+   "price": 160000000,
+   "check": "proof"
+  },
+  {
+   "id": "house_gz_1",
+   "name": "珠江新城江景三居",
+   "city": "广州",
+   "region": "china",
+   "area": 180,
+   "price": 16000000,
+   "check": "none"
+  },
+  {
+   "id": "house_gz_2",
+   "name": "珠江边大平层",
+   "city": "广州",
+   "region": "china",
+   "area": 400,
+   "price": 40000000,
+   "check": "verify"
+  },
+  {
+   "id": "house_gz_3",
+   "name": "二沙岛独栋别墅",
+   "city": "广州",
+   "region": "china",
+   "area": 1000,
+   "price": 150000000,
+   "check": "proof"
+  },
+  {
+   "id": "house_bj_1",
+   "name": "望京三居",
+   "city": "北京",
+   "region": "china",
+   "area": 160,
+   "price": 12000000,
+   "check": "none"
+  },
+  {
+   "id": "house_bj_2",
+   "name": "国贸大平层",
+   "city": "北京",
+   "region": "china",
+   "area": 300,
+   "price": 45000000,
+   "check": "verify"
+  },
+  {
+   "id": "house_bj_3",
+   "name": "长安街大平层（京壹号院）",
+   "city": "北京",
+   "region": "china",
+   "area": 600,
+   "price": 120000000,
+   "check": "proof"
+  },
+  {
+   "id": "house_bj_4",
+   "name": "后海四合院",
+   "city": "北京",
+   "region": "china",
+   "area": 800,
+   "price": 200000000,
+   "check": "auction"
+  },
+  {
+   "id": "house_sz_1",
+   "name": "南山后海三居",
+   "city": "深圳",
+   "region": "china",
+   "area": 150,
+   "price": 20000000,
+   "check": "none"
+  },
+  {
+   "id": "house_sz_2",
+   "name": "深圳湾大平层（深湾壹号）",
+   "city": "深圳",
+   "region": "china",
+   "area": 400,
+   "price": 80000000,
+   "check": "verify"
+  },
+  {
+   "id": "house_sz_3",
+   "name": "香蜜湖别墅",
+   "city": "深圳",
+   "region": "china",
+   "area": 900,
+   "price": 150000000,
+   "check": "proof"
+  },
+  {
+   "id": "house_hk_1",
+   "name": "山顶独立屋",
+   "city": "香港",
+   "region": "hk",
+   "area": 1000,
+   "price": 500000000,
+   "check": "abroad",
+   "note": "从价印花税最高 4.25%"
+  },
+  {
+   "id": "house_01_tokyo",
+   "name": "港区公寓",
+   "city": "东京",
+   "region": "overseas",
+   "area": 200,
+   "price": 30000000,
+   "check": "abroad",
+   "note": "不动产取得税约 3%～4% + 登录免许税约 2%"
+  },
+  {
+   "id": "house_sg_1",
+   "name": "圣淘沙湾洋房",
+   "city": "新加坡",
+   "region": "overseas",
+   "area": 600,
+   "price": 110000000,
+   "check": "abroad",
+   "note": "额外买家印花税 60% + 普通印花税最高 6%；只能买圣淘沙湾，要土地局批准"
+  },
+  {
+   "id": "house_dxb_1",
+   "name": "棕榈岛别墅",
+   "city": "迪拜",
+   "region": "overseas",
+   "area": 1000,
+   "price": 200000000,
+   "check": "abroad",
+   "note": "登记费 4%；可拿 10 年黄金签证"
+  },
+  {
+   "id": "house_02_vancouver",
+   "name": "西区海景",
+   "city": "温哥华",
+   "region": "overseas",
+   "area": 500,
+   "price": 80000000,
+   "check": "abroad",
+   "note": "BC 省外国买家税 20%；每年房产税约 0.3%"
+  },
+  {
+   "id": "house_par_1",
+   "name": "十六区公寓",
+   "city": "巴黎",
+   "region": "overseas",
+   "area": 300,
+   "price": 120000000,
+   "check": "abroad",
+   "note": "公证费和登记税约 7%～8%；每年房产财富税 0.5%～1.5%"
+  },
+  {
+   "id": "house_syd_1",
+   "name": "悉尼港湾顶层公寓",
+   "city": "悉尼",
+   "region": "overseas",
+   "area": 400,
+   "price": 180000000,
+   "check": "abroad",
+   "note": "FIRB 审批（申请费约 1%）+ 外国买家印花税附加 9% + 每年土地税附加 5%"
+  },
+  {
+   "id": "house_ldn_1",
+   "name": "梅菲尔联排别墅",
+   "city": "伦敦",
+   "region": "overseas",
+   "area": 600,
+   "price": 280000000,
+   "check": "abroad",
+   "note": "印花税分段最高 12% + 非居民附加 2% + 多套附加 5%"
+  },
+  {
+   "id": "house_ch_1",
+   "name": "格施塔德木屋",
+   "city": "瑞士",
+   "region": "overseas",
+   "area": 500,
+   "price": 300000000,
+   "check": "abroad",
+   "note": "Lex Koller 法：只能买度假区，每年有名额，要申请许可"
+  },
+  {
+   "id": "house_ny_1",
+   "name": "中央公园顶层公寓",
+   "city": "纽约",
+   "region": "overseas",
+   "area": 700,
+   "price": 360000000,
+   "check": "abroad",
+   "note": "买家豪宅税 3.9%；每年房产税约 1%"
+  },
+  {
+   "id": "house_04_losangeles",
+   "name": "山顶别墅",
+   "city": "洛杉矶",
+   "region": "overseas",
+   "area": 1500,
+   "price": 500000000,
+   "check": "abroad",
+   "note": "每年房产税约 1.2%"
+  },
+  {
+   "id": "house_05_monaco",
+   "name": "海景别墅",
+   "city": "摩纳哥",
+   "region": "overseas",
+   "area": 1000,
+   "price": 1500000000,
+   "check": "abroad",
+   "note": "登记税约 4.5%～7.5%"
+  }
+ ],
+ "verify": {
+  "minPrice": 30000000,
+  "proofPrice": 100000000,
+  "verifyMin": 10,
+  "proofMin": 20,
+  "proofNetWorthX": 3,
+  "auctionNetwork": 40,
+  "auctionDeposit": 0.1
+ },
+ "deed": {
+  "first": [
+   [
+    140,
+    0.01
+   ],
+   [
+    1000000000.0,
+    0.015
+   ]
+  ],
+  "second": [
+   [
+    140,
+    0.01
+   ],
+   [
+    1000000000.0,
+    0.02
+   ]
+  ],
+  "third": 0.03
+ },
+ "propertyFee": {
+  "normal": 8,
+  "luxury": 30,
+  "luxuryFrom": 30000000
+ },
+ "shanghaiTax": {
+  "rate": 0.006,
+  "low": 0.004,
+  "base": 0.7,
+  "lowBelow": 30000000
+ },
+ "sellRate": 0.7
+}

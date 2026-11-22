@@ -1,0 +1,7 @@
+{
+  "_说明": "游戏时间（任务板规矩 6）：一年 = 200 小时、一个月 = 200/12 小时、一个季度 = 50 小时真实时间",
+  "yearHours": 200,
+  "monthsPerYear": 12,
+  "quartersPerYear": 4,
+  "maxWaitMinutes": 30
+}

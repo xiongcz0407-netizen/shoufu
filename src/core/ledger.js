@@ -1,0 +1,96 @@
+// 流水账（设计15 第一节）：所有钱的进出都走 post()，不准直接改余额
+// 钱包：personal 个人现金（s.cash）/ company 公司账户（s.company）
+// 每条：{ id, t, wallet, dir: 'in'|'out', cat, amount, tax, party, ref, by, note }
+export const WALLET_NAME = { personal: '个人现金', company: '公司账户', offshore: '境外账户' }; // offshore：第 2-14 项，按人民币等值记（s.offshore）
+// 类别（设计15）：key → [中文, 归属]
+export const CATS = {
+  // 公司收入
+  revenue: ['营业收入', 'company'], prepaid: ['预收账款（会员卡 / 储值卡）', 'company'], franchise: ['加盟费', 'company'], acquired_revenue: ['收购来的产业收入', 'company'], capital: ['注册资本', 'company'], battle_bonus: ['商战奖金', 'company'], refund: ['退款', 'company'], tax_refund: ['退税', 'company'], presale: ['预售 / 售房回款', 'company'], rent_co: ['租金收入（公司）', 'company'], escrow_out: ['监管账户解冻', 'company'],
+  // 公司支出
+  prepaid_used: ['会员卡消费冲预收', 'company'],
+  cogs: ['进货成本', 'company'], payroll: ['员工工资', 'company'], social: ['社保公积金', 'company'], agency: ['劳务派遣费', 'company'], severance: ['裁员赔偿', 'company'], bonus: ['年终奖', 'company'], iit_withheld: ['代扣个税', 'company'], rent: ['房租', 'company'], opex: ['水电物业和杂费', 'company'], expand: ['升级 / 开分店', 'company'], recruit: ['招聘费', 'company'],
+  training: ['员工培训费', 'company'], acquire: ['收购款', 'company'], investment: ['融资款（限公司用）', 'company'], option_strike: ['秘书行权缴款', 'company'], penalty: ['违约金', 'company'], tax_company: ['公司税费', 'company'], dividend_out: ['分红给老板', 'company'], sec_salary: ['秘书工资', 'company'], accrued: ['计提应付（备忘）', 'company'], loss: ['经营损失', 'company'], outsource: ['外包服务费', 'company'], welfare: ['职工福利费', 'company'], land: ['土地款', 'company'], construction: ['建安工程款', 'company'], re_cost: ['地产开发费用', 'company'], escrow_in: ['转入监管账户', 'company'], fleet: ['车队购置', 'company'], rnd: ['研发费用', 'company'], film_cost: ['影视制作 / 宣发', 'company'], filing: ['注册登记 / 代办费', 'company'], loan_in: ['借款到账', 'company'], deposit_in: ['存入银行', 'company'], deposit_out: ['银行取出', 'company'], interest_in: ['存款利息', 'company'], loan_out: ['还本金', 'company'], interest: ['利息', 'company'], rnd_extra: ['研发加计扣除（备忘）', 'company'], depreciation: ['折旧（备忘）', 'company'],
+  // 个人收入
+  dividend: ['分红', 'personal'], sell: ['卖东西', 'personal'], reward: ['奖励', 'personal'], rent_income: ['租金收入', 'personal'], savings: ['个人存款（开局）', 'personal'],
+  // 个人支出
+  car: ['车', 'personal'], house: ['房', 'personal'], plane: ['飞机', 'personal'], yacht: ['游艇', 'personal'], watch: ['名表', 'personal'], suit: ['西装', 'personal'], bag: ['名包（送秘书）', 'personal'], antique: ['古董藏品', 'personal'], fx_out: ['个人购汇', 'personal'], fx_in: ['购汇汇入', 'offshore'], dividend_abroad: ['境外分红', 'offshore'], odi_out: ['境外投资汇出（ODI）', 'company'], stock_buy: ['买股票', 'personal'], stock_sell: ['卖股票', 'personal'], stock_fee: ['股票佣金 / 印花税', 'personal'], stock_div: ['股票分红', 'personal'], inv_out: ['划给投资经理', 'personal'], inv_in: ['投资经理还回', 'personal'], fund_buy: ['申购基金', 'personal'], fund_sell: ['赎回基金', 'personal'], fund_fee: ['基金申购 / 赎回费、业绩报酬', 'personal'], gift: ['礼物', 'personal'], clothes: ['衣服', 'personal'],
+  capital_out: ['注资到公司', 'personal'], buyback: ['对赌回购', 'personal'], pledge_repay: ['质押物处置还款', 'personal'], date: ['约会', 'personal'], upkeep: ['维护 / 物业费', 'personal'], tax_personal: ['个人税费', 'personal'],
+  debug: ['调试', 'personal'],
+  commission: ['销售提成', 'company'], family_office: ['家族办公室开支', 'personal'], // 第 2-15 项
+  landmark: ['地标收购', 'company'], // 第 3-07 项
+  odi_dividend: ['境外子公司分红', 'company'], // 第 3-06 项
+  landmark_sale: ['地标出售', 'company'],
+  co_stock: ['公司买股票', 'company'], co_stock_sell: ['公司卖股票', 'company'], // 验收阶段三：公司买的才能举牌、要约、控股
+  ipo: ['上市募资', 'company'], ipo_fee: ['承销保荐和发行费用', 'company'], reduce: ['减持股票', 'personal'], // 第 3-04 项
+  newbie: ['新手奖励', 'personal'], margin_in: ['融资借款（买股票）', 'personal'], margin_repay: ['归还融资', 'personal'], margin_interest: ['融资利息', 'personal'], ipo_pay: ['新股中签缴款', 'personal'], // 第 P-06 项
+};
+export const KEEP_GAME_YEARS = 3;
+import BANKCFG from '../config/bank.json?v=1236a42d' with { type: 'json' };
+const USE_CATS = BANKCFG.useCats;
+
+const bal = (s, w) => (w === 'company' ? s.company : w === 'offshore' ? (s.offshore || 0) : s.cash);
+export const balance = bal;
+/** 个人现金里冻结的（买房验资认筹）不能花 */
+const frozenCash = (s) => (s.freezes || []).reduce((a, f) => a + f.amount, 0);
+export const canPay = (s, wallet, amount) => bal(s, wallet) - (wallet === 'personal' ? frozenCash(s) : 0) >= amount - 1e-9;
+
+/** 记一笔并改余额。out 时余额不够返回 null（不扣）；force 允许扣成负数（欠工资、欠税） */
+export function post(s, e, t = Date.now()) {
+  const amount = Math.round((e.amount || 0) * 100) / 100;
+  if (!(amount > 0)) return null;
+  const wallet = e.wallet || (CATS[e.cat] ? CATS[e.cat][1] : 'personal');
+  if (e.dir === 'out' && !e.force && !e.memo && !canPay(s, wallet, amount)) return null;
+  const k = e.dir === 'out' ? -1 : 1;
+  if (e.memo) { /* 备忘行（代扣个税等）：只记账不动余额 */ } else if (wallet === 'company') s.company = (s.company || 0) + k * amount; else if (wallet === 'offshore') s.offshore = (s.offshore || 0) + k * amount; else s.cash = (s.cash || 0) + k * amount;
+  s.ledgerSeq = (s.ledgerSeq || 0) + 1;
+  if (e.dir === 'out' && wallet === 'company' && !e.memo && s.bank && s.bank.restricted > 0 && USE_CATS.includes(e.cat)) s.bank.restricted = Math.max(0, s.bank.restricted - amount); // 贷款资金先花在产业上（专款专用）
+  const row = { id: s.ledgerSeq, t, wallet, dir: e.dir, cat: e.cat, amount, memo: !!e.memo, tax: e.tax || 0, party: e.party || '', ref: e.ref || '', by: e.by || '', note: e.note || '' };
+  (s.ledger = s.ledger || []).push(row);
+  return row;
+}
+export const pay = (s, e, t) => post(s, { ...e, dir: 'out' }, t);
+export const receive = (s, e, t) => post(s, { ...e, dir: 'in' }, t);
+
+/** 按秒产生的收入（每秒一条太多）：先攒着，flushAccruals 时合成一条 */
+export function accrue(s, key, wallet, cat, amount, note = '', dir = 'in') {
+  if (!(amount > 0)) return;
+  const k = dir === 'out' ? -1 : 1;
+  if (wallet === 'company') s.company = (s.company || 0) + k * amount; else if (wallet === 'offshore') s.offshore = (s.offshore || 0) + k * amount; else s.cash = (s.cash || 0) + k * amount;
+  const a = (s.accruals = s.accruals || {});
+  const x = (a[key] = a[key] || { wallet, cat, amount: 0, note, dir });
+  x.amount += amount;
+}
+/** 把攒着的收入写成流水（余额已经加过了，只补账） */
+export function flushAccruals(s, t = Date.now()) {
+  const a = s.accruals || {};
+  for (const [key, x] of Object.entries(a)) {
+    if (x.amount >= 0.01) {
+      s.ledgerSeq = (s.ledgerSeq || 0) + 1;
+      (s.ledger = s.ledger || []).push({ id: s.ledgerSeq, t, wallet: x.wallet, dir: x.dir || 'in', cat: x.cat, amount: Math.round(x.amount * 100) / 100, tax: 0, party: '', ref: '', by: '', note: x.note || key });
+    }
+  }
+  s.accruals = {};
+}
+
+/** 太老的流水按游戏月合并成汇总行（明细保留最近 3 个游戏年） */
+export function compact(s, monthOf, nowMonth) {
+  const keepFrom = nowMonth - KEEP_GAME_YEARS * 12;
+  const old = []; const keep = [];
+  for (const r of s.ledger || []) (monthOf(r.t) < keepFrom && !r.summary ? old : keep).push(r);
+  if (!old.length) return 0;
+  const groups = {};
+  for (const r of old) {
+    const k = [monthOf(r.t), r.wallet, r.dir, r.cat].join('|');
+    const g = (groups[k] = groups[k] || { ...r, amount: 0, tax: 0, summary: true, count: 0, note: '月汇总' });
+    g.amount += r.amount; g.tax += r.tax; g.count += 1;
+  }
+  s.ledger = [...Object.values(groups), ...keep].sort((a, b) => a.t - b.t);
+  return old.length;
+}
+
+/** 查流水：{ wallet, cat, by, from, to } */
+export function query(s, f = {}) {
+  return (s.ledger || []).filter((r) => (!f.wallet || r.wallet === f.wallet) && (!f.cat || r.cat === f.cat) && (!f.by || r.by === f.by)
+    && (f.from == null || r.t >= f.from) && (f.to == null || r.t < f.to));
+}
+export function sum(rows, dir) { return rows.filter((r) => !dir || r.dir === dir).reduce((a, r) => a + (r.dir === 'out' ? -r.amount : r.amount) * (dir ? (r.dir === 'out' ? -1 : 1) : 1), 0); }

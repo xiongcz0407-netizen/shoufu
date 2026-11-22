@@ -1,0 +1,23 @@
+{
+  "_说明": "物流（设计20 第二节 2）。规模制：每升一级每个网点多 15 个人、多一份件量；收入 = 在岗人数 × 人均月营收（件量 × 单票收入）。成本：人工约 40%、车辆油费路桥 25% + 中转外包和包材 9%（进货成本那一栏 34%）、场地 10%（按人头），净利 5%～8%",
+  "headsPerLevel": 15,
+  "revPerHead": 26000,
+  "_revPerHead": "真实人均月营收；游戏里按真实经济反推（设计21）：人均月净利 = 26000 × realMargin × profitMul，成本照真实（进货 34%、按样子的人均工资社保、场地、车辆折旧、增值税）",
+  "realMargin": 0.065,
+  "calibVat": 0.037,
+  "ticketPrice": 4.2,
+  "rentPerHead": 2600,
+  "vatSplit": [[0.7, 0.09], [0.3, 0.06]],
+  "fleet": {
+    "_说明": "车队是公司资产：购置税 10%（不含税价），进项 13% 抵扣，按 4 个游戏年直线折旧进利润表",
+    "kinds": { "van": { "name": "电动厢式货车", "price": 150000, "units": 1 }, "truck": { "name": "重型半挂牵引车", "price": 400000, "units": 3 } },
+    "byLook": ["van", "truck", "truck"],
+    "headsPerUnit": 5,
+    "purchaseTax": 0.1,
+    "vatDiv": 1.13,
+    "inputVat": 0.13,
+    "years": 4
+  },
+  "d11": { "month": 11, "day": 11, "mult": 3, "staffNeed": 2, "noticeDays": 1, "complainMonths": 3, "complainCut": 0.1, "_complain": "爆仓了：客户投诉、商家转单，之后 3 个游戏月件量 −10%（2-16a）" },
+  "linkCogs": { "inds": ["store", "fashion"], "cut": 0.02 }
+}

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="首富之路">
+<meta name="theme-color" content="#0f1d33">
+<title>首富之路</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="boot/favicon-32.png?v=ba4010d1">
+<link rel="icon" type="image/png" sizes="16x16" href="boot/favicon-16.png?v=4d72b5bf">
+<link rel="apple-touch-icon" href="boot/apple-touch-icon.png?v=189747a9">
+<link rel="preload" as="image" href="boot/bg_title.webp?v=5c2bd061">
+<link rel="preload" as="image" href="boot/logo.webp?v=87872a9b">
+<style>
+/* 加载页（设计22 第一节）：结构和样式都在这里，不等 style.css 和游戏代码，打开就出来 */
+html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+body { display: flex; align-items: center; justify-content: center; }
+#phone { position: relative; overflow: hidden; background: #0f1d33; width: 100vw; height: 100vh; height: 100dvh; }
+#phone #screen-loading { position: absolute; inset: 0; display: block; z-index: 50; color: #f6f1e7; text-align: center;
+  font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; transition: opacity .6s;
+  background: #0f1d33 url(boot/bg_title.webp?v=5c2bd061) center / cover no-repeat; user-select: none; -webkit-user-select: none; }
+#screen-loading.out { opacity: 0; pointer-events: none; }
+#screen-loading .bt-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8,16,30,.55) 0%, rgba(8,16,30,0) 30%, rgba(8,16,30,0) 55%, rgba(8,16,30,.85) 100%); }
+#screen-loading .bt-name { position: absolute; left: 0; right: 0; top: calc(env(safe-area-inset-top, 0px) + 9%); font-family: "Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", serif;
+  font-size: 48px; font-weight: 900; letter-spacing: 10px; color: #e8c27a; text-shadow: 0 2px 0 #6d5228, 0 4px 18px rgba(0,0,0,.7); }
+#screen-loading .bt-logo { display: block; width: 86%; max-width: 440px; margin: 0 auto; filter: drop-shadow(0 4px 14px rgba(0,0,0,.65)); }
+#screen-loading .bt-sub { margin-top: 6px; font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; font-size: 14px; font-weight: 400; letter-spacing: 4px; color: #f6f1e7; opacity: .85; text-shadow: 0 1px 6px #000; }
+#screen-loading .bt-low { position: absolute; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 64px); }
+#screen-loading .bt-bar { margin: 0 auto; width: 70%; height: 12px; border-radius: 7px; background: #0f1d33; border: 1.5px solid #b08a45; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,.6); }
+#screen-loading .bt-fill { width: 0; height: 100%; background: linear-gradient(90deg, #b08a45, #f2d593); transition: width .2s; }
+#screen-loading .bt-txt { margin-top: 12px; font-size: 14px; text-shadow: 0 1px 4px #000; }
+#screen-loading .bt-txt small { display: block; margin-top: 4px; font-size: 12px; opacity: .8; }
+#screen-loading .bt-tip { margin: 14px auto 0; width: 82%; font-size: 12px; opacity: .75; min-height: 2.6em; transition: opacity .5s; text-shadow: 0 1px 4px #000; }
+#screen-loading .bt-go { display: none; margin: 0 auto; font-size: 20px; letter-spacing: 4px; color: #f2d593; font-weight: 700; text-shadow: 0 2px 8px #000; animation: btblink 1.4s ease-in-out infinite; }
+#screen-loading.ready .bt-go { display: block; }
+#screen-loading.ready .bt-bar, #screen-loading.ready .bt-txt { display: none; }
+@keyframes btblink { 0%, 100% { opacity: 1 } 50% { opacity: .3 } }
+#screen-loading .bt-btns { display: none; margin-top: 12px; }
+#screen-loading .bt-btns.on { display: block; }
+#screen-loading button { font: inherit; font-size: 15px; padding: 8px 18px; margin: 0 6px; border-radius: 18px; border: 1.5px solid #b08a45; background: #0f1d33; color: #f2d593; }
+#screen-loading button.g { background: transparent; color: #f6f1e7; border-color: rgba(246,241,231,.5); }
+#screen-loading .load-ver { position: absolute; right: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 8px); font-size: 11px; opacity: .45; }
+#screen-loading .bt-card { display: none; position: absolute; left: 7%; right: 7%; top: 30%; padding: 22px 20px 16px; border-radius: 16px; background: rgba(15,29,51,.94); border: 1.5px solid #b08a45; box-shadow: 0 10px 40px rgba(0,0,0,.6); text-align: left; }
+#screen-loading .bt-card.on { display: block; }
+#screen-loading .bt-card h4 { margin: 0 0 14px; text-align: center; font-size: 19px; color: #f2d593; letter-spacing: 4px; }
+#screen-loading .bt-card label { display: flex; align-items: center; margin: 10px 0; font-size: 15px; }
+#screen-loading .bt-card label span { width: 4.5em; color: #e8c27a; }
+#screen-loading .bt-card input { flex: 1; min-width: 0; font-size: 16px; padding: 8px 10px; border-radius: 8px; border: 1px solid #b08a45; background: #f6f1e7; color: #14110f; }
+#screen-loading .bt-card p { margin: 8px 0; font-size: 14px; line-height: 1.6; }
+#screen-loading .bt-card .bt-msg { min-height: 1.4em; color: #ff9b8a; font-size: 13px; text-align: center; }
+#screen-loading .bt-card .note { font-size: 12px; opacity: .65; text-align: center; }
+#screen-loading .bt-card .row { text-align: center; margin-top: 6px; }
+</style>
+<link rel="stylesheet" href="src/style.css?v=1236a42d">
+</head>
+<body>
+<div id="phone">
+  <div id="screen-loading" class="screen">
+    <div class="bt-shade"></div>
+    <div class="bt-name"><img class="bt-logo" src="boot/logo.webp?v=87872a9b" alt="首富之路"><div class="bt-sub">从一家便利店，到一万亿</div></div>
+    <div class="bt-low">
+      <div class="bt-bar"><div class="bt-fill load-fill"></div></div>
+      <div class="bt-txt load-text">整理办公桌…</div>
+      <div class="bt-go">点一下，开始营业</div>
+      <div class="bt-btns"><button class="bt-retry">再试一次</button><button class="g bt-skip">先进游戏</button></div>
+      <div class="bt-tip"></div>
+    </div>
+    <div class="bt-card"></div>
+    <div class="load-ver"></div>
+  </div>
+  <div id="screen-main" class="screen hidden"></div>
+</div>
+<script type="module" src="src/boot.js?v=1236a42d"></script>
+</body>
+</html>

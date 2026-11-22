@@ -1,0 +1,6 @@
+{
+ "_说明": "拍卖会（第 2-14b 项，设计09 第三节）：车和古董同一个按场次的拍卖会。每 slotMin 分钟一场，每场 lots 件；起拍价 = 原价 / 估价 × startLo～startHi；NPC 最高出到 起拍价 × npcLo～npcHi；车人脉 ≥ 30 收图录（个别车配置里写更高）；拍到了 payMin 分钟内付款，违约人脉 −defaultNetwork；收藏顾问代拍古董：NPC × (1 − 交际/100 × proxySocialK)",
+ "slotMin": 30, "lots": [2, 4], "payMin": 5, "defaultNetwork": 5, "proxySocialK": 0.15,
+ "car": { "startLo": 1.5, "startHi": 3, "npcLo": 1.0, "npcHi": 2.0, "network": 30 },
+ "antique": { "startLo": 0.8, "startHi": 0.8, "npcLo": 1.0, "npcHi": 3.1 }
+}

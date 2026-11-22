@@ -1,0 +1,234 @@
+{
+  "_说明": "秘书职位（设计16）和秘书工资（设计17 第二节），阶段一：店长、财务总监、资产管家 + 外包；阶段二加商务总监（带去商战、谈收购、反击预警、谈融资利率）",
+  "posts": {
+    "manager": {
+      "name": "店长",
+      "icon": "icon_post_manager",
+      "attrs": [
+        "manage"
+      ],
+      "base": 15000,
+      "perfRate": 0.01,
+      "unlockTitle": 0,
+      "auth": 100000
+    },
+    "cfo": {
+      "name": "财务总监",
+      "icon": "icon_post_cfo",
+      "attrs": [
+        "wit",
+        "manage"
+      ],
+      "base": 30000,
+      "unlockTitle": 0,
+      "auth": 0
+    },
+    "steward": {
+      "name": "资产管家",
+      "icon": "icon_post_steward",
+      "attrs": [
+        "manage",
+        "social"
+      ],
+      "base": 18000,
+      "rentRate": 0.05,
+      "unlockTitle": 1,
+      "auth": 50000
+    },
+    "biz": {
+      "name": "商务总监",
+      "icon": "icon_post_biz",
+      "attrs": [
+        "social",
+        "charm"
+      ],
+      "base": 28000,
+      "unlockTitle": 2,
+      "auth": 0
+    },
+    "collector": {
+      "name": "收藏顾问",
+      "icon": "icon_post_collect",
+      "attrs": [
+        "wit",
+        "social"
+      ],
+      "base": 20000,
+      "unlockTitle": 2,
+      "auth": 0
+    },
+    "invest": {
+      "name": "投资经理",
+      "icon": "icon_post_invest",
+      "attrs": [
+        "wit"
+      ],
+      "base": 30000,
+      "unlockTitle": 1,
+      "auth": 0
+    },
+    "ipo": {
+      "name": "投融资总监",
+      "icon": "icon_post_ipo",
+      "attrs": [
+        "social",
+        "wit"
+      ],
+      "base": 60000,
+      "raiseRate": 0.005,
+      "unlockTitle": 2,
+      "auth": 0,
+      "_说明": "设计23 第三节：交际 + 智慧，基本月薪 6 万 + 融资额 0.5%；估值多谈 5%～15%（按本事）、对赌松一档、谈判成功率加成；上市审核问询少、减持时机提醒给开发2 用（capital.ipoPower）。设计16 写企业家解锁，A / B 轮在老板阶段，提前到老板"
+    }
+  },
+  "assistantBase": 9000,
+  "_starterSalary": "打工人阶段秘书按店员工资（设计21 第四节：夏芷晴开局是店员兼助理 5500 + 社保），升小老板后按职位和规模算",
+  "starterSalary": 5500,
+  "salaryAttrBase": 0.6,
+  "salaryAttrK": 0.8,
+  "_scaleByTitle": "秘书工资规模系数（设计21 第四节）：打工人 0.6（夏芷晴按店员工资）",
+  "scaleByTitle": [
+    0.6,
+    1,
+    1.5,
+    2.5,
+    4,
+    4,
+    4,
+    4
+  ],
+  "handoverMin": 10,
+  "handoverEff": 0.5,
+  "trainingEff": 0.5,
+  "favorEff": [
+    [
+      200,
+      1.1
+    ],
+    [
+      400,
+      1.2
+    ]
+  ],
+  "neglectDays": 3,
+  "neglectEff": 0.7,
+  "raise": {
+    "askAbove": 1.1,
+    "acceptFavor": 10,
+    "rejectFavor": -10,
+    "rejectEff": 0.9,
+    "giveRate": 0.1,
+    "giveFavor": 5
+  },
+  "manager": {
+    "revK": 0.8,
+    "costK": 0.15,
+    "accidentBelow": 30,
+    "accidentP": 0.1,
+    "accidentMin": 0.05,
+    "accidentMax": 0.15,
+    "branchBase": 0.5,
+    "hostEverySec": 60,
+    "defaultBudget": 200000,
+    "defaultPaybackH": 3
+  },
+  "cfo": {
+    "errBelow": 30,
+    "errP": 0.05,
+    "errExtra": 0.1,
+    "remindSmallWit": 40,
+    "remindAt": 0.8,
+    "lateDailyRate": 0.0005,
+    "fileDays": 15,
+    "keepMonths": 3
+  },
+  "steward": {
+    "upkeepK": 0.3,
+    "sellBase": 0.7,
+    "sellK": 0.1,
+    "queueK": 0.3,
+    "rentTax": 0.2,
+    "planeCharter": 0.05,
+    "houseYield": {
+      "上海": 0.015,
+      "温哥华": 0.025,
+      "东京": 0.035,
+      "洛杉矶": 0.035,
+      "摩纳哥": 0.02
+    }
+  },
+  "outsource": {
+    "ipo": {
+      "name": "FA 财务顾问",
+      "fee": 30000,
+      "_说明": "外包投融资：每月 3 万，按本事 30 算"
+    },
+    "manager": {
+      "name": "职业经理人",
+      "manage": 50,
+      "profitRate": 0.1
+    },
+    "cfo": {
+      "name": "代账公司",
+      "fee": 2000
+    },
+    "steward": {
+      "name": "物业托管公司",
+      "fee": 0
+    },
+    "biz": {
+      "name": "商务咨询公司",
+      "fee": 30000
+    },
+    "collector": {
+      "name": "古玩行掌眼师傅",
+      "fee": 10000
+    },
+    "invest": {
+      "name": "券商投顾",
+      "fee": 20000
+    }
+  },
+  "best": {
+    "s08_xu": [
+      "cfo",
+      "invest",
+      "collector"
+    ],
+    "s04_gu": [
+      "cfo",
+      "invest",
+      "collector"
+    ],
+    "s10_lu": [
+      "manager"
+    ],
+    "s09_xia": [
+      "manager"
+    ],
+    "s05_jiang": [
+      "biz",
+      "steward"
+    ],
+    "s07_tang": [
+      "biz",
+      "steward"
+    ],
+    "s01_shen": [
+      "biz",
+      "steward"
+    ],
+    "s02_su": [
+      "ipo",
+      "invest"
+    ],
+    "s03_lin": [
+      "manager",
+      "steward"
+    ],
+    "s06_ye": [
+      "manager",
+      "steward"
+    ]
+  }
+}

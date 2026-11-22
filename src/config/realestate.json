@@ -1,0 +1,58 @@
+{
+  "_说明": "地产（设计20 第二节 1）。钱都是元；时间是真实分钟（离线照样走）；面积 ㎡。数值用 tools/econsim.mjs 调",
+  "cities": {
+    "shanghai": { "name": "上海", "k": 1.0 },
+    "beijing": { "name": "北京", "k": 1.0 },
+    "shenzhen": { "name": "深圳", "k": 0.95 },
+    "guangzhou": { "name": "广州", "k": 0.85 },
+    "suzhou": { "name": "苏州", "k": 0.7, "small": true },
+    "foshan": { "name": "佛山", "k": 0.6, "small": true },
+    "jiaxing": { "name": "嘉兴", "k": 0.5, "small": true }
+  },
+  "_small": "小地块（验收阶段二 2-16b）：每月除了北上广深，再挂 2～3 块郊区 / 二线城市住宅小地块：可建 1～3 万 ㎡、起拍楼面价 2000～5000 元/㎡（已是当地价，不再乘城市系数）、总投入约 3000 万～1 亿；要先注册当地分公司",
+  "small": { "listings": [2, 3], "gfa": [10000, 30000], "floorPrice": [2000, 5000], "far": [1.8, 2.2] },
+  "districts": {
+    "shanghai": ["嘉定新城", "临港新片区", "松江新城", "青浦新城"],
+    "beijing": ["大兴新城", "顺义新城", "通州副中心", "昌平新城"],
+    "shenzhen": ["龙华", "光明", "坪山", "大鹏"],
+    "guangzhou": ["南沙", "增城", "从化", "花都"],
+    "suzhou": ["吴江", "相城", "昆山", "太仓"],
+    "foshan": ["顺德", "三水", "高明", "南海"],
+    "jiaxing": ["嘉善", "平湖", "海宁", "桐乡"]
+  },
+  "types": {
+    "residential": { "name": "住宅小区", "minTitle": 2, "use": "居住用地", "years": 70, "landArea": [6000, 15000], "far": [1.8, 2.2], "floorPrice": [2200, 4200], "buildCost": 3000, "markup": 1.4, "devFeeRate": 0.06, "ordinary": true },
+    "commercial": { "name": "商业综合体", "minTitle": 3, "use": "商服用地", "years": 40, "landArea": [40000, 80000], "far": [2.5, 3.2], "floorPrice": [3800, 6000], "buildCost": 4500, "markup": 1.55, "devFeeRate": 0.07, "ordinary": false, "canHold": true }
+  },
+  "market": {
+    "listings": [3, 5],
+    "npcMaxPremium": [0.0, 0.35],
+    "raiseStep": [0.05, 0.1],
+    "npcRounds": 3,
+    "npcNames": ["锦城置业", "华荣地产", "鼎盛置业", "恒泰发展", "润江地产", "新航置业"],
+    "heat": { "cold": { "name": "冷", "sell": 0.55, "price": 0.95, "w": 0.25 }, "normal": { "name": "平稳", "sell": 0.8, "price": 1.0, "w": 0.5 }, "hot": { "name": "热", "sell": 1.0, "price": 1.05, "w": 0.25 } }
+  },
+  "_time": "项目周期写现实月份，游戏里 = 现实 ÷ profitMul、每段最少 1 个游戏月（设计21 第九节）：拿地办证 3、建设住宅 12 / 商业 24、开工满 6 个月起 3 批预售每批隔 3、竣工且卖完后交房清算 3",
+  "time": { "permit": 3, "build": { "residential": 12, "commercial": 24 }, "presaleFrom": 6, "batchGap": 3, "deliver": 3 },
+  "maxProjects": [0, 0, 2, 4, 6, 6, 6, 6],
+  "buildPrepay": 0.5,
+  "batches": 3,
+  "escrowKeep": 0.3,
+  "tailDiscount": { "cold": 0.8, "normal": 0.88, "hot": 0.95 },
+  "agentCommission": 0.001,
+  "dismissMin": 30,
+  "tax": {
+    "deed": 0.03,
+    "stampLand": 0.0005,
+    "stampSale": 0.0003,
+    "vat": 0.09,
+    "vatPrepay": 0.03,
+    "latPrepay": 0.02,
+    "latExemptOrdinary": 0.2,
+    "latDevFee": 0.1,
+    "latExtra": 0.2,
+    "latBrackets": [[0.5, 0.3, 0], [1.0, 0.4, 0.05], [2.0, 0.5, 0.15], [1e9, 0.6, 0.35]],
+    "propertyTaxRent": 0.12
+  },
+  "hold": { "valueK": 1.3, "rentYield": 0.045, "mgmtRate": 0.1 }
+}

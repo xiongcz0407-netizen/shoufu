@@ -1,0 +1,678 @@
+{
+ "_说明": "地标建筑（第 3-07 项，设计19 第四节 + 设计23 第八节）。公司买（公司账户 + 并购贷款），不是个人。value 估值（元）；yield 真实年租金回报（代码里 × profitMul）；opexYear 运营成本占估值 / 年（真实，不乘）；buyTax 买的时候的税费（占价格）；holdTax：cnRent 从租（中国 12%）/ rent 从租（香港差饷 5%）/ value 按估值每年（真实，不乘）；approvals 要过的审批；deal 怎么买：negotiate 谈判 / tender 竞标（NPC 财团一起抢）",
+ "minTitle": 3,
+ "broker": {
+  "name": "仲梁联行",
+  "fee": 0.005
+ },
+ "ddMin": 15,
+ "depositRate": 0.1,
+ "attr": {
+  "network": 10,
+  "vision": 5
+ },
+ "offers": {
+  "negotiate": [
+   [
+    0.9,
+    0.25
+   ],
+   [
+    0.95,
+    0.55
+   ],
+   [
+    1.0,
+    0.85
+   ],
+   [
+    1.05,
+    1.0
+   ]
+  ],
+  "tender": [
+   1.0,
+   1.05,
+   1.1,
+   1.15
+  ],
+  "npcMin": 0.95,
+  "npcSpan": 0.2
+ },
+ "approvals": {
+  "odi": {
+   "name": "境外投资核准（发改委 + 商务部 + 外汇登记）",
+   "min": 15,
+   "base": 0.45,
+   "perNetwork": 0.001,
+   "networkMax": 0.3,
+   "rich": 0.15,
+   "_": "房地产、酒店属于限制类，要核准；身价 ≥ 价格 3 倍 +15%，人脉每点 +0.1%（最多 +30%）"
+  },
+  "cfius": {
+   "name": "美国外资投资委员会审查（CFIUS）",
+   "min": 30,
+   "base": 0.55,
+   "perNetwork": 0.0006,
+   "networkMax": 0.25,
+   "rich": 0
+  },
+  "nsi": {
+   "name": "英国国家安全投资审查（NSI）",
+   "min": 20,
+   "base": 0.75,
+   "perNetwork": 0.0005,
+   "networkMax": 0.15,
+   "rich": 0
+  },
+  "fefta": {
+   "name": "日本外汇法事前申报",
+   "min": 10,
+   "base": 0.92,
+   "perNetwork": 0,
+   "networkMax": 0,
+   "rich": 0
+  }
+ },
+ "landmarks": [
+  {
+   "id": "landmark_gz",
+   "name": "花城国际金融中心",
+   "city": "广州",
+   "country": "中国",
+   "kind": "office",
+   "value": 15000000000,
+   "yield": 0.04,
+   "opexYear": 0.008,
+   "buyTax": [
+    [
+     "契税",
+     0.03
+    ],
+    [
+     "印花税（产权转移书据）",
+     0.0005
+    ]
+   ],
+   "holdTax": {
+    "type": "cnRent",
+    "rate": 0.12,
+    "name": "房产税（从租 12%）"
+   },
+   "approvals": [],
+   "deal": "negotiate"
+  },
+  {
+   "id": "landmark_bj",
+   "name": "京贸三期",
+   "city": "北京",
+   "country": "中国",
+   "kind": "office",
+   "value": 25000000000,
+   "yield": 0.04,
+   "opexYear": 0.008,
+   "buyTax": [
+    [
+     "契税",
+     0.03
+    ],
+    [
+     "印花税（产权转移书据）",
+     0.0005
+    ]
+   ],
+   "holdTax": {
+    "type": "cnRent",
+    "rate": 0.12,
+    "name": "房产税（从租 12%）"
+   },
+   "approvals": [],
+   "deal": "negotiate"
+  },
+  {
+   "id": "landmark_sh",
+   "name": "环宇金融中心",
+   "city": "上海",
+   "country": "中国",
+   "kind": "office",
+   "value": 30000000000,
+   "yield": 0.04,
+   "opexYear": 0.008,
+   "buyTax": [
+    [
+     "契税",
+     0.03
+    ],
+    [
+     "印花税（产权转移书据）",
+     0.0005
+    ]
+   ],
+   "holdTax": {
+    "type": "cnRent",
+    "rate": 0.12,
+    "name": "房产税（从租 12%）"
+   },
+   "approvals": [],
+   "deal": "tender"
+  },
+  {
+   "id": "landmark_sz",
+   "name": "鹏安金融中心",
+   "city": "深圳",
+   "country": "中国",
+   "kind": "office",
+   "value": 35000000000,
+   "yield": 0.04,
+   "opexYear": 0.008,
+   "buyTax": [
+    [
+     "契税",
+     0.03
+    ],
+    [
+     "印花税（产权转移书据）",
+     0.0005
+    ]
+   ],
+   "holdTax": {
+    "type": "cnRent",
+    "rate": 0.12,
+    "name": "房产税（从租 12%）"
+   },
+   "approvals": [],
+   "deal": "negotiate"
+  },
+  {
+   "id": "landmark_hk",
+   "name": "维港国金二期",
+   "city": "香港",
+   "country": "中国香港",
+   "kind": "office",
+   "value": 60000000000,
+   "yield": 0.035,
+   "opexYear": 0.008,
+   "buyTax": [
+    [
+     "从价印花税",
+     0.0425
+    ]
+   ],
+   "holdTax": {
+    "type": "rent",
+    "rate": 0.05,
+    "name": "差饷（租值 5%）"
+   },
+   "approvals": [
+    "odi"
+   ],
+   "deal": "tender"
+  },
+  {
+   "id": "landmark_dxb",
+   "name": "帆影酒店",
+   "city": "迪拜",
+   "country": "阿联酋",
+   "kind": "hotel",
+   "value": 8000000000,
+   "yield": 0.05,
+   "opexYear": 0.012,
+   "buyTax": [
+    [
+     "迪拜土地局登记费",
+     0.04
+    ]
+   ],
+   "holdTax": null,
+   "approvals": [
+    "odi"
+   ],
+   "deal": "negotiate"
+  },
+  {
+   "id": "landmark_ny_hotel",
+   "name": "华道夫酒店",
+   "city": "纽约",
+   "country": "美国",
+   "kind": "hotel",
+   "value": 14000000000,
+   "yield": 0.05,
+   "opexYear": 0.012,
+   "buyTax": [
+    [
+     "纽约市房产转让税",
+     0.02625
+    ],
+    [
+     "纽约州转让税",
+     0.0065
+    ]
+   ],
+   "holdTax": {
+    "type": "value",
+    "rate": 0.015,
+    "name": "纽约商业物业税"
+   },
+   "approvals": [
+    "odi",
+    "cfius"
+   ],
+   "deal": "negotiate"
+  },
+  {
+   "id": "landmark_ldn",
+   "name": "碎玻璃塔",
+   "city": "伦敦",
+   "country": "英国",
+   "kind": "office",
+   "value": 15000000000,
+   "yield": 0.045,
+   "opexYear": 0.008,
+   "buyTax": [
+    [
+     "土地印花税（商业）",
+     0.05
+    ]
+   ],
+   "holdTax": {
+    "type": "value",
+    "rate": 0.01,
+    "name": "营业房产税（Business Rates）"
+   },
+   "approvals": [
+    "odi",
+    "nsi"
+   ],
+   "deal": "negotiate"
+  },
+  {
+   "id": "landmark_tyo",
+   "name": "六本森塔",
+   "city": "东京",
+   "country": "日本",
+   "kind": "office",
+   "value": 20000000000,
+   "yield": 0.035,
+   "opexYear": 0.008,
+   "buyTax": [
+    [
+     "不动产取得税",
+     0.03
+    ],
+    [
+     "登录免许税",
+     0.02
+    ]
+   ],
+   "holdTax": {
+    "type": "value",
+    "rate": 0.01,
+    "name": "固定资产税 + 都市计划税"
+   },
+   "approvals": [
+    "odi",
+    "fefta"
+   ],
+   "deal": "negotiate"
+  },
+  {
+   "id": "landmark_ny_tower",
+   "name": "帝国之巅大厦",
+   "city": "纽约",
+   "country": "美国",
+   "kind": "office",
+   "value": 30000000000,
+   "yield": 0.045,
+   "opexYear": 0.008,
+   "buyTax": [
+    [
+     "纽约市房产转让税",
+     0.02625
+    ],
+    [
+     "纽约州转让税",
+     0.0065
+    ]
+   ],
+   "holdTax": {
+    "type": "value",
+    "rate": 0.015,
+    "name": "纽约商业物业税"
+   },
+   "approvals": [
+    "odi",
+    "cfius"
+   ],
+   "deal": "tender"
+  },
+  {
+   "id": "landmark_hz",
+   "name": "太湖月亮酒店",
+   "city": "湖州",
+   "country": "中国",
+   "kind": "hotel",
+   "value": 2000000000,
+   "yield": 0.035,
+   "opexYear": 0.012,
+   "buyTax": [
+    [
+     "契税",
+     0.03
+    ],
+    [
+     "印花税（产权转移书据）",
+     0.0005
+    ]
+   ],
+   "holdTax": {
+    "type": "value",
+    "rate": 0.0084,
+    "name": "房产税（从价：原值 70% × 1.2%）"
+   },
+   "approvals": [],
+   "deal": "negotiate"
+  },
+  {
+   "id": "landmark_sh_hotel",
+   "name": "和苹饭店",
+   "city": "上海",
+   "country": "中国",
+   "kind": "hotel",
+   "value": 3000000000,
+   "yield": 0.04,
+   "opexYear": 0.012,
+   "buyTax": [
+    [
+     "契税",
+     0.03
+    ],
+    [
+     "印花税（产权转移书据）",
+     0.0005
+    ]
+   ],
+   "holdTax": {
+    "type": "value",
+    "rate": 0.0084,
+    "name": "房产税（从价：原值 70% × 1.2%）"
+   },
+   "approvals": [],
+   "deal": "negotiate"
+  },
+  {
+   "id": "landmark_gz_hotel",
+   "name": "白天娥宾馆",
+   "city": "广州",
+   "country": "中国",
+   "kind": "hotel",
+   "value": 4000000000,
+   "yield": 0.04,
+   "opexYear": 0.012,
+   "buyTax": [
+    [
+     "契税",
+     0.03
+    ],
+    [
+     "印花税（产权转移书据）",
+     0.0005
+    ]
+   ],
+   "holdTax": {
+    "type": "value",
+    "rate": 0.0084,
+    "name": "房产税（从价：原值 70% × 1.2%）"
+   },
+   "approvals": [],
+   "deal": "negotiate"
+  },
+  {
+   "id": "landmark_hk_hotel",
+   "name": "伴岛酒店",
+   "city": "香港",
+   "country": "中国香港",
+   "kind": "hotel",
+   "value": 14000000000,
+   "yield": 0.035,
+   "opexYear": 0.012,
+   "buyTax": [
+    [
+     "从价印花税",
+     0.0425
+    ]
+   ],
+   "holdTax": {
+    "type": "rent",
+    "rate": 0.05,
+    "name": "差饷（租值 5%）"
+   },
+   "approvals": [],
+   "deal": "tender",
+   "needAccount": true
+  },
+  {
+   "id": "landmark_mo",
+   "name": "新葡晶酒店",
+   "city": "澳门",
+   "country": "中国澳门",
+   "kind": "hotel",
+   "value": 20000000000,
+   "yield": 0.05,
+   "opexYear": 0.015,
+   "buyTax": [
+    [
+     "物业转移印花税",
+     0.03
+    ]
+   ],
+   "holdTax": {
+    "type": "rent",
+    "rate": 0.1,
+    "name": "房屋税（租值 10%）"
+   },
+   "approvals": [],
+   "deal": "tender",
+   "needAccount": true
+  },
+  {
+   "id": "landmark_sg",
+   "name": "金纱酒店",
+   "city": "新加坡",
+   "country": "新加坡",
+   "kind": "hotel",
+   "value": 60000000000,
+   "yield": 0.05,
+   "opexYear": 0.015,
+   "buyTax": [
+    [
+     "印花税",
+     0.04
+    ]
+   ],
+   "holdTax": {
+    "type": "rent",
+    "rate": 0.1,
+    "name": "房产税（年值 10%）"
+   },
+   "approvals": [
+    "odi"
+   ],
+   "deal": "tender"
+  },
+  {
+   "id": "landmark_sg_hotel",
+   "name": "莱弗士酒店",
+   "city": "新加坡",
+   "country": "新加坡",
+   "kind": "hotel",
+   "value": 5500000000,
+   "yield": 0.04,
+   "opexYear": 0.012,
+   "buyTax": [
+    [
+     "印花税",
+     0.04
+    ]
+   ],
+   "holdTax": {
+    "type": "rent",
+    "rate": 0.1,
+    "name": "房产税（年值 10%）"
+   },
+   "approvals": [
+    "odi"
+   ],
+   "deal": "negotiate"
+  },
+  {
+   "id": "landmark_ldn_hotel",
+   "name": "萨弗依酒店",
+   "city": "伦敦",
+   "country": "英国",
+   "kind": "hotel",
+   "value": 4500000000,
+   "yield": 0.04,
+   "opexYear": 0.012,
+   "buyTax": [
+    [
+     "土地印花税（商业）",
+     0.05
+    ]
+   ],
+   "holdTax": {
+    "type": "value",
+    "rate": 0.01,
+    "name": "营业房产税（Business Rates）"
+   },
+   "approvals": [
+    "odi",
+    "nsi"
+   ],
+   "deal": "negotiate"
+  },
+  {
+   "id": "landmark_par",
+   "name": "丽姿酒店",
+   "city": "巴黎",
+   "country": "法国",
+   "kind": "hotel",
+   "value": 8000000000,
+   "yield": 0.035,
+   "opexYear": 0.012,
+   "buyTax": [
+    [
+     "登记税和公证费",
+     0.075
+    ]
+   ],
+   "holdTax": {
+    "type": "value",
+    "rate": 0.005,
+    "name": "地产税（taxe foncière）"
+   },
+   "approvals": [
+    "odi"
+   ],
+   "deal": "negotiate"
+  },
+  {
+   "id": "landmark_ny_plaza",
+   "name": "普拉萨饭店",
+   "city": "纽约",
+   "country": "美国",
+   "kind": "hotel",
+   "value": 4500000000,
+   "yield": 0.04,
+   "opexYear": 0.012,
+   "buyTax": [
+    [
+     "纽约房产转让税",
+     0.026
+    ]
+   ],
+   "holdTax": {
+    "type": "value",
+    "rate": 0.015,
+    "name": "纽约商业物业税"
+   },
+   "approvals": [
+    "odi",
+    "cfius"
+   ],
+   "deal": "negotiate"
+  },
+  {
+   "id": "landmark_lv",
+   "name": "贝拉焦酒店",
+   "city": "拉斯维加斯",
+   "country": "美国",
+   "kind": "hotel",
+   "value": 30000000000,
+   "yield": 0.055,
+   "opexYear": 0.015,
+   "buyTax": [
+    [
+     "内华达房产转让税",
+     0.005
+    ]
+   ],
+   "holdTax": {
+    "type": "value",
+    "rate": 0.011,
+    "name": "内华达物业税"
+   },
+   "approvals": [
+    "odi",
+    "cfius"
+   ],
+   "deal": "tender"
+  },
+  {
+   "id": "landmark_dxb_atl",
+   "name": "亚特兰迪斯酒店",
+   "city": "迪拜",
+   "country": "阿联酋",
+   "kind": "hotel",
+   "value": 11000000000,
+   "yield": 0.05,
+   "opexYear": 0.015,
+   "buyTax": [
+    [
+     "迪拜土地局登记费",
+     0.04
+    ]
+   ],
+   "holdTax": null,
+   "approvals": [
+    "odi"
+   ],
+   "deal": "negotiate"
+  },
+  {
+   "id": "landmark_mc",
+   "name": "蒙地卡洛巴黎大酒店",
+   "city": "摩纳哥",
+   "country": "摩纳哥",
+   "kind": "hotel",
+   "value": 6000000000,
+   "yield": 0.035,
+   "opexYear": 0.012,
+   "buyTax": [
+    [
+     "登记税",
+     0.075
+    ]
+   ],
+   "holdTax": null,
+   "approvals": [
+    "odi"
+   ],
+   "deal": "negotiate"
+  }
+ ],
+ "growthReal": 0.03,
+ "sellRate": 0.95,
+ "sellMin": 15,
+ "_卖出": "验收阶段三：估值每游戏年按现实 3% × profitMul 涨（按月复利）；卖出 = 估值 × 95%（经纪牵线 15 分钟），钱回公司账户；增值（卖价 − 买价）进企业所得税；有并购贷款的先还清",
+ "_p07": "第 P-07 项（设计19 第四节 2）：加 13 家酒店（kind = hotel）。国内的持有按从价（原值 70% × 1.2% ≈ 估值 0.84% / 年）；needAccount = 港澳要先开境外账户（同香港房产）；新葡晶、金纱、贝拉焦只当酒店收租，不做赌场"
+}

@@ -1,0 +1,340 @@
+{
+  "_说明": "员工和工资（设计17，约 2025 年上海）。月薪税前；社保公积金公司部分按工资的比例",
+  "minWage": 2690,
+  "roles": {
+    "clerk": {
+      "name": "店员 / 收银理货",
+      "wage": 5500
+    },
+    "helper": {
+      "name": "帮工",
+      "wage": 5500
+    },
+    "waiter": {
+      "name": "服务员",
+      "wage": 5500
+    },
+    "sales": {
+      "name": "导购",
+      "wage": 6000
+    },
+    "display": {
+      "name": "陈列",
+      "wage": 6000
+    },
+    "cook": {
+      "name": "厨师",
+      "wage": 8500
+    },
+    "super": {
+      "name": "主管",
+      "wage": 8000
+    },
+    "manager": {
+      "name": "店长 / 经理",
+      "wage": 10000
+    },
+    "logistic": {
+      "name": "后勤",
+      "wage": 5500
+    },
+    "hq": {
+      "name": "总部员工",
+      "wage": 11000
+    },
+    "engineer": {
+      "name": "工程",
+      "wage": 12000
+    },
+    "agent": {
+      "name": "置业顾问（底薪，另有提成）",
+      "wage": 8000
+    },
+    "accountant": {
+      "name": "财务",
+      "wage": 10000
+    },
+    "pm": {
+      "name": "项目经理",
+      "wage": 20000
+    },
+    "courier": {
+      "name": "快递员（计件）",
+      "wage": 8000
+    },
+    "cs": {
+      "name": "客服",
+      "wage": 6000
+    },
+    "netmgr": {
+      "name": "网点经理",
+      "wage": 12000
+    },
+    "sorter": {
+      "name": "分拣员",
+      "wage": 6500
+    },
+    "driver": {
+      "name": "货车司机",
+      "wage": 10000
+    },
+    "dispatcher": {
+      "name": "调度",
+      "wage": 9000
+    },
+    "dev": {
+      "name": "程序员",
+      "wage": 25000
+    },
+    "pmgr": {
+      "name": "产品经理",
+      "wage": 28000
+    },
+    "ops": {
+      "name": "运营",
+      "wage": 15000
+    },
+    "bizdev": {
+      "name": "销售（另有提成）",
+      "wage": 12000
+    },
+    "anchor": {
+      "name": "主播（底薪，另有流水分成）",
+      "wage": 6000
+    },
+    "mcnops": {
+      "name": "直播运营",
+      "wage": 12000
+    },
+    "talent": {
+      "name": "经纪人",
+      "wage": 15000
+    },
+    "producer": {
+      "name": "制片",
+      "wage": 30000
+    },
+    "publicist": {
+      "name": "宣发",
+      "wage": 15000
+    }
+  },
+  "social": {
+    "养老": 0.16,
+    "医疗": 0.09,
+    "失业": 0.005,
+    "工伤": 0.002,
+    "公积金": 0.043
+  },
+  "staffing": {
+    "store": [
+      {
+        "clerk": 3
+      },
+      {
+        "manager": 1,
+        "clerk": 5
+      },
+      {
+        "manager": 1,
+        "super": 3,
+        "clerk": 21
+      }
+    ],
+    "food": [
+      {
+        "cook": 1,
+        "helper": 1
+      },
+      {
+        "manager": 1,
+        "cook": 4,
+        "waiter": 7
+      },
+      {
+        "manager": 2,
+        "cook": 18,
+        "waiter": 35,
+        "logistic": 5
+      }
+    ],
+    "fashion": [
+      {
+        "sales": 1
+      },
+      {
+        "manager": 1,
+        "sales": 4
+      },
+      {
+        "manager": 1,
+        "display": 2,
+        "sales": 17
+      }
+    ],
+    "realestate": [
+      {
+        "pm": 1,
+        "engineer": 5,
+        "agent": 8,
+        "accountant": 2
+      },
+      {
+        "pm": 1,
+        "engineer": 5,
+        "agent": 8,
+        "accountant": 2
+      },
+      {
+        "pm": 1,
+        "engineer": 5,
+        "agent": 8,
+        "accountant": 2
+      }
+    ],
+    "logistics": [
+      {
+        "courier": 12,
+        "cs": 2,
+        "netmgr": 1
+      },
+      {
+        "sorter": 7,
+        "driver": 4,
+        "dispatcher": 2,
+        "courier": 1,
+        "netmgr": 1
+      },
+      {
+        "sorter": 7,
+        "driver": 5,
+        "dispatcher": 2,
+        "netmgr": 1
+      }
+    ],
+    "tech": [
+      {
+        "dev": 5,
+        "pmgr": 1,
+        "ops": 1,
+        "bizdev": 1
+      },
+      {
+        "dev": 50,
+        "pmgr": 8,
+        "ops": 12,
+        "bizdev": 10
+      },
+      {
+        "dev": 380,
+        "pmgr": 50,
+        "ops": 90,
+        "bizdev": 80
+      }
+    ],
+    "media": [
+      {
+        "anchor": 6,
+        "mcnops": 3,
+        "talent": 1
+      },
+      {
+        "anchor": 30,
+        "mcnops": 10,
+        "talent": 4,
+        "producer": 8,
+        "publicist": 8
+      },
+      {
+        "anchor": 200,
+        "mcnops": 60,
+        "talent": 20,
+        "producer": 60,
+        "publicist": 60
+      }
+    ]
+  },
+  "hqRate": 0.06,
+  "hqFromStaff": 10,
+  "turnover": {
+    "store": 0.05,
+    "food": 0.07,
+    "fashion": 0.05,
+    "realestate": 0.04,
+    "logistics": 0.08,
+    "tech": 0.06,
+    "media": 0.07
+  },
+  "channels": {
+    "door": {
+      "name": "门口贴招聘 / 熟人介绍",
+      "cost": 0,
+      "minMin": 15,
+      "maxMin": 30
+    },
+    "web": {
+      "name": "招聘网站",
+      "costMonths": 0.5,
+      "minMin": 5,
+      "maxMin": 15
+    },
+    "agency": {
+      "name": "劳务派遣",
+      "markup": 0.15,
+      "minMin": 0,
+      "maxMin": 0
+    },
+    "hunter": {
+      "name": "猎头",
+      "costYearRate": 0.2,
+      "minMin": 10,
+      "maxMin": 30,
+      "roles": [
+        "manager",
+        "super",
+        "hq"
+      ]
+    }
+  },
+  "understaffClose": 0.5,
+  "yearBonusMonths": 1,
+  "arrearsTurnoverMult": 3,
+  "iitThreshold": 5000,
+  "iitBrackets": [
+    [
+      3000,
+      0.03,
+      0
+    ],
+    [
+      12000,
+      0.1,
+      210
+    ],
+    [
+      25000,
+      0.2,
+      1410
+    ],
+    [
+      35000,
+      0.25,
+      2660
+    ],
+    [
+      55000,
+      0.3,
+      4410
+    ],
+    [
+      80000,
+      0.35,
+      7160
+    ],
+    [
+      1000000000000000.0,
+      0.45,
+      15160
+    ]
+  ]
+}

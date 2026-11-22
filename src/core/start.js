@@ -1,0 +1,21 @@
+// 开局（设计21 第四节）：打工几年攒了 20 万，拿 15 万注册公司、开第一家小店，老板自己看店
+// 钱全走记账：个人存款进来 → 注资到公司 → 公司付开店费
+import ECO from '../config/economy.json?v=1236a42d' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=1236a42d';
+import { receive, pay } from './ledger.js?v=1236a42d';
+
+/** 新开局才做一次（s.flags.startFunds） */
+export function startFunds(s, t) {
+  s.flags = s.flags || {};
+  if (s.flags.startFunds) return false;
+  const id = ECO.start.firstStore; const cfg = IND_BY_ID[id]; const cost = cfg.real[0].invest;
+  receive(s, { wallet: 'personal', cat: 'savings', amount: ECO.start.savings, note: '打工几年攒的存款' }, t);
+  pay(s, { wallet: 'personal', cat: 'capital_out', amount: cost, party: s.companyName || '公司', note: '注册公司，注资开店' }, t);
+  receive(s, { wallet: 'company', cat: 'capital', amount: cost, party: '老板', note: '老板注资' }, t);
+  pay(s, { wallet: 'company', cat: 'expand', amount: cost, party: '房东 / 装修', note: `${cfg.name}开第一家${cfg.lookNames[0]}（转让费、装修、首批货）` }, t);
+  s.inds[id].spent = (s.inds[id].spent || 0) + cost;
+  s.flags.startFunds = true;
+  return true;
+}
+/** 新档：还没有流水的才做（老的开发存档不动） */
+export const needsStart = (s) => !(s.flags && s.flags.startFunds) && !(s.ledger || []).length;

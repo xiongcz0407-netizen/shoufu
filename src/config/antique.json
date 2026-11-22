@@ -1,0 +1,32 @@
+{
+ "_说明": "古董藏品（第 2-13 项，设计13 古董那一节、设计14 拍卖佣金、设计16 收藏顾问）。est 估价（元）；channel：market 古玩市场（有赝品）/ auction 拍卖（保真）/ private 私洽（定制委托）；network 人脉门槛（收到图录）；foreign 海外拍回来（加进口关税和增值税）；limit 1 = 孤品；图 assets/antique/<id>.webp",
+ "items": [
+  { "id": "an_01", "name": "民国青花碗", "est": 50000, "channel": "market" },
+  { "id": "an_02", "name": "清代粉彩瓶", "est": 800000, "channel": "market" },
+  { "id": "an_03", "name": "紫砂壶", "est": 500000, "channel": "market" },
+  { "id": "an_04", "name": "田黄石印章", "est": 3000000, "channel": "auction", "network": 20 },
+  { "id": "an_05", "name": "明成化斗彩鸡缸杯", "est": 280000000, "channel": "auction", "network": 50, "limit": 1 },
+  { "id": "an_06", "name": "宋汝窑天青釉洗", "est": 290000000, "channel": "auction", "network": 50, "limit": 1 },
+  { "id": "an_07", "name": "元青花鬼谷下山罐", "est": 230000000, "channel": "auction", "network": 50, "limit": 1, "foreign": true },
+  { "id": "an_08", "name": "乾隆粉彩转心瓶", "est": 550000000, "channel": "auction", "network": 60, "limit": 1, "foreign": true },
+  { "id": "an_09", "name": "帝王绿翡翠珠链", "est": 200000000, "channel": "auction", "network": 50, "limit": 1 },
+  { "id": "an_10", "name": "齐白石 山水十二条屏", "est": 930000000, "channel": "auction", "network": 70, "limit": 1 },
+  { "id": "an_11", "name": "莫奈 睡莲", "est": 500000000, "channel": "auction", "network": 60, "limit": 1, "foreign": true },
+  { "id": "an_12", "name": "梵高 麦田", "est": 400000000, "channel": "auction", "network": 60, "limit": 1, "foreign": true },
+  { "id": "an_13", "name": "达·芬奇 救世主", "est": 3200000000, "channel": "private", "network": 90, "minPieces": 10, "wait": 30, "limit": 1, "foreign": true },
+  { "id": "an_14", "name": "霸王龙化石", "est": 230000000, "channel": "auction", "network": 50, "limit": 1, "foreign": true },
+  { "id": "an_15", "name": "1933 双鹰金币", "est": 140000000, "channel": "auction", "network": 40, "limit": 1, "foreign": true },
+  { "id": "an_16", "name": "一分洋红邮票", "est": 60000000, "channel": "auction", "network": 40, "limit": 1, "foreign": true },
+  { "id": "an_17", "name": "1926 麦卡伦威士忌", "est": 19000000, "channel": "auction", "network": 30, "limit": 40, "foreign": true },
+  { "id": "an_18", "name": "粉红之星钻石", "est": 500000000, "channel": "auction", "network": 70, "limit": 1, "foreign": true }
+ ],
+ "market": { "slotMin": 30, "offers": 4, "fakeRate": 0.3, "priceLo": 0.6, "priceHi": 1.2, "fakeValue": 0.05, "_说明": "古玩市场每 30 分钟换一批摊位（4 件）；每件 30% 是赝品；要价 = 估价 × 0.6～1.2；买到假的只值 5%；看穿概率 = max(老板眼光, 收藏顾问智慧) / 100（真的不会被看成假的）" },
+ "auction": { "slotMin": 30, "lots": [1, 3], "hammerLo": 0.8, "hammerHi": 2.5, "proxySocialK": 0.15, "sellerFee": 0.1, "sellLo": 0.9, "sellHi": 1.3, "gainTax": 0.2, "_说明": "拍卖每 30 分钟一场，每场 1～3 件（人脉够才收到图录）；NPC 最高出到 估价 × 0.8～2.5；买家佣金照 tax.json 分段；收藏顾问代拍：交际让 NPC 少抬价（× (1 − 交际/100 × 0.15)）；再拍卖卖出：成交 = 估价 × 0.9～1.3，扣卖家佣金 10%，赚了的部分交 20% 财产转让所得个税" },
+ "import": { "tariff": 0.03, "vat": 0.13, "_说明": "海外拍回来：艺术品、收藏品进口关税约 3%（暂定税率）+ 进口增值税 13%（按落槌价 + 佣金）" },
+ "drift": { "lo": -0.01, "hi": 0.0147, "_说明": "估价每真实 1 小时随机走 −1%～+1.47%（均值 +0.235% / 小时 ≈ 每游戏年 +60% = 现实艺术品约 6% × profitMul 10，2-16b 调；原来 −1%～+2% 一个游戏年要涨 170%）" },
+ "attr": { "vision": 3, "network": 2, "_说明": "每件 眼光 3 × log10(估价万元)、人脉 2 × log10(估价万元)，按估价从高到低 100% / 60% / 40% / 20%；赝品不算" },
+ "advisor": { "commission": 0.01, "adviceUp": 0.3, "_说明": "收藏顾问成交提成 1%（公司付，记秘书工资）；估价比买价涨了 30% 以上她会建议出手" },
+ "outsourceWit": 50,
+ "cabinets": [0, 3, 6, 10, 15],
+ "_cabinets": "收藏室展柜：藏品到 3 / 6 / 10 / 15 件各多开一个"
+}

@@ -1,0 +1,23 @@
+{
+  "_说明": "科技（设计20 第二节 3）。产品项目：立项 → 研发 30 分钟（只花钱）→ 上线 → 用户按 S 曲线涨 → 收入 = 用户 × 每用户月收入，毛利 70%；做不起来可以止损。时间是真实分钟",
+  "directions": {
+    "tool":   { "name": "电商工具", "devMonths": 6, "rampMonths": 18, "devCost": 3000000, "market": 400000, "arpu": 30, "software": true,  "note": "卖给商家的 SaaS 软件，属于软件产品：增值税实际税负超 3% 即征即退" },
+    "social": { "name": "社交",     "devMonths": 9, "rampMonths": 30, "devCost": 6000000, "market": 3000000, "arpu": 6, "software": false, "note": "用户多、单价低、成败两极" },
+    "cloud":  { "name": "云服务",   "devMonths": 9, "rampMonths": 24, "devCost": 10000000, "market": 150000, "arpu": 160, "software": false, "note": "企业客户少但贵，稳" },
+    "ai":     { "name": "AI",       "devMonths": 12, "rampMonths": 36, "devCost": 20000000, "market": 1200000, "arpu": 40, "software": false, "note": "最贵、最看产品经理和眼光" }
+  },
+  "_months": "项目周期写现实月份，游戏里 = 现实 ÷ profitMul、每段最少 1 个游戏月（设计21 第九节）：研发电商 6、社交 9、云 9、AI 12；上线后 S 曲线爬坡电商 18、云 24、社交 30、AI 36",
+  "maxProducts": [1, 3, 6],
+  "devCostByLook": [1, 4, 15],
+  "marketByLook": [1, 4, 15],
+  "levelRev": 0.02,
+  "revPerHeadMonth": 250000,
+  "_real": "人效上限按真实经济反推（设计21）：真实人均月营收约 8.3 万（年 100 万）、净利 15%、增值税实际约 4%；上限 = 人均月净利 × profitMul 加上人均工资房租。revPerHeadMonth 作废",
+  "real": { "revPerHead": 83000, "margin": 0.15, "vat": 0.04 },
+  "quality": { "base": 0.35, "witK": 0.9, "visionK": 0.6, "sigma": 0.7, "spread": { "social": 1.4, "ai": 1.2, "tool": 0.8, "cloud": 0.6 } },
+  "rndShare": 0.6,
+  "rndExtra": 1.0,
+  "softwareVat": 0.13,
+  "softwareBurden": 0.03,
+  "linkMgmt": 0.03
+}

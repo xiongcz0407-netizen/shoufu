@@ -1,0 +1,33 @@
+{
+  "_说明": "利率都是真实年利率，代码里 × economy.json profitMul 按游戏年算（设计21 第九节）；银行（设计14 第三节 + 设计20 第六节，阶段二部分）。只借给公司，专款专用；个人买东西不能贷款。利率按 2025 年水平；时间按游戏时间（一年 200 小时、一个月约 16.7 小时）",
+  "banks": {
+    "gongshang": { "name": "公商银行", "logo": "bank_gongshang", "loanAdj": 0,      "depAdj": 0,      "note": "网点多，利率中规中矩，经营贷、开发贷都做" },
+    "zhaoshang": { "name": "招尚银行", "logo": "bank_zhaoshang", "loanAdj": 0.002,  "depAdj": 0.001,  "note": "零售强，存款利率高一点，贷款贵一点" },
+    "huifeng":   { "name": "汇峰银行", "logo": "bank_huifeng",   "loanAdj": 0.004,  "depAdj": -0.001, "note": "外币和海外业务（境外账户 2-14 用）", "noDev": true },
+    "ruixin":    { "name": "瑞鑫银行", "logo": "bank_ruixin",    "loanAdj": -0.002, "depAdj": 0,      "note": "顶级私人银行，经营贷要身价 1 亿以上", "minNetWorth": 100000000, "noDev": true }
+  },
+  "deposits": {
+    "demand": { "name": "活期", "rate": 0.001, "months": 0 },
+    "t3m":    { "name": "3 个月定期", "rate": 0.010, "months": 3 },
+    "t1y":    { "name": "1 年定期", "rate": 0.013, "months": 12 },
+    "t3y":    { "name": "3 年定期", "rate": 0.015, "months": 36 },
+    "cd":     { "name": "大额存单（1 年，20 万起）", "rate": 0.016, "months": 12, "min": 200000 }
+  },
+  "biz": { "name": "经营贷", "limitOfRevenue": 0.3, "rate": [0.03, 0.04], "years": [1, 2, 3], "approveMin": [1, 5] },
+  "private": {
+    "_说明": "私人银行（设计23 第五节，3-01）：金融资产（存款 + 股票 + 基金）到门槛自动成为私行客户；在这家存款高一档（真实 +0.2%）、贷款低一档（真实 −0.25%）；老板人脉 +5（拍卖、限量车）；专属客户经理发消息",
+    "zhaoshang": { "name": "招尚私行", "min": 1e7, "manager": "客户经理 程诗韵" },
+    "ruixin": { "name": "瑞鑫私行", "min": 1e8, "manager": "私人银行家 顾承泽" },
+    "depUp": 0.002, "loanCut": 0.0025, "network": 5
+  },
+  "stockPledge": { "name": "股票质押", "ratio": 0.6, "ownRatio": [0.3, 0.5], "ownBig": 1e10, "rate": 0.06, "warn": 1.5, "liquidate": 1.3, "years": 1, "banks": ["gongshang", "zhaoshang", "ruixin"], "_说明": "股票质押（3-01）：个人的股票押给银行，钱借给公司（专款专用）；质押率最多 60%（自己公司的股票 30%～50%）；年利率真实 6% × profitMul，按月付息、1 个游戏年到期还本；履约保障比例 = 股票市值 ÷ 欠款，150% 预警、130% 银行强制平仓" },
+  "artPledge": { "name": "艺术品质押", "ratio": [0.4, 0.5], "rate": 0.065, "years": 1, "banks": ["ruixin"], "_说明": "艺术品质押（3-01，瑞鑫私行）：古董估值 × 40%～50%（看藏品档次：孤品 50%）；年利率真实 6.5% × profitMul，按月付息、1 个游戏年到期；押着不能卖不能借展；逾期 3 期银行拿去拍卖" },
+  "ma": { "name": "并购贷款", "maxOfDeal": 0.6, "ownMin": 0.4, "rate": 0.045, "years": 7, "minTitle": 2, "_说明": "并购贷款（设计14 第三节，验收阶段二 2-16b 提前到老板）：最多交易价 60%、自有资金 ≥ 40%、7 个游戏年等额本息、年利率真实 4.5% × profitMul；负债率 ≤ 50%；专款专用于这笔收购（直接付给转让方）；拿收购来的股权质押" },
+  "dev": { "name": "开发贷", "maxOfInvest": 0.5, "ownMin": 0.3, "rate": 0.045, "approveMin": [2, 5] },
+  "debtRatioMax": 0.5,
+  "bizPostCut": 0.0025,
+  "creditAdj": { "good": 0, "fair": 0.005, "bad": 0.015 },
+  "overduePenalty": 1.5,
+  "seizeAfter": 3,
+  "useCats": ["expand", "construction", "fleet", "rnd", "film_cost", "payroll", "social", "rent", "cogs", "recruit", "agency", "training", "re_cost"]
+}

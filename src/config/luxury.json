@@ -1,0 +1,889 @@
+{
+ "_说明": "名表 / 高定西装 / 名包（第 2-12 项，设计10 清单、设计09 渠道）。price 元（专柜零售价，含税）；channel：spot 现货 / alloc 配货（quotaX：配货额度要到价格几倍，买了扣掉；有 wait 的配货完再排队）/ order 订单配额 / invite 邀请 / custom 定制委托 / auction 拍卖；spend 这个品牌累计消费；own 拥有这个品牌几件；network 人脉；wait 等几分钟；limit 限量（1 = 孤品）；图 assets/watch|suit|bag/<id 或 img>.webp",
+ "watches": [
+  {
+   "id": "watch_01_1",
+   "kind": "watch",
+   "brandKey": "patek",
+   "brand": "百达斐丽",
+   "model": "卡拉特拉瓦",
+   "modelEn": "Calatrava",
+   "price": 250000,
+   "channel": "spot"
+  },
+  {
+   "id": "watch_01_2",
+   "kind": "watch",
+   "brandKey": "patek",
+   "brand": "百达斐丽",
+   "model": "手雷",
+   "modelEn": "Aquanaut",
+   "price": 300000,
+   "channel": "alloc",
+   "quotaX": 2
+  },
+  {
+   "id": "watch_01_3",
+   "kind": "watch",
+   "brandKey": "patek",
+   "brand": "百达斐丽",
+   "model": "鹦鹉螺",
+   "modelEn": "Nautilus",
+   "price": 600000,
+   "channel": "alloc",
+   "quotaX": 3
+  },
+  {
+   "id": "watch_01_4",
+   "kind": "watch",
+   "brandKey": "patek",
+   "brand": "百达斐丽",
+   "model": "大师弦音",
+   "modelEn": "Grandmaster Chime",
+   "price": 20000000,
+   "channel": "custom",
+   "spend": 50000000,
+   "network": 70,
+   "limit": 1,
+   "wait": 30
+  },
+  {
+   "id": "watch_02_1",
+   "kind": "watch",
+   "brandKey": "ap",
+   "brand": "爱必",
+   "model": "Code 11.59 系列",
+   "modelEn": "Code 11.59",
+   "price": 250000,
+   "channel": "spot"
+  },
+  {
+   "id": "watch_02_2",
+   "kind": "watch",
+   "brandKey": "ap",
+   "brand": "爱必",
+   "model": "皇家橡树",
+   "modelEn": "Royal Oak",
+   "price": 300000,
+   "channel": "alloc",
+   "quotaX": 2
+  },
+  {
+   "id": "watch_02_3",
+   "kind": "watch",
+   "brandKey": "ap",
+   "brand": "爱必",
+   "model": "皇家橡树离岸型",
+   "modelEn": "Royal Oak Offshore",
+   "price": 400000,
+   "channel": "alloc",
+   "quotaX": 1.5
+  },
+  {
+   "id": "watch_02_4",
+   "kind": "watch",
+   "brandKey": "ap",
+   "brand": "爱必",
+   "model": "皇家橡树万年历 陶瓷",
+   "modelEn": "Royal Oak Perpetual Calendar Ceramic",
+   "price": 1200000,
+   "channel": "alloc",
+   "quotaX": 2,
+   "network": 40
+  },
+  {
+   "id": "watch_03_1",
+   "kind": "watch",
+   "brandKey": "vc",
+   "brand": "江诗丹盾",
+   "model": "传袭",
+   "modelEn": "Patrimony",
+   "price": 180000,
+   "channel": "spot"
+  },
+  {
+   "id": "watch_03_2",
+   "kind": "watch",
+   "brandKey": "vc",
+   "brand": "江诗丹盾",
+   "model": "纵横四海",
+   "modelEn": "Overseas",
+   "price": 220000,
+   "channel": "order",
+   "wait": 10
+  },
+  {
+   "id": "watch_03_3",
+   "kind": "watch",
+   "brandKey": "vc",
+   "brand": "江诗丹盾",
+   "model": "传承 陀飞轮",
+   "modelEn": "Traditionnelle Tourbillon",
+   "price": 1200000,
+   "channel": "spot",
+   "spend": 500000
+  },
+  {
+   "id": "watch_03_4",
+   "kind": "watch",
+   "brandKey": "vc",
+   "brand": "江诗丹盾",
+   "model": "阁楼工匠 天文表",
+   "modelEn": "Les Cabinotiers",
+   "price": 30000000,
+   "channel": "custom",
+   "spend": 50000000,
+   "network": 70,
+   "limit": 1,
+   "wait": 30
+  },
+  {
+   "id": "watch_04_1",
+   "kind": "watch",
+   "brandKey": "rm",
+   "brand": "理查德米乐",
+   "model": "RM 035 纳达尔",
+   "modelEn": "RM 035",
+   "price": 1200000,
+   "channel": "invite",
+   "network": 30,
+   "wait": 15
+  },
+  {
+   "id": "watch_04_2",
+   "kind": "watch",
+   "brandKey": "rm",
+   "brand": "理查德米乐",
+   "model": "RM 011 飞返计时",
+   "modelEn": "RM 011",
+   "price": 1500000,
+   "channel": "invite",
+   "network": 40,
+   "wait": 15
+  },
+  {
+   "id": "watch_04_3",
+   "kind": "watch",
+   "brandKey": "rm",
+   "brand": "理查德米乐",
+   "model": "RM 27-04 纳达尔陀飞轮",
+   "modelEn": "RM 27-04",
+   "price": 8000000,
+   "channel": "invite",
+   "own": 1,
+   "network": 50,
+   "wait": 20,
+   "limit": 50
+  },
+  {
+   "id": "watch_04_4",
+   "kind": "watch",
+   "brandKey": "rm",
+   "brand": "理查德米乐",
+   "model": "RM 056 蓝宝石陀飞轮",
+   "modelEn": "RM 056 Sapphire",
+   "price": 15000000,
+   "channel": "invite",
+   "own": 2,
+   "network": 60,
+   "wait": 25,
+   "limit": 5
+  },
+  {
+   "id": "watch_05_1",
+   "kind": "watch",
+   "brandKey": "rolex",
+   "brand": "劳力仕",
+   "model": "日志型 金",
+   "modelEn": "Datejust Gold",
+   "price": 300000,
+   "channel": "spot"
+  },
+  {
+   "id": "watch_05_2",
+   "kind": "watch",
+   "brandKey": "rolex",
+   "brand": "劳力仕",
+   "model": "潜航者（水鬼）",
+   "modelEn": "Submariner",
+   "price": 90000,
+   "channel": "alloc",
+   "quotaX": 1,
+   "wait": 10
+  },
+  {
+   "id": "watch_05_3",
+   "kind": "watch",
+   "brandKey": "rolex",
+   "brand": "劳力仕",
+   "model": "宇宙计型迪通拿",
+   "modelEn": "Cosmograph Daytona",
+   "price": 120000,
+   "channel": "alloc",
+   "quotaX": 2,
+   "wait": 20
+  },
+  {
+   "id": "watch_05_4",
+   "kind": "watch",
+   "brandKey": "rolex",
+   "brand": "劳力仕",
+   "model": "彩虹迪通拿",
+   "modelEn": "Daytona Rainbow",
+   "price": 3000000,
+   "channel": "auction",
+   "network": 50
+  },
+  {
+   "id": "watch_06_1",
+   "kind": "watch",
+   "brandKey": "omega",
+   "brand": "欧米佳",
+   "model": "海马 300",
+   "modelEn": "Seamaster 300",
+   "price": 40000,
+   "channel": "spot"
+  },
+  {
+   "id": "watch_06_2",
+   "kind": "watch",
+   "brandKey": "omega",
+   "brand": "欧米佳",
+   "model": "超霸 登月表",
+   "modelEn": "Speedmaster Moonwatch",
+   "price": 50000,
+   "channel": "spot"
+  },
+  {
+   "id": "watch_06_3",
+   "kind": "watch",
+   "brandKey": "omega",
+   "brand": "欧米佳",
+   "model": "星座",
+   "modelEn": "Constellation",
+   "price": 60000,
+   "channel": "spot"
+  },
+  {
+   "id": "watch_06_4",
+   "kind": "watch",
+   "brandKey": "omega",
+   "brand": "欧米佳",
+   "model": "超霸 金",
+   "modelEn": "Speedmaster Gold",
+   "price": 300000,
+   "channel": "spot"
+  },
+  {
+   "id": "watch_07_1",
+   "kind": "watch",
+   "brandKey": "cartier",
+   "brand": "卡地雅",
+   "model": "坦克",
+   "modelEn": "Tank",
+   "price": 50000,
+   "channel": "spot"
+  },
+  {
+   "id": "watch_07_2",
+   "kind": "watch",
+   "brandKey": "cartier",
+   "brand": "卡地雅",
+   "model": "蓝气球",
+   "modelEn": "Ballon Bleu",
+   "price": 50000,
+   "channel": "spot"
+  },
+  {
+   "id": "watch_07_3",
+   "kind": "watch",
+   "brandKey": "cartier",
+   "brand": "卡地雅",
+   "model": "山度士",
+   "modelEn": "Santos",
+   "price": 60000,
+   "channel": "spot"
+  },
+  {
+   "id": "watch_07_4",
+   "kind": "watch",
+   "brandKey": "cartier",
+   "brand": "卡地雅",
+   "model": "猎豹 珠宝表",
+   "modelEn": "Panthère Joaillerie",
+   "price": 1000000,
+   "channel": "spot",
+   "spend": 300000
+  },
+  {
+   "id": "watch_08_1",
+   "kind": "watch",
+   "brandKey": "breguet",
+   "brand": "宝矶",
+   "model": "经典",
+   "modelEn": "Classique",
+   "price": 200000,
+   "channel": "spot"
+  },
+  {
+   "id": "watch_08_2",
+   "kind": "watch",
+   "brandKey": "breguet",
+   "brand": "宝矶",
+   "model": "航海",
+   "modelEn": "Marine",
+   "price": 250000,
+   "channel": "spot"
+  },
+  {
+   "id": "watch_08_3",
+   "kind": "watch",
+   "brandKey": "breguet",
+   "brand": "宝矶",
+   "model": "传世",
+   "modelEn": "Tradition",
+   "price": 300000,
+   "channel": "spot"
+  },
+  {
+   "id": "watch_08_4",
+   "kind": "watch",
+   "brandKey": "breguet",
+   "brand": "宝矶",
+   "model": "那不勒斯皇后",
+   "modelEn": "Reine de Naples",
+   "price": 600000,
+   "channel": "spot"
+  },
+  {
+   "id": "watch_09_1",
+   "kind": "watch",
+   "brandKey": "lange",
+   "brand": "朗阁",
+   "model": "萨克森",
+   "modelEn": "Saxonia",
+   "price": 150000,
+   "channel": "spot"
+  },
+  {
+   "id": "watch_09_2",
+   "kind": "watch",
+   "brandKey": "lange",
+   "brand": "朗阁",
+   "model": "朗 1",
+   "modelEn": "Lange 1",
+   "price": 250000,
+   "channel": "spot"
+  },
+  {
+   "id": "watch_09_3",
+   "kind": "watch",
+   "brandKey": "lange",
+   "brand": "朗阁",
+   "model": "跳字 Zeitwerk",
+   "modelEn": "Zeitwerk",
+   "price": 500000,
+   "channel": "spot",
+   "spend": 400000
+  },
+  {
+   "id": "watch_09_4",
+   "kind": "watch",
+   "brandKey": "lange",
+   "brand": "朗阁",
+   "model": "飞返计时 Datograph",
+   "modelEn": "Datograph",
+   "price": 600000,
+   "channel": "order",
+   "wait": 15
+  },
+  {
+   "id": "watch_10_1",
+   "kind": "watch",
+   "brandKey": "jlc",
+   "brand": "积佳",
+   "model": "翻转",
+   "modelEn": "Reverso",
+   "price": 60000,
+   "channel": "spot"
+  },
+  {
+   "id": "watch_10_2",
+   "kind": "watch",
+   "brandKey": "jlc",
+   "brand": "积佳",
+   "model": "大师",
+   "modelEn": "Master",
+   "price": 80000,
+   "channel": "spot"
+  },
+  {
+   "id": "watch_10_3",
+   "kind": "watch",
+   "brandKey": "jlc",
+   "brand": "积佳",
+   "model": "双翼",
+   "modelEn": "Duomètre",
+   "price": 300000,
+   "channel": "spot"
+  },
+  {
+   "id": "watch_10_4",
+   "kind": "watch",
+   "brandKey": "jlc",
+   "brand": "积佳",
+   "model": "超卓复杂 陀飞轮",
+   "modelEn": "Hybris Mechanica Tourbillon",
+   "price": 1500000,
+   "channel": "spot",
+   "spend": 500000
+  }
+ ],
+ "suits": [
+  {
+   "id": "suit_01_1",
+   "kind": "suit",
+   "brandKey": "zegna",
+   "brand": "杰尼雅",
+   "model": "成衣",
+   "tier": 1,
+   "price": 30000,
+   "channel": "spot"
+  },
+  {
+   "id": "suit_01_2",
+   "kind": "suit",
+   "brandKey": "zegna",
+   "brand": "杰尼雅",
+   "model": "半定制",
+   "tier": 2,
+   "price": 60000,
+   "channel": "order",
+   "wait": 5
+  },
+  {
+   "id": "suit_01_3",
+   "kind": "suit",
+   "brandKey": "zegna",
+   "brand": "杰尼雅",
+   "model": "全定制",
+   "tier": 3,
+   "price": 150000,
+   "channel": "custom",
+   "fittings": [
+    10,
+    10
+   ]
+  },
+  {
+   "id": "suit_02_1",
+   "kind": "suit",
+   "brandKey": "tomford",
+   "brand": "汤姆福忒",
+   "model": "成衣",
+   "tier": 1,
+   "price": 50000,
+   "channel": "spot"
+  },
+  {
+   "id": "suit_02_2",
+   "kind": "suit",
+   "brandKey": "tomford",
+   "brand": "汤姆福忒",
+   "model": "半定制",
+   "tier": 2,
+   "price": 100000,
+   "channel": "order",
+   "wait": 5
+  },
+  {
+   "id": "suit_02_3",
+   "kind": "suit",
+   "brandKey": "tomford",
+   "brand": "汤姆福忒",
+   "model": "全定制",
+   "tier": 3,
+   "price": 200000,
+   "channel": "custom",
+   "fittings": [
+    10,
+    10
+   ]
+  },
+  {
+   "id": "suit_03_1",
+   "kind": "suit",
+   "brandKey": "brioni",
+   "brand": "布里奥妮",
+   "model": "成衣",
+   "tier": 1,
+   "price": 60000,
+   "channel": "spot"
+  },
+  {
+   "id": "suit_03_2",
+   "kind": "suit",
+   "brandKey": "brioni",
+   "brand": "布里奥妮",
+   "model": "半定制",
+   "tier": 2,
+   "price": 120000,
+   "channel": "order",
+   "wait": 5
+  },
+  {
+   "id": "suit_03_3",
+   "kind": "suit",
+   "brandKey": "brioni",
+   "brand": "布里奥妮",
+   "model": "全定制",
+   "tier": 3,
+   "price": 300000,
+   "channel": "custom",
+   "fittings": [
+    10,
+    10
+   ]
+  },
+  {
+   "id": "suit_04_1",
+   "kind": "suit",
+   "brandKey": "kiton",
+   "brand": "基盾",
+   "model": "成衣",
+   "tier": 1,
+   "price": 80000,
+   "channel": "spot"
+  },
+  {
+   "id": "suit_04_2",
+   "kind": "suit",
+   "brandKey": "kiton",
+   "brand": "基盾",
+   "model": "半定制",
+   "tier": 2,
+   "price": 150000,
+   "channel": "order",
+   "wait": 5
+  },
+  {
+   "id": "suit_04_3",
+   "kind": "suit",
+   "brandKey": "kiton",
+   "brand": "基盾",
+   "model": "全定制",
+   "tier": 3,
+   "price": 400000,
+   "channel": "custom",
+   "fittings": [
+    10,
+    10
+   ],
+   "spend": 200000
+  },
+  {
+   "id": "suit_05_1",
+   "kind": "suit",
+   "brandKey": "huntsman",
+   "brand": "亨茨蔓",
+   "model": "成衣",
+   "tier": 1,
+   "price": 30000,
+   "channel": "spot"
+  },
+  {
+   "id": "suit_05_2",
+   "kind": "suit",
+   "brandKey": "huntsman",
+   "brand": "亨茨蔓",
+   "model": "半定制",
+   "tier": 2,
+   "price": 50000,
+   "channel": "order",
+   "wait": 5
+  },
+  {
+   "id": "suit_05_3",
+   "kind": "suit",
+   "brandKey": "huntsman",
+   "brand": "亨茨蔓",
+   "model": "全定制",
+   "tier": 3,
+   "price": 80000,
+   "channel": "custom",
+   "fittings": [
+    10,
+    10
+   ]
+  }
+ ],
+ "bags": [
+  {
+   "id": "bag_01",
+   "kind": "bag",
+   "brandKey": "lv",
+   "brand": "路易薇登",
+   "model": "托特包 Neverfull",
+   "modelEn": "Neverfull",
+   "price": 15000,
+   "channel": "spot"
+  },
+  {
+   "id": "bag_02",
+   "kind": "bag",
+   "brandKey": "lv",
+   "brand": "路易薇登",
+   "model": "卡普辛",
+   "modelEn": "Capucines",
+   "price": 40000,
+   "channel": "spot"
+  },
+  {
+   "id": "bag_03",
+   "kind": "bag",
+   "brandKey": "dior",
+   "brand": "迪傲",
+   "model": "戴妃包",
+   "modelEn": "Lady Dior",
+   "price": 45000,
+   "channel": "spot"
+  },
+  {
+   "id": "bag_04",
+   "kind": "bag",
+   "brandKey": "dior",
+   "brand": "迪傲",
+   "model": "马鞍包",
+   "modelEn": "Saddle",
+   "price": 30000,
+   "channel": "spot"
+  },
+  {
+   "id": "bag_05",
+   "kind": "bag",
+   "brandKey": "bv",
+   "brand": "宝蝶家",
+   "model": "编织 Jodie 包",
+   "modelEn": "Jodie",
+   "price": 25000,
+   "channel": "spot"
+  },
+  {
+   "id": "bag_06",
+   "kind": "bag",
+   "brandKey": "bv",
+   "brand": "宝蝶家",
+   "model": "编织盒子包",
+   "modelEn": "Cassette",
+   "price": 30000,
+   "channel": "spot"
+  },
+  {
+   "id": "bag_07",
+   "kind": "bag",
+   "brandKey": "chanel",
+   "brand": "香奈尔",
+   "model": "经典口盖包（CF）",
+   "modelEn": "Classic Flap",
+   "price": 80000,
+   "channel": "spot",
+   "dailyMax": 1
+  },
+  {
+   "id": "bag_08",
+   "kind": "bag",
+   "brandKey": "chanel",
+   "brand": "香奈尔",
+   "model": "流浪包",
+   "modelEn": "Boy",
+   "price": 50000,
+   "channel": "spot"
+  },
+  {
+   "id": "bag_09",
+   "kind": "bag",
+   "brandKey": "hermes",
+   "brand": "爱马士",
+   "model": "菜篮子",
+   "modelEn": "Picotin",
+   "price": 30000,
+   "channel": "spot"
+  },
+  {
+   "id": "bag_10",
+   "kind": "bag",
+   "brandKey": "hermes",
+   "brand": "爱马士",
+   "model": "伊芙琳",
+   "modelEn": "Evelyne",
+   "price": 30000,
+   "channel": "spot"
+  },
+  {
+   "id": "bag_11",
+   "kind": "bag",
+   "brandKey": "hermes",
+   "brand": "爱马士",
+   "model": "康斯坦斯",
+   "modelEn": "Constance",
+   "price": 120000,
+   "channel": "alloc",
+   "quotaX": 1,
+   "allocDaily": true
+  },
+  {
+   "id": "bag_12",
+   "kind": "bag",
+   "brandKey": "hermes",
+   "brand": "爱马士",
+   "model": "凯莉包",
+   "modelEn": "Kelly",
+   "price": 150000,
+   "channel": "alloc",
+   "quotaX": 1.2,
+   "allocDaily": true
+  },
+  {
+   "id": "bag_13",
+   "kind": "bag",
+   "brandKey": "hermes",
+   "brand": "爱马士",
+   "model": "铂金包",
+   "modelEn": "Birkin",
+   "price": 250000,
+   "channel": "alloc",
+   "quotaX": 1.5,
+   "allocDaily": true
+  },
+  {
+   "id": "bag_14",
+   "kind": "bag",
+   "brandKey": "hermes",
+   "brand": "爱马士",
+   "model": "铂金包 鳄鱼皮",
+   "modelEn": "Birkin Croco",
+   "price": 600000,
+   "channel": "invite",
+   "spend": 3000000,
+   "allocBags": 2,
+   "wait": 20
+  },
+  {
+   "id": "bag_15",
+   "kind": "bag",
+   "brandKey": "hermes",
+   "brand": "爱马士",
+   "model": "凯莉包 鳄鱼皮",
+   "modelEn": "Kelly Croco",
+   "price": 800000,
+   "channel": "invite",
+   "spend": 3000000,
+   "allocBags": 2,
+   "wait": 20
+  },
+  {
+   "id": "bag_16",
+   "kind": "bag",
+   "brandKey": "hermes",
+   "brand": "爱马士",
+   "model": "喜马拉雅铂金包",
+   "modelEn": "Himalaya Birkin",
+   "price": 3000000,
+   "channel": "invite",
+   "spend": 5000000,
+   "allocBags": 3,
+   "network": 50,
+   "wait": 30,
+   "limit": 1
+  }
+ ],
+ "tax": {
+  "_说明": "发票照设计14 第二节 2：价格含税，列不含税价 + 增值税 13%；手表 ≥ 1 万元/只「含消费税 20%」；进口品「含进口关税」（约）",
+  "vat": 0.13,
+  "watchCtax": 0.2,
+  "watchCtaxFrom": 10000,
+  "duty": {
+   "watch": 0.08,
+   "bag": 0.1,
+   "suit": 0.06
+  }
+ },
+ "attr": {
+  "_说明": "设计09：表 气场 3；西装 气场 2，全定制另加人脉 1；按价格从高到低 100% / 60% / 40% / 20%；戴着的表、穿着的西装再加一半",
+  "watch": {
+   "aura": 3
+  },
+  "suit": {
+   "aura": 2
+  },
+  "suitCustomNetwork": 1,
+  "wornBonus": 0.5
+ },
+ "bag": {
+  "_说明": "名包送秘书：好感 = 6 + 4 × log10(价格万元)；爱马士 ×1.5；她喜欢的牌子 ×2、爱慕 +1（爱马士配货包、邀请包也 +1）",
+  "base": 6,
+  "perLog": 4,
+  "hermesX": 1.5,
+  "likedX": 2,
+  "likes": {
+   "s09_xia": [
+    "bv",
+    "lv"
+   ],
+   "s10_lu": [
+    "lv",
+    "bv"
+   ],
+   "s06_ye": [
+    "dior",
+    "chanel"
+   ],
+   "s07_tang": [
+    "lv",
+    "dior"
+   ],
+   "s03_lin": [
+    "chanel",
+    "dior"
+   ],
+   "s05_jiang": [
+    "chanel",
+    "hermes"
+   ],
+   "s08_xu": [
+    "bv",
+    "hermes"
+   ],
+   "s04_gu": [
+    "bv",
+    "lv"
+   ],
+   "s01_shen": [
+    "chanel",
+    "hermes"
+   ],
+   "s02_su": [
+    "hermes",
+    "bv"
+   ]
+  },
+  "_likes": "设计没写每人喜欢哪个牌子，开发按性格先定（等设计改）"
+ },
+ "sellRate": 0.7,
+ "_sellRate": "表、西装卖回按买价 70%（资产管家最高 80%）；包送出去了不能卖",
+ "allocResellHours": 16.7,
+ "allocPenalty": 0.5,
+ "_allocResell": "配货买的表一个游戏月（16.7 小时）内卖掉：这个品牌配货额度要求 +0.5 倍（变差一档）；邀请 / 定制买的卖了 = 拉黑",
+ "quotaBiz": 0.3,
+ "_quotaBiz": "商务总监（秘书）：配货额度攒得快 1 + 交际 / 100 × 0.3",
+ "plead": {
+  "minChance": 0.2,
+  "maxChance": 0.9,
+  "cooldownMin": 30,
+  "_说明": "被拉黑 / 配货变差：商务总监去求情，成功率 = 交际 / 100（0.2～0.9），失败等 30 分钟再去"
+ },
+ "auction": {
+  "startX": 1.5
+ },
+ "inviteWait": 15
+}

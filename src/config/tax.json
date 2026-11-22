@@ -1,0 +1,77 @@
+{
+  "_说明": "公司税（设计15 第二节 1，照中国现行规定）。小规模纳税人年销售额 ≤ 500 万；小型微利企业应纳税所得额 ≤ 300 万",
+  "vat": {
+    "smallLimitYear": 5000000,
+    "smallRate": 0.01,
+    "generalRate": {
+      "store": 0.13,
+      "food": 0.06,
+      "fashion": 0.13,
+      "realestate": 0,
+      "logistics": [
+        [
+          0.7,
+          0.09
+        ],
+        [
+          0.3,
+          0.06
+        ]
+      ],
+      "tech": 0.06,
+      "media": 0.06
+    },
+    "inputRate": 0.13
+  },
+  "surcharge": {
+    "城建税": 0.07,
+    "教育费附加": 0.03,
+    "地方教育附加": 0.02,
+    "smallHalf": true
+  },
+  "cit": {
+    "rate": 0.25,
+    "smallRate": 0.05,
+    "smallLimitYear": 3000000
+  },
+  "dividendIIT": 0.2,
+  "stamp": {
+    "sale": 0.0003,
+    "loan": 5e-05,
+    "equity": 0.0005
+  },
+  "lateDailyRate": 0.0005,
+  "fileDays": 15,
+  "car": {
+    "purchaseTax": 0.1,
+    "vatDiv": 1.13,
+    "luxuryFrom": 1300000,
+    "luxuryRate": 0.1,
+    "plateFee": 500,
+    "upkeepYear": 0.02
+  },
+  "plane": {
+    "tariff": 0.05,
+    "importVat": 0.13,
+    "upkeepYear": 0.06
+  },
+  "auction": {
+    "premium": [
+      [
+        7000000,
+        0.26
+      ],
+      [
+        42000000,
+        0.2
+      ],
+      [
+        1000000000000000.0,
+        0.15
+      ]
+    ],
+    "bidStepMin": 0.05,
+    "bidStepMax": 0.15,
+    "startX": 1.5
+  }
+}

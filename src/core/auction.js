@@ -1,0 +1,75 @@
+// 拍卖会（第 2-14b 项，设计09 第三节）：车和古董同一个按场次的拍卖会
+// 每 30 分钟一场，每场 2～4 件（停产限量车、拍卖古董）；人脉够才收到图录；起拍价 车 = 原价 × 1.5～3、古董 = 估价 × 0.8；
+// NPC 跟你抢（最高出到多少每场固定）；你设最高出价举牌，一场一件只能举一次；拍到了 5 分钟内付款（签成交确认书），付不出 = 违约，人脉 −5
+// 古董可以交给收藏顾问代拍（她的交际让 NPC 少抬价）
+import CFG from '../config/auction.json?v=1236a42d' with { type: 'json' };
+import * as AS from './assets.js?v=1236a42d';
+import * as AQ from './antique.js?v=1236a42d';
+import { addAttrHook, bossAttrs } from './boss.js?v=1236a42d';
+import { attrs as secAttrs } from './posts.js?v=1236a42d';
+
+export const AUCFG = CFG;
+const r2 = (v) => Math.round(v * 100) / 100;
+const fmt = (n) => (n >= 1e8 ? `${+(n / 1e8).toFixed(2)}亿` : n >= 1e4 ? `${+(n / 1e4).toFixed(1)}万` : `${Math.round(n)}`);
+/** 存档 s.auc：{ done: { 场次件: true }, won: [{ lot, kind, id, name, hammer, deadline, who }], penalty } */
+export function au(s) { const d = (s.auc = s.auc || {}); d.done = d.done || {}; d.won = d.won || []; d.penalty = d.penalty || 0; return d; }
+let networkOf = (s) => bossAttrs(s).network; export const setNetworkFn = (fn) => { networkOf = fn; };
+
+/** 能上拍的：停产限量车（没拥有的）+ 拍卖古董（孤品没拍走的） */
+export function pool(s) {
+  const cars = Object.values(AS.ITEM).filter((it) => it.kind === 'car' && AS.channelOf(it) === 'auction' && !AS.owns(s, it.id)).map((it) => ({ kind: 'car', id: it.id, name: AS.label(it), base: it.price, need: it.network || CFG.car.network }));
+  const ants = AQ.ITEMS.filter((x) => x.channel === 'auction' && !AQ.ownsUnique(s, x.id)).map((x) => ({ kind: 'antique', id: x.id, name: x.name, base: x.est, need: x.network || 0 }));
+  return [...cars, ...ants].sort((a, b) => (a.id < b.id ? -1 : 1));
+}
+const slotOf = (t) => Math.floor(t / (CFG.slotMin * 60e3));
+/** 这一场的图录：lots（你收到图录、还没举过牌的）、hidden（人脉不够没收到的件数）、until（落幕时间） */
+export function catalog(s, t) {
+  const slot = slotOf(t); const R = AQ.rng(seedOf(s, 'auc' + slot)); const p = pool(s).slice();
+  const [lo, hi] = CFG.lots; const n = Math.min(p.length, lo + Math.floor(R() * (hi - lo + 1)));
+  const all = [];
+  for (let i = 0; i < n; i++) {
+    const x = p.splice(Math.floor(R() * p.length), 1)[0]; const C = CFG[x.kind];
+    const start = Math.round(x.base * (C.startLo + R() * (C.startHi - C.startLo)) / 1e4) * 1e4;
+    const npcMax = Math.round(start * (C.npcLo + R() * (C.npcHi - C.npcLo)));
+    all.push({ ...x, lot: `${slot}_${x.id}`, start, npcMax });
+  }
+  const net = networkOf(s); const d = au(s);
+  return { slot, until: (slot + 1) * CFG.slotMin * 60e3, lots: all.filter((l) => net >= l.need && !d.done[l.lot]), hidden: all.filter((l) => net < l.need).length };
+}
+function seedOf(s, k) { let h = 2166136261; for (const c of String(s.gid || '') + '|' + k) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0; }
+
+/** 举牌：最高出到 maxBid。proxy：古董交给收藏顾问代拍 */
+export function bid(s, lotId, maxBid, t, { proxy = false } = {}) {
+  const l = catalog(s, t).lots.find((x) => x.lot === lotId); if (!l) return { ok: false, why: '这件没在这一场的图录里（或者已经举过牌）' };
+  if (maxBid < l.start) return { ok: false, why: `最高出价不能低于起拍价 ${fmt(l.start)}` };
+  const who = proxy ? AQ.advisor(s) : null;
+  if (proxy && (l.kind !== 'antique' || !who)) return { ok: false, why: '要有收藏顾问（秘书）才能代拍古董' };
+  const npc = Math.round(l.npcMax * (who ? 1 - secAttrs(s, who).social / 100 * CFG.proxySocialK : 1));
+  au(s).done[l.lot] = true;
+  if (maxBid < npc) return { ok: true, won: false, npc, lot: l };
+  const hammer = Math.max(l.start, Math.min(maxBid, Math.round(npc * 1.03)));
+  const w = { lot: l.lot, kind: l.kind, id: l.id, name: l.name, hammer, deadline: t + CFG.payMin * 60e3, who: who || '' };
+  au(s).won.push(w);
+  return { ok: true, won: true, npc, lot: l, w, total: wonTotal(s, w) };
+}
+/** 拍到的要付多少：车 = 落槌 + 购置税等 + 买家佣金；古董 = 落槌 + 佣金 + 海外进口税 */
+export function wonTotal(s, w) {
+  if (w.kind === 'car') return r2(AS.quote(s, w.id, w.hammer).total + Math.round(AS.premium(w.hammer)));
+  return AQ.bidQuote(AQ.AQ[w.id], w.hammer).total;
+}
+export const wonList = (s) => au(s).won;
+/** 签成交确认书付款 */
+export function pay(s, lot, t) {
+  const d = au(s); const w = d.won.find((x) => x.lot === lot); if (!w) return { ok: false, why: '没有这一件' };
+  if (t > w.deadline) return { ok: false, why: '过了付款时间' };
+  const r = w.kind === 'car' ? AS.buy(s, w.id, t, { price: w.hammer, channel: 'auction', skipCheck: true }) : AQ.settle(s, w.id, w.hammer, t, { who: w.who });
+  if (r.ok) d.won = d.won.filter((x) => x !== w);
+  return r;
+}
+/** 每秒：拍到的 5 分钟内没付 → 违约，人脉 −5。返回要提示的话 */
+export function tick(s, t) {
+  const d = au(s); const out = [];
+  for (const w of d.won.slice()) if (t > w.deadline) { d.won = d.won.filter((x) => x !== w); d.penalty += CFG.defaultNetwork; out.push(`拍卖违约：${w.name} 5 分钟内没付款，人脉 −${CFG.defaultNetwork}`); }
+  return out;
+}
+addAttrHook((s) => ({ network: -((s.auc && s.auc.penalty) || 0) }));

@@ -1,0 +1,26 @@
+{
+ "_说明": "上市（第 3-04 项，设计23 第四节）。条件照真实板块（简化），数字按游戏里的净利（已经 × profitMul）；市盈率按板块；生意周期 = 游戏月（辅导 1、审核 1～2）；手续（股改、路演）真实分钟。费用照真实（不乘）。锁定期 = 现实 36 个月 ÷ profitMul；减持每 3 个游戏月最多 1%，限售股按所得 20% 个税（成本按 0），另交卖出印花税",
+ "boards": {
+  "main": { "name": "主板（上交所 / 深交所）", "pe": 20, "ccy": "CNY", "need": { "profit3y": 200000000, "profit1y": 100000000 }, "brokers": [["中锦证券", 0.07, 0.3], ["国太海通证券", 0.06, 0.45], ["华太证券", 0.05, 0.6]] },
+  "star": { "name": "科创板", "pe": 40, "ccy": "CNY", "need": { "tech": true, "cap": 1000000000, "rnd": 0.05 }, "brokers": [["中锦证券", 0.07, 0.35], ["国太海通证券", 0.06, 0.5], ["华太证券", 0.05, 0.65]] },
+  "hk": { "name": "港股主板（港交所）", "pe": 12, "ccy": "HKD", "need": { "profit3y": 73000000, "cap": 460000000, "offshore": true }, "brokers": [["中锦国际", 0.06, 0.3], ["高胜亚洲", 0.05, 0.4]] },
+  "nasdaq": { "name": "纳斯达克", "pe": 30, "ccy": "USD", "need": { "cap": 5800000000, "redchip": true }, "brokers": [["摩根士丹立", 0.07, 0.3], ["高胜", 0.065, 0.35]] }
+ },
+ "reform": { "fee": 3000000, "min": 15, "name": "股改（有限公司改股份有限公司：审计、评估、律师）" },
+ "tutorMonths": 1,
+ "reviewMonths": [1, 2],
+ "inquiryFinCut": 0.15,
+ "inquiryMin": 5,
+ "roadshowMin": 10,
+ "issue": [0.1, 0.15, 0.2, 0.25],
+ "issuePrice": 20,
+ "otherFeeRate": 0.015,
+ "self": { "beta": 1.1, "sigma": 0.004, "kappa": 0.002 },
+ "lockRealMonths": 36,
+ "reduceEveryMonths": 3,
+ "reduceMax": 0.01,
+ "reduceTax": 0.2,
+ "stamp": 0.0005,
+ "dividendRatio": 0.3,
+ "divTax": [[1, 0.2], [12, 0.1], [999999, 0]]
+}

@@ -1,0 +1,579 @@
+{
+ "_说明": "股票（第 2-09 项，设计12）。price 起始股价（元）；shares 总股本（亿股）；vol 波动档；div 年股息率；logo assets/stock/logo_<code>.webp",
+ "stocks": [
+  {
+   "code": "PGO",
+   "name": "平果",
+   "sector": "科技",
+   "price": 1600,
+   "shares": 150.0,
+   "vol": "mid",
+   "div": 0.005
+  },
+  {
+   "code": "WRN",
+   "name": "微阮",
+   "sector": "科技",
+   "price": 3000,
+   "shares": 74.0,
+   "vol": "low",
+   "div": 0.008
+  },
+  {
+   "code": "NVD",
+   "name": "英伟答",
+   "sector": "科技",
+   "price": 1000,
+   "shares": 245.0,
+   "vol": "high",
+   "div": 0.0
+  },
+  {
+   "code": "GGE",
+   "name": "谷哥",
+   "sector": "科技",
+   "price": 1300,
+   "shares": 122.0,
+   "vol": "mid",
+   "div": 0.004
+  },
+  {
+   "code": "AMX",
+   "name": "亚马讯",
+   "sector": "消费",
+   "price": 1400,
+   "shares": 105.0,
+   "vol": "mid",
+   "div": 0.0
+  },
+  {
+   "code": "MTA",
+   "name": "美塔",
+   "sector": "科技",
+   "price": 4200,
+   "shares": 25.0,
+   "vol": "high",
+   "div": 0.003
+  },
+  {
+   "code": "TSL",
+   "name": "特思拉",
+   "sector": "汽车",
+   "price": 2500,
+   "shares": 32.0,
+   "vol": "high",
+   "div": 0.0
+  },
+  {
+   "code": "BKX",
+   "name": "伯克西尔",
+   "sector": "金融",
+   "price": 3200,
+   "shares": 22.0,
+   "vol": "low",
+   "div": 0.0
+  },
+  {
+   "code": "TJD",
+   "name": "台积店",
+   "sector": "科技",
+   "price": 1300,
+   "shares": 52.0,
+   "vol": "mid",
+   "div": 0.012
+  },
+  {
+   "code": "TXN",
+   "name": "腾迅",
+   "sector": "科技",
+   "price": 450,
+   "shares": 92.0,
+   "vol": "mid",
+   "div": 0.008
+  },
+  {
+   "code": "ALB",
+   "name": "阿狸巴巴",
+   "sector": "消费",
+   "price": 90,
+   "shares": 190.0,
+   "vol": "high",
+   "div": 0.01
+  },
+  {
+   "code": "MTI",
+   "name": "茅苔",
+   "sector": "消费",
+   "price": 1500,
+   "shares": 12.5,
+   "vol": "low",
+   "div": 0.03
+  },
+  {
+   "code": "BYD",
+   "name": "比亚笛",
+   "sector": "汽车",
+   "price": 300,
+   "shares": 29.0,
+   "vol": "high",
+   "div": 0.006
+  },
+  {
+   "code": "NDS",
+   "name": "宁德时岱",
+   "sector": "能源",
+   "price": 250,
+   "shares": 44.0,
+   "vol": "high",
+   "div": 0.015
+  },
+  {
+   "code": "MTN",
+   "name": "美抟",
+   "sector": "消费",
+   "price": 120,
+   "shares": 61.0,
+   "vol": "high",
+   "div": 0.0
+  },
+  {
+   "code": "JDN",
+   "name": "晶东",
+   "sector": "消费",
+   "price": 140,
+   "shares": 30.0,
+   "vol": "mid",
+   "div": 0.015
+  },
+  {
+   "code": "PDD",
+   "name": "拼哆哆",
+   "sector": "消费",
+   "price": 900,
+   "shares": 14.0,
+   "vol": "high",
+   "div": 0.0
+  },
+  {
+   "code": "XMI",
+   "name": "小咪",
+   "sector": "科技",
+   "price": 50,
+   "shares": 250.0,
+   "vol": "high",
+   "div": 0.0
+  },
+  {
+   "code": "SXN",
+   "name": "三醒",
+   "sector": "科技",
+   "price": 60,
+   "shares": 60.0,
+   "vol": "mid",
+   "div": 0.02
+  },
+  {
+   "code": "FTN",
+   "name": "丰天",
+   "sector": "汽车",
+   "price": 130,
+   "shares": 130.0,
+   "vol": "low",
+   "div": 0.027999999999999997
+  },
+  {
+   "code": "LVM",
+   "name": "路威茗轩",
+   "sector": "奢侈品",
+   "price": 4800,
+   "shares": 5.0,
+   "vol": "mid",
+   "div": 0.018000000000000002
+  },
+  {
+   "code": "HMS",
+   "name": "爱马士",
+   "sector": "奢侈品",
+   "price": 17000,
+   "shares": 1.05,
+   "vol": "low",
+   "div": 0.008
+  },
+  {
+   "code": "KKL",
+   "name": "可口可勒",
+   "sector": "消费",
+   "price": 450,
+   "shares": 43.0,
+   "vol": "low",
+   "div": 0.03
+  },
+  {
+   "code": "MDL",
+   "name": "麦当佬",
+   "sector": "消费",
+   "price": 2100,
+   "shares": 7.0,
+   "vol": "low",
+   "div": 0.023
+  },
+  {
+   "code": "NKE",
+   "name": "耐刻",
+   "sector": "消费",
+   "price": 550,
+   "shares": 15.0,
+   "vol": "mid",
+   "div": 0.02
+  },
+  {
+   "code": "DSN",
+   "name": "迪仕尼",
+   "sector": "传媒",
+   "price": 800,
+   "shares": 18.0,
+   "vol": "mid",
+   "div": 0.008
+  },
+  {
+   "code": "JPM",
+   "name": "摩根大同",
+   "sector": "金融",
+   "price": 1800,
+   "shares": 28.0,
+   "vol": "low",
+   "div": 0.022000000000000002
+  },
+  {
+   "code": "WSA",
+   "name": "薇萨",
+   "sector": "金融",
+   "price": 2400,
+   "shares": 20.0,
+   "vol": "low",
+   "div": 0.006999999999999999
+  },
+  {
+   "code": "NFL",
+   "name": "耐飞",
+   "sector": "传媒",
+   "price": 6500,
+   "shares": 4.3,
+   "vol": "high",
+   "div": 0.0
+  },
+  {
+   "code": "ASM",
+   "name": "阿斯迈",
+   "sector": "科技",
+   "price": 5200,
+   "shares": 3.9,
+   "vol": "mid",
+   "div": 0.01
+  }
+ ],
+ "tickSec": 30,
+ "model": {
+  "_说明": "每跳 ln P += 大盘 β·M + 板块 B + σ·ε + κ·(ln F − ln P) + 新闻；合理价 F 每跳 × e^mu。这里只写真实年化 yearDrift（8%）；代码里 mu = ln(1 + yearDrift × profitMul) ÷ 每游戏年跳数（设计21 第九节，profitMul 在 economy.json）",
+  "yearDrift": 0.08,
+  "beta": {
+   "low": 0.8,
+   "mid": 1.0,
+   "high": 1.3
+  },
+  "sigma": {
+   "low": 0.003,
+   "mid": 0.006,
+   "high": 0.012
+  },
+  "kappa": 0.01,
+  "marketSigma": 0.003,
+  "sectorSigma": 0.002,
+  "maxStep": 0.08,
+  "minPrice": 1,
+  "regimes": {
+   "bull": 0.0005,
+   "bear": -0.0005,
+   "flat": 0
+  },
+  "regimeName": {
+   "bull": "牛市",
+   "bear": "熊市",
+   "flat": "震荡"
+  },
+  "regimeTicks": [
+   60,
+   180
+  ]
+ },
+ "news": {
+  "_说明": "平均每 5 分钟一条（每跳 1/10）；70% 个股、20% 板块、10% 大盘；利好的概率：个股 0.6（利空跌得多，这样长期不偏）、板块和大盘 0.5（涨跌幅对称）；新闻同时挪合理价一半",
+  "perTick": 0.1,
+  "share": {
+   "stock": 0.7,
+   "sector": 0.2,
+   "market": 0.1
+  },
+  "goodP": {
+   "stock": 0.6,
+   "sector": 0.5,
+   "market": 0.5
+  },
+  "fvShare": 0.5,
+  "good": [
+   [
+    "财报超预期",
+    0.03,
+    0.08
+   ],
+   [
+    "新品大卖",
+    0.02,
+    0.06
+   ],
+   [
+    "拿下大单",
+    0.02,
+    0.05
+   ]
+  ],
+  "bad": [
+   [
+    "财报不及预期",
+    -0.08,
+    -0.03
+   ],
+   [
+    "产品召回",
+    -0.1,
+    -0.04
+   ],
+   [
+    "监管调查",
+    -0.15,
+    -0.05
+   ],
+   [
+    "高管丑闻",
+    -0.06,
+    -0.03
+   ]
+  ],
+  "sectorGood": [
+   "政策利好",
+   0.02,
+   0.05
+  ],
+  "sectorBad": [
+   "政策利空",
+   -0.05,
+   -0.02
+  ],
+  "marketGood": [
+   "央行降息",
+   0.01,
+   0.03
+  ],
+  "marketBad": [
+   "央行加息",
+   -0.03,
+   -0.01
+  ]
+ },
+ "fees": {
+  "_说明": "设计14 第二节 6：佣金 0.025%（最低 5 元）、卖出印花税 0.05%、过户费 0.001%；大单（超过市值 0.1%）滑点 = 金额 / 市值 × 10",
+  "commission": 0.00025,
+  "minCommission": 5,
+  "stamp": 0.0005,
+  "transfer": 1e-05,
+  "impactFrom": 0.001,
+  "impactK": 10
+ },
+ "dividend": {
+  "_说明": "股息率 div 写真实值；每真实 1 小时按「年股息率 × profitMul / 200」发；个税按持有时间（游戏时间）：不到 1 个月 20%、1 个月～1 年 10%、满 1 年免",
+  "everyMin": 60,
+  "taxShort": 0.2,
+  "taxMid": 0.1
+ },
+ "stake": {
+  "notice": 0.05,
+  "tender": 0.3,
+  "jump": 0.03,
+  "_jump": "第 3-05 项：每次举牌公告股价跳 3%"
+ },
+ "offlineMaxTicks": 20160,
+ "_offline": "离线补算最多 7 天（20160 跳），再多的部分价格不动",
+ "unlockTitle": 0,
+ "history": {
+  "recent": 120,
+  "longEvery": 20,
+  "longMax": 400
+ },
+ "mgr": {
+  "_说明": "投资经理（第 2-09 项）：真实值，代码里 × profitMul。safeYear 稳健部分（债券、货币）年化；excessYear 智慧 100 时一年超额（智慧 50 不超额，(智慧 − 50) / 50 × excessYear）",
+  "safeYear": 0.03,
+  "excessYear": 0.05
+ },
+ "_p06": "第 P-06 项（设计25 第五节）：条件单、打新股、融资融券、看盘、炒股周报。时间写游戏天（1 游戏天 = 1 游戏月 ÷ 30）",
+ "orders": {
+  "_说明": "条件单：到价买入 / 止盈 / 止损；每跳检查，按当跳价成交；最多同时挂 max 张，expireDays 个游戏天没触发自动撤",
+  "max": 10,
+  "expireDays": 30
+ },
+ "ipo": {
+  "_说明": "打新股：开局 firstMonths 个游戏月来第一只（11-22 改成 2：前 20 天日均持股要先攒起来，新玩家第一只才申得到），之后每 everyMonths 个游戏月（在这个区间里随机）来一只；申购窗口 subDays 游戏天，第 drawDay 天公布中签，第 listDay 天上市。签数 = 前 avgDays 个游戏天日均持仓市值 ÷ perLot，最多 maxLots 签；每签中签率 winRate；中了缴款 lotShares 股 × 发行价。首日涨幅 pop：[概率, 最低, 最高]。上市后合理价 = 发行价 × (1 + 首日涨幅 × fvKeep)。8 家原创（验收发布准备给的名字和代码，不对标真公司），desc 是个股页一句话简介；logo 用板块色块 + 首字",
+  "firstMonths": 2,
+  "everyMonths": [
+   1,
+   2
+  ],
+  "subDays": 1,
+  "drawDay": 2,
+  "listDay": 5,
+  "avgDays": 20,
+  "perLot": 10000,
+  "maxLots": 10,
+  "winRate": 0.005,
+  "lotShares": 500,
+  "pop": [
+   [
+    0.7,
+    0.3,
+    1.5
+   ],
+   [
+    0.2,
+    0.0,
+    0.3
+   ],
+   [
+    0.1,
+    -0.2,
+    -0.05
+   ]
+  ],
+  "fvKeep": 0.4,
+  "list": [
+   {
+    "code": "XHZ",
+    "name": "星河智造",
+    "sector": "科技",
+    "price": 18.6,
+    "shares": 4.0,
+    "vol": "high",
+    "div": 0,
+    "desc": "做工业机器人和智能工厂"
+   },
+   {
+    "code": "QHY",
+    "name": "青禾优选",
+    "sector": "消费",
+    "price": 12.3,
+    "shares": 6.0,
+    "vol": "mid",
+    "div": 0.01,
+    "desc": "社区生鲜连锁"
+   },
+   {
+    "code": "LJN",
+    "name": "蓝鲸新能",
+    "sector": "能源",
+    "price": 9.8,
+    "shares": 10.0,
+    "vol": "mid",
+    "div": 0.015,
+    "desc": "储能电池和充电站"
+   },
+   {
+    "code": "YLS",
+    "name": "云岚数科",
+    "sector": "科技",
+    "price": 24.5,
+    "shares": 5.0,
+    "vol": "mid",
+    "div": 0,
+    "desc": "给中小企业做云软件"
+   },
+   {
+    "code": "JCQ",
+    "name": "锦程汽车",
+    "sector": "汽车",
+    "price": 15.4,
+    "shares": 20.0,
+    "vol": "high",
+    "div": 0.03,
+    "desc": "新势力电动车"
+   },
+   {
+    "code": "JXH",
+    "name": "九霄航天",
+    "sector": "科技",
+    "price": 36.0,
+    "shares": 3.0,
+    "vol": "high",
+    "div": 0,
+    "desc": "商业卫星和小火箭"
+   },
+   {
+    "code": "BLW",
+    "name": "白鹭文娱",
+    "sector": "传媒",
+    "price": 6.2,
+    "shares": 8.0,
+    "vol": "high",
+    "div": 0.012,
+    "desc": "短剧和网络电影"
+   },
+   {
+    "code": "DSC",
+    "name": "鼎晟财富",
+    "sector": "金融",
+    "price": 11.2,
+    "shares": 12.0,
+    "vol": "low",
+    "div": 0.02,
+    "desc": "互联网券商和财富管理"
+   }
+  ]
+ },
+ "margin": {
+  "_说明": "融资融券（只做融资买入）：身价和账户资产（个人现金 + 持仓市值）都 ≥ openAt 才能开；最多借到「持仓市值 − 已借」的 maxLever 倍；年利率 yearRate × profitMul，每真实 1 小时扣一次（一游戏年 200 小时）；维持担保比例 = 持仓市值 ÷ 负债：低于 warn 秘书提醒，低于 call 追加保证金（callDays 个游戏天内补回去），到期还不够或低于 force 强制平仓（卖到比例回到 restore 或还清）",
+  "openAt": 500000,
+  "maxLever": 1,
+  "yearRate": 0.06,
+  "warn": 1.5,
+  "call": 1.3,
+  "callDays": 2,
+  "force": 1.1,
+  "restore": 1.5
+ },
+ "watch": {
+  "_说明": "看盘（设计12 第五节、设计25 第五节 4）：开局就能派一个秘书看盘；新闻出来前 1 跳概率 智慧 / 150 提前说一句，方向准确率 50% + 智慧 / 400（夏芷晴智慧 12：8%、53%）。派了看盘不能同时上课"
+ },
+ "weekly": {
+  "_说明": "炒股周报：每 days 个游戏天一条；智慧最高的秘书点评一句（台词按性格，{rate} 胜率、{pnl} 盈亏）",
+  "days": 7,
+  "lines": {
+   "元气": [
+    "这周{pnl}！胜率 {rate}……我觉得我们还是多卖点零食比较稳？",
+    "本周胜率 {rate}！老板好厉害，不过店里也要记得去看看哦。"
+   ],
+   "高冷": [
+    "本周胜率 {rate}，{pnl}。数字就摆在这里。",
+    "胜率 {rate}。建议您把时间花在能控制的事情上。"
+   ],
+   "绿茶": [
+    "老板这周{pnl}了呢……没关系，我相信您下周一定可以的～",
+    "胜率 {rate}，老板好有眼光，人家都看不懂这些。"
+   ],
+   "傲娇": [
+    "哼，胜率才 {rate}，我闭着眼睛都比你买得好。",
+    "本周{pnl}……也、也不是很差啦。"
+   ],
+   "知性": [
+    "本周胜率 {rate}，我建议您回去开店。",
+    "本周{pnl}。短线胜率 {rate}，长期看跑不赢开店的回报。"
+   ]
+  }
+ }
+}

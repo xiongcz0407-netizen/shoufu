@@ -1,0 +1,104 @@
+// 只有一个存档，自动存；带存档版本号，新版本必须能读旧存档
+import { APP_V } from '../version.js?v=1236a42d';
+import { mkt } from './stocks.js?v=1236a42d';
+
+export const SAVE_KEY = 'shoufu_save';
+export const SAVE_VERSION = 1; // 第一次发布（V0.1）从 1 起；开发期的 2～4 档不再认（还没发布，存档随便清）
+
+/** 局号：每开一局一个 */
+export const newGid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+/** 新开局的存档。以后加字段：在这里加默认值即可（读旧档时自动补上） */
+export function defaultState(t = Date.now()) {
+  const s = {
+    saveV: SAVE_VERSION,
+    appV: APP_V,
+    createdAt: t,
+    gid: newGid(),    // 局号：「重新开始」换新的（云端判断是不是换了一局，设计22）
+    lastSeen: t,      // 上次在线（算离线收益）
+    cash: 0,          // 个人现金
+    company: 0,       // 公司账户（开局由 core/start.js 注资开店）
+    bossName: '', companyName: '',
+    ledger: [], ledgerSeq: 0, accruals: {},
+    clock: { monthsDone: 0 },
+    inbox: [], inboxSeq: 0, // 消息中心
+    ui: { lastSeg: {}, unlocked: {} },
+    positions: { cfo: 's09_xia' }, // 秘书职位：{ manager_store: 秘书 id | 'outsource', cfo: …, steward: … }；开局夏芷晴兼财务总监（设计16）
+    title: 0,         // 称号序号（TITLES）
+    secs: { s09_xia: { outfit: 'c1', joinedAt: t, attrs: null, favor: 0, love: 0, rec: { dates: 0, places: {}, lastDate: null, gifts: 0, talks: 0, clothes: 0 } } }, // 已加入的秘书（结构见 core/secretary.js newSecRecord）
+    current: 's09_xia', // 当前陪着的秘书
+    inds: { store: { level: 1, branches: 1, spent: 0, sec: null, staff: {}, agency: {}, openedAt: t } }, // 产业（staff：在岗人数按岗位）；第一家小店老板自己看，不用招人
+    hires: [],        // 招聘中的 { ind, role, n, at }
+    payroll: { arrears: 0, owed: 0, bonusMonths: 1 },
+    training: [],     // 在上的课 [{sec, course, start, end}]
+    garage: { cars: [], planes: [], houses: [] }, // 车库 / 机库 / 房产（id 列表）
+    assetValue: 0,    // 车房飞机的价值（买价 × 80%）
+    acquiredValue: 0, // 收购来的公司估值
+    rivals: {},       // 对手：{ id: { wins, losses, acquired, cooldownUntil } }
+    flags: {},        // 剧情 / 引导标记（titleAt：升到每个称号的时间）
+    events: {},       // 事件（core/events.js）：{ id: { done, msg, snoozeUntil, times } }
+    eventLastAt: 0,
+    stats: {},        // 累计数据
+    settings: { sound: true },
+  };
+  mkt(s, t);   // 第 3-09b 项：开局就建好股市（开局就能炒股；离线补算、上市后自己的股价都靠它）；读档没有的，fillDefaults 会补上
+  return s;
+}
+
+// 存档升级：MIGRATIONS[n] 把 saveV = n 的档升到 n+1。字段改名、结构变化写在这里
+export const MIGRATIONS = {
+  // 发布以后每改一次存档结构：SAVE_VERSION + 1，这里加一条 n: (s) => { …; return s; }
+};
+
+function isObj(x) { return x && typeof x === 'object' && !Array.isArray(x); }
+
+/** 把默认值里有、旧档里没有的字段补上（不覆盖已有的值） */
+export function fillDefaults(s, d) {
+  for (const k of Object.keys(d)) {
+    if (!(k in s)) s[k] = structuredClone(d[k]);
+    else if (isObj(d[k]) && isObj(s[k])) fillDefaults(s[k], d[k]);
+  }
+  return s;
+}
+
+/** 读到的 JSON 对象 → 当前版本的存档 */
+export function upgrade(raw, t = Date.now()) {
+  let s = raw;
+  if (!isObj(s)) return defaultState(t);
+  let v = s.saveV || 0;
+  if (v > SAVE_VERSION) throw new Error(`存档版本 ${v} 比游戏新（${SAVE_VERSION}），请更新游戏`);
+  while (v < SAVE_VERSION) {
+    const m = MIGRATIONS[v];
+    if (m) s = m(s);
+    v += 1;
+    s.saveV = v;
+  }
+  fillDefaults(s, defaultState(t));
+  s.appV = APP_V;
+  return s;
+}
+
+export function serialize(s) { return JSON.stringify(s); }
+
+export function deserialize(str, t = Date.now()) {
+  if (!str) return null;
+  return upgrade(JSON.parse(str), t);
+}
+
+/** 读档 / 写档（storage 由外面传进来，测试时可以换成假的） */
+export function loadGame(storage, t = Date.now()) {
+  const str = storage.get(SAVE_KEY);
+  if (!str) return defaultState(t);
+  try { return deserialize(str, t); }
+  catch (e) {
+    // 坏档先备份一份，不直接丢
+    storage.set(SAVE_KEY + '_bad_' + t, str);
+    console.warn('存档读取失败，已备份并新开局', e);
+    return defaultState(t);
+  }
+}
+
+export function saveGame(storage, s, t = Date.now()) {
+  s.lastSeen = t;
+  return storage.set(SAVE_KEY, serialize(s));
+}

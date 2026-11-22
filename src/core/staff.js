@@ -1,0 +1,164 @@
+// 员工（设计17 第一节）：只是数字。按产业线 → 岗位记在岗人数；编制跟门店样子走
+import PAY from '../config/payroll.json?v=1236a42d' with { type: 'json' };
+import ECO from '../config/economy.json?v=1236a42d' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=1236a42d';
+import { pay, canPay, post } from './ledger.js?v=1236a42d';
+import { YEAR_MS } from './gametime.js?v=1236a42d';
+import { salaryOf, isSec } from './posts.js?v=1236a42d';
+import { lineK } from './cities.js?v=1236a42d';
+import { payerOfSec, satisfaction, turnoverMult } from './fiscal.js?v=1236a42d';
+export { PAY };
+
+const look = (ind) => { const c = IND_BY_ID[ind.id]; let i = 0; c.looks.forEach((lv, k) => { if (ind.level >= lv) i = k; }); return i; };
+export const lookOf = (s, id) => look({ ...s.inds[id], id });
+export const wage = (role) => PAY.roles[role].wage;
+const sumv = (o) => Object.values(o || {}).reduce((a, b) => a + b, 0);
+
+function line(s, id) { const x = s.inds[id]; x.staff = x.staff || {}; x.agency = x.agency || {}; return x; }
+/** 编制：{ role: 人数 }（每家店 × 分店数） */
+export function establishment(s, id) {
+  const x = s.inds[id]; const tpl = PAY.staffing[id][lookOf(s, id)]; const out = {};
+  const k = IND_BY_ID[id].kind === 'scale' ? x.level : 1; // 物流：每升一级多一份人（件量跟着人走）
+  const own = ownerRun(s, id) ? PAY.staffing[id][0] : {}; // 第一家小店老板自己看（设计21 第四节）：少招一家小店的人
+  for (const [r, n] of Object.entries(tpl)) { const v = n * x.branches * k - (own[r] || 0); if (v > 0) out[r] = v; }
+  return out;
+}
+/** 老板自己看第一家店：开局那条线、小老板为止（economy.json start） */
+export const ownerRun = (s, id) => id === ECO.start.firstStore && s.title <= ECO.start.ownerRunMaxTitle && !!s.inds[id] && s.inds[id].branches >= 1;
+export const estTotal = (s, id) => sumv(establishment(s, id));
+export const onDuty = (s, id) => { const x = line(s, id); return sumv(x.staff) + sumv(x.agency); };
+export const onDutyRole = (s, id, r) => { const x = line(s, id); return (x.staff[r] || 0) + (x.agency[r] || 0); };
+export const storeStaff = (s) => Object.keys(s.inds).reduce((a, id) => a + onDuty(s, id), 0);
+export const hqStaff = (s) => { const n = storeStaff(s); return n >= PAY.hqFromStaff ? Math.max(1, Math.ceil(n * PAY.hqRate)) : 0; };
+export const totalStaff = (s) => storeStaff(s) + hqStaff(s);
+/** 拖欠工资两个月以上，门店停业 */
+export const closedByArrears = (s) => (s.payroll && s.payroll.arrears >= 2);
+/** 收入系数：在岗 / 编制（最多 1）；缺编超过一半停业 */
+export function staffFactor(s, id) {
+  if (closedByArrears(s)) return 0;
+  const e = estTotal(s, id); if (!e) return 1;
+  const r = Math.min(1, onDuty(s, id) / e);
+  return r < PAY.understaffClose ? 0 : r;
+}
+/** 开局 / 刚解锁的产业线：按编制招满 */
+export function staffUp(s, id) { const x = line(s, id); for (const [r, n] of Object.entries(establishment(s, id))) x.staff[r] = Math.max(x.staff[r] || 0, n); }
+export const shortage = (s, id) => { const e = establishment(s, id); const o = {}; for (const [r, n] of Object.entries(e)) { const d = n - onDutyRole(s, id, r); if (d > 0) o[r] = d; } return o; };
+
+/** 招聘渠道费用 */
+export function hireCost(channel, role, n) {
+  const c = PAY.channels[channel]; const w = wage(role);
+  if (channel === 'web') return Math.round(w * c.costMonths * n);
+  if (channel === 'hunter') return Math.round(w * 12 * c.costYearRate * n);
+  return 0;
+}
+export function whyNotHire(s, id, role, n, channel) {
+  const c = PAY.channels[channel];
+  if (!s.inds[id] || !PAY.roles[role] || !(n > 0)) return '不对';
+  if (c.roles && !c.roles.includes(role)) return '猎头只招店长、主管、总部';
+  if (!canPay(s, 'company', hireCost(channel, role, n))) return '公司账户不够';
+  return null;
+}
+/** 招人：劳务派遣立刻到；别的等 min～max 分钟 */
+export function hire(s, id, role, n, channel, t, rnd = Math.random, by = '') {
+  const why = whyNotHire(s, id, role, n, channel); if (why) return { ok: false, why };
+  const c = PAY.channels[channel]; const cost = hireCost(channel, role, n);
+  if (cost) pay(s, { wallet: 'company', cat: 'recruit', amount: cost, by, note: `${IND_BY_ID[id].name}招${PAY.roles[role].name} ${n} 人（${c.name}）` }, t);
+  if (channel === 'agency') { line(s, id).agency[role] = (line(s, id).agency[role] || 0) + n; return { ok: true, at: t }; }
+  let mins = c.minMin + rnd() * (c.maxMin - c.minMin);
+  if (by && s.secs[by] && s.secs[by].attrs) mins *= 1 - s.secs[by].attrs.social / 100 * 0.4; // 秘书交际高到岗快
+  const at = t + mins * 60e3;
+  (s.hires = s.hires || []).push({ ind: id, role, n, at, channel });
+  return { ok: true, at };
+}
+export function processHires(s, t) {
+  const arrived = [];
+  s.hires = (s.hires || []).filter((h) => { if (h.at > t) return true; const x = line(s, h.ind); x.staff[h.role] = (x.staff[h.role] || 0) + h.n; arrived.push(h); return false; });
+  return arrived;
+}
+export const pendingHires = (s, id) => (s.hires || []).filter((h) => h.ind === id).reduce((a, h) => a + h.n, 0);
+/** 裁员：N + 1（N = 在职游戏年数，最少 1 个月）；先裁派遣（不赔） */
+export function fire(s, id, role, n, t) {
+  const x = line(s, id);
+  let left = n; const ag = Math.min(left, x.agency[role] || 0); x.agency[role] = (x.agency[role] || 0) - ag; left -= ag;
+  const own = Math.min(left, x.staff[role] || 0); if (!own && !ag) return { ok: false, why: '没有人可裁' };
+  const years = Math.max(0, Math.floor((t - (s.inds[id].openedAt || s.createdAt)) / YEAR_MS)); // 工作满一年算一个月，不满也给 N+1 的 1
+  const comp = own * wage(role) * (years + 1);
+  if (own) { pay(s, { wallet: 'company', cat: 'severance', amount: comp, force: true, note: `${IND_BY_ID[id].name}裁${PAY.roles[role].name} ${own} 人（N+1）` }, t); x.staff[role] -= own; }
+  return { ok: true, comp, n: own + ag };
+}
+/** 个税（月度，简化：工资 − 5000 起征点，速算扣除） */
+export function iit(monthly) {
+  const base = monthly - PAY.iitThreshold; if (base <= 0) return 0;
+  const [, r, q] = PAY.iitBrackets.find(([lim]) => base <= lim);
+  return Math.max(0, base * r - q);
+}
+const socialRate = () => sumv(PAY.social);
+
+/** 本月人工成本（预估） */
+export function monthlyLabor(s) {
+  let wages = 0, agency = 0, iitSum = 0;
+  for (const id of Object.keys(s.inds)) {
+    const x = line(s, id); const k = lineK(s, id); // 城市系数：广州工资是上海的 0.85
+    for (const [r, n] of Object.entries(x.staff)) { wages += n * wage(r) * k; iitSum += n * iit(wage(r) * k); }
+    for (const [r, n] of Object.entries(x.agency)) agency += n * wage(r) * k * (1 + PAY.channels.agency.markup);
+  }
+  const hq = hqStaff(s) * wage('hq'); wages += hq; iitSum += hqStaff(s) * iit(wage('hq'));
+  // 秘书也是公司员工（设计17 第二节）：按谈好的月薪
+  let sec = 0; for (const id of Object.keys(s.secs || {})) { if (payerOfSec(s, id) === 'personal') continue; const w = salaryOf(s, id); sec += w; iitSum += iit(w); } // 家族办公室的人工资个人出（第 2-15 项）
+  const all = wages + sec;
+  return { wages, sec, social: all * socialRate(), agency, iit: iitSum, total: all * (1 + socialRate()) + agency };
+}
+
+/** 月底发工资 + 社保 + 派遣费 + 房租；钱不够就拖欠（下月补发）。
+ *  acc = { labor, rent }：这个月按天计提的（权责），给了就按它付；不给按月底的人数算整月 */
+export function monthEnd(s, t, rnd = Math.random, acc = null) {
+  const p = (s.payroll = s.payroll || { arrears: 0, owed: 0 });
+  const L0 = monthlyLabor(s);
+  let rent = 0; for (const id of Object.keys(s.inds)) rent += IND_BY_ID[id].rent[lookOf(s, id)] * s.inds[id].branches;
+  let L = L0;
+  if (acc) { const k = L0.total ? acc.labor / L0.total : 0; L = { wages: L0.wages * k, sec: L0.sec * k, social: L0.social * k, agency: L0.agency * k, iit: L0.iit * k, total: acc.labor, k }; rent = acc.rent; }
+  const k = L.k ?? 1;
+  const due = L.total + p.owed;
+  const out = { labor: L, rent, paid: false };
+  if (canPay(s, 'company', due)) {
+    if (p.owed) pay(s, { wallet: 'company', cat: 'payroll', amount: p.owed, note: '补发拖欠工资' }, t);
+    if (L.wages) pay(s, { wallet: 'company', cat: 'payroll', amount: L.wages, note: `本月工资（${totalStaff(s)} 人，按天计提）` }, t);
+    for (const id of Object.keys(s.secs || {})) { if (payerOfSec(s, id) === 'personal') continue; const w = salaryOf(s, id) * k; if (w >= 0.01) pay(s, { wallet: 'company', cat: 'sec_salary', amount: w, party: id, by: id, note: `秘书工资` }, t); }
+    if (L.social) pay(s, { wallet: 'company', cat: 'social', amount: L.social, note: '社保公积金（公司部分，含秘书）' }, t);
+    if (L.agency) pay(s, { wallet: 'company', cat: 'agency', amount: L.agency, note: '劳务派遣费' }, t);
+    if (L.iit) post(s, { wallet: 'company', dir: 'out', cat: 'iit_withheld', amount: L.iit, memo: true, party: '税务局', note: '代扣员工个税（从工资里扣，不算公司成本）' }, t);
+    p.arrears = 0; p.owed = 0; out.paid = true;
+    (s.iitWithheld = s.iitWithheld || []).push({ t, amount: L.iit, who: 'staff' });
+  } else { p.arrears += 1; p.owed += L.total; out.unpaidSecs = Object.keys(s.secs || {}); }
+  if (rent) pay(s, { wallet: 'company', cat: 'rent', amount: rent, force: true, note: '门店房租' }, t);
+  for (const id of Object.keys(s.secs || {})) if (payerOfSec(s, id) === 'personal') { const w = salaryOf(s, id) * (1 + socialRate()); if (w >= 0.01) pay(s, { wallet: 'personal', cat: 'family_office', amount: w, force: true, party: id, by: id, note: '家族办公室：秘书工资 + 社保（个人出）' }, t); }
+  out.left = turnover(s, rnd);
+  // 利润按权责发生制：这个月该发的工资都算这个月的成本（拖欠的也算）
+  s.period = s.period || {}; s.period.labor = (s.period.labor || 0) + L.total; s.period.rent = (s.period.rent || 0) + rent;
+  return out;
+}
+/** 月流失：零售 5%、餐饮 7%；店长管理高少流失（第 7 项接）；拖欠工资 ×3 */
+let managerMgmt = () => 0;
+export const setManagerMgmt = (fn) => { managerMgmt = fn; };
+/** 店长平均管理（满意度用） */
+export const avgMgmt = (s) => { const ids = Object.keys(s.inds || {}); return ids.length ? ids.reduce((a, id) => a + managerMgmt(s, id), 0) / ids.length : 0; };
+export function turnover(s, rnd = Math.random) {
+  const mult = s.payroll && s.payroll.arrears ? PAY.arrearsTurnoverMult : 1;
+  let left = 0;
+  for (const id of Object.keys(s.inds)) {
+    const x = line(s, id); const rate = PAY.turnover[id] * (1 - managerMgmt(s, id) / 100 * 0.5) * mult * turnoverMult(satisfaction(s, avgMgmt(s))); // 员工满意度（第 2-15 项）
+    for (const r of Object.keys(x.staff)) {
+      const exp = x.staff[r] * rate; let n = Math.floor(exp); if (rnd() < exp - n) n += 1;
+      n = Math.min(n, x.staff[r]); x.staff[r] -= n; left += n;
+    }
+  }
+  return left;
+}
+/** 年终奖：默认 1 个月工资（0～3 可改） */
+export function yearBonus(s, t, profitPositive) {
+  const months = s.payroll && s.payroll.bonusMonths != null ? s.payroll.bonusMonths : PAY.yearBonusMonths;
+  if (!profitPositive || !months) return 0;
+  const amt = monthlyLabor(s).wages * months;
+  if (amt) pay(s, { wallet: 'company', cat: 'bonus', amount: amt, force: true, note: `年终奖 ${months} 个月` }, t);
+  return amt;
+}
