@@ -1,19 +1,19 @@
 // P-05 前期核心玩法·经营（设计25 第一、三节）：老板精力、每家店四个亲自经营动作（可带秘书）、口碑、店长 / 秘书自动经营、大盘行情、老板以后的大事
 // 「店」= 一条门店线（便利店 / 餐饮 / 服装）；营业额、进货的加成通过 economy.setManageHooks 挂进去
-import { credit } from './credit.js?v=385b5781'; // V3-01 亲自拍板攒投入度
-import M from '../config/manage.json?v=385b5781' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=385b5781';
-import { SEC_BY_ID } from '../config/secretaries.js?v=385b5781';
-import { YEAR_MS, MONTH_MS } from './gametime.js?v=385b5781';
-import { industryRevenue, setManageHooks } from './economy.js?v=385b5781';
-import { setRateAdjFn } from './bank.js?v=385b5781';
-import { pay, receive, canPay } from './ledger.js?v=385b5781';
-import { holder, isSec, attrs } from './posts.js?v=385b5781';
-import { bossAttrs } from './boss.js?v=385b5781';
-import { addFavor } from './affection.js?v=385b5781';
-import { isTraining } from './training.js?v=385b5781';
-import { mark, energyBonus, onReward } from './goals.js?v=385b5781'; // P-06 目标链（开发2）：做到了打勾、精力上限、奖励
-import { wage } from './staff.js?v=385b5781';
+import { credit } from './credit.js?v=f10d7ba9'; // V3-01 亲自拍板攒投入度
+import M from '../config/manage.json?v=f10d7ba9' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=f10d7ba9';
+import { SEC_BY_ID } from '../config/secretaries.js?v=f10d7ba9';
+import { YEAR_MS, MONTH_MS } from './gametime.js?v=f10d7ba9';
+import { industryRevenue, setManageHooks } from './economy.js?v=f10d7ba9';
+import { setRateAdjFn } from './bank.js?v=f10d7ba9';
+import { pay, receive, canPay } from './ledger.js?v=f10d7ba9';
+import { holder, isSec, attrs } from './posts.js?v=f10d7ba9';
+import { bossAttrs } from './boss.js?v=f10d7ba9';
+import { addFavor } from './affection.js?v=f10d7ba9';
+import { isTraining } from './training.js?v=f10d7ba9';
+import { mark, energyBonus, onReward } from './goals.js?v=f10d7ba9'; // P-06 目标链（开发2）：做到了打勾、精力上限、奖励
+import { wage } from './staff.js?v=f10d7ba9';
 
 export { M as MANAGE_CFG };
 export const DAY_MS = YEAR_MS / M.daysPerYear;

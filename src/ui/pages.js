@@ -1,14 +1,14 @@
 // 5 个页签的页面（设计18 第四节）。各分段的内容在各自的模块里，这里只排结构
-import { registerPage, hostPanel } from './shell.js?v=385b5781';
-import { openIndustry } from './industry.js?v=385b5781';
-import { renderSecretaryList } from './secretary.js?v=385b5781';
-import { openBattle, renderBattleLog, renderAcquire } from './battle.js?v=385b5781';
-import { renderAssets } from './assets.js?v=385b5781';
-import { renderInvest } from './stocks.js?v=385b5781';
-import { renderCapital } from './capital.js?v=385b5781';
-import { renderRich } from './richlist.js?v=385b5781'; // V2-14 财富榜
-import { renderFunds } from './company.js?v=385b5781';
-import { h } from './dom.js?v=385b5781';
+import { registerPage, hostPanel } from './shell.js?v=f10d7ba9';
+import { openIndustry } from './industry.js?v=f10d7ba9';
+import { renderSecretaryList } from './secretary.js?v=f10d7ba9';
+import { openBattle, renderBattleLog, renderAcquire } from './battle.js?v=f10d7ba9';
+import { renderAssets } from './assets.js?v=f10d7ba9';
+import { renderInvest } from './stocks.js?v=f10d7ba9';
+import { renderCapital } from './capital.js?v=f10d7ba9';
+import { renderRich } from './richlist.js?v=f10d7ba9'; // V2-14 财富榜
+import { renderFunds } from './company.js?v=f10d7ba9';
+import { h } from './dom.js?v=f10d7ba9';
 
 const todo = (text) => (body) => { body.appendChild(h('div', 'empty', text)); };
 const extra = {}; // 后面的项往分段里塞内容：extra['company.hr'] = (body, ctx) => …

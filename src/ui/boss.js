@@ -1,19 +1,19 @@
-import { avatarKey } from './main-screen.js?v=385b5781';
-import * as MG from '../core/manage.js?v=385b5781'; // P-05 精力
-import { totals as counterTotals } from '../core/counter.js?v=385b5781'; // V2-04 站柜台统计
-import { asset, hasAsset } from '../platform/assets.js?v=385b5781';
+import { avatarKey } from './main-screen.js?v=f10d7ba9';
+import * as MG from '../core/manage.js?v=f10d7ba9'; // P-05 精力
+import { totals as counterTotals } from '../core/counter.js?v=f10d7ba9'; // V2-04 站柜台统计
+import { asset, hasAsset } from '../platform/assets.js?v=f10d7ba9';
 // 老板页：名字和公司、老板属性、称号进度、穿戴、统计、设置（存档、重新开始在「设置」里，设计22）
-import { TITLES } from '../config/titles.js?v=385b5781';
-import { RIVALS } from '../config/rivals.js?v=385b5781';
-import * as E from '../core/economy.js?v=385b5781';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=385b5781';
-import { versionText } from '../version.js?v=385b5781';
-import { now } from '../core/clock.js?v=385b5781';
-import { game } from '../game.js?v=385b5781';
-import { h, toast } from './dom.js?v=385b5781';
-import { openFull } from './shell.js?v=385b5781';
-import { wearHtml } from './luxury.js?v=385b5781';
-import { appendCloudSettings } from './cloudset.js?v=385b5781';
+import { TITLES } from '../config/titles.js?v=f10d7ba9';
+import { RIVALS } from '../config/rivals.js?v=f10d7ba9';
+import * as E from '../core/economy.js?v=f10d7ba9';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=f10d7ba9';
+import { versionText } from '../version.js?v=f10d7ba9';
+import { now } from '../core/clock.js?v=f10d7ba9';
+import { game } from '../game.js?v=f10d7ba9';
+import { h, toast } from './dom.js?v=f10d7ba9';
+import { openFull } from './shell.js?v=f10d7ba9';
+import { wearHtml } from './luxury.js?v=f10d7ba9';
+import { appendCloudSettings } from './cloudset.js?v=f10d7ba9';
 
 // 老板属性（设计09 第一节）由第 12 项提供：返回 [{ name, value, from }]
 let bossAttrs = () => [];

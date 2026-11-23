@@ -1,20 +1,22 @@
 // P-05 经营事件（设计25 第二节，config/events.json）：在线每 3～5 分钟来一件，最多挂 1 件（左侧「限时」浮动 + 消息中心邀请），2 分钟不理按默认；
 // 离线不来、不补；按你有的店、行业、称号筛；同一件 1 个游戏月内不重复；相关属性最高的秘书出主意（对的概率 50% + 属性 / 2）
-import { credit } from './credit.js?v=385b5781'; // V3-01 亲自拍板攒投入度
-import EV from '../config/events.json?v=385b5781' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=385b5781';
-import { SEC_BY_ID } from '../config/secretaries.js?v=385b5781';
-import { MONTH_MS } from './gametime.js?v=385b5781';
-import { addMsg, onAction } from './inbox.js?v=385b5781';
-import { pay, receive } from './ledger.js?v=385b5781';
-import { addContract } from './contracts.js?v=385b5781';
-import { attrs } from './posts.js?v=385b5781';
-import { isTraining } from './training.js?v=385b5781';
-import * as MG from './manage.js?v=385b5781';
-import * as PK from './pick.js?v=385b5781';
-import * as PQ from './prereq.js?v=385b5781';
-import './late.js?v=385b5781'; // V3-01 后期不挂机（挂钩注册） // V2-12 前置条件第一次满足时秘书说一句 // V2-03 进货挑品：暴雨跟着天气、节日事件跟着节日
-import { mark } from './goals.js?v=385b5781';
+import { credit } from './credit.js?v=f10d7ba9'; // V3-01 亲自拍板攒投入度
+import EV from '../config/events.json?v=f10d7ba9' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=f10d7ba9';
+import { SEC_BY_ID } from '../config/secretaries.js?v=f10d7ba9';
+import { MONTH_MS } from './gametime.js?v=f10d7ba9';
+import { addMsg, onAction } from './inbox.js?v=f10d7ba9';
+import { pay, receive } from './ledger.js?v=f10d7ba9';
+import { addContract } from './contracts.js?v=f10d7ba9';
+import { attrs } from './posts.js?v=f10d7ba9';
+import { isTraining } from './training.js?v=f10d7ba9';
+import * as MG from './manage.js?v=f10d7ba9';
+import * as PK from './pick.js?v=f10d7ba9';
+import * as PQ from './prereq.js?v=f10d7ba9';
+import './late.js?v=f10d7ba9'; // V3-01 后期不挂机（挂钩注册） // V2-12 前置条件第一次满足时秘书说一句 // V2-03 进货挑品：暴雨跟着天气、节日事件跟着节日
+import { mark } from './goals.js?v=f10d7ba9';
+import { available } from './accrual.js?v=f10d7ba9'; // V0.2.2 打工人阶段事件花钱封顶
+import { fmtMoney } from './format.js?v=f10d7ba9';
 
 export { EV as EVENTS_CFG };
 const r2 = (x) => Math.round(x * 100) / 100;
@@ -36,7 +38,23 @@ export function targetOf(s, e, t) {
   if (w.rival && (s.title || 0) < 1 && !Object.values(s.rivals || {}).some((x) => x.wins || x.losses)) return null;
   return ls.length ? ls.slice().sort((a, b) => MG.dayRev(s, b) - MG.dayRev(s, a))[0] : (shops(s)[0] || null);
 }
-export const eligible = (s, t) => EV.list.filter((e) => !(ev(s).cd[e.id] > t) && targetOf(s, e, t));
+/** V0.2.2 开局头 3 个游戏天不出要掏钱的坏事件 */
+export const earlyQuiet = (s, t) => t != null && t - (s.createdAt || 0) < (EV.noPayDays || 0) * MG.DAY_MS;
+export const eligible = (s, t) => EV.list.filter((e) => !(ev(s).cd[e.id] > t) && !(earlyQuiet(s, t) && (EV.bad || []).includes(e.id)) && targetOf(s, e, t));
+/** V0.2.2 打工人阶段：一件事最多花公司可用资金的 20%（不会扣成负数）；以后不封顶（null） */
+export const capOf = (s) => ((s.title || 0) ? null : r2(Math.max(0, Math.min(EV.capRate * available(s), s.company || 0))));
+/** 一个选项要花的钱：sure 一定花的，maybe 看运气可能花的（都按封顶算） */
+export function optCost(s, ln, fx) {
+  let sure = 0, maybe = 0; const one = (f) => (f.cash != null ? f.cash * scaleOf(s, ln) : f.cashDay != null ? f.cashDay * (ln ? MG.dayRev(s, ln) : 0) : 0);
+  const walk = (list, chance) => { for (const f of list || []) { if (f.chance != null || f.attrCheck) { walk(f.then, true); walk(f.else, true); continue; } const a = one(f); if (a < 0) { if (chance) maybe = Math.max(maybe, -a); else sure += -a; } } };
+  walk(fx, false); const cap = capOf(s); if (cap != null) { sure = Math.min(sure, cap); maybe = Math.min(maybe, Math.max(0, cap - sure)); }
+  return { sure: Math.round(sure), maybe: Math.round(maybe) };
+}
+/** 选项上写实际要花的钱：「先花钱整改（¥2500）」「拿证照给他们看（可能要花 ¥1500）」 */
+export function optLabel(s, ln, o) {
+  const { sure, maybe } = optCost(s, ln, o.fx); const add = [sure ? fmtMoney(sure) : '', maybe ? `可能要花 ${fmtMoney(maybe)}` : ''].filter(Boolean).join('，'); if (!add) return o.label;
+  const m = o.label.match(/^(.*)（(.*)）$/); return m ? `${m[1]}（${m[2]}，${add}）` : `${o.label}（${add}）`;
+}
 /** 出主意的秘书：相关属性最高、没在上课的 */
 export function advisor(s, e) {
   const ids = Object.keys(s.secs).filter((id) => !isTraining(s, id)); if (!ids.length) return null;
@@ -49,18 +67,19 @@ export function spawn(s, t, rnd = Math.random, id = null) {
   const ad = advisor(s, e); const best = e.options.find((o) => o.best) || e.options[0];
   const right = ad && rnd() < 0.5 + ad.attr / 200; const others = e.options.filter((o) => o !== best);
   const sug = !ad ? null : right || !others.length ? best : others[Math.floor(rnd() * others.length)];
-  const body = `${e.text.replace('{节日}', (PK.today(s, t).holiday || { name: '过节' }).name)}${ln ? `（${IND_BY_ID[ln].name}）` : ''}${ad ? `\n${SEC_BY_ID[ad.id].name}：「我觉得${sug.label.replace(/（.*）/, '')}比较好。」` : ''}\n${Math.round(EV.timeoutSec / 60)} 分钟不理就按「${e.options.find((o) => o.key === e.default).label}」处理。`;
-  const m = addMsg(s, { kind: 'invite', type: 'biz_event', title: `经营：${e.title}`, body, from: ad ? ad.id : '', actions: e.options.map((o) => ({ key: o.key, label: o.label })), data: { ev: e.id, line: ln, until: t + EV.timeoutSec * 1000, sug: sug ? sug.key : null } }, t);
+  const body = `${e.text.replace('{节日}', (PK.today(s, t).holiday || { name: '过节' }).name)}${ln ? `（${IND_BY_ID[ln].name}）` : ''}${ad ? `\n${SEC_BY_ID[ad.id].name}：「我觉得${sug.label.replace(/（.*）/, '')}比较好。」` : ''}\n${Math.round(EV.timeoutSec / 60)} 分钟不理就按「${optLabel(s, ln, e.options.find((o) => o.key === e.default))}」处理。`;
+  const m = addMsg(s, { kind: 'invite', type: 'biz_event', title: `经营：${e.title}`, body, from: ad ? ad.id : '', actions: e.options.map((o) => ({ key: o.key, label: optLabel(s, ln, o) })), data: { ev: e.id, line: ln, until: t + EV.timeoutSec * 1000, sug: sug ? sug.key : null } }, t);
   B.cur = m.id; B.cd[e.id] = t + EV.cooldownMonths * MONTH_MS; return m;
 }
-const scaleOf = (s, id) => (id ? Math.max(1, MG.dayRev(s, id) / EV.refDay) : 1);
+function scaleOf(s, id) { return id ? Math.max(1, MG.dayRev(s, id) / EV.refDay) : 1; }
 /** 执行效果，返回附加说明 */
 function apply(s, ln, list, t, rnd, out, ctx) {
   for (const f of list || []) {
     if (f.chance != null) { apply(s, ln, rnd() < f.chance ? f.then : f.else, t, rnd, out, ctx); continue; }
     if (f.attrCheck) { const ok = rnd() < (ctx.ad ? ctx.ad.attr : 30) / 100; apply(s, ln, ok ? f.then : f.else, t, rnd, out, ctx); out.push(ok ? '谈下来了' : '没谈下来'); continue; }
     if (f.cash != null || f.cashDay != null) {
-      const amt = r2(f.cash != null ? f.cash * scaleOf(s, ln) : f.cashDay * (ln ? MG.dayRev(s, ln) : 0)); if (!amt) continue;
+      let amt = r2(f.cash != null ? f.cash * scaleOf(s, ln) : f.cashDay * (ln ? MG.dayRev(s, ln) : 0)); if (!amt) continue;
+      if (amt < 0 && ctx.cap != null) { const want = -amt; const c = r2(Math.max(0, Math.min(want, ctx.cap, s.company || 0))); ctx.cap = r2(ctx.cap - c); if (c < want - 0.5) ctx.capped = r2((ctx.capped || 0) + want - c); if (c <= 0) continue; amt = -c; } /* V0.2.2 打工人阶段封顶 20%、不扣成负数 */
       if (amt < 0) { pay(s, { wallet: 'company', cat: f.cat || 'opex', amount: -amt, force: true, party: ctx.e.title, note: `经营事件：${ctx.e.title}（${ctx.o.label}）` }, t); ctx.paid += -amt; if (f.back) { MG.stockIn(s, ln, -amt, t, f.backDays || 3); out.push(`备了 ${Math.round(-amt)} 元的货（之后 ${f.backDays || 3} 天卖掉，少进货）`); } else out.push(`花了 ${Math.round(-amt)} 元`); }
       else { receive(s, { wallet: 'company', cat: f.cat || 'franchise', amount: amt, party: ctx.e.title, note: `经营事件：${ctx.e.title}（${ctx.o.label}）` }, t); out.push(`收了 ${Math.round(amt)} 元`); }
       continue;
@@ -77,8 +96,9 @@ export function resolve(s, msgId, key, t, rnd = Math.random, opts = {}) {   // o
   const m = (s.inbox || []).find((x) => x.id === msgId); if (!m || !m.data || !m.data.ev) return { ok: false, why: '没有这件事' };
   const e = EV_BY_ID[m.data.ev]; let o = e.options.find((x) => x.key === key) || e.options.find((x) => x.key === e.default);
   const need = (o.fx || []).find((f) => f.energy); if (need && !MG.doEnergy(s, need.energy, t)) { o = e.options.find((x) => x.key === e.default); }
-  const out = []; const ctx = { e, o, ad: m.from ? { id: m.from, attr: attrs(s, m.from)[e.attr] || 0 } : null, paid: 0, bank: false };
+  const out = []; const ctx = { e, o, ad: m.from ? { id: m.from, attr: attrs(s, m.from)[e.attr] || 0 } : null, paid: 0, bank: false, cap: capOf(s), capped: 0 };
   apply(s, m.data.line, opts.fx || o.fx, t, rnd, out, ctx);
+  if (ctx.capped > 0) out.push(`打工人阶段最多花可用资金的 20%，这次少掏 ${Math.round(ctx.capped)} 元`);
   if (o.doc && ctx.paid > 0) addContract(s, { prefix: 'PZ', kind: 'voucher', title: o.doc, parties: [['当事人', s.companyName || '我的公司'], ['事由', e.title]], subject: `${e.title}：${o.label}`, rows: [['金额', ctx.paid]], total: ctx.paid, wallet: 'company' }, t);
   const text = `${opts.msg || o.msg}${out.length ? `（${out.join('，')}）` : ''}${m.data.sug ? (m.data.sug === o.key ? '' : '') : ''}`;
   if (key) { mark(s, 'event'); credit(s, o.best ? 'eventBest' : 'event', 1, t); } // 自己选的才算「处理了经营事件」（超时默认不算）

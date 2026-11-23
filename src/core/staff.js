@@ -1,12 +1,12 @@
 // 员工（设计17 第一节）：只是数字。按产业线 → 岗位记在岗人数；编制跟门店样子走
-import PAY from '../config/payroll.json?v=385b5781' with { type: 'json' };
-import ECO from '../config/economy.json?v=385b5781' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=385b5781';
-import { pay, canPay, post } from './ledger.js?v=385b5781';
-import { YEAR_MS } from './gametime.js?v=385b5781';
-import { salaryOf, isSec } from './posts.js?v=385b5781';
-import { lineK } from './cities.js?v=385b5781';
-import { payerOfSec, satisfaction, turnoverMult } from './fiscal.js?v=385b5781';
+import PAY from '../config/payroll.json?v=f10d7ba9' with { type: 'json' };
+import ECO from '../config/economy.json?v=f10d7ba9' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=f10d7ba9';
+import { pay, canPay, post } from './ledger.js?v=f10d7ba9';
+import { YEAR_MS } from './gametime.js?v=f10d7ba9';
+import { salaryOf, isSec } from './posts.js?v=f10d7ba9';
+import { lineK } from './cities.js?v=f10d7ba9';
+import { payerOfSec, satisfaction, turnoverMult } from './fiscal.js?v=f10d7ba9';
 export { PAY };
 
 const look = (ind) => { const c = IND_BY_ID[ind.id]; let i = 0; c.looks.forEach((lv, k) => { if (ind.level >= lv) i = k; }); return i; };
@@ -61,25 +61,52 @@ export function whyNotHire(s, id, role, n, channel) {
   if (!canPay(s, 'company', hireCost(channel, role, n))) return '公司账户不够';
   return null;
 }
-/** 招人：劳务派遣立刻到；别的等 min～max 分钟 */
+/** 招人：劳务派遣立刻到；打工人阶段任何渠道都立刻到；别的等 min～max 分钟 */
 export function hire(s, id, role, n, channel, t, rnd = Math.random, by = '') {
   const why = whyNotHire(s, id, role, n, channel); if (why) return { ok: false, why };
   const c = PAY.channels[channel]; const cost = hireCost(channel, role, n);
   if (cost) pay(s, { wallet: 'company', cat: 'recruit', amount: cost, by, note: `${IND_BY_ID[id].name}招${PAY.roles[role].name} ${n} 人（${c.name}）` }, t);
   if (channel === 'agency') { line(s, id).agency[role] = (line(s, id).agency[role] || 0) + n; return { ok: true, at: t }; }
+  if (!(s.title || 0)) { line(s, id).staff[role] = (line(s, id).staff[role] || 0) + n; return { ok: true, at: t }; } /* V0.2.2 打工人阶段招人一律立刻到岗（设计34 第五节） */
   let mins = c.minMin + rnd() * (c.maxMin - c.minMin);
   if (by && s.secs[by] && s.secs[by].attrs) mins *= 1 - s.secs[by].attrs.social / 100 * 0.4; // 秘书交际高到岗快
   const at = t + mins * 60e3;
-  (s.hires = s.hires || []).push({ ind: id, role, n, at, channel });
+  s.hireSeq = (s.hireSeq || 0) + 1; (s.hires = s.hires || []).push({ id: s.hireSeq, ind: id, role, n, at, channel, t0: t });
   return { ok: true, at };
+}
+/** V0.2.2 一键补满：打工人阶段默认贴招聘（免费、立刻到），以后劳务派遣 */
+export const fillChannel = (s) => ((s.title || 0) ? 'agency' : 'door');
+export const needTotal = (s, id) => Math.max(0, Object.values(shortage(s, id)).reduce((a, n) => a + n, 0) - pendingHires(s, id));
+export function fillUp(s, id, t, channel = fillChannel(s), rnd = Math.random) {
+  const sh = shortage(s, id); const pend = {}; for (const h of s.hires || []) if (h.ind === id) pend[h.role] = (pend[h.role] || 0) + h.n;
+  const todo = Object.entries(sh).map(([r, n]) => [r, n - (pend[r] || 0)]).filter(([r, n]) => n > 0 && !(PAY.channels[channel].roles && !PAY.channels[channel].roles.includes(r)));
+  if (!todo.length) return { ok: false, why: '不缺人' };
+  const cost = todo.reduce((a, [r, n]) => a + hireCost(channel, r, n), 0); if (!canPay(s, 'company', cost)) return { ok: false, why: '公司账户不够' };
+  let n = 0; for (const [r, k] of todo) if (hire(s, id, r, k, channel, t, rnd).ok) n += k;
+  return { ok: n > 0, n, cost, channel };
 }
 export function processHires(s, t) {
   const arrived = [];
   s.hires = (s.hires || []).filter((h) => { if (h.at > t) return true; const x = line(s, h.ind); x.staff[h.role] = (x.staff[h.role] || 0) + h.n; arrived.push(h); return false; });
   return arrived;
 }
+/** V0.2.2 加急：多付这批人半个月工资，立刻到岗 */
+export const rushCost = (h) => Math.round(wage(h.role) * 0.5 * h.n);
+export function rush(s, h, t) {
+  const i = (s.hires || []).indexOf(h); if (i < 0) return { ok: false, why: '这批已经到岗了' };
+  const cost = rushCost(h); if (!canPay(s, 'company', cost)) return { ok: false, why: '公司账户不够' };
+  pay(s, { wallet: 'company', cat: 'recruit', amount: cost, note: `${IND_BY_ID[h.ind].name}招${PAY.roles[h.role].name} ${h.n} 人加急` }, t);
+  s.hires.splice(i, 1); const x = line(s, h.ind); x.staff[h.role] = (x.staff[h.role] || 0) + h.n; return { ok: true, cost };
+}
 export const pendingHires = (s, id) => (s.hires || []).filter((h) => h.ind === id).reduce((a, h) => a + h.n, 0);
 /** 裁员：N + 1（N = 在职游戏年数，最少 1 个月）；先裁派遣（不赔） */
+/** V0.2.2 裁员前看一眼：先退派遣、再裁自己人；赔 N+1；裁完在岗、编制、会不会缺编 */
+export function fireQuote(s, id, role, n, t) {
+  const x = line(s, id); const ag = Math.min(n, x.agency[role] || 0); const own = Math.min(n - ag, x.staff[role] || 0);
+  const years = Math.max(0, Math.floor((t - (s.inds[id].openedAt || s.createdAt)) / YEAR_MS)); const est = establishment(s, id)[role] || 0; const after = onDutyRole(s, id, role) - ag - own;
+  return { ag, own, n: ag + own, years, comp: own * wage(role) * (years + 1), after, est, short: Math.max(0, est - after) };
+}
+export const overStaff = (s, id, role) => Math.max(0, onDutyRole(s, id, role) - (establishment(s, id)[role] || 0));
 export function fire(s, id, role, n, t) {
   const x = line(s, id);
   let left = n; const ag = Math.min(left, x.agency[role] || 0); x.agency[role] = (x.agency[role] || 0) - ag; left -= ag;

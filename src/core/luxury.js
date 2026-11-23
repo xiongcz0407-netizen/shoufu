@@ -3,17 +3,17 @@
 // 表、西装：老板自己的，算身价（卖回价），加气场（全定制西装加人脉），戴着的表、穿着的西装再加一半；能卖回（配货表马上卖 → 配货变差一档；邀请 / 定制的卖了 → 拉黑）
 // 名包：只能送秘书（喜欢的牌子翻倍、进她的记录），不算身价、不画在立绘上；爱马士配货包每天最多 2 个，香奈尔 CF 每天 1 个
 // 商务总监（秘书）：配货额度攒得快；被拉黑 / 变差后去品牌「求情」
-import CFG from '../config/luxury.json?v=385b5781' with { type: 'json' };
-import { pay } from './ledger.js?v=385b5781';
-import { receive } from './ledger.js?v=385b5781';
-import { addContract } from './contracts.js?v=385b5781';
-import { invoice, addFavor, addLove, markWith, dayKey } from './affection.js?v=385b5781';
-import { ensureSec } from './secretary.js?v=385b5781';
-import { stewardSellRate, stewardQueueMult, holder, isSec, attrs as secAttrs } from './posts.js?v=385b5781';
-import { addAssetHook, recalc, premium } from './assets.js?v=385b5781';
-import { addAttrHook, bossAttrs } from './boss.js?v=385b5781';
-import { SEC_BY_ID } from '../config/secretaries.js?v=385b5781';
-import { taxRec } from './fiscal.js?v=385b5781';
+import CFG from '../config/luxury.json?v=f10d7ba9' with { type: 'json' };
+import { pay } from './ledger.js?v=f10d7ba9';
+import { receive } from './ledger.js?v=f10d7ba9';
+import { addContract } from './contracts.js?v=f10d7ba9';
+import { invoice, addFavor, addLove, markWith, dayKey } from './affection.js?v=f10d7ba9';
+import { ensureSec } from './secretary.js?v=f10d7ba9';
+import { stewardSellRate, stewardQueueMult, holder, isSec, attrs as secAttrs } from './posts.js?v=f10d7ba9';
+import { addAssetHook, recalc, premium } from './assets.js?v=f10d7ba9';
+import { addAttrHook, bossAttrs } from './boss.js?v=f10d7ba9';
+import { SEC_BY_ID } from '../config/secretaries.js?v=f10d7ba9';
+import { taxRec } from './fiscal.js?v=f10d7ba9';
 
 export const LCFG = CFG;
 export const WATCHES = CFG.watches, SUITS = CFG.suits, BAGS = CFG.bags;

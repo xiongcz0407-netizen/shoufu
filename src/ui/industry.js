@@ -1,15 +1,16 @@
 // 产业面板：升级、开分店、派驻秘书；产业图按等级换样子
-import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=385b5781';
-import { TITLES } from '../config/titles.js?v=385b5781';
-import * as PQ from '../core/prereq.js?v=385b5781'; // V2-12 前置条件
-import { shortText } from './company.js?v=385b5781'; // V0.2.1 灰按钮写原因
-import { SEC_BY_ID } from '../config/secretaries.js?v=385b5781';
-import * as E from '../core/economy.js?v=385b5781';
-import { fmtMoney } from '../core/format.js?v=385b5781';
-import { asset, hasAsset } from '../platform/assets.js?v=385b5781';
-import { game } from '../game.js?v=385b5781';
-import { now } from '../core/clock.js?v=385b5781';
-import { h, openPanel, toast } from './dom.js?v=385b5781';
+import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=f10d7ba9';
+import { TITLES } from '../config/titles.js?v=f10d7ba9';
+import * as PQ from '../core/prereq.js?v=f10d7ba9'; // V2-12 前置条件
+import { shortText } from './company.js?v=f10d7ba9';
+import { askFill } from './fill.js?v=f10d7ba9'; // V0.2.2 // V0.2.1 灰按钮写原因
+import { SEC_BY_ID } from '../config/secretaries.js?v=f10d7ba9';
+import * as E from '../core/economy.js?v=f10d7ba9';
+import { fmtMoney } from '../core/format.js?v=f10d7ba9';
+import { asset, hasAsset } from '../platform/assets.js?v=f10d7ba9';
+import { game } from '../game.js?v=f10d7ba9';
+import { now } from '../core/clock.js?v=f10d7ba9';
+import { h, openPanel, toast } from './dom.js?v=f10d7ba9';
 
 export function openIndustry(host) {
   const p = host || openPanel('我的产业');
@@ -48,7 +49,7 @@ export function openIndustry(host) {
         </div>`);
       card.dataset.id = cfg.id;
       card.querySelector('.up').onclick = () => { if (E.upgrade(s, cfg.id, now())) { game.changed(); render(); } };
-      card.querySelector('.br').onclick = () => { if (E.openBranch(s, cfg.id, now())) { toast(`${cfg.name}开到 ${ind.branches} 家了`); game.changed(); render(); } };
+      card.querySelector('.br').onclick = () => { if (E.openBranch(s, cfg.id, now())) { toast(`${cfg.name}开到 ${ind.branches} 家了`); game.changed(); render(); askFill(cfg.id); } };
       card.querySelector('.sec').onclick = () => pickSec(cfg.id, render);
       list.appendChild(card);
     }

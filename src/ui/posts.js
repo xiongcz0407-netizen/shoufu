@@ -1,16 +1,16 @@
 // 「公司 → 职位」（设计16 第六节、设计18 第四节 1）：组织架构图（你在最上，下面一排职位卡：头像 / 空缺 / 外包），
 // 点职位卡 → 底部抽屉：选人（最适合的打星）、外包、撤职、授权额度、店长托管（月预算 + 回本期）、资产管家出租、看她的月报
-import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=385b5781';
-import { IND_BY_ID } from '../config/industries.js?v=385b5781';
-import * as PO from '../core/posts.js?v=385b5781';
-import * as PW from '../core/postwork.js?v=385b5781';
-import * as T from '../core/training.js?v=385b5781';
-import { fmtMoney } from '../core/format.js?v=385b5781';
-import { asset, hasAsset } from '../platform/assets.js?v=385b5781';
-import { now } from '../core/clock.js?v=385b5781';
-import { game } from '../game.js?v=385b5781';
-import { h, openPanel, toast, liveRender } from './dom.js?v=385b5781';
-import { avatarKey } from './main-screen.js?v=385b5781';
+import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=f10d7ba9';
+import { IND_BY_ID } from '../config/industries.js?v=f10d7ba9';
+import * as PO from '../core/posts.js?v=f10d7ba9';
+import * as PW from '../core/postwork.js?v=f10d7ba9';
+import * as T from '../core/training.js?v=f10d7ba9';
+import { fmtMoney } from '../core/format.js?v=f10d7ba9';
+import { asset, hasAsset } from '../platform/assets.js?v=f10d7ba9';
+import { now } from '../core/clock.js?v=f10d7ba9';
+import { game } from '../game.js?v=f10d7ba9';
+import { h, openPanel, toast, liveRender } from './dom.js?v=f10d7ba9';
+import { avatarKey } from './main-screen.js?v=f10d7ba9';
 
 const AN = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 const icon = (k, cls = 'pc-ic') => (hasAsset(`assets/ui/${k}.webp`) ? `<img class="${cls}" src="${asset(`assets/ui/${k}.webp`)}" alt="">` : '');

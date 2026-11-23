@@ -1,14 +1,15 @@
 // V2-08 选址开分店（设计29 第三节）：选城市以后出 3 个候选铺位，可以先派秘书踩点（10 分钟），选一个开；线详情里看每家分店的铺位和表现、关店转让
-import * as SI from '../core/sites.js?v=385b5781';
-import * as E from '../core/economy.js?v=385b5781';
-import { IND_BY_ID } from '../config/industries.js?v=385b5781';
-import { SEC_BY_ID } from '../config/secretaries.js?v=385b5781';
-import { attrs } from '../core/posts.js?v=385b5781';
-import { isTraining } from '../core/training.js?v=385b5781';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=385b5781';
-import { now } from '../core/clock.js?v=385b5781';
-import { game } from '../game.js?v=385b5781';
-import { openPanel, toast, liveRender } from './dom.js?v=385b5781';
+import * as SI from '../core/sites.js?v=f10d7ba9';
+import * as E from '../core/economy.js?v=f10d7ba9';
+import { IND_BY_ID } from '../config/industries.js?v=f10d7ba9';
+import { SEC_BY_ID } from '../config/secretaries.js?v=f10d7ba9';
+import { attrs } from '../core/posts.js?v=f10d7ba9';
+import { isTraining } from '../core/training.js?v=f10d7ba9';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=f10d7ba9';
+import { now } from '../core/clock.js?v=f10d7ba9';
+import { game } from '../game.js?v=f10d7ba9';
+import { openPanel, toast, liveRender } from './dom.js?v=f10d7ba9';
+import { askFill } from './fill.js?v=f10d7ba9'; // V0.2.2
 
 const C = SI.SITE_CFG;
 const kTxt = (k) => `×${k.toFixed(2)}`;
@@ -43,7 +44,7 @@ export function openSitePick(id, city, okToSpend, done) {
     p.body.querySelectorAll('.st-go').forEach((b) => (b.onclick = () => {
       const s2 = game.state; const c2 = E.brCostOf(s2, id, city); if (!okToSpend(s2, c2, '开分店')) return;
       const c = SI.choose(s2, id, city, +b.dataset.i);
-      if (E.openBranch(s2, id, now(), '', city)) { toast(`${C.types[c.type].name}开了一家，要招人`); game.changed(); game.save(); p.close(); done && done(); }
+      if (E.openBranch(s2, id, now(), '', city)) { toast(`${C.types[c.type].name}开了一家`); game.changed(); game.save(); p.close(); done && done(); askFill(id); }
       else toast(E.whyNotBranch(s2, id) || '公司账户不够');
     }));
   };

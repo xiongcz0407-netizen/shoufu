@@ -1,31 +1,31 @@
 // 「秘书」页签（设计18 第四节 2）：上面一条培训位、两列卡片（没来的剪影 + 条件）；
 // 秘书详情全屏：上半立绘、下半面板（资料 | 培养 | 衣柜 | 职位工资），底部动作条（互动 · 送礼 · 约会 · 陪着我）
-import * as CP from '../core/capital.js?v=385b5781';
-import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=385b5781';
-import { COURSE_BY_ID } from '../config/courses.js?v=385b5781';
-import { OUTFITS } from '../config/outfits.js?v=385b5781';
-import { IND_BY_ID } from '../config/industries.js?v=385b5781';
-import * as S from '../core/secretary.js?v=385b5781';
-import * as T from '../core/training.js?v=385b5781';
-import { isScouting } from '../core/busy.js?v=385b5781'; // V2-08
-import * as O from '../core/outfits.js?v=385b5781';
-import * as A from '../core/affection.js?v=385b5781';
-import { query } from '../core/ledger.js?v=385b5781';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=385b5781';
-import { asset } from '../platform/assets.js?v=385b5781';
-import { now } from '../core/clock.js?v=385b5781';
-import { game } from '../game.js?v=385b5781';
-import { h, toast, liveRender } from './dom.js?v=385b5781';
-import { openFull, closeTab, goHome } from './shell.js?v=385b5781';
-import { switchSecretary, dressUp } from './main-screen.js?v=385b5781';
-import { pickSec, renderCourses } from './training.js?v=385b5781';
-import { openMall } from './mall.js?v=385b5781';
-import { openDate } from './date.js?v=385b5781';
-import { createPortrait } from './portrait.js?v=385b5781';
-import { bgKeyFor } from './main-screen.js?v=385b5781';
-import * as PO from '../core/posts.js?v=385b5781';
-import { openTab } from './shell.js?v=385b5781';
-import { addFavor } from '../core/affection.js?v=385b5781';
+import * as CP from '../core/capital.js?v=f10d7ba9';
+import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=f10d7ba9';
+import { COURSE_BY_ID } from '../config/courses.js?v=f10d7ba9';
+import { OUTFITS } from '../config/outfits.js?v=f10d7ba9';
+import { IND_BY_ID } from '../config/industries.js?v=f10d7ba9';
+import * as S from '../core/secretary.js?v=f10d7ba9';
+import * as T from '../core/training.js?v=f10d7ba9';
+import { isScouting } from '../core/busy.js?v=f10d7ba9'; // V2-08
+import * as O from '../core/outfits.js?v=f10d7ba9';
+import * as A from '../core/affection.js?v=f10d7ba9';
+import { query } from '../core/ledger.js?v=f10d7ba9';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=f10d7ba9';
+import { asset } from '../platform/assets.js?v=f10d7ba9';
+import { now } from '../core/clock.js?v=f10d7ba9';
+import { game } from '../game.js?v=f10d7ba9';
+import { h, toast, liveRender } from './dom.js?v=f10d7ba9';
+import { openFull, closeTab, goHome } from './shell.js?v=f10d7ba9';
+import { switchSecretary, dressUp } from './main-screen.js?v=f10d7ba9';
+import { pickSec, renderCourses } from './training.js?v=f10d7ba9';
+import { openMall } from './mall.js?v=f10d7ba9';
+import { openDate } from './date.js?v=f10d7ba9';
+import { createPortrait } from './portrait.js?v=f10d7ba9';
+import { bgKeyFor } from './main-screen.js?v=f10d7ba9';
+import * as PO from '../core/posts.js?v=f10d7ba9';
+import { openTab } from './shell.js?v=f10d7ba9';
+import { addFavor } from '../core/affection.js?v=f10d7ba9';
 
 const BEST_NAME = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 /** 她现在的职位名：没有返回 '' */

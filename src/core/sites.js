@@ -2,19 +2,19 @@
 // 选了铺位这家店的营业额系数 = 人流 × 适配度 ÷ 同行竞争（0.7～1.4），租金按铺位，口碑起点好 55 / 差 45；表现差的可以关店转让（拿回 30% 开店费）
 // 存档：s.sites = { pick: { id, city, n, list, chosen, scout }, lines: { 产业id: [{ type, city, k, rentK, flow, comp, cost, at }] } }
 // 没记铺位的店（老档、收购并进来的）按系数 1、租金 1 算
-import C from '../config/sites.json?v=385b5781' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=385b5781';
-import { SEC_BY_ID } from '../config/secretaries.js?v=385b5781';
-import { setSiteHooks } from './economy.js?v=385b5781';
-import { setRentHook } from './accrual.js?v=385b5781';
-import { lineCities, cityName, cityK } from './cities.js?v=385b5781';
-import { receive } from './ledger.js?v=385b5781';
-import { estTotal, onDuty } from './staff.js?v=385b5781';
-import { attrs } from './posts.js?v=385b5781';
-import { isTraining } from './training.js?v=385b5781';
-import { isScouting } from './busy.js?v=385b5781';
-import { line as mgLine } from './manage.js?v=385b5781';
-import * as CB from './calib.js?v=385b5781';
+import C from '../config/sites.json?v=f10d7ba9' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=f10d7ba9';
+import { SEC_BY_ID } from '../config/secretaries.js?v=f10d7ba9';
+import { setSiteHooks } from './economy.js?v=f10d7ba9';
+import { setRentHook } from './accrual.js?v=f10d7ba9';
+import { lineCities, cityName, cityK } from './cities.js?v=f10d7ba9';
+import { receive } from './ledger.js?v=f10d7ba9';
+import { estTotal, onDuty } from './staff.js?v=f10d7ba9';
+import { attrs } from './posts.js?v=f10d7ba9';
+import { isTraining } from './training.js?v=f10d7ba9';
+import { isScouting } from './busy.js?v=f10d7ba9';
+import { line as mgLine } from './manage.js?v=f10d7ba9';
+import * as CB from './calib.js?v=f10d7ba9';
 export { C as SITE_CFG };
 
 const TYPES = Object.keys(C.types);
