@@ -1,15 +1,15 @@
 // 第 P-06 项：财富 → 投资 里的「打新 · 两融」页签、个股页的条件单 / 融资买入、行情顶上的看盘（设计25 第五节）
-import * as SK from '../core/stocks.js?v=59e44493';
-import * as TR from '../core/trade.js?v=59e44493';
-import * as LK from '../core/look.js?v=59e44493'; // 设计41
-import * as AS from '../core/assets.js?v=59e44493';
-import { attrs as secAttrs } from '../core/posts.js?v=59e44493';
-import { SEC_BY_ID } from '../config/secretaries.js?v=59e44493';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=59e44493';
-import { profitMul } from '../core/calib.js?v=59e44493';
-import { game } from '../game.js?v=59e44493';
-import { now } from '../core/clock.js?v=59e44493';
-import { h, openPanel, toast } from './dom.js?v=59e44493';
+import * as SK from '../core/stocks.js?v=47e8f1b5';
+import * as TR from '../core/trade.js?v=47e8f1b5';
+import * as LK from '../core/look.js?v=47e8f1b5'; // 设计41
+import * as AS from '../core/assets.js?v=47e8f1b5';
+import { attrs as secAttrs } from '../core/posts.js?v=47e8f1b5';
+import { SEC_BY_ID } from '../config/secretaries.js?v=47e8f1b5';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=47e8f1b5';
+import { profitMul } from '../core/calib.js?v=47e8f1b5';
+import { game } from '../game.js?v=47e8f1b5';
+import { now } from '../core/clock.js?v=47e8f1b5';
+import { h, openPanel, toast } from './dom.js?v=47e8f1b5';
 
 const C = SK.SCFG; const I = C.ipo, MG = C.margin;
 const COLOR = { 科技: '#3b6fd8', 消费: '#d8823b', 能源: '#3ba86b', 汽车: '#7a5cd6', 金融: '#c9a43b', 传媒: '#d64b7a', 奢侈品: '#8a6a3a' };
@@ -29,7 +29,7 @@ export function watchRow(s, draw) {
   const wk = LK.weekLook(s); const lu = LK.luCount(s, now());
   const box = h('div', 'watch-box'); box.appendChild(el);
   const bar = h('div', 'watch-bar', `<span>本周看盘 ${wk.n} 次，抓到涨停 ${wk.lu} 次，照她挂的单${wk.pnl >= 0 ? '赚' : '亏'} ${fmtMoney(Math.abs(wk.pnl))}<small>今天的涨停：已出 ${lu.out} 只${lu.left ? ` / 还有 ${lu.left} 只` : ''}</small></span><button class="btn sm gold lk-btn" ${ok ? '' : 'disabled'}>看盘<small>${C.watch.look.energy} 精力</small></button>`);
-  bar.querySelector('.lk-btn').onclick = () => { import('./look.js?v=59e44493').then((u) => { u.doLook(); draw(); }); };
+  bar.querySelector('.lk-btn').onclick = () => { import('./look.js?v=47e8f1b5').then((u) => { u.doLook(); draw(); }); };
   box.appendChild(bar); return box;
 }
 function pickWatcher(s, draw) {
@@ -58,9 +58,9 @@ export function orderBlock(s, code, n, rerender) {
       ${mine.map((o) => `<div class="fn-row"><span>${TR.KIND[o.kind]} ${o.px} · ${o.n.toLocaleString()} 股${o.on === false ? '<small>（等前面成交才生效）</small>' : ''}</span><b><button class="btn sm" data-x="${o.id}">撤</button></b></div>`).join('')}
       ${TR.mg(s) ? `<div class="fn-row"><span><b>融资买入</b>　还能借 ${fmtMoney(TR.room(s))}</span></div><button class="btn sm gold mg-buy">借钱买 ${n.toLocaleString()} 股（约 ${fmtMoney(SK.quote(s, code, n, 'buy').total)}）</button>` : ''}`;
     el.querySelectorAll('[data-k]').forEach((b) => (b.onclick = () => { kind = b.dataset.k; draw(); }));
-    el.querySelector('.ord-max').onclick = () => { const p0 = +el.querySelector('.ord-px').value; const nn = kind === 'buy' ? Math.floor(SK.maxBuyN(s, code, Math.max(0, s.cash)) * SK.price(s, code) / Math.max(p0, 0.01)) : SK.maxSellMe(s, code) - m.orders.filter((x) => x.code === code && x.kind !== 'buy' && x.on !== false).reduce((a, x) => a + x.n, 0); if (!(nn >= 1)) { toast(kind === 'buy' ? '钱不够' : '没有能卖的'); return; } const r = TR.addOrder(s, { code, kind, px: p0, n: nn }, now()); if (!r.ok) { toast(r.why); return; } done(`挂好了：${TR.KIND[kind]} ${r.order.px} · ${nn.toLocaleString()} 股（${kind === 'buy' ? '全仓' : '全部'}）`); rerender(); };   // 任务板第 1e 项
+    el.querySelector('.ord-max').onclick = () => { const p0 = +el.querySelector('.ord-px').value; const nn = kind === 'buy' ? Math.floor(SK.maxBuyN(s, code, Math.max(0, TR.availCash(s))) * SK.price(s, code) / Math.max(p0, 0.01)) : TR.sellable(s, code); if (!(nn >= 1)) { toast(kind === 'buy' ? '钱不够' : '没有能卖的'); return; } const r = TR.addOrder(s, { code, kind, px: p0, n: nn }, now()); if (!r.ok) { toast(r.why); return; } done(`挂好了：${TR.KIND[kind]} ${r.order.px} · ${nn.toLocaleString()} 股（${kind === 'buy' ? '全仓' : '全部'}）`); rerender(); };   // 任务板第 1e 项
     el.querySelector('.ord-go').onclick = () => { const r = TR.addOrder(s, { code, kind, px: +el.querySelector('.ord-px').value, n }, now()); if (!r.ok) { toast(r.why); return; } done(`挂好了：${TR.KIND[kind]} ${r.order.px}`); rerender(); };
-    el.querySelectorAll('[data-x]').forEach((b) => (b.onclick = () => { TR.cancelOrder(s, +b.dataset.x); done('撤了'); rerender(); }));
+    el.querySelectorAll('[data-x]').forEach((b) => (b.onclick = () => { const o = m.orders.find((x) => x.id === +b.dataset.x); TR.cancelOrder(s, +b.dataset.x, false, now()); done(o && (o.back || o.backN) ? `撤了，${o.back ? `${fmtMoney(o.back)} 退回个人现金` : `${o.backN.toLocaleString()} 股退回持仓`}` : '撤了'); rerender(); }));
     const mb = el.querySelector('.mg-buy'); if (mb) mb.onclick = () => { const r = TR.marginBuy(s, code, n, now()); if (!r.ok) { toast(r.why); return; } done(`融资买好了，借 ${fmtMoney(r.borrowed)}`); rerender(); };
   };
   draw(); return el;
@@ -89,7 +89,7 @@ export function renderTradeTab(s, wrap, draw) {
   wrap.appendChild(h('div', 'sd-rec-title', `条件单 ${m.orders.length} / ${C.orders.max}`));
   const ob = h('div', 'fn-card');
   ob.innerHTML = m.orders.length ? m.orders.map((o) => `<div class="fn-row"><span>${SK.BY[o.code].name}　${TR.KIND[o.kind]} ${o.px} · ${o.n.toLocaleString()} 股${o.on === false ? '（等前面成交）' : ''}<small>　现价 ${SK.price(s, o.code).toFixed(2)}</small></span><b><button class="btn sm" data-x="${o.id}">撤</button></b></div>`).join('') : '<div class="tr-gain">还没挂：在个股页挂「到价买入 / 止盈 / 止损」</div>';
-  ob.querySelectorAll('[data-x]').forEach((b) => (b.onclick = () => { TR.cancelOrder(s, +b.dataset.x); done('撤了'); draw(); }));
+  ob.querySelectorAll('[data-x]').forEach((b) => (b.onclick = () => { const o = m.orders.find((x) => x.id === +b.dataset.x); TR.cancelOrder(s, +b.dataset.x, false, now()); done(o && (o.back || o.backN) ? `撤了，${o.back ? `${fmtMoney(o.back)} 退回个人现金` : `${o.backN.toLocaleString()} 股退回持仓`}` : '撤了'); draw(); }));
   wrap.appendChild(ob);
   // 两融
   wrap.appendChild(h('div', 'sd-rec-title', '融资融券（加杠杆）'));

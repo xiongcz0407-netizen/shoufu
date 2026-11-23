@@ -1,15 +1,15 @@
 // 「财富 → 投资 → 基金」（第 2-10 项）：公募 / 私募 / 天使风投；申购、赎回（下一跳到账）、私募三份文件
-import { YEAR_MS } from '../core/gametime.js?v=59e44493'; // V0.2.10
-import * as FD from '../core/funds.js?v=59e44493';
-import * as AS from '../core/assets.js?v=59e44493';
-import * as INB from '../core/inbox.js?v=59e44493';
-import * as E from '../core/economy.js?v=59e44493';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=59e44493';
-import { game } from '../game.js?v=59e44493';
-import { now } from '../core/clock.js?v=59e44493';
-import { h, openPanel, toast } from './dom.js?v=59e44493';
-import { spark } from './stocks.js?v=59e44493';
-import { hintLater } from './guide2.js?v=59e44493';
+import { YEAR_MS } from '../core/gametime.js?v=47e8f1b5'; // V0.2.10
+import * as FD from '../core/funds.js?v=47e8f1b5';
+import * as AS from '../core/assets.js?v=47e8f1b5';
+import * as INB from '../core/inbox.js?v=47e8f1b5';
+import * as E from '../core/economy.js?v=47e8f1b5';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=47e8f1b5';
+import { game } from '../game.js?v=47e8f1b5';
+import { now } from '../core/clock.js?v=47e8f1b5';
+import { h, openPanel, toast } from './dom.js?v=47e8f1b5';
+import { spark } from './stocks.js?v=47e8f1b5';
+import { hintLater } from './guide2.js?v=47e8f1b5';
 
 const pct = (v) => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(2)}%`;
 const cls = (v) => (v > 0 ? 'up' : v < 0 ? 'down' : '');
@@ -26,7 +26,7 @@ export function renderFunds(s, wrap, redraw) {
     const r = h('button', 'sk-row' + (lock ? ' dim' : ''), `<i class="sk-logo ph">${TYPE[f.type]}</i><div class="sk-name"><b>${f.name}</b><small>${f.manager} · 管理费 ${(f.fee * 100).toFixed(1)}%/年${f.perfFee ? ` + 赚的 ${f.perfFee * 100}%` : ''} · 起投 ${fmtMoney(f.min)}${f.qualified ? ' · 合格投资者' : ''}</small>${hd ? `<small>持有 ${fmtMoney(hd.units * nav)}　盈亏 <span class="${cls(hd.units * nav - hd.cost)}">${fmtMoney(hd.units * nav - hd.cost)}</span></small>` : ''}${f.type === 'angel' && d.angel.length ? `<small>投了 ${d.angel.length} 笔，锁定中</small>` : ''}</div><div class="sk-px">${f.type === 'angel' ? `<b>锁 ${FD.lockGameYears(f)} 游戏年</b>` : `<b>${nav.toFixed(4)}</b><small class="${cls(c)}">${pct(c)}</small>`}</div>`);
     r.onclick = () => openFund(f.id, redraw); wrap.appendChild(r);
   }
-  wrap.appendChild(h('div', 'tr-gain', '净值跟股票同一套行情，管理费按时间扣；申购费、赎回费（持有不到 7 个游戏日 1.5%、不到 30 个游戏日 0.5%）；赎回按当跳净值、下一跳到账；基金收益免个税。投资经理按风格配：稳健 货币 + 债券 + 金融红利、平衡 指数 + 债券 + 行业、进取 科技 + 新能源 + 私募'));
+  wrap.appendChild(h('div', 'tr-gain', '净值跟股票同一套行情，管理费按时间扣；申购费、赎回费（持有不到 7 个游戏日 1.5%、不到 30 个游戏日 0.5%）；赎回按当跳净值、下一跳到账；基金收益免个税'));
 }
 
 function openFund(id, done) {

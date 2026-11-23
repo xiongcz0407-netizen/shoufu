@@ -1,15 +1,15 @@
 // 设计41 秘书看盘给价（开发2）：新闻提醒弹框、「看盘」结果弹框、照她说的挂单（条件单表填好，玩家能改再挂）、消息「重要」里的按钮
-import * as SK from '../core/stocks.js?v=59e44493';
-import * as TR from '../core/trade.js?v=59e44493';
-import * as LK from '../core/look.js?v=59e44493';
-import * as I from '../core/inbox.js?v=59e44493';
-import { SEC_BY_ID } from '../config/secretaries.js?v=59e44493';
-import { fmtMoney } from '../core/format.js?v=59e44493';
-import { asset, hasAsset } from '../platform/assets.js?v=59e44493';
-import { game } from '../game.js?v=59e44493';
-import { now } from '../core/clock.js?v=59e44493';
-import { h, openPanel, toast } from './dom.js?v=59e44493';
-import { addActionUi } from './inbox.js?v=59e44493';
+import * as SK from '../core/stocks.js?v=47e8f1b5';
+import * as TR from '../core/trade.js?v=47e8f1b5';
+import * as LK from '../core/look.js?v=47e8f1b5';
+import * as I from '../core/inbox.js?v=47e8f1b5';
+import { SEC_BY_ID } from '../config/secretaries.js?v=47e8f1b5';
+import { fmtMoney } from '../core/format.js?v=47e8f1b5';
+import { asset, hasAsset } from '../platform/assets.js?v=47e8f1b5';
+import { game } from '../game.js?v=47e8f1b5';
+import { now } from '../core/clock.js?v=47e8f1b5';
+import { h, openPanel, toast } from './dom.js?v=47e8f1b5';
+import { addActionUi } from './inbox.js?v=47e8f1b5';
 
 const W = SK.SCFG.watch;
 const done = (msg) => { if (msg) toast(msg); game.changed(); game.save(); };
@@ -23,11 +23,11 @@ export function openOrderSheet(legs, title, onPlace) {
   const draw = () => {
     p.body.innerHTML = `<div class="tr-gain">这几张连在一起：${L[0].kind === 'buy' ? '买进成交以后，止盈、止损才生效；一张成交，另一张自动撤' : '卖出成交以后，抄底那张才生效'}。价和股数都能改。</div>
       ${L.map((x, i) => `<div class="lk-leg"><span>${TR.KIND[x.kind]}${x.role === 'out' ? '<small>（等前面成交）</small>' : ''}</span><input type="number" step="0.01" data-p="${i}" value="${x.px.toFixed(2)}"><span>元</span><input type="number" step="1" data-n="${i}" value="${x.n}"><span>股</span>${i === 0 ? `<button class="btn sm lk-max">${x.kind === 'buy' ? '全仓' : '全部'}</button>` : ''}</div>`).join('')}
-      <div class="tr-gain">约 ${fmtMoney(L[0].px * L[0].n)}（现在个人现金 ${fmtMoney(game.state.cash)}）</div>
+      <div class="tr-gain">约 ${fmtMoney(L[0].px * L[0].n)}${L[0].kind === 'buy' ? `（挂上就从个人现金扣 ${fmtMoney(TR.buyCost(game.state, L[0].code, L[0].px, L[0].n))}，现在 ${fmtMoney(TR.availCash(game.state))}）` : ''}</div>
       <button class="btn gold lk-go" style="width:100%">挂单</button>`;
     p.body.querySelectorAll('[data-p]').forEach((el) => (el.onchange = () => { L[+el.dataset.p].px = +el.value; }));
     p.body.querySelectorAll('[data-n]').forEach((el) => (el.onchange = () => { const n = Math.max(1, Math.floor(+el.value)); for (const x of L) x.n = n; draw(); }));
-    p.body.querySelector('.lk-max').onclick = () => { const s = game.state; const x = L[0]; const n = x.kind === 'buy' ? Math.max(1, Math.floor(SK.maxBuyN(s, x.code, Math.max(0, s.cash)) * SK.price(s, x.code) / Math.max(x.px, 0.01))) : SK.maxSellMe(s, x.code); for (const y of L) y.n = Math.max(1, n); draw(); };   // 全仓 / 全部（任务板第 1e 项）
+    p.body.querySelector('.lk-max').onclick = () => { const s = game.state; const x = L[0]; const n = x.kind === 'buy' ? Math.max(1, Math.floor(SK.maxBuyN(s, x.code, Math.max(0, TR.availCash(s))) * SK.price(s, x.code) / Math.max(x.px, 0.01))) : SK.maxSellMe(s, x.code); for (const y of L) y.n = Math.max(1, n); draw(); };   // 全仓 / 全部（任务板第 1e 项）
     p.body.querySelector('.lk-go').onclick = () => { const r = onPlace(L); if (!r.ok) { toast(r.why); return; } p.close(); done('挂好了，离线也会触发'); };
   };
   draw(); return p;

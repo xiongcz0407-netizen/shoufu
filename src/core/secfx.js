@@ -2,16 +2,16 @@
 // 每一项：attrs 看哪几项（多项取平均）、name 名字、post 在什么职位才生效（null = 任何时候都算）、need 没生效时写的「当上 X 后」、
 // val(A, ctx) → 显示的值（A = 假设的属性，ctx = { eff 职位效率 }）。升级框拿「前 → 后」，培养页「?」列整张表。
 // 改了游戏里的公式，这里要跟着改（test/secfx.test.mjs 拿真函数对过几项）。
-import { attrs as secAttrs, postOfSec, kindOf, efficiency } from './posts.js?v=59e44493';
-import { MANAGE_CFG } from './manage.js?v=59e44493';
-import { WAR } from './war.js?v=59e44493';
-import { AGENDA_CFG, scheduler } from './agenda.js?v=59e44493';
-import { TECH_CFG } from './tech.js?v=59e44493';
-import P from '../config/posts.json?v=59e44493' with { type: 'json' };
-import LX from '../config/luxury.json?v=59e44493' with { type: 'json' };
-import AU from '../config/auction.json?v=59e44493' with { type: 'json' };
-import NG from '../config/negotiate.json?v=59e44493' with { type: 'json' };
-import { MGR as STK_MGR, SCFG as STK_CFG } from './stocks.js?v=59e44493';
+import { attrs as secAttrs, postOfSec, kindOf, efficiency } from './posts.js?v=47e8f1b5';
+import { MANAGE_CFG } from './manage.js?v=47e8f1b5';
+import { WAR } from './war.js?v=47e8f1b5';
+import { AGENDA_CFG, scheduler } from './agenda.js?v=47e8f1b5';
+import { TECH_CFG } from './tech.js?v=47e8f1b5';
+import P from '../config/posts.json?v=47e8f1b5' with { type: 'json' };
+import LX from '../config/luxury.json?v=47e8f1b5' with { type: 'json' };
+import AU from '../config/auction.json?v=47e8f1b5' with { type: 'json' };
+import NG from '../config/negotiate.json?v=47e8f1b5' with { type: 'json' };
+import { SCFG as STK_CFG } from './stocks.js?v=47e8f1b5';
 
 export const ATTR_NAME = { charm: '魅力', wit: '智慧', social: '交际', manage: '管理' };
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -41,7 +41,8 @@ export const EFFECTS = [
   { attrs: ['social'], post: 'biz', need: '当上商务总监后', name: '名表名包配货额度', val: (A) => mul(1 + A.social / 100 * LX.quotaBiz) },
   { attrs: ['social'], post: 'biz', need: '当上商务总监后', name: '被品牌拉黑时去求情的成功率', val: (A) => pct(clamp(A.social / 100, LX.plead.minChance, LX.plead.maxChance), 0) },
   { attrs: ['social', 'charm'], post: 'biz', need: '当上商务总监后', name: '对手来抢地挖人前的预警本事', val: (A, c) => pct(avg(A, ['social', 'charm']) / 100 * c.eff, 0) },
-  { attrs: ['wit'], post: 'invest', need: '当上投资经理后', name: '炒股每年跑赢大盘', val: (A, c) => { const x = (A.wit * c.eff - 50) / 50 * STK_MGR.excessK; return `${x >= 0 ? '+' : '−'}${pct(Math.abs(x))}`; } },
+  { attrs: ['wit'], post: 'invest', need: '当上投资经理后', name: '投资经理每轮看得到', val: (A, c) => `${Math.min(30, Math.floor(STK_CFG.watch.look.seeBase + Math.min(100, A.wit * c.eff) / STK_CFG.watch.look.seeDiv))} 只` },   // 设计44
+  { attrs: ['wit'], post: 'invest', need: '当上投资经理后', name: '投资经理吃到涨幅', val: (A, c) => pct(STK_CFG.watch.look.cBase + STK_CFG.watch.look.cK * Math.min(100, A.wit * c.eff) / 100, 0) },
   { attrs: ['wit'], post: 'collector', need: '当上收藏顾问后', name: '古玩市场掌眼（智慧）', val: (A) => `${Math.round(A.wit)}` },
   { attrs: ['social'], post: 'collector', need: '当上收藏顾问后', name: '替你代拍时对手少抬价', val: (A) => pct(A.social / 100 * AU.proxySocialK) },
   { attrs: ['social', 'wit'], post: 'ipo', need: '当上投融资总监后', name: '上市问询少问的本事', val: (A, c) => pct(avg(A, ['social', 'wit']) / 100 * c.eff, 0) },

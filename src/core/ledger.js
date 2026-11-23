@@ -13,7 +13,7 @@ export const CATS = {
   // 个人收入
   dividend: ['分红', 'personal'], sell: ['卖东西', 'personal'], reward: ['奖励', 'personal'], rent_income: ['租金收入', 'personal'], savings: ['个人存款（开局）', 'personal'],
   // 个人支出
-  car: ['车', 'personal'], house: ['房', 'personal'], plane: ['飞机', 'personal'], yacht: ['游艇', 'personal'], watch: ['名表', 'personal'], suit: ['西装', 'personal'], bag: ['名包（送秘书）', 'personal'], antique: ['古董藏品', 'personal'], fx_out: ['个人购汇', 'personal'], fx_in: ['购汇汇入', 'offshore'], dividend_abroad: ['境外分红', 'offshore'], odi_out: ['境外投资汇出（ODI）', 'company'], stock_buy: ['买股票', 'personal'], stock_sell: ['卖股票', 'personal'], stock_fee: ['股票佣金 / 印花税', 'personal'], stock_div: ['股票分红', 'personal'], inv_out: ['划给投资经理', 'personal'], inv_in: ['投资经理还回', 'personal'], fund_buy: ['申购基金', 'personal'], fund_sell: ['赎回基金', 'personal'], fund_fee: ['基金申购 / 赎回费、业绩报酬', 'personal'], gift: ['礼物', 'personal'], clothes: ['衣服', 'personal'],
+  car: ['车', 'personal'], house: ['房', 'personal'], plane: ['飞机', 'personal'], yacht: ['游艇', 'personal'], watch: ['名表', 'personal'], suit: ['西装', 'personal'], bag: ['名包（送秘书）', 'personal'], antique: ['古董藏品', 'personal'], fx_out: ['个人购汇', 'personal'], fx_in: ['购汇汇入', 'offshore'], dividend_abroad: ['境外分红', 'offshore'], odi_out: ['境外投资汇出（ODI）', 'company'], stock_buy: ['买股票', 'personal'], stock_sell: ['卖股票', 'personal'], stock_fee: ['股票佣金 / 印花税', 'personal'], stock_div: ['股票分红', 'personal'], order_hold: ['挂单划款（股票条件单）', 'personal'], order_back: ['挂单退回 / 转付股款', 'personal'], inv_out: ['划给投资经理', 'personal'], inv_in: ['投资经理还回', 'personal'], fund_buy: ['申购基金', 'personal'], fund_sell: ['赎回基金', 'personal'], fund_fee: ['基金申购 / 赎回费、业绩报酬', 'personal'], gift: ['礼物', 'personal'], clothes: ['衣服', 'personal'],
   capital_out: ['注资到公司', 'personal'], buyback: ['对赌回购', 'personal'], pledge_repay: ['质押物处置还款', 'personal'], date: ['约会', 'personal'], upkeep: ['维护 / 物业费', 'personal'], tax_personal: ['个人税费', 'personal'],
   debug: ['调试', 'personal'],
   commission: ['销售提成', 'company'], family_office: ['家族办公室开支', 'personal'], // 第 2-15 项
@@ -30,7 +30,7 @@ export const CATS = {
   newbie: ['新手奖励', 'personal'], margin_in: ['融资借款（买股票）', 'personal'], margin_repay: ['归还融资', 'personal'], margin_interest: ['融资利息', 'personal'], ipo_pay: ['新股中签缴款', 'personal'], // 第 P-06 项
 };
 export const KEEP_GAME_YEARS = 3;
-import BANKCFG from '../config/bank.json?v=59e44493' with { type: 'json' };
+import BANKCFG from '../config/bank.json?v=47e8f1b5' with { type: 'json' };
 const USE_CATS = BANKCFG.useCats;
 
 const bal = (s, w) => (w === 'company' ? s.company : w === 'offshore' ? (s.offshore || 0) : s.cash);

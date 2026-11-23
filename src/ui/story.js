@@ -1,7 +1,7 @@
 // 剧情播放：全屏、立绘淡入、点一下下一句；多段排队
-import { SEC_BY_ID } from '../config/secretaries.js?v=59e44493';
-import { asset } from '../platform/assets.js?v=59e44493';
-import { h } from './dom.js?v=59e44493';
+import { SEC_BY_ID } from '../config/secretaries.js?v=47e8f1b5';
+import { asset } from '../platform/assets.js?v=47e8f1b5';
+import { h } from './dom.js?v=47e8f1b5';
 
 const queue = [];
 let playing = false;

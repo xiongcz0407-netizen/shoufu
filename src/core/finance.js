@@ -1,7 +1,7 @@
 // 财务报表（第 13 项，设计15 第三节 + 设计17 第三节）：从流水算利润表、个人收支、纳税、资产清单
-import { CATS } from './ledger.js?v=59e44493';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=59e44493';
-import { INDUSTRIES } from '../config/industries.js?v=59e44493';
+import { CATS } from './ledger.js?v=47e8f1b5';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=47e8f1b5';
+import { INDUSTRIES } from '../config/industries.js?v=47e8f1b5';
 
 export const PERIODS = [['day', '今天'], ['month', '本月'], ['year', '本年'], ['all', '全部']];
 /** 时间段起点（游戏日 / 月 / 年，从开局算） */
@@ -63,23 +63,24 @@ export function ledgerView(s, { wallet, cat, by, from }, t) {
 }
 
 // ---------- 第 2-15 项：资产负债表、资产清单 ----------
-import * as EC from './economy.js?v=59e44493';
-import { depositTotal, loanDebt } from './bank.js?v=59e44493';
-import { debt as bridgeDebt } from './rivalry.js?v=59e44493';
-import { equityOwed } from './equity.js?v=59e44493';
-import { payables } from './accrual.js?v=59e44493';
-import { fleetValue } from './logistics.js?v=59e44493';
-import { reValue } from './realestate.js?v=59e44493';
-import * as AS from './assets.js?v=59e44493';
-import * as YT from './yacht.js?v=59e44493';
-import * as LX from './luxury.js?v=59e44493';
-import * as AQ from './antique.js?v=59e44493';
-import * as OF from './offshore.js?v=59e44493';
-import * as SK from './stocks.js?v=59e44493';
-import * as FD from './funds.js?v=59e44493';
-import { SEC_BY_ID } from '../config/secretaries.js?v=59e44493';
-import * as LMK from './landmark.js?v=59e44493';
-import { paidIn as paidInOf } from './companytax.js?v=59e44493';
+import * as EC from './economy.js?v=47e8f1b5';
+import { depositTotal, loanDebt } from './bank.js?v=47e8f1b5';
+import { debt as bridgeDebt } from './rivalry.js?v=47e8f1b5';
+import { equityOwed } from './equity.js?v=47e8f1b5';
+import { payables } from './accrual.js?v=47e8f1b5';
+import { fleetValue } from './logistics.js?v=47e8f1b5';
+import { reValue } from './realestate.js?v=47e8f1b5';
+import * as AS from './assets.js?v=47e8f1b5';
+import * as YT from './yacht.js?v=47e8f1b5';
+import * as LX from './luxury.js?v=47e8f1b5';
+import * as AQ from './antique.js?v=47e8f1b5';
+import * as OF from './offshore.js?v=47e8f1b5';
+import * as SK from './stocks.js?v=47e8f1b5';
+import * as TR from './trade.js?v=47e8f1b5'; // 设计43 第二版：挂单中
+import * as FD from './funds.js?v=47e8f1b5';
+import { SEC_BY_ID } from '../config/secretaries.js?v=47e8f1b5';
+import * as LMK from './landmark.js?v=47e8f1b5';
+import { paidIn as paidInOf } from './companytax.js?v=47e8f1b5';
 
 const r2b = (v) => Math.round(v * 100) / 100;
 const tot = (rows) => r2b(rows.reduce((a, r) => a + r[1], 0));
@@ -92,7 +93,7 @@ export function balanceSheet(s) {
   const g = s.garage || { cars: [], houses: [], planes: [] }; const byKind = (k, f = () => true) => ((g[k] || []).filter((id) => AS.ITEM[id] && f(AS.ITEM[id])).reduce((a, id) => a + AS.sellPrice(s, id), 0));
   const kindSum = (kind) => LX.mine(s, kind).reduce((a, id) => a + LX.sellPrice(s, id), 0);
   const mgr = s.mkt && s.mkt.mgr ? s.mkt.mgr.value : 0;
-  const pA = [['个人现金', s.cash || 0], ['银行存款（个人）', depositTotal(s, 'personal')], ['车', byKind('cars')], ['房产（国内）', byKind('houses', (it) => !OF.isAbroad(it))], ['房产（香港、海外）', byKind('houses', (it) => OF.isAbroad(it))], ['飞机', byKind('planes')], ['游艇', YT.value(s)], ['名表', kindSum('watch')], ['西装', kindSum('suit')], ['古董藏品（估价）', AQ.value(s)], ['股票（现价）', s.mkt ? SK.holdValue(s) : 0], ['基金（含锁定、在途）', FD.value(s)], ['交给投资经理的', mgr], [`公司股权（你持股 ${+(company.stake * 100).toFixed(2)}%）`, r2b(company.equity * company.stake)], ['其他（上市市值等）', EC.netWorth(s) - (s.cash + (s.assetValue || 0) + depositTotal(s, 'personal') + (EC.companyEquity ? EC.companyEquity(s) : company.equity) * company.stake)]].filter((r) => Math.abs(r[1]) >= 0.01);
+  const pA = [['个人现金', s.cash || 0], ['银行存款（个人）', depositTotal(s, 'personal')], ['车', byKind('cars')], ['房产（国内）', byKind('houses', (it) => !OF.isAbroad(it))], ['房产（香港、海外）', byKind('houses', (it) => OF.isAbroad(it))], ['飞机', byKind('planes')], ['游艇', YT.value(s)], ['名表', kindSum('watch')], ['西装', kindSum('suit')], ['古董藏品（估价）', AQ.value(s)], ['股票（现价）', s.mkt ? SK.holdValue(s) : 0], ['基金（含锁定、在途）', FD.value(s)], ['交给投资经理的', mgr], ['挂单中（股票条件单里的钱和股票）', s.mkt ? TR.orderValue(s) : 0], [`公司股权（你持股 ${+(company.stake * 100).toFixed(2)}%）`, r2b(company.equity * company.stake)], ['其他（上市市值等）', EC.netWorth(s) - (s.cash + (s.assetValue || 0) + depositTotal(s, 'personal') + (EC.companyEquity ? EC.companyEquity(s) : company.equity) * company.stake)]].filter((r) => Math.abs(r[1]) >= 0.01);
   const pL = [['股票质押、艺术品质押（阶段三）', 0]];
   const personal = { assets: pA, liabilities: pL, A: tot(pA), L: 0 }; personal.net = personal.A;
   return { company, personal, netWorth: EC.netWorth(s) };
@@ -108,7 +109,7 @@ export function assetList(s) {
   add('古董藏品', AQ.pieces(s).map((it) => { const x = AQ.AQ[it.id]; return { name: x.name + (it.fake ? '（仿品）' : ''), no: '', buy: it.paid, now: it.est, at: it.at, upkeep: 0, ref: it.contract || '', rare: x.limit === 1 ? 'unique' : x.limit ? 'limited' : '' }; }));
   if (s.mkt) add('股票', SK.holdings(s).map((h) => ({ name: `${SK.BY[h.code].name}（${h.code}）${h.n.toLocaleString()} 股`, no: '', buy: r2b(h.cost * h.n), now: h.value, at: h.at, upkeep: 0, ref: '' })));
   if (s.fund) add('基金', [...FD.holdings(s).map((h) => ({ name: FD.FB[h.id].name, no: '', buy: h.cost, now: h.value, at: h.at, upkeep: 0, ref: '' })), ...s.fund.angel.map((a) => ({ name: `${FD.FB[a.id].name}（锁定中）`, no: '', buy: a.amount, now: a.amount, at: a.at, upkeep: 0, ref: '' }))]);
-  if (s.mkt && s.mkt.mgr) add('交给投资经理的', [{ name: `${SK.MGR.styles[s.mkt.mgr.style].name}组合`, no: '', buy: s.mkt.mgr.principal, now: s.mkt.mgr.value, upkeep: 0, ref: '' }]);
+  if (s.mkt && s.mkt.mgr) add('交给投资经理的', [{ name: '投资经理代管', no: '', buy: s.mkt.mgr.principal, now: s.mkt.mgr.value, upkeep: 0, ref: '' }]);
   // 设计30：没有境外账户、香港子公司了
   if (s.landmark) add('地标（公司持有）', LMK.mine(s).map((id) => { const x = LMK.LM[id]; const o = LMK.lm(s).own[id]; return { name: `${x.name}（${x.city}）`, no: '', buy: o.price, now: LMK.valOf(o), at: o.at, upkeep: LMK.yearly(x, LMK.valOf(o)).opex + LMK.yearly(x, LMK.valOf(o)).tax, ref: o.contract, rare: 'unique' }; }));
   const bs = balanceSheet(s); const mineEq = r2b(bs.company.equity * bs.company.stake); add('公司股权', [{ name: `${s.companyName || '公司'}（你持股 ${+(bs.company.stake * 100).toFixed(2)}%）`, no: '', buy: mineEq, now: mineEq, upkeep: 0, ref: '' }]);

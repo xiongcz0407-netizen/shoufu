@@ -3,15 +3,16 @@
 // 每跳 ln P += β·M（大盘，牛 / 熊 / 震荡）+ B（板块）+ σ·ε + κ·(ln F − ln P) + 新闻跳空；随机数 = hash(名字, 跳数)，固定种子
 // 只能用个人现金买；佣金、过户费、卖出印花税、大单滑点；交割单进档案柜；分红按持有时间扣个税；持股 5% 举牌公告，30% 进度
 // 投资经理（秘书职位）：你划一笔钱 + 风格（稳健 / 平衡 / 进取）+ 止损线，按大盘走 + 她的超额（智慧）；新闻前一跳有概率提前给判断
-import CFG from '../config/stocks.json?v=59e44493' with { type: 'json' };
-import { pay, receive } from './ledger.js?v=59e44493';
-import { addContract } from './contracts.js?v=59e44493';
-import { addAssetHook } from './assets.js?v=59e44493';
-import { holder, isSec, attrs as secAttrs, efficiency, OUT } from './posts.js?v=59e44493';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=59e44493';
+import CFG from '../config/stocks.json?v=47e8f1b5' with { type: 'json' };
+import { pay, receive } from './ledger.js?v=47e8f1b5';
+import { addContract } from './contracts.js?v=47e8f1b5';
+import { addAssetHook } from './assets.js?v=47e8f1b5';
+import { holder, isSec, attrs as secAttrs, efficiency, OUT } from './posts.js?v=47e8f1b5';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=47e8f1b5';
 const YEAR_H = YEAR_MS / 3600e3; // 游戏一年 = 现实多少小时（V0.2.10：144）
-import { taxRec, payerOfPost } from './fiscal.js?v=59e44493';
-import { profitMul } from './calib.js?v=59e44493';
+import { taxRec, payerOfPost } from './fiscal.js?v=47e8f1b5';
+import { profitMul } from './calib.js?v=47e8f1b5';
+import { TITLES } from '../config/titles.js?v=47e8f1b5';
 
 export const SCFG = CFG;
 export const STOCKS = CFG.stocks;
@@ -147,7 +148,7 @@ export function advance(s, t, { live = false, rnd = Math.random } = {}) {
     const nw = step(m, tk); pushHist(m, s); out.ticks++;
     for (const fn of STEP_HOOKS) fn(s, tk, prev, m.px);   // 基金净值（core/funds.js）
     if (nw) { const n2 = { ...nw, tick: tk, t: tk * TICK }; m.news.push(n2); if (m.news.length > 50) m.news.shift(); out.news.push(n2); }
-    mgrStep(s, Math.log(index(s) / before), tk);
+    mgrStep(s, tk);   // 设计44：投资经理每天 4 轮（core/mgr.js 挂进来）
     if (target - tk < 3) { const h = hint(s, tk + CFG.watch.tip.leadTicks, rnd); if (h) (m.hintQ = m.hintQ || []).push(h); }   // 设计41：新闻前 3 跳说；只看现在附近的跳（离线补的早过去了）
   }
   if (live && m.hintQ && m.hintQ.length) { out.hints.push(...m.hintQ); m.hintQ = []; }
@@ -187,7 +188,9 @@ export function maxBuyN(s, code, budget, cap = Infinity) {
 /** 个人全仓：全部个人现金（冻结的不算），个人最多买到 5% 以下 */
 export const maxBuyMe = (s, code) => { const h = (mkt(s).hold[code] || { n: 0 }).n; const cap = Math.ceil(CFG.stake.notice * BY[code].shares * 1e8 - 1e-6) - 1 - h; return maxBuyN(s, code, freeCash(s), Math.max(0, cap)); };
 /** 全部卖出：手里能卖的（质押的不算） */
-export const maxSellMe = (s, code) => { const h = mkt(s).hold[code]; return h ? h.n - (h.pledged || 0) : 0; };
+export const maxSellMe = (s, code) => { const h = mkt(s).hold[code]; return h ? Math.max(0, h.n - (h.pledged || 0)) : 0; };   // 设计43：挂在卖单里的股票已经划出持仓
+/** 个人现金能花的（扣掉认筹冻结） */
+export const availCash = (s) => freeCash(s);
 export function buy(s, code, n, t = Date.now()) {
   n = Math.floor(n); if (!unlocked(s)) return { ok: false, why: '还不能开户' }; if (n < 1) return { ok: false, why: '最少 1 股' };
   if (!(mkt(s, t).px[code] > 0)) return { ok: false, why: '还没上市' };
@@ -246,44 +249,35 @@ export function dividends(s, t) {
   return out;
 }
 
-// ---------- 投资经理 ----------
-export const MGR = { styles: { safe: { name: '稳健', eq: 0.3, beta: 1 }, mid: { name: '平衡', eq: 0.6, beta: 1 }, bold: { name: '进取', eq: 1, beta: 1.3 } }, get safeYear() { return CFG.mgr.safeYear * profitMul(); }, get excessK() { return CFG.mgr.excessYear * profitMul(); }, feeRate: 0.1, reportMin: 30, outsourceWit: 50 };
-const mgrWho = (s) => holder(s, 'invest');
-function mgrWit(s, t) { const w = mgrWho(s); if (isSec(w)) return secAttrs(s, w).wit * efficiency(s, w, 'invest', t); return w === OUT ? MGR.outsourceWit : 0; }
-export function giveMgr(s, amount, style, stop, t = Date.now()) {
+// ---------- 投资经理（设计44：每天本地 0 / 6 / 12 / 18 点各一轮，用看盘那套挑股票；一轮怎么炒在 core/mgr.js）----------
+export const MGR = { get feeRate() { return CFG.mgr.feeRate; }, outsourceWit: 50 };   // 设计44 第二版：没有风格、没有货币基金
+export const mgrWho = (s) => holder(s, 'invest');
+/** 智慧 × 职位效率（好感、冷落照旧影响）；外包按 50 */
+export function mgrWit(s, t) { const w = mgrWho(s); if (isSec(w)) return secAttrs(s, w).wit * efficiency(s, w, 'invest', t); return w === OUT ? MGR.outsourceWit : 0; }
+/** 设计44 第二版：她最多管 = 下一个称号门槛 × capRate；大亨起封顶 capMax。title 不传就用现在的称号 */
+export function mgrCap(s, title = s.title || 0) { const G = CFG.mgr; if (title >= G.capTopTitle || !TITLES[title + 1]) return G.capMax; return Math.min(G.capMax, TITLES[title + 1].need * G.capRate); }
+/** 还能再划多少 */
+export const mgrRoom = (s) => Math.max(0, r2(mgrCap(s) - ((s.mkt && s.mkt.mgr && s.mkt.mgr.value) || 0)));
+export function giveMgr(s, amount, t = Date.now()) {
   const w = mgrWho(s); if (!w) return { ok: false, why: '先在「秘书 → 职位」任命投资经理' };
-  if (!MGR.styles[style]) return { ok: false, why: '选一个风格' };
-  if (!pay(s, { wallet: 'personal', cat: 'inv_out', amount, party: isSec(w) ? w : '券商投顾', by: isSec(w) ? w : '', note: `划给投资经理（${MGR.styles[style].name}，止损 ${Math.round(stop * 100)}%）` }, t)) return { ok: false, why: '个人现金不够' };
+  amount = r2(amount); if (!(amount > 0)) return { ok: false, why: '填一个金额' };
+  const room = mgrRoom(s); if (amount > room + 0.005) return { ok: false, why: `她最多管 ¥${fmt(mgrCap(s))}，还能再划 ¥${fmt(room)}` };
+  if (!pay(s, { wallet: 'personal', cat: 'inv_out', amount, party: isSec(w) ? w : '券商投顾', by: isSec(w) ? w : '', note: '划给投资经理' }, t)) return { ok: false, why: '个人现金不够' };
   const m = mkt(s, t); const g = m.mgr;
-  if (g && g.value > 0) { g.principal += amount; g.value += amount; g.style = style; g.stop = stop; g.stopped = false; }
-  else m.mgr = { principal: amount, value: amount, style, stop, stopped: false, reportAt: t, lastValue: amount, excess: 0 };
+  if (g && g.value > 0) { g.principal += amount; g.value += amount; }
+  else m.mgr = { principal: amount, value: amount, earn: 0, fees: 0, back: 0, cur: null, hist: [], day: null };
   return { ok: true };
 }
 export function takeBack(s, t = Date.now()) {
   const m = mkt(s, t); const g = m.mgr; if (!g || g.value <= 0) return { ok: false, why: '她手上没有你的钱' };
   const w = mgrWho(s); const amt = r2(g.value);
-  receive(s, { wallet: 'personal', cat: 'inv_in', amount: amt, by: isSec(w) ? w : '', party: '投资经理', note: `从投资经理收回（本金 ${fmt(g.principal)}，盈亏 ${fmt(amt - g.principal)}）` }, t);
+  receive(s, { wallet: 'personal', cat: 'inv_in', amount: amt, by: isSec(w) ? w : '', party: '投资经理', note: `从投资经理收回（本金 ¥${fmt(g.principal)}，她手上 ¥${fmt(amt)}）` }, t);
   m.mgr = null; return { ok: true, amount: amt };
 }
-function mgrStep(s, idxRet, tk) {
-  const g = s.mkt.mgr; if (!g || g.value <= 0) return;
-  const st = MGR.styles[g.style]; const safe = Math.log(1 + MGR.safeYear) / TICKS_PER_YEAR;
-  const wit = mgrWit(s, tk * TICK); const ex = g.stopped ? 0 : (wit - 50) / 50 * MGR.excessK / TICKS_PER_YEAR;
-  const fr = g.stopped ? null : styleRet(s, g.style);   // 有基金（2-10）：按风格配好的基金组合走
-  const r = g.stopped ? safe : (fr != null ? fr : st.eq * st.beta * idxRet + (1 - st.eq) * safe) + ex;
-  g.value = g.value * Math.exp(r); g.excess += g.value * ex;
-  if (!g.stopped && g.value < g.principal * (1 - g.stop)) { g.stopped = true; g.stopNote = true; }
-}
-/** 每 30 分钟汇报：返回 { text, fee } 或 null；超额的 10% 是她的提成（公司付） */
-export function mgrReport(s, t) {
-  const m = mkt(s, t); const g = m.mgr; if (!g) return null; const w = mgrWho(s);
-  if (g.stopNote) { g.stopNote = false; return { text: `跌到止损线了，我先全部换成现金类（现在 ${fmt(g.value)}，本金 ${fmt(g.principal)}）。`, fee: 0, who: w }; }
-  if (t - g.reportAt < MGR.reportMin * 60e3) return null;
-  const pct = g.value / g.lastValue - 1; const fee = isSec(w) ? r2(Math.max(0, g.excess) * MGR.feeRate) : 0;
-  if (fee >= 0.01) pay(s, { wallet: payerOfPost(s, 'invest'), cat: payerOfPost(s, 'invest') === 'personal' ? 'family_office' : 'sec_salary', amount: fee, force: true, party: w, by: w, note: '投资经理超额收益提成 10%' }, t);
-  g.reportAt = t; g.lastValue = g.value; g.excess = 0;
-  return { text: `这一轮${pct >= 0 ? '赚了' : '亏了'} ${(Math.abs(pct) * 100).toFixed(2)}%，现在 ${fmt(g.value)}（${MGR.styles[g.style].name}）。`, fee, who: w, pct };
-}
+/** 每跳：core/mgr.js 挂进来（开轮、成交、结算、货币基金利息） */
+let mgrStep = () => {}; export const setMgrStep = (fn) => { mgrStep = fn; };
+/** 旧接口：汇报现在每轮结算时直接进「系统」（core/mgr.js），这里不再出 */
+export const mgrReport = () => null;
 /** 投资经理看盘：新闻出来前 3 跳（设计41），概率 智慧/100 提前说一句；说对的概率 50% + 智慧/200（智慧 100 一定提前、一定准） */
 let watcherOf = () => null; export const setWatcher = (fn) => { watcherOf = fn; };   // 第 P-06 项：开局就能派的「看盘」（core/trade.js）
 export function hint(s, nextTick, rnd = Math.random) {

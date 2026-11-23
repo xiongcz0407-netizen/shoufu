@@ -1,13 +1,14 @@
 // V0.2.5（设计37 第三节）每次升级都告诉玩家：升了什么 / 带来什么（前 → 后）/ 下一步。
 // 自己点的：noteUp 放进 s.upq，界面一个一个弹（ui/upshow.js）。
 // 托管自动升的：noteAuto 攒进 s.upAuto；在线攒满 1 分钟合成一个框，离线回来合成一个汇总（首页弹 + 离开期间账单列一段）。
-import { IND_BY_ID } from '../config/industries.js?v=59e44493';
-import { SEC_BY_ID } from '../config/secretaries.js?v=59e44493';
-import { fmtMoney } from './format.js?v=59e44493';
+import { IND_BY_ID } from '../config/industries.js?v=47e8f1b5';
+import { SEC_BY_ID } from '../config/secretaries.js?v=47e8f1b5';
+import { fmtMoney } from './format.js?v=47e8f1b5';
 
 export const AUTO_MERGE_MS = 60e3;
 /** note = { title, what, fx: [行], next, img?, big?, opened?: [行] } */
-export function noteUp(s, note, t = 0) { if (!note) return; (s.upq = s.upq || []).push({ ...note, t }); if (s.upq.length > 30) s.upq.splice(0, s.upq.length - 30); }
+const UP_HOOKS = []; export const addUpHook = (fn) => { UP_HOOKS.push(fn); };   // 开发2 挂钩：往升级框里加行（设计44 第二版：升称号加「投资经理最多管」）
+export function noteUp(s, note, t = 0) { if (!note) return; for (const fn of UP_HOOKS) fn(s, note); (s.upq = s.upq || []).push({ ...note, t }); if (s.upq.length > 30) s.upq.splice(0, s.upq.length - 30); }
 export const takeUp = (s) => (s.upq && s.upq.length ? s.upq.shift() : null);
 
 let revNow = () => 0; export const setRevNow = (fn) => { revNow = fn; }; // 这条线现在每天营业额（economy 挂进来，避免循环引用）

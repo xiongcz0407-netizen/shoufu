@@ -1016,3 +1016,24 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 .msg-body { white-space: pre-line; } /* 设计42：奖励邮件逐项一行（消息正文里的换行照着换） */
 .ub-gains li > span { flex: 1 1 40%; min-width: 7em; } .ub-gains li b { white-space: normal; text-align: right; max-width: 62%; } /* 设计42：值很长的（看盘 100% 准）换行，不把名字挤成一列 */
 .msg img.msg-gift { width: 44px; height: 44px; object-fit: contain; border-radius: 0; border: 0; background: none; } /* V0.2.12 第 1b 项：奖励邮件用礼物图标 */
+/* 设计43 挂单冻结（开发2） */
+.pend-box { margin-bottom: 8px; } .pend-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(255, 255, 255, .06); font-size: 12px; } .pend-row.in { padding-left: 16px; opacity: .85; }
+.pend-main { flex: 1; } .pend-main small { display: block; font-size: 11px; opacity: .7; } .pend-box .sd-rec-title small { font-size: 11px; opacity: .7; font-weight: 400; }
+.cash-line b { color: #f6d67a; }
+
+/* 设计44 投资经理 */
+.mg-who{display:flex;gap:10px;align-items:center;margin:6px 0}
+.mg-who img{width:48px;height:48px;border-radius:50%;object-fit:cover;object-position:top}
+.mg-who .msg-ico{font-size:32px;font-style:normal}
+.mg-who b{display:block}.mg-who small{opacity:.75}
+.mg-leg{font-size:13px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.mg-row{display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.mg-row span:first-child{min-width:80px}
+
+/* 设计45 持仓卖价 */
+.sell-line{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;margin:-4px 0 8px;padding:6px 10px;border-radius:0 0 10px 10px;background:rgba(255,215,120,.07);color:#e9d9a8}
+.sell-line small{opacity:.7}
+.mg-row .mg-back{min-width:76px;text-align:right;color:#e9d9a8}
+.mg-give .ind-btns{flex-wrap:wrap;gap:6px}
+.mg-give .ind-btns .btn{flex:1 0 30%;white-space:nowrap}
+.mg-give .ind-btns .btn small{display:block;font-size:10px;opacity:.8}

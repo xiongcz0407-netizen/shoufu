@@ -5,9 +5,9 @@
    - 本机一直存一份（core/save.js 的 SAVE_KEY），断网照常玩，联网后补传；两次上传至少隔 1 分钟，切后台、关页面时补传
    - 本地 file:// 打开、或令牌为空：只用本机存档
    - io.fetch、本机存储都能换成假的（node 测试） */
-import { GH_SAVE } from '../ghcfg.js?v=59e44493';
-import { storage } from '../platform/storage.js?v=59e44493';
-import { SAVE_KEY, deserialize } from './save.js?v=59e44493';
+import { GH_SAVE } from '../ghcfg.js?v=47e8f1b5';
+import { storage } from '../platform/storage.js?v=47e8f1b5';
+import { SAVE_KEY, deserialize } from './save.js?v=47e8f1b5';
 
 export const GAP = 60000;        // 两次上传至少隔多久（GitHub 接口频率限制）
 export const NAME_MAX = 8;
