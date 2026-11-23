@@ -1,12 +1,12 @@
 // 拍卖会（第 2-14b 项，设计09 第三节）：车和古董同一个按场次的拍卖会
 // 每 30 分钟一场，每场 2～4 件（停产限量车、拍卖古董）；人脉够才收到图录；起拍价 车 = 原价 × 1.5～3、古董 = 估价 × 0.8；
-// NPC 跟你抢（最高出到多少每场固定）；你设最高出价举牌，一场一件只能举一次；拍到了 5 分钟内付款（签成交确认书），付不出 = 违约，人脉 −5
+// NPC 跟你抢（最高出到多少每场固定）；你设最高出价举牌，一场一件只能举一次；拍到了签成交确认书付款（设计35 第十节：不限时，一直挂着，签了才生效；老规矩 5 分钟违约作废）
 // 古董可以交给收藏顾问代拍（她的交际让 NPC 少抬价）
-import CFG from '../config/auction.json?v=f10d7ba9' with { type: 'json' };
-import * as AS from './assets.js?v=f10d7ba9';
-import * as AQ from './antique.js?v=f10d7ba9';
-import { addAttrHook, bossAttrs } from './boss.js?v=f10d7ba9';
-import { attrs as secAttrs } from './posts.js?v=f10d7ba9';
+import CFG from '../config/auction.json?v=876cadde' with { type: 'json' };
+import * as AS from './assets.js?v=876cadde';
+import * as AQ from './antique.js?v=876cadde';
+import { addAttrHook, bossAttrs } from './boss.js?v=876cadde';
+import { attrs as secAttrs } from './posts.js?v=876cadde';
 
 export const AUCFG = CFG;
 const r2 = (v) => Math.round(v * 100) / 100;
@@ -61,24 +61,19 @@ export const wonList = (s) => au(s).won;
 /** 签成交确认书付款 */
 export function pay(s, lot, t) {
   const d = au(s); const w = d.won.find((x) => x.lot === lot); if (!w) return { ok: false, why: '没有这一件' };
-  if (t > w.deadline) return { ok: false, why: '过了付款时间' };
   const r = w.kind === 'car' ? AS.buy(s, w.id, t, { price: w.hammer, channel: 'auction', skipCheck: true }) : AQ.settle(s, w.id, w.hammer, t, { who: w.who });
   if (r.ok) d.won = d.won.filter((x) => x !== w);
   return r;
 }
-/** 每秒：拍到的 5 分钟内没付 → 违约，人脉 −5。返回要提示的话 */
-export function tick(s, t) {
-  const d = au(s); const out = [];
-  for (const w of d.won.slice()) if (t > w.deadline) { d.won = d.won.filter((x) => x !== w); d.penalty += CFG.defaultNetwork; out.push(`拍卖违约：${w.name} 5 分钟内没付款，人脉 −${CFG.defaultNetwork}`); }
-  return out;
-}
+/** 设计35 第十节：拍到的不再限时付款、不再违约（老存档里的 deadline 不管）。留着接口，返回空 */
+export function tick() { return []; }
 addAttrHook((s) => ({ network: -((s.auc && s.auc.penalty) || 0) }));
 
 // ---------- 拍卖私洽（V2-06，设计29 第二节）：开拍前直接找卖家谈 ----------
 // 卖家开价 = NPC 最高出价 × askX；底线 = 开价 × range（藏家性格偏高）；谈成就不上拍，按谈成的价当落槌价（照样付佣金、税，5 分钟内付）；
 // 谈崩了这件 30 分钟内不能再私洽，但拍卖会照样能举牌。筹码：有收藏顾问 = 有情报；带的秘书交际够 = 耐心 +1；准备了「亲自谈」= 看底线在哪个三分之一
-import * as NG from './negotiate.js?v=f10d7ba9';
-import { bigBonus } from './manage.js?v=f10d7ba9';
+import * as NG from './negotiate.js?v=876cadde';
+import { bigBonus } from './manage.js?v=876cadde';
 export function privateOpts(s, lotId, t, secId = null) {
   const l = catalog(s, t).lots.find((x) => x.lot === lotId); if (!l) return null; const P = NG.NEGO_CFG.auction;
   return { key: 'auc_' + l.id, kind: 'buy', base: Math.round(l.npcMax * P.askX / P.step) * P.step, range: P.range, step: P.step, persona: P.persona, chips: { intel: !!AQ.advisor(s), secId, boss: bigBonus(s, 'deal') > 0 }, lot: l };

@@ -1,14 +1,14 @@
 // 银行（设计14 第三节、设计20 第六节，阶段二部分）：存款（活期 / 定期 / 大额存单）、经营贷（专款专用）、开发贷（四证、自有 30%、≤ 总投资 50%、预售先还）、审批、借款合同、月供、逾期罚息、征信
 // 不 import economy（economy 用这里的 deposits / debt）；身价由 setNW 注入
-import B from '../config/bank.json?v=f10d7ba9' with { type: 'json' };
-import { profitMul } from './calib.js?v=f10d7ba9';
-import { pay, receive, canPay } from './ledger.js?v=f10d7ba9';
-import { TAX } from './companytax.js?v=f10d7ba9';
-import { addContract } from './contracts.js?v=f10d7ba9';
-import { addMsg, onAction } from './inbox.js?v=f10d7ba9';
-import { holder, isSec } from './posts.js?v=f10d7ba9';
-import { MONTH_MS, YEAR_MS, monthIndex } from './gametime.js?v=f10d7ba9';
-import { re, totalInvest, setLoanHook } from './realestate.js?v=f10d7ba9';
+import B from '../config/bank.json?v=876cadde' with { type: 'json' };
+import { profitMul } from './calib.js?v=876cadde';
+import { pay, receive, canPay } from './ledger.js?v=876cadde';
+import { TAX } from './companytax.js?v=876cadde';
+import { addContract } from './contracts.js?v=876cadde';
+import { addMsg, onAction } from './inbox.js?v=876cadde';
+import { holder, isSec } from './posts.js?v=876cadde';
+import { MONTH_MS, YEAR_MS, monthIndex } from './gametime.js?v=876cadde';
+import { re, totalInvest, setLoanHook } from './realestate.js?v=876cadde';
 export { B as BANK_CFG };
 
 const MIN = 60e3; const r2 = (x) => Math.round(x * 100) / 100;
@@ -79,7 +79,7 @@ export function whyNotLoan(s, o) {
   if (o.amount > devLimit(s, p)) return `最多总投资 50%：${Math.round(devLimit(s, p) / 1e4)} 万`;
   return null;
 }
-/** 申请：审批 1～5 分钟（真实时间） */
+/** 申请：V0.2.3 审批立刻出结果（approveMin = 0，下一秒 tickBank 批） */
 export function applyLoan(s, o, t, rnd = Math.random) {
   const why = whyNotLoan(s, o); if (why) return { ok: false, why };
   const X = bank(s); X.seq += 1; const [a, b] = (o.type === 'dev' ? B.dev : B.biz).approveMin;

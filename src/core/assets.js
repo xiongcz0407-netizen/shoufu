@@ -1,16 +1,16 @@
 // 资产（第 12 项）：车库 / 房产 / 机库。只能个人现金全款，不能贷款、不能抵押
 // 渠道（设计09 第三节）：现货 / 订单（排队）/ 邀请（品牌来电）/ 拍卖 / 定制委托；房子按设计19（验资冻结、四合院拍卖、境外锁）
 // 税费（设计14、设计19）：车辆购置税 + 超豪华车附加 + 上牌；房子契税；飞机关税 + 进口增值税；每年维护 / 物业 / 房产税按秒扣
-import { CARS, PLANES } from '../config/vehicles.js?v=f10d7ba9';
-import EST from '../config/estates.json?v=f10d7ba9' with { type: 'json' };
-import { CAR_META, TIER_SPEC } from '../config/carmeta.js?v=f10d7ba9';
-import { TAX } from './companytax.js?v=f10d7ba9';
-import { pay, receive, accrue } from './ledger.js?v=f10d7ba9';
-import { YEAR_MS } from './gametime.js?v=f10d7ba9';
-import { addContract } from './contracts.js?v=f10d7ba9';
-import { stewardSellRate, stewardUpkeepMult, stewardQueueMult } from './posts.js?v=f10d7ba9';
-import { bossAttrs } from './boss.js?v=f10d7ba9';
-import { taxRec } from './fiscal.js?v=f10d7ba9';
+import { CARS, PLANES } from '../config/vehicles.js?v=876cadde';
+import EST from '../config/estates.json?v=876cadde' with { type: 'json' };
+import { CAR_META, TIER_SPEC } from '../config/carmeta.js?v=876cadde';
+import { TAX } from './companytax.js?v=876cadde';
+import { pay, receive, accrue } from './ledger.js?v=876cadde';
+import { YEAR_MS } from './gametime.js?v=876cadde';
+import { addContract } from './contracts.js?v=876cadde';
+import { stewardSellRate, stewardUpkeepMult, stewardQueueMult } from './posts.js?v=876cadde';
+import { bossAttrs } from './boss.js?v=876cadde';
+import { taxRec } from './fiscal.js?v=876cadde';
 
 export const HOUSES = EST.houses;
 const ALL = {};
@@ -166,7 +166,8 @@ export function tickUpkeep(s, dt) {
 }
 
 // ---------- 房子验资（冻结认筹）----------
-export function freezeMin(it) { return it.check === 'proof' ? EST.verify.proofMin : it.check === 'verify' ? EST.verify.verifyMin : 0; }
+/** 设计35 第十一节：验资立刻出结果（资格照旧：身价、人脉门槛还是要过） */
+export function freezeMin() { return 0; }
 export function startVerify(s, id, t = Date.now()) {
   const it = ALL[id]; const why = whyNotBuy(s, id, t); if (why) return { ok: false, why };
   if ((s.freezes || []).some((f) => f.id === id)) return { ok: false, why: '已经在认筹了' };
@@ -190,7 +191,7 @@ export function placeOrder(s, id, t = Date.now()) {
   const it = ALL[id]; const ch = channelOf(it); const why = whyNotBuy(s, id, t, { forOrder: ch === 'order' }); if (why) return { ok: false, why };
   if (!QUEUE_MIN[ch]) return { ok: false, why: '这个不用排队' };
   if ((s.orders || []).some((o) => o.id === id)) return { ok: false, why: '已经在排队了' };
-  const at = t + QUEUE_MIN[ch] * 60e3 * stewardQueueMult(s);
+  const at = t; // 设计35 第十一节：订单交付立刻（订单配额 / 邀请 / 定制的资格照旧）
   let deposit = 0;
   if (ch === 'order') { deposit = Math.round(it.price * ORDER.deposit); pay(s, { wallet: 'personal', cat: 'car', amount: deposit, party: it.brand, note: `${label(it)} 订单定金 10%` }, t); }
   (s.orders = s.orders || []).push({ id, ch, at, from: t, deposit });

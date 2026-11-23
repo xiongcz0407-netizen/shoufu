@@ -1,16 +1,16 @@
 // 产业面板：升级、开分店、派驻秘书；产业图按等级换样子
-import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=f10d7ba9';
-import { TITLES } from '../config/titles.js?v=f10d7ba9';
-import * as PQ from '../core/prereq.js?v=f10d7ba9'; // V2-12 前置条件
-import { shortText } from './company.js?v=f10d7ba9';
-import { askFill } from './fill.js?v=f10d7ba9'; // V0.2.2 // V0.2.1 灰按钮写原因
-import { SEC_BY_ID } from '../config/secretaries.js?v=f10d7ba9';
-import * as E from '../core/economy.js?v=f10d7ba9';
-import { fmtMoney } from '../core/format.js?v=f10d7ba9';
-import { asset, hasAsset } from '../platform/assets.js?v=f10d7ba9';
-import { game } from '../game.js?v=f10d7ba9';
-import { now } from '../core/clock.js?v=f10d7ba9';
-import { h, openPanel, toast } from './dom.js?v=f10d7ba9';
+import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=876cadde';
+import { TITLES } from '../config/titles.js?v=876cadde';
+import * as PQ from '../core/prereq.js?v=876cadde'; // V2-12 前置条件
+import { shortText, moneyGap, doUpgrade } from './company.js?v=876cadde';
+import { askFill } from './fill.js?v=876cadde'; // V0.2.2 // V0.2.1 灰按钮写原因
+import { SEC_BY_ID } from '../config/secretaries.js?v=876cadde';
+import * as E from '../core/economy.js?v=876cadde';
+import { fmtMoney } from '../core/format.js?v=876cadde';
+import { asset, hasAsset } from '../platform/assets.js?v=876cadde';
+import { game } from '../game.js?v=876cadde';
+import { now } from '../core/clock.js?v=876cadde';
+import { h, openPanel, toast } from './dom.js?v=876cadde';
 
 export function openIndustry(host) {
   const p = host || openPanel('我的产业');
@@ -42,13 +42,13 @@ export function openIndustry(host) {
           <div class="ind-line">${ind.level} 级 · ${ind.branches} 家${nextLook ? `<span class="ind-next">${nextLook} 级升${cfg.lookNames[look + 1]}</span>` : ''}</div>
           <div class="ind-line">每秒 <b>${fmtMoney(E.industryIncome(s, cfg.id, SEC_BY_ID))}</b>${ind.sec ? `　派驻：${secName}（+${Math.round(E.secBonus(s, ind, SEC_BY_ID) * 100)}%）` : ''}</div>
           <div class="ind-btns">
-            <button class="btn up" ${s.company < upC ? 'disabled' : ''}>升级<br><small>${fmtMoney(upC)}${shortText(s, upC)}</small></button>
-            <button class="btn br" ${brC == null || s.company < brC ? 'disabled' : ''}>${brC == null ? (E.whyNotBranch(s, cfg.id) || '分店满了') : `开分店<br><small>${fmtMoney(brC)}${shortText(s, brC)}</small>`}</button>
+            <button class="btn up" ${moneyGap(s, upC) > 0 ? 'disabled' : ''}>升级<br><small>${fmtMoney(upC)}${shortText(s, upC)}</small></button>
+            <button class="btn br" ${brC == null || moneyGap(s, brC) > 0 ? 'disabled' : ''}>${brC == null ? (E.whyNotBranch(s, cfg.id) || '分店满了') : `开分店<br><small>${fmtMoney(brC)}${shortText(s, brC)}</small>`}</button>
             <button class="btn sec">${ind.sec ? '换人' : '派驻'}</button>
           </div>
         </div>`);
       card.dataset.id = cfg.id;
-      card.querySelector('.up').onclick = () => { if (E.upgrade(s, cfg.id, now())) { game.changed(); render(); } };
+      card.querySelector('.up').onclick = () => doUpgrade(cfg.id, render);
       card.querySelector('.br').onclick = () => { if (E.openBranch(s, cfg.id, now())) { toast(`${cfg.name}开到 ${ind.branches} 家了`); game.changed(); render(); askFill(cfg.id); } };
       card.querySelector('.sec').onclick = () => pickSec(cfg.id, render);
       list.appendChild(card);
@@ -63,8 +63,8 @@ export function openIndustry(host) {
     list.querySelectorAll('.ind-card[data-id]').forEach((card) => {
       const id = card.dataset.id;
       const ind = s.inds[id]; const cfg = IND_BY_ID[id];
-      card.querySelector('.up').disabled = s.company < E.upCostOf(s, cfg.id);
-      const br = card.querySelector('.br'); br.disabled = !!E.whyNotBranch(s, id) || s.company < E.brCostOf(s, cfg.id);
+      card.querySelector('.up').disabled = moneyGap(s, E.upCostOf(s, cfg.id)) > 0;
+      const br = card.querySelector('.br'); br.disabled = !!E.whyNotBranch(s, id) || moneyGap(s, E.brCostOf(s, cfg.id)) > 0;
     });
   }
 }

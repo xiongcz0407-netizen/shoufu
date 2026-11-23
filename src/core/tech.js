@@ -1,13 +1,14 @@
 // 科技（设计20 第二节 3）：产品项目（立项 → 研发 → 上线 → S 曲线 → 止损）、研发费用加计扣除 100%、软件即征即退、联动管理效率 +3%
 // 不 import economy
-import T from '../config/tech.json?v=f10d7ba9' with { type: 'json' };
-import { headCap, gm } from './calib.js?v=f10d7ba9';
-import { pay, receive, canPay } from './ledger.js?v=f10d7ba9';
-import { holder, isSec, attrs } from './posts.js?v=f10d7ba9';
-import { bossAttrs } from './boss.js?v=f10d7ba9';
-import { lookOf, establishment, wage, PAY, onDuty } from './staff.js?v=f10d7ba9';
-import { MONTH_MS, monthIndex } from './gametime.js?v=f10d7ba9';
-import { addMsg } from './inbox.js?v=f10d7ba9';
+import { whyCushion } from './cashflow.js?v=876cadde'; // V0.2.3 留够两个月工资
+import T from '../config/tech.json?v=876cadde' with { type: 'json' };
+import { headCap, gm } from './calib.js?v=876cadde';
+import { pay, receive, canPay } from './ledger.js?v=876cadde';
+import { holder, isSec, attrs } from './posts.js?v=876cadde';
+import { bossAttrs } from './boss.js?v=876cadde';
+import { lookOf, establishment, wage, PAY, onDuty } from './staff.js?v=876cadde';
+import { MONTH_MS, monthIndex } from './gametime.js?v=876cadde';
+import { addMsg } from './inbox.js?v=876cadde';
 export { T as TECH_CFG };
 
 const MIN = 60e3; const MONTH_SEC = MONTH_MS / 1000;
@@ -24,6 +25,7 @@ export function whyNotStart(s, dir) {
   if (!T.directions[dir]) return '没有这个方向';
   if (liveProducts(s).length >= maxProducts(s)) return `现在最多同时做 ${maxProducts(s)} 个产品（升级公司能多做）`;
   if (!canPay(s, 'company', devCost(s, dir))) return '公司账户不够';
+  { const w = whyCushion(s, devCost(s, dir)); if (w) return w; } /* V0.2.3 */
   return null;
 }
 /** 产品成败：产品经理（科技经理）的智慧 + 老板眼光 + 运气（对数正态，社交 / AI 更两极） */

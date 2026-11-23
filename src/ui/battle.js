@@ -1,38 +1,38 @@
 // 商战：对手列表 → 选项目、带人 → 开战结果；赢满 3 次发起收购
-import * as RG from '../core/rivalgrow.js?v=f10d7ba9'; // P-00 对手也在长大
-import * as EQ from '../core/equity.js?v=f10d7ba9';
-import * as BK from '../core/bank.js?v=f10d7ba9';
-import { gameDate, dateText } from '../core/gametime.js?v=f10d7ba9';
-import { turfText } from '../core/rivalry.js?v=f10d7ba9';
-import { RIVALS, RIVAL_BY_ID, PROJECTS, TEAM_MAX, WINS_TO_ACQUIRE, BATTLES_PER_DAY, ACQUIRE_COOLDOWN_SEC } from '../config/rivals.js?v=f10d7ba9';
-import { SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=f10d7ba9';
-import { LINES } from '../config/lines.js?v=f10d7ba9';
-import { lineOf } from '../core/storylib.js?v=f10d7ba9'; // V3-04 台词扩充（开发2）
-import { BOSS_LINES } from '../config/battle-lines.js?v=f10d7ba9';
-import * as B from '../core/battle.js?v=f10d7ba9';
-import * as W from '../core/war.js?v=f10d7ba9'; // V2-05 商战三回合
-import { openNegotiate } from './negotiate.js?v=f10d7ba9'; // V2-07 谈判（开发2）
-import * as LT from '../core/late.js?v=f10d7ba9'; // V3-01 对手进攻
-import * as INB from './inbox.js?v=f10d7ba9';
-import { isTraining as isTraining0 } from '../core/training.js?v=f10d7ba9';
-import { isScouting } from '../core/busy.js?v=f10d7ba9';
+import * as RG from '../core/rivalgrow.js?v=876cadde'; // P-00 对手也在长大
+import * as EQ from '../core/equity.js?v=876cadde';
+import * as BK from '../core/bank.js?v=876cadde';
+import { gameDate, dateText } from '../core/gametime.js?v=876cadde';
+import { turfText } from '../core/rivalry.js?v=876cadde';
+import { RIVALS, RIVAL_BY_ID, PROJECTS, TEAM_MAX, WINS_TO_ACQUIRE, BATTLES_PER_DAY } from '../config/rivals.js?v=876cadde';
+import { SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=876cadde';
+import { LINES } from '../config/lines.js?v=876cadde';
+import { lineOf } from '../core/storylib.js?v=876cadde'; // V3-04 台词扩充（开发2）
+import { BOSS_LINES } from '../config/battle-lines.js?v=876cadde';
+import * as B from '../core/battle.js?v=876cadde';
+import * as W from '../core/war.js?v=876cadde'; // V2-05 商战三回合
+import { openNegotiate } from './negotiate.js?v=876cadde'; // V2-07 谈判（开发2）
+import * as LT from '../core/late.js?v=876cadde'; // V3-01 对手进攻
+import * as INB from './inbox.js?v=876cadde';
+import { isTraining as isTraining0 } from '../core/training.js?v=876cadde';
+import { isScouting } from '../core/busy.js?v=876cadde';
 const isTraining = (s, id) => isTraining0(s, id) || isScouting(s, id); // V2-08：踩点的也不能带（开发2）
-import { fmtMoney } from '../core/format.js?v=f10d7ba9';
-import { now } from '../core/clock.js?v=f10d7ba9';
-import { asset, hasAsset } from '../platform/assets.js?v=f10d7ba9';
-import { game } from '../game.js?v=f10d7ba9';
-import { h, openPanel, toast } from './dom.js?v=f10d7ba9';
-import { say } from './main-screen.js?v=f10d7ba9';
-import { playStory } from './story.js?v=f10d7ba9';
-import { openContract } from './contract.js?v=f10d7ba9';
-import { openTab } from './shell.js?v=f10d7ba9';
-import { nextContractNo } from '../core/contracts.js?v=f10d7ba9';
-import { TAX } from '../core/companytax.js?v=f10d7ba9';
-import { IND_BY_ID } from '../config/industries.js?v=f10d7ba9';
-import { auraBattle, networkAcquire } from '../core/boss.js?v=f10d7ba9';
-import { hintLater } from './guide2.js?v=f10d7ba9';
-import * as TKO from '../core/takeover.js?v=f10d7ba9';
-import { listed as listedNow } from '../core/listing.js?v=f10d7ba9';
+import { fmtMoney } from '../core/format.js?v=876cadde';
+import { now } from '../core/clock.js?v=876cadde';
+import { asset, hasAsset } from '../platform/assets.js?v=876cadde';
+import { game } from '../game.js?v=876cadde';
+import { h, openPanel, toast } from './dom.js?v=876cadde';
+import { say } from './main-screen.js?v=876cadde';
+import { playStory } from './story.js?v=876cadde';
+import { openContract } from './contract.js?v=876cadde';
+import { openTab } from './shell.js?v=876cadde';
+import { nextContractNo } from '../core/contracts.js?v=876cadde';
+import { TAX } from '../core/companytax.js?v=876cadde';
+import { IND_BY_ID } from '../config/industries.js?v=876cadde';
+import { auraBattle, networkAcquire } from '../core/boss.js?v=876cadde';
+import { hintLater } from './guide2.js?v=876cadde';
+import * as TKO from '../core/takeover.js?v=876cadde';
+import { listed as listedNow } from '../core/listing.js?v=876cadde';
 
 const AN = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 const mergeText = (r) => { const e = r.effect || {}; return [...Object.entries(r.merge || {}).map(([k, n]) => `${IND_BY_ID[k].name} ${n} 家（连员工）`), e.fleetUnits && `货车 ${Math.ceil(e.fleetUnits / 3)} 辆`, (e.reProjects || []).map((x) => (x.stage === 'build' ? '在建项目 1 个' : '储备地 1 块')).join('、'), e.techProduct && '上线产品 1 个', e.levelUp && Object.entries(e.levelUp).map(([k, n]) => `${IND_BY_ID[k].name}团队（+${n} 级）`).join('、'), e.rights && `片库版权（授权费 ${fmtMoney(e.rights)}）`, e.boost && Object.entries(e.boost).map(([k, v]) => `${IND_BY_ID[k].name}收入 +${v * 100}%`).join('、'), e.early && e.early.map((k) => `提前开${IND_BY_ID[k].name}`).join('、')].filter(Boolean).join('、') || '—'; };
@@ -149,7 +149,7 @@ function openAcquire(rivalId, done) {
   let plan = 'full'; const planBox = h('div', 'tabs'); let useLoan = false; const loanBox = h('div', 'tabs'); const LB = 'gongshang'; // 并购贷款（老板起，公商银行）
   let swapK = 0; const swapBox = h('div', 'tabs'); const swapOf = () => (plan === 'full' && TKO.swapMax(s, r, plan) > 0 ? Math.floor(r.value * swapK) : 0); // 第 3-05 项：上市以后可以换股
   const loanOf = () => (useLoan && (s.title || 0) >= 2 ? { bank: LB, amount: BK.maMax(s, r.value, B.payNow(s, r, plan)) } : null); // 一次付清 / 分期（首付 30%，商务总监在任 20%，余款 12 个游戏月）
-  p.body.append(h('div', 'tr-sum', `带人去谈（看「魅力」「交际」）；失败退一半钱，对方冷静 ${ACQUIRE_COOLDOWN_SEC / 60} 分钟。满 3 胜以后每多赢一次商战，成功率 +10%${B.extraWins(s, rivalId) ? `（现在多赢了 ${B.extraWins(s, rivalId)} 次）` : ''}`), h('div', 'sd-rec-title', '怎么付'), planBox, loanBox, swapBox, teamBox, rateBox, go);
+  p.body.append(h('div', 'tr-sum', `带人去谈（看「魅力」「交际」）；失败退一半钱，可以马上再试。满 3 胜以后每多赢一次商战，成功率 +10%${B.extraWins(s, rivalId) ? `（现在多赢了 ${B.extraWins(s, rivalId)} 次）` : ''}`), h('div', 'sd-rec-title', '怎么付'), planBox, loanBox, swapBox, teamBox, rateBox, go);
   const render = () => {
     teamPicker(teamBox, team, render);
     const dr = Math.round(EQ.downRate(s) * 100);
@@ -177,7 +177,7 @@ function openAcquire(rivalId, done) {
       onSign: () => {
         const res = B.acquire(s, rivalId, [...team], now(), Math.random, plan, ln, sw);
         if (!res.ok) { toast(res.why); return; }
-        if (!res.success) showResult(r, [...team], false, `对方最后反悔了，退回 ${fmtMoney(res.refund)}。${ACQUIRE_COOLDOWN_SEC / 60} 分钟后能再谈；再赢一次商战能提高成功率（每多赢一次 +10%）`, done, '这个价？你在开玩笑吧。');
+        if (!res.success) showResult(r, [...team], false, `对方最后反悔了，退回 ${fmtMoney(res.refund)}。可以马上再谈；再赢一次商战能提高成功率（每多赢一次 +10%）`, done, '这个价？你在开玩笑吧。');
         else {
           const m = (res.merged || []).map((x) => `${IND_BY_ID[x.ind].name} ${x.n} 家（${x.staff} 人）`).join('、');
           showResult(r, [...team], true, `收购成功！${m ? `并进来 ${m}` : ''}`, () => {
@@ -193,11 +193,11 @@ function openAcquire(rivalId, done) {
         game.changed(); game.save();
       } });
   };
-  // V2-07 先谈价（通用谈判）：谈成 60 分钟内按这个价收购；谈崩冷却 30 分钟
+  // V2-07 先谈价（通用谈判）：V0.2.3 谈成的价一直有效（估值变 20% 作废），谈崩不冷却
   const nb = h('button', 'btn big', ''); go.before(nb);
-  const drawNb = () => { const dp = B.dealPrice(s, rivalId, now()); nb.innerHTML = dp ? `已谈下 ${fmtMoney(dp)}（估值 ${fmtMoney(val0)}，${dp < val0 ? `省 ${fmtMoney(val0 - dp)}` : '没比估值便宜，按估值收购'}）` : `先跟${r.boss}谈价（对方开价 ${fmtMoney(B.acqNegoOpts(s, rivalId, team, now()).base)}，估值 ${fmtMoney(val0)}）`; nb.disabled = !!dp; };
+  const drawNb = () => { const dp = B.dealPrice(s, rivalId, now()); nb.innerHTML = !dp && B.dealStale && B.dealStale(s, rivalId) ? `对方估值变了超过 20%，上次谈的价不算了，重新谈` : dp ? `已谈下 ${fmtMoney(dp)}（估值 ${fmtMoney(val0)}，${dp < val0 ? `省 ${fmtMoney(val0 - dp)}` : '没比估值便宜，按估值收购'}）` : `先跟${r.boss}谈价（对方开价 ${fmtMoney(B.acqNegoOpts(s, rivalId, team, now()).base)}，估值 ${fmtMoney(val0)}）`; nb.disabled = !!dp; };
   nb.onclick = () => openNegotiate({ title: `跟${r.boss}谈收购价`, who: r.boss, secs: Object.keys(s.secs).filter((id) => !isTraining(s, id)), opts: B.acqNegoOpts(s, rivalId, team, now()),
-    onDone: (res) => { if (res.deal != null) { B.setAcqPrice(s, rivalId, res.deal, now()); r = B.liveDeal(s, rivalId, now()); toast(`谈下来了：${fmtMoney(res.deal)}，60 分钟内收购按这个价`, 2800); game.changed(); game.save(); } drawNb(); render(); } });
+    onDone: (res) => { if (res.deal != null) { B.setAcqPrice(s, rivalId, res.deal, now()); r = B.liveDeal(s, rivalId, now()); toast(`谈下来了：${fmtMoney(res.deal)}，一直有效（对方估值变动超过 20% 才要重谈）`, 2800); game.changed(); game.save(); } drawNb(); render(); } });
   drawNb();
   render();
 }

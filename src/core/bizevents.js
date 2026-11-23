@@ -1,22 +1,22 @@
 // P-05 经营事件（设计25 第二节，config/events.json）：在线每 3～5 分钟来一件，最多挂 1 件（左侧「限时」浮动 + 消息中心邀请），2 分钟不理按默认；
 // 离线不来、不补；按你有的店、行业、称号筛；同一件 1 个游戏月内不重复；相关属性最高的秘书出主意（对的概率 50% + 属性 / 2）
-import { credit } from './credit.js?v=f10d7ba9'; // V3-01 亲自拍板攒投入度
-import EV from '../config/events.json?v=f10d7ba9' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=f10d7ba9';
-import { SEC_BY_ID } from '../config/secretaries.js?v=f10d7ba9';
-import { MONTH_MS } from './gametime.js?v=f10d7ba9';
-import { addMsg, onAction } from './inbox.js?v=f10d7ba9';
-import { pay, receive } from './ledger.js?v=f10d7ba9';
-import { addContract } from './contracts.js?v=f10d7ba9';
-import { attrs } from './posts.js?v=f10d7ba9';
-import { isTraining } from './training.js?v=f10d7ba9';
-import * as MG from './manage.js?v=f10d7ba9';
-import * as PK from './pick.js?v=f10d7ba9';
-import * as PQ from './prereq.js?v=f10d7ba9';
-import './late.js?v=f10d7ba9'; // V3-01 后期不挂机（挂钩注册） // V2-12 前置条件第一次满足时秘书说一句 // V2-03 进货挑品：暴雨跟着天气、节日事件跟着节日
-import { mark } from './goals.js?v=f10d7ba9';
-import { available } from './accrual.js?v=f10d7ba9'; // V0.2.2 打工人阶段事件花钱封顶
-import { fmtMoney } from './format.js?v=f10d7ba9';
+import { credit } from './credit.js?v=876cadde'; // V3-01 亲自拍板攒投入度
+import EV from '../config/events.json?v=876cadde' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=876cadde';
+import { SEC_BY_ID } from '../config/secretaries.js?v=876cadde';
+import { MONTH_MS } from './gametime.js?v=876cadde';
+import { addMsg, onAction } from './inbox.js?v=876cadde';
+import { pay, receive } from './ledger.js?v=876cadde';
+import { addContract } from './contracts.js?v=876cadde';
+import { attrs } from './posts.js?v=876cadde';
+import { isTraining } from './training.js?v=876cadde';
+import * as MG from './manage.js?v=876cadde';
+import * as PK from './pick.js?v=876cadde';
+import * as PQ from './prereq.js?v=876cadde';
+import './late.js?v=876cadde'; // V3-01 后期不挂机（挂钩注册） // V2-12 前置条件第一次满足时秘书说一句 // V2-03 进货挑品：暴雨跟着天气、节日事件跟着节日
+import { mark } from './goals.js?v=876cadde';
+import { available } from './accrual.js?v=876cadde'; // V0.2.2 打工人阶段事件花钱封顶
+import { fmtMoney } from './format.js?v=876cadde';
 
 export { EV as EVENTS_CFG };
 const r2 = (x) => Math.round(x * 100) / 100;
@@ -67,7 +67,7 @@ export function spawn(s, t, rnd = Math.random, id = null) {
   const ad = advisor(s, e); const best = e.options.find((o) => o.best) || e.options[0];
   const right = ad && rnd() < 0.5 + ad.attr / 200; const others = e.options.filter((o) => o !== best);
   const sug = !ad ? null : right || !others.length ? best : others[Math.floor(rnd() * others.length)];
-  const body = `${e.text.replace('{节日}', (PK.today(s, t).holiday || { name: '过节' }).name)}${ln ? `（${IND_BY_ID[ln].name}）` : ''}${ad ? `\n${SEC_BY_ID[ad.id].name}：「我觉得${sug.label.replace(/（.*）/, '')}比较好。」` : ''}\n${Math.round(EV.timeoutSec / 60)} 分钟不理就按「${optLabel(s, ln, e.options.find((o) => o.key === e.default))}」处理。`;
+  const body = `${e.text.replace('{节日}', (PK.today(s, t).holiday || { name: '过节' }).name)}${ln ? `（${IND_BY_ID[ln].name}）` : ''}${ad ? `\n${SEC_BY_ID[ad.id].name}：「我觉得${sug.label.replace(/（.*）/, '')}比较好。」` : ''}\n不选就一直挂着，等你拿主意。`;
   const m = addMsg(s, { kind: 'invite', type: 'biz_event', title: `经营：${e.title}`, body, from: ad ? ad.id : '', actions: e.options.map((o) => ({ key: o.key, label: optLabel(s, ln, o) })), data: { ev: e.id, line: ln, until: t + EV.timeoutSec * 1000, sug: sug ? sug.key : null } }, t);
   B.cur = m.id; B.cd[e.id] = t + EV.cooldownMonths * MONTH_MS; return m;
 }
@@ -111,7 +111,7 @@ onAction('biz_event', (s, m, a, t) => { const r = resolve(s, m.id, a, t); return
 export function tickEvents(s, t, rnd = Math.random) {
   const B = ev(s); const out = [];
   out.push(...PQ.checkNeeds(s, t));
-  if (B.cur) { const m = (s.inbox || []).find((x) => x.id === B.cur); if (!m || m.status !== 'open') B.cur = null; else if (t >= m.data.until) { const r = resolve(s, m.id, null, t, rnd); out.push(`没来得及管：${r.text}`); } }
+  if (B.cur) { const m = (s.inbox || []).find((x) => x.id === B.cur); if (!m || m.status !== 'open') B.cur = null; } /* V0.2.3（设计35 第十节）：不选不结，一直挂着 */
   if (!B.cur && !s.flags.noBizEvents) {
     if (!B.next) B.next = t + (EV.everySec[0] + rnd() * (EV.everySec[1] - EV.everySec[0])) * 1000;
     else if (t >= B.next) { const m = spawn(s, t, rnd); B.next = t + (EV.everySec[0] + rnd() * (EV.everySec[1] - EV.everySec[0])) * 1000; if (m) out.push(m.title); }

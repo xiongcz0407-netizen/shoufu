@@ -1,6 +1,6 @@
 // 新手引导：开场几句 + 每个功能第一次打开时的一句提示（只出一次，记在存档 flags.hints）
-import { game } from '../game.js?v=f10d7ba9';
-import { h } from './dom.js?v=f10d7ba9';
+import { game } from '../game.js?v=876cadde';
+import { h, openPanel } from './dom.js?v=876cadde';
 
 export const HINTS = {
   start: '点底部「公司」，升级便利店多赚钱。',
@@ -23,8 +23,25 @@ export const HINTS = {
   realestate: '地产是项目制：拿地（只能用自有资金）→ 办四证 → 开工 → 分 3 批预售（钱先进监管账户）→ 交房清算交土地增值税。一个项目一个多小时，一次回一大笔。',
 };
 
+/** V0.2.3（设计35 第五节）：不再自动弹提示，文字都在每个页面右上角的「?」里（openHelp）。hint / hintLater 留着不报错，什么都不做 */
+export const HINTS_OFF = true;
+/** 每个页签「?」里放哪些 */
+export const HELP = {
+  company: ['company', 'wallets', 'hire', 'payroll', 'posts', 'city', 'logistics', 'realestate', 'land', 'devloan', 'tech', 'media'],
+  secretary: ['secretary', 'date', 'gift', 'posts'],
+  battle: ['battle', 'installment', 'takeover'],
+  assets: ['assets', 'contract', 'auction', 'offshore'],
+  wealth: ['wealth', 'payroll', 'stocks', 'funds', 'bank', 'privatebank', 'stockpledge', 'artpledge', 'capital', 'vam', 'incentive', 'group', 'family'],
+};
+/** 页面右上角「?」：点了才看，原来 HINTS 那几句 */
+export function openHelp(page, title = '怎么玩') {
+  const keys = (HELP[page] || []).filter((k) => HINTS[k]); if (!keys.length) return;
+  const p = openPanel(title);
+  p.body.innerHTML = `<div class="help-list">${keys.map((k) => `<p>${HINTS[k]}</p>`).join('')}</div>`;
+}
 /** 显示一次提示；target：要指的按钮（可选） */
 export function hint(key, target) {
+  if (HINTS_OFF) return; // V0.2.3：取消弹窗教程
   const s = game.state; s.flags.hints = s.flags.hints || {};
   if (s.flags.hints[key] || !HINTS[key]) return;
   if (document.querySelector('.hint')) { setTimeout(() => hint(key, target), 1500); return; }   // 一次只弹一个（第 3-09 项）

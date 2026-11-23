@@ -3,18 +3,18 @@
 // 2. 大项目节点：科技立项、传媒投拍、跨城市扩张中途要你拍板（限时 30 分钟，不选按默认），结果按决策和秘书属性浮动；地产在 realestate.js（V2-09）
 // 3. 对手主动进攻：老板起每游戏月有概率来一次，应对窗口 30 分钟：商战三回合 / 花钱摆平 / 不理（按比例掉营业额、做空掉股价）
 // 4. 日程：agenda() 列出要你去的事（经营会、项目节点、地产决策、对手进攻），onAgenda(fn) 新事件推给日程表（开发2）
-import { setCredit } from './credit.js?v=f10d7ba9';
-import L from '../config/late.json?v=f10d7ba9' with { type: 'json' };
-import * as E from './economy.js?v=f10d7ba9';
-import { addMsg, onAction } from './inbox.js?v=f10d7ba9';
-import { pay } from './ledger.js?v=f10d7ba9';
-import { RIVALS, RIVAL_BY_ID } from '../config/rivals.js?v=f10d7ba9';
-import { IND_BY_ID } from '../config/industries.js?v=f10d7ba9';
-import * as B from './battle.js?v=f10d7ba9';
-import * as W from './war.js?v=f10d7ba9';
-import { holder, isSec, attrs } from './posts.js?v=f10d7ba9';
-import * as MG from './manage.js?v=f10d7ba9';
-import { isTraining } from './training.js?v=f10d7ba9';
+import { setCredit } from './credit.js?v=876cadde';
+import L from '../config/late.json?v=876cadde' with { type: 'json' };
+import * as E from './economy.js?v=876cadde';
+import { addMsg, onAction } from './inbox.js?v=876cadde';
+import { pay } from './ledger.js?v=876cadde';
+import { RIVALS, RIVAL_BY_ID } from '../config/rivals.js?v=876cadde';
+import { IND_BY_ID } from '../config/industries.js?v=876cadde';
+import * as B from './battle.js?v=876cadde';
+import * as W from './war.js?v=876cadde';
+import { holder, isSec, attrs } from './posts.js?v=876cadde';
+import * as MG from './manage.js?v=876cadde';
+import { isTraining } from './training.js?v=876cadde';
 
 export { L as LATE_CFG };
 const MIN = 60e3; const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -35,6 +35,7 @@ function hostK0(s) {
 export function mult(s, valueMode = false) {
   if (!active(s) || (s.late && s.late._off)) return 1; const X = lt(s); const h = hostK(s); const cap = (L.eCapByTitle || {})[String(s.title || 0)]; let m = h + (1 - h) * (cap != null ? Math.min(X.E, cap) : X.E); /* 老板这一档投入度的效果封顶（V3-01 小调：别让认真玩的人太快跳过老板） */
   if (!valueMode && X.fx.length) { const now = (s.mg && s.mg.t) || 0; for (const f of X.fx) if (f.until > now) m *= 1 + f.rev; }
+  if (!valueMode && X.atk.some((a) => a.status === 'open' && !a.until)) m *= 1 + (L.attack.openRev || 0); /* V0.2.3 进攻挂着没应对 */
   return m;
 }
 /** 你亲自拍了一次板：投入度 + */
@@ -75,7 +76,7 @@ function scheduleNodes(s, t) {
     const N = L.nodes[p.kind][d.n]; const at = N.days ? p.start + N.days * MG.DAY_MS : p.start + (p.end - p.start) * N.at;
     if (t < at) continue;
     if (p.kind !== 'city' && p.ref.result) { d.n = L.nodes[p.kind].length; continue; } // 已经结算了
-    const m = addMsg(s, { kind: 'invite', type: 'late_dec', title: `${p.name}：${N.title}`, body: N.text, actions: N.options.map((o) => ({ key: o.key, label: o.label })), data: { key: p.key, kind: p.kind, n: d.n, until: t + L.nodeWaitMin * MIN } }, t);
+    const m = addMsg(s, { kind: 'invite', type: 'late_dec', title: `${p.name}：${N.title}`, body: `${N.text}\n不拍板项目就停在这里。`, actions: N.options.map((o) => ({ key: o.key, label: o.label })), data: { key: p.key, kind: p.kind, n: d.n } }, t); /* V0.2.3（设计35 第十节）：不限时，不拍板项目暂停 */
     d.open = m.id; push(s, m, t);
   }
 }
@@ -83,7 +84,7 @@ function scheduleNodes(s, t) {
 export function decideNode(s, msgId, key, t) {
   const m = (s.inbox || []).find((x) => x.id === msgId); if (!m || !m.data || m.type !== 'late_dec') return { ok: false, why: '没有这件事' };
   const X = lt(s); const d = X.done[m.data.key]; const p = projects(s).find((x) => x.key === m.data.key); if (!d || !p) return { ok: false, why: '项目没了' };
-  const N = L.nodes[m.data.kind][m.data.n]; const late = t > m.data.until; const o = (!late && N.options.find((x) => x.key === key)) || N.options.find((x) => x.key === N.default);
+  const N = L.nodes[m.data.kind][m.data.n]; const late = !!(m.data.until && t > m.data.until); const o = (!late && N.options.find((x) => x.key === key)) || N.options.find((x) => x.key === N.default);
   const sec = o.attr ? bestSec(s, o.attr) : null; const a = sec ? (attrs(s, sec)[o.attr] || 0) / 100 : 0.3; const r = rng(msgId * 7919 + (s.createdAt % 1e6))();
   const pickK = (v) => (Array.isArray(v) ? v[0] + (v[1] - v[0]) * clamp(a + (r - 0.5) * 0.5, 0, 1) : v);
   let text = `${N.title}：${o.label}`;
@@ -95,6 +96,14 @@ export function decideNode(s, msgId, key, t) {
 }
 onAction('late_dec', (s, m, a, t) => decideNode(s, m.id, a, t).ok);
 
+/** V0.2.3：没拍板的节点，项目的结束时间每天往后挪一天（暂停） */
+function pauseOpenNodes(s, at) {
+  const X = lt(s); const day = MG.DAY_MS; X.pauseDay = X.pauseDay || {};
+  for (const p of projects(s)) { const d = X.done[p.key]; if (!d || !d.open) continue; const m = (s.inbox || []).find((x) => x.id === d.open); if (!m || m.status !== 'open' || m.data.until) continue;
+    if (X.pauseDay[p.key] === Math.floor(at / day)) continue; X.pauseDay[p.key] = Math.floor(at / day);
+    if (p.kind === 'city') { if (p.ref.at) p.ref.at += day; } else if (p.ref.at) p.ref.at += day; }
+}
+export const nodePaused = (s, key) => { const d = s.late && s.late.done && s.late.done[key]; return !!(d && d.open); };
 // ---------- 3. 对手进攻 ----------
 function attackers(s) { return RIVALS.filter((r) => !r.noAcquire && r.stage <= (s.title || 0) && !B.rivalState(s, r.id).acquired); }
 export function spawnAttack(s, t, rnd = Math.random, forceKind = null) {
@@ -102,9 +111,9 @@ export function spawnAttack(s, t, rnd = Math.random, forceKind = null) {
   const listed = !!(s.listing && s.listing.listed); const kinds = Object.entries(L.attack.kinds).filter(([, k]) => !k.listed || listed).map(([id]) => id);
   const kind = forceKind || kinds[Math.floor(rnd() * kinds.length)]; const K = L.attack.kinds[kind];
   const cost = Math.round(dayProfit(s) * L.attack.settleDays); X.seq += 1;
-  const a = { id: X.seq, rival: r.id, kind, t, until: t + L.attack.windowMin * MIN, status: 'open', cost };
-  const m = addMsg(s, { kind: 'invite', type: 'late_atk', from: '', title: `${r.name}：${K.name}`, body: `${K.text.replace('{r}', r.name)}\n${L.attack.windowMin} 分钟内应对：打一场商战（赢了化解），或者花钱摆平；不理的话一个月营业额 ${Math.round(L.attack.ignoreFx.rev * 100)}%${K.stock ? `、股价 ${Math.round(K.stock * 100)}%` : ''}。`,
-    actions: [{ key: 'war', label: `商战应对（${r.name}）` }, { key: 'nego', label: `花钱摆平（约 ${Math.round(cost / 1e4)} 万）` }, { key: 'ignore', label: '不理' }], data: { atk: a.id, until: a.until } }, t);
+  const a = { id: X.seq, rival: r.id, kind, t, status: 'open', cost }; /* V0.2.3：不限时，挂着的时候一直少赚（mult） */
+  const m = addMsg(s, { kind: 'invite', type: 'late_atk', from: '', title: `${r.name}：${K.name}`, body: `${K.text.replace('{r}', r.name)}\n没应对之前全公司营业额一直少 ${Math.round(-L.attack.openRev * 100)}%。应对：打一场商战（赢了化解），或者花钱摆平；不理的话一个月营业额 ${Math.round(L.attack.ignoreFx.rev * 100)}%${K.stock ? `、股价 ${Math.round(K.stock * 100)}%` : ''}。`,
+    actions: [{ key: 'war', label: `商战应对（${r.name}）` }, { key: 'nego', label: `花钱摆平（约 ${Math.round(cost / 1e4)} 万）` }, { key: 'ignore', label: '不理' }], data: { atk: a.id } }, t);
   a.msg = m.id; X.atk.push(a); if (X.atk.length > 30) X.atk.shift(); push(s, m, t); return a;
 }
 function penalty(s, a, fx, t) {
@@ -115,7 +124,7 @@ function penalty(s, a, fx, t) {
 /** 应对：war / nego / ignore（超时 = ignore） */
 export function respond(s, atkId, how, t) {
   const X = lt(s); const a = X.atk.find((x) => x.id === atkId); if (!a || a.status !== 'open') return { ok: false, why: '这件事已经过去了' };
-  if (t > a.until) how = 'ignore';
+  if (a.until && t > a.until) how = 'ignore';
   const m = (s.inbox || []).find((x) => x.id === a.msg);
   if (how === 'war') {
     const team = Object.keys(s.secs || {}).filter((id) => !isTraining(s, id)).sort((x, y) => (attrs(s, y).manage + attrs(s, y).social) - (attrs(s, x).manage + attrs(s, x).social)).slice(0, 2);
@@ -144,11 +153,12 @@ MG.onDay((s, d, at) => {
   X.fx = X.fx.filter((f) => f.until > at);
   { X._off = true; X.share = X.share || {}; /* 非门店线的净利率（经营倍数按它作用到净利上） */
     try { for (const id of Object.keys(s.inds || {})) { const c = IND_BY_ID[id]; if (!c || c.retail) continue; const rev = E.industryRevenue(s, id) * 30 * MG.DAY_MS / 1000; const net = E.lineNetMonth(s, id); const cg = E.baseCogs(s, id) || 0; X.share[id] = rev > 0 && cg < 1 ? clamp(net / (rev * (1 - cg)), 0.02, 1) : 0.05; } } finally { X._off = false; } }
-  for (const a of X.atk) if (a.status === 'open' && at > a.until) respond(s, a.id, 'ignore', at);
-  for (const m of s.inbox || []) if (m.type === 'late_dec' && m.status === 'open' && at > m.data.until) decideNode(s, m.id, null, at);
+  for (const a of X.atk) if (a.status === 'open' && a.until && at > a.until) respond(s, a.id, 'ignore', at); // 老存档里有时限的照旧
+  for (const m of s.inbox || []) if (m.type === 'late_dec' && m.status === 'open' && m.data.until && at > m.data.until) decideNode(s, m.id, null, at);
+  pauseOpenNodes(s, at); // V0.2.3（设计35 第十节）：没拍板的节点，项目往后顺延一天
   scheduleNodes(s, at);
   const p = (L.attack.perMonth[String(Math.min(4, s.title || 0))] || 0) / 30; const r = rng(d * 131 + (s.createdAt % 1e6))();
-  if (r < p) { const a = spawnAttack(s, at, rng(d * 977 + (s.createdAt % 1e6))); if (a) return [`${RIVAL_BY_ID[a.rival].name}出手了：${L.attack.kinds[a.kind].name}（30 分钟内应对）`]; }
+  if (r < p && !X.atk.some((a) => a.status === 'open')) { const a = spawnAttack(s, at, rng(d * 977 + (s.createdAt % 1e6))); if (a) return [`${RIVAL_BY_ID[a.rival].name}出手了：${L.attack.kinds[a.kind].name}（没应对之前一直少赚）`]; }
   return [];
 });
 E.setLateHook((s, vm) => mult(s, vm));

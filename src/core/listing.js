@@ -1,16 +1,17 @@
 // 上市（第 3-04 项，设计23 第四节）：四个板块条件 → 选券商 → 股改 → 辅导 → 申报审核（可能问询）→ 发行定价 → 路演 → 敲钟
 // 上市后：你的公司进股票列表（自己一只，跟大盘和利润走）；身价 = 市值 × 你的持股；锁定期后每 3 个游戏月最多减持 1%（限售股 20% 个税）；每年年报 + 分红
-import CFG from '../config/listing.json?v=f10d7ba9' with { type: 'json' };
-import { pay, receive, canPay } from './ledger.js?v=f10d7ba9';
-import { addContract } from './contracts.js?v=f10d7ba9';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=f10d7ba9';
-import { taxRec } from './fiscal.js?v=f10d7ba9';
-import { gm } from './calib.js?v=f10d7ba9';
-import { addMsg } from './inbox.js?v=f10d7ba9';
-import { holder, isSec } from './posts.js?v=f10d7ba9';
-import { companyEquity, earningsValue, stakeOf, addNetWorthHook } from './economy.js?v=f10d7ba9';
-import { cap, ipoPower } from './capital.js?v=f10d7ba9';
-import * as SK from './stocks.js?v=f10d7ba9';
+import CFG from '../config/listing.json?v=876cadde' with { type: 'json' };
+import { pay, receive, canPay } from './ledger.js?v=876cadde';
+import { addContract } from './contracts.js?v=876cadde';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=876cadde';
+import { taxRec } from './fiscal.js?v=876cadde';
+import { gm } from './calib.js?v=876cadde';
+import { addMsg } from './inbox.js?v=876cadde';
+import { holder, isSec } from './posts.js?v=876cadde';
+import { companyEquity, earningsValue, stakeOf, addNetWorthHook } from './economy.js?v=876cadde';
+import { cap, ipoPower } from './capital.js?v=876cadde';
+import { room } from './cashflow.js?v=876cadde'; // V0.2.3
+import * as SK from './stocks.js?v=876cadde';
 
 export const LCFG = CFG;
 export const BOARDS = CFG.boards;
@@ -168,7 +169,7 @@ function annual(s, t, out) {
   const X = s.listing.listed; const y = Math.floor((t - s.createdAt) / YEAR_MS);
   while (X.divYear < y) {
     X.divYear += 1; const at = s.createdAt + X.divYear * YEAR_MS; const p = monthsBack(s, 12);
-    const D = r2(Math.max(0, p) * CFG.dividendRatio);
+    const D0 = r2(Math.max(0, p) * CFG.dividendRatio); const D = r2(Math.min(D0, room(s))); /* V0.2.3（设计35）：年度分红也要留够两个月工资，不够就少分 */
     let line = `第 ${X.divYear} 年年报：净利 ${fmt(p)}，年末市值 ${fmt(marketCap(s))}`;
     if (D >= 1 && canPay(s, 'company', D)) {
       const mine = r2(D * stakeOf(s)); const held = (at - X.at) / MONTH_MS; const rate = CFG.divTax.find(([m]) => held < m)[1]; const tax = r2(mine * rate);

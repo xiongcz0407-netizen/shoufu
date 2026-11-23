@@ -826,3 +826,34 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 .role-row .rr-fire { background: transparent; border: 1px solid #e05a5a; color: #e05a5a; }
 .role-row .rr-fire:disabled { opacity: .4; }
 .hiring .fn-row { align-items: center; } .hiring .rush { flex: 0 0 76px; min-height: 34px; padding: 4px 0; font-size: 13px; line-height: 1.2; } .hiring .rush small { display: block; font-size: 10px; }
+/* V0.2.3 首页资金链红条 */
+.fund-bar { position: absolute; left: 8px; right: 8px; bottom: calc(var(--safe-b) + 118px); z-index: 13; min-height: 30px; padding: 4px 12px; border-radius: 15px; border: 1px solid #ff6b6b; background: rgba(120,20,20,.92); color: #fff; font-size: 12px; text-align: left; }
+.fund-bar i { float: right; font-style: normal; opacity: .8; }
+.fund-bar.hidden { display: none; }
+/* V0.2.3 站柜台：提示条、飘字单独一层（开发2） */
+.ct-qwrap { position: relative; }
+.ct-floats { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+.ct-alert { margin: 0 2px; padding: 8px 12px; border-radius: 10px; background: linear-gradient(90deg, #5a2a1a, #3a2418); border: 1px solid #f6d67a66; color: #ffe7b0; font-size: 14px; font-weight: 700; cursor: pointer; animation: ctAlert 1.6s ease-in-out infinite; }
+.ct-alert em { display: block; font-style: normal; font-size: 11px; font-weight: 400; color: #e8c98a; }
+@keyframes ctAlert { 0%, 100% { box-shadow: 0 0 0 rgba(246,214,122,0); } 50% { box-shadow: 0 0 10px rgba(246,214,122,.45); } }
+.ct-ev-body { font-size: 14px; line-height: 1.6; white-space: pre-line; }
+/* V0.2.3 「?」里的提示（开发2） */
+.help-list p { margin: 0 0 10px; font-size: 14px; line-height: 1.6; padding-left: 10px; border-left: 3px solid #f6d67a55; }
+.story-skip { position: absolute; top: calc(var(--safe-t) + 12px); right: 12px; z-index: 3; padding: 4px 12px; border-radius: 12px; background: rgba(0,0,0,.45); color: #f6d67a; border: 1px solid #f6d67a66; font-size: 13px; }
+/* 设计35 第八节 上课立刻学完（开发2） */
+.tr-box { position: relative; }
+.tr-say { display: flex; gap: 8px; align-items: center; background: #1a2438; border: 1px solid #2c3a56; border-radius: 10px; padding: 6px 8px; margin-bottom: 8px; font-size: 13px; min-height: 52px; }
+.tr-say img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; object-position: top; flex: none; }
+.tr-say q { quotes: '「' '」'; color: var(--paper); }
+.tr-say.pop { animation: trSay .5s ease-out; border-color: var(--gold); }
+@keyframes trSay { 0% { transform: scale(.96); } 60% { transform: scale(1.03); } 100% { transform: scale(1); } }
+.tr-c2 { position: relative; flex-direction: column; align-items: stretch; }
+.tr-c2 .tr-head { display: flex; align-items: center; gap: 10px; }
+.tr-to { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; }
+.tr-to .btn { width: auto; padding: 4px 10px; }
+.tr-to .tr-many { margin-left: auto; }
+.tr-to b { min-width: 26px; text-align: center; color: var(--gold); }
+.tr-up { position: absolute; right: 124px; top: 18px; color: #7ee08a; font-weight: bold; font-size: 16px; pointer-events: none; animation: trUp 1.2s ease-out forwards; text-shadow: 0 1px 3px #000; }
+@keyframes trUp { 0% { opacity: 0; transform: translateY(6px); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-28px); } }
+.tb-go { width: 100%; margin-top: 4px; }
+.todo-bar .todo-n { color: #ff8a7a; }

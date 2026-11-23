@@ -1,19 +1,21 @@
 // 公司月 / 季 / 年结：挂到游戏时钟上（main.js、econsim、autoplay 都用这一份）
-import { onPeriod } from './gametime.js?v=f10d7ba9';
-import { flushAccruals, pay } from './ledger.js?v=f10d7ba9';
-import * as ST from './staff.js?v=f10d7ba9';
-import * as CT from './companytax.js?v=f10d7ba9';
-import { addMsg } from './inbox.js?v=f10d7ba9';
-import { takeMonth } from './accrual.js?v=f10d7ba9';
-import { monthEquity } from './equity.js?v=f10d7ba9';
-import { monthPosts } from './postwork.js?v=f10d7ba9';
-import { power } from './posts.js?v=f10d7ba9';
+import { onPeriod } from './gametime.js?v=876cadde';
+import { flushAccruals, pay } from './ledger.js?v=876cadde';
+import * as ST from './staff.js?v=876cadde';
+import * as CT from './companytax.js?v=876cadde';
+import { addMsg } from './inbox.js?v=876cadde';
+import { takeMonth } from './accrual.js?v=876cadde';
+import { monthEquity } from './equity.js?v=876cadde';
+import { monthPosts } from './postwork.js?v=876cadde';
+import { power } from './posts.js?v=876cadde';
 // 店长管理高，员工流失少（设计17 第一节 4）
 ST.setManagerMgmt((s, id) => power(s, 'manager_' + id) * 100);
-import { fmtMoney } from './format.js?v=f10d7ba9';
-import * as FI from './fiscal.js?v=f10d7ba9';
-import { bank } from './bank.js?v=f10d7ba9';
-import { YEAR_MS } from './gametime.js?v=f10d7ba9';
+import { fmtMoney } from './format.js?v=876cadde';
+import * as FI from './fiscal.js?v=876cadde';
+import { bank } from './bank.js?v=876cadde';
+import * as CF from './cashflow.js?v=876cadde';
+import * as ADS from './ads.js?v=876cadde';
+import { YEAR_MS } from './gametime.js?v=876cadde';
 
 let hooked = false;
 export function hookCompany({ rnd = Math.random, onMonth } = {}) {
@@ -22,6 +24,8 @@ export function hookCompany({ rnd = Math.random, onMonth } = {}) {
     flushAccruals(s, end);
     const acc = takeMonth(s, end);
     const pr = ST.monthEnd(s, end, rnd, acc);
+    ADS.adsMonth(s, end); // V0.2.3 广告月报
+    pr.cf = CF.monthCheck(s, end); // V0.2.3 欠薪停业满 1 个月遣散、公司负数给应急周转贷（设计35）
     if (acc.other >= 0.01) { pay(s, { wallet: 'company', cat: 'opex', amount: acc.other, force: true, note: '门店水电物业、营销和杂费' }, end); s.period = s.period || {}; s.period.other = (s.period.other || 0) + acc.other; pr.opex = acc.other; } // 进本月利润（所得税前扣）
     monthPosts(s, m, end, rnd); // 秘书绩效 / 提成、外包费、店长和资产月报、过期没报的税
     const fb = FI.monthBefore(s, m, end, { staff: ST.totalStaff(s) }); // 销售提成、员工福利、进项抵扣（第 2-15 项）

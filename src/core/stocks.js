@@ -3,14 +3,14 @@
 // 每跳 ln P += β·M（大盘，牛 / 熊 / 震荡）+ B（板块）+ σ·ε + κ·(ln F − ln P) + 新闻跳空；随机数 = hash(名字, 跳数)，固定种子
 // 只能用个人现金买；佣金、过户费、卖出印花税、大单滑点；交割单进档案柜；分红按持有时间扣个税；持股 5% 举牌公告，30% 进度
 // 投资经理（秘书职位）：你划一笔钱 + 风格（稳健 / 平衡 / 进取）+ 止损线，按大盘走 + 她的超额（智慧）；新闻前一跳有概率提前给判断
-import CFG from '../config/stocks.json?v=f10d7ba9' with { type: 'json' };
-import { pay, receive } from './ledger.js?v=f10d7ba9';
-import { addContract } from './contracts.js?v=f10d7ba9';
-import { addAssetHook } from './assets.js?v=f10d7ba9';
-import { holder, isSec, attrs as secAttrs, efficiency, OUT } from './posts.js?v=f10d7ba9';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=f10d7ba9';
-import { taxRec, payerOfPost } from './fiscal.js?v=f10d7ba9';
-import { profitMul } from './calib.js?v=f10d7ba9';
+import CFG from '../config/stocks.json?v=876cadde' with { type: 'json' };
+import { pay, receive } from './ledger.js?v=876cadde';
+import { addContract } from './contracts.js?v=876cadde';
+import { addAssetHook } from './assets.js?v=876cadde';
+import { holder, isSec, attrs as secAttrs, efficiency, OUT } from './posts.js?v=876cadde';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=876cadde';
+import { taxRec, payerOfPost } from './fiscal.js?v=876cadde';
+import { profitMul } from './calib.js?v=876cadde';
 
 export const SCFG = CFG;
 export const STOCKS = CFG.stocks;

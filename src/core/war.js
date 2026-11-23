@@ -1,17 +1,17 @@
 // V2-05 商战三回合（设计29 第一节）：开战前看对手卡片；三回合每回合双方各出一张打法同时亮牌；克制的赢，同打法 / 不相克比带去的秘书对应属性
 // 三回合赢两回合算赢（提前分出胜负就结束）；每赢一回合你这条线当月营收 +2%、对手利润 −3%；结果落地走 battle.settleBattle
-import { WAR, RIVAL_BY_ID } from '../config/rivals.js?v=f10d7ba9';
-import * as B from './battle.js?v=f10d7ba9';
-import { live, monthGrowth } from './rivalgrow.js?v=f10d7ba9';
-import { ensureSec } from './secretary.js?v=f10d7ba9';
-import { netWorth } from './economy.js?v=f10d7ba9';
-import * as E from './economy.js?v=f10d7ba9';
-import { auraBattle, visionBattle } from './boss.js?v=f10d7ba9';
-import { bizBattle } from './rivalry.js?v=f10d7ba9';
-import { bigBonus } from './manage.js?v=f10d7ba9';
-import { pay, canPay } from './ledger.js?v=f10d7ba9';
-import { wage } from './staff.js?v=f10d7ba9';
-import { DAY_MS, dayIndex } from './manage.js?v=f10d7ba9';
+import { WAR, RIVAL_BY_ID } from '../config/rivals.js?v=876cadde';
+import * as B from './battle.js?v=876cadde';
+import { live, monthGrowth } from './rivalgrow.js?v=876cadde';
+import { ensureSec } from './secretary.js?v=876cadde';
+import { netWorth } from './economy.js?v=876cadde';
+import * as E from './economy.js?v=876cadde';
+import { auraBattle, visionBattle } from './boss.js?v=876cadde';
+import { bizBattle } from './rivalry.js?v=876cadde';
+import { bigBonus } from './manage.js?v=876cadde';
+import { pay, canPay } from './ledger.js?v=876cadde';
+import { wage } from './staff.js?v=876cadde';
+import { DAY_MS, dayIndex } from './manage.js?v=876cadde';
 
 const P = WAR.plays; export const PLAY_IDS = Object.keys(P); export { WAR };
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));

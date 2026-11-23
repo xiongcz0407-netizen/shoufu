@@ -5,7 +5,7 @@
   "name": "仲梁联行",
   "fee": 0.005
  },
- "ddMin": 15,
+ "ddMin": 0,
  "depositRate": 0.1,
  "attr": {
   "network": 10,

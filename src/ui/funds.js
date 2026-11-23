@@ -1,14 +1,14 @@
 // 「财富 → 投资 → 基金」（第 2-10 项）：公募 / 私募 / 天使风投；申购、赎回（下一跳到账）、私募三份文件
-import * as FD from '../core/funds.js?v=f10d7ba9';
-import * as AS from '../core/assets.js?v=f10d7ba9';
-import * as INB from '../core/inbox.js?v=f10d7ba9';
-import * as E from '../core/economy.js?v=f10d7ba9';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=f10d7ba9';
-import { game } from '../game.js?v=f10d7ba9';
-import { now } from '../core/clock.js?v=f10d7ba9';
-import { h, openPanel, toast } from './dom.js?v=f10d7ba9';
-import { spark } from './stocks.js?v=f10d7ba9';
-import { hintLater } from './guide2.js?v=f10d7ba9';
+import * as FD from '../core/funds.js?v=876cadde';
+import * as AS from '../core/assets.js?v=876cadde';
+import * as INB from '../core/inbox.js?v=876cadde';
+import * as E from '../core/economy.js?v=876cadde';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=876cadde';
+import { game } from '../game.js?v=876cadde';
+import { now } from '../core/clock.js?v=876cadde';
+import { h, openPanel, toast } from './dom.js?v=876cadde';
+import { spark } from './stocks.js?v=876cadde';
+import { hintLater } from './guide2.js?v=876cadde';
 
 const pct = (v) => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(2)}%`;
 const cls = (v) => (v > 0 ? 'up' : v < 0 ? 'down' : '');

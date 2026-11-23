@@ -1,27 +1,27 @@
 // 「资产」页签（第 12 项，设计18 第四节 4、设计19）：横滑标签 车库 / 房产 / 机库 / 码头 / 穿戴 / 收藏；
 // 上展示（场景背景 + 最贵的那件）下列表；点一件 → 详情抽屉（参数、编号、买入价 / 卖回价、持有成本、出租、卖回、合同）；
 // 「去买」→ 商店（车：现货 / 订单 / 邀请 / 拍卖 / 定制；房子：上海 / 广州 / 北京 / 深圳 / 香港 / 海外；飞机：现货）
-import { TIER_NAMES } from '../config/vehicles.js?v=f10d7ba9';
-import { CHANNEL_NAME } from '../config/carmeta.js?v=f10d7ba9';
-import * as AS from '../core/assets.js?v=f10d7ba9';
-import * as PW from '../core/postwork.js?v=f10d7ba9';
-import { bossAttrs } from '../core/boss.js?v=f10d7ba9';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=f10d7ba9';
-import { asset, hasAsset } from '../platform/assets.js?v=f10d7ba9';
-import { game } from '../game.js?v=f10d7ba9';
-import { now } from '../core/clock.js?v=f10d7ba9';
-import { h, openPanel, toast, liveRender } from './dom.js?v=f10d7ba9';
-import { openFull } from './shell.js?v=f10d7ba9';
-import { openContract } from './contract.js?v=f10d7ba9';
-import { nextContractNo } from '../core/contracts.js?v=f10d7ba9';
-import { renderYachtTab } from './yacht.js?v=f10d7ba9';
-import { renderWearTab } from './luxury.js?v=f10d7ba9';
-import { renderCollectTab } from './antique.js?v=f10d7ba9';
-import { abroadCard } from './offshore.js?v=f10d7ba9';
-import { renderAuctionHouse } from './auction.js?v=f10d7ba9';
-import * as OFS from '../core/offshore.js?v=f10d7ba9';
-import { renderLandmarkGroup } from './landmark.js?v=f10d7ba9';
-import * as CF from '../core/carfilter.js?v=f10d7ba9';
+import { TIER_NAMES } from '../config/vehicles.js?v=876cadde';
+import { CHANNEL_NAME } from '../config/carmeta.js?v=876cadde';
+import * as AS from '../core/assets.js?v=876cadde';
+import * as PW from '../core/postwork.js?v=876cadde';
+import { bossAttrs } from '../core/boss.js?v=876cadde';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=876cadde';
+import { asset, hasAsset } from '../platform/assets.js?v=876cadde';
+import { game } from '../game.js?v=876cadde';
+import { now } from '../core/clock.js?v=876cadde';
+import { h, openPanel, toast, liveRender } from './dom.js?v=876cadde';
+import { openFull } from './shell.js?v=876cadde';
+import { openContract } from './contract.js?v=876cadde';
+import { nextContractNo } from '../core/contracts.js?v=876cadde';
+import { renderYachtTab } from './yacht.js?v=876cadde';
+import { renderWearTab } from './luxury.js?v=876cadde';
+import { renderCollectTab } from './antique.js?v=876cadde';
+import { abroadCard } from './offshore.js?v=876cadde';
+import { renderAuctionHouse } from './auction.js?v=876cadde';
+import * as OFS from '../core/offshore.js?v=876cadde';
+import { renderLandmarkGroup } from './landmark.js?v=876cadde';
+import * as CF from '../core/carfilter.js?v=876cadde';
 
 const imgPath = (it) => `assets/${it.kind}/${it.id}.webp`;
 function pic(it, cls = 'as-img') {
@@ -117,7 +117,7 @@ function openItem(id, done) {
 
 /** 商店（全屏）：按渠道 / 城市分段，卡片显示价格、税费合计和条件（不够的灰掉写差什么） */
 export function openShop(kind, done) {
-  setTimeout(() => import('./guide.js?v=f10d7ba9').then((g) => g.hint('contract')), 400);
+  setTimeout(() => import('./guide.js?v=876cadde').then((g) => g.hint('contract')), 400);
   const p = openFull(kind === 'house' ? '买房' : kind === 'car' ? '车行' : '飞机');
   const segBar = h('div', 'seg-bar'); const body = h('div', 'page-body');
   p.body.append(segBar, body);
@@ -147,9 +147,9 @@ export function openShop(kind, done) {
       else if (f) act = t >= f.until ? '<button class="btn gold buy">认筹到期，签合同</button>' : `<button class="btn cancel">冻结中 还剩 ${fmtDuration((f.until - t) / 1000)}（放弃）</button>`;
       else if (o) act = t >= o.at ? '<button class="btn gold buy">到货了，签合同</button>' : `<button class="btn" disabled>${ch === 'invite' ? '等品牌来电' : '排队中'} 还剩 ${fmtDuration((o.at - t) / 1000)}</button>`;
       else if (why) act = `<div class="sc-cond">${why}</div>`;
-      else if (it.kind === 'house' && (it.check === 'verify' || it.check === 'proof')) act = `<button class="btn gold verify">验资认筹（冻结 ${AS.freezeMin(it)} 分钟）</button>`;
+      else if (it.kind === 'house' && (it.check === 'verify' || it.check === 'proof')) act = '<button class="btn gold verify">验资认筹（立刻出结果）</button>';
       else if (ch === 'auction') act = '<button class="btn gold auction">去拍卖会</button>';
-      else if (AS.QUEUE_MIN[ch]) act = `<button class="btn gold order two">${ch === 'invite' ? '登记，等邀请' : ch === 'custom' ? '提交定制委托' : `付定金 ${fmtMoney(it.price * AS.ORDER.deposit)} 下单`}<small>排队 ${AS.QUEUE_MIN[ch]} 分钟</small></button>`; // 两行：上主字、下小字
+      else if (AS.QUEUE_MIN[ch]) act = `<button class="btn gold order two">${ch === 'invite' ? '登记，等邀请' : ch === 'custom' ? '提交定制委托' : `付定金 ${fmtMoney(it.price * AS.ORDER.deposit)} 下单`}<small>立刻交付</small></button>`; // 两行：上主字、下小字
       else act = '<button class="btn gold buy">签合同</button>';
       const c = h('div', 'as-card ' + frameCls(it) + (why && !own && !f && !o ? ' dim' : ''), `${pic(it)}${badges(it)}${it.body ? `<em class="body-tag">${CF.BODY_NAME[it.body]}</em>` : ''}<b>${label(it)}</b>
         <small>${fmtMoney(it.price)}　税费合计 ${fmtMoney(q.total - it.price)}${it.area ? `　${it.area} ㎡` : ''}</small>${it.note ? `<small class="note">${it.note}</small>` : ''}${act}`);
@@ -157,7 +157,7 @@ export function openShop(kind, done) {
       on('.buy', () => contractBuy(it, null, null, draw, f ? 'verify' : o ? 'order' : null));
       on('.verify', () => { const r = AS.startVerify(s, it.id, now()); if (!r.ok) { toast(r.why); return; } toast(`开了存款证明，冻结 ${fmtMoney(AS.freezeOf(s, it.id).amount)}`); game.changed(); game.save(); draw(); });
       on('.cancel', () => { AS.cancelVerify(s, it.id); toast('放弃认筹，钱退回了'); game.changed(); game.save(); draw(); });
-      on('.order', () => { const r = AS.placeOrder(s, it.id, now()); if (!r.ok) { toast(r.why); return; } toast(r.deposit ? `付了定金 ${fmtMoney(r.deposit)}，10 分钟后来签合同付尾款` : '登记好了，到时间来签合同'); game.changed(); game.save(); draw(); });
+      on('.order', () => { const r = AS.placeOrder(s, it.id, now()); if (!r.ok) { toast(r.why); return; } toast(r.deposit ? `付了定金 ${fmtMoney(r.deposit)}，现在就能签合同付尾款` : '好了，现在就能签合同'); game.changed(); game.save(); draw(); });
       on('.auction', () => openAuction(it, draw));
       grid.appendChild(c);
     }

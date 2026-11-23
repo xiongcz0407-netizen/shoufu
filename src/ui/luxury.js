@@ -2,19 +2,20 @@
 // 穿戴：上展示戴着的表、穿着的西装；下两格「表柜 / 衣帽间」，点一件 → 详情（戴上 / 穿上、卖回、发票）
 // 表行 / 定制店：按品牌分段，顶上写这个品牌的累计消费、配货额度（变差 / 拉黑的可以让商务总监去求情）
 // 名包：在商场按秘书分页，买了直接送她（喜欢的牌子 ♥），走个人现金、出发票
-import * as LX from '../core/luxury.js?v=f10d7ba9';
-import * as INB from '../core/inbox.js?v=f10d7ba9';
-import { SEC_BY_ID } from '../config/secretaries.js?v=f10d7ba9';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=f10d7ba9';
-import { asset, hasAsset } from '../platform/assets.js?v=f10d7ba9';
-import { game } from '../game.js?v=f10d7ba9';
-import { now } from '../core/clock.js?v=f10d7ba9';
-import { h, openPanel, toast, liveRender } from './dom.js?v=f10d7ba9';
-import { openFull } from './shell.js?v=f10d7ba9';
-import { openContract } from './contract.js?v=f10d7ba9';
-import { nextContractNo } from '../core/contracts.js?v=f10d7ba9';
-import { say } from './main-screen.js?v=f10d7ba9';
-import * as A from '../core/affection.js?v=f10d7ba9';
+import * as LX from '../core/luxury.js?v=876cadde';
+import * as INB from '../core/inbox.js?v=876cadde';
+import { SEC_BY_ID } from '../config/secretaries.js?v=876cadde';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=876cadde';
+import { asset, hasAsset } from '../platform/assets.js?v=876cadde';
+import { game } from '../game.js?v=876cadde';
+import { now } from '../core/clock.js?v=876cadde';
+import { h, openPanel, toast, liveRender } from './dom.js?v=876cadde';
+import { openFull } from './shell.js?v=876cadde';
+import { openContract } from './contract.js?v=876cadde';
+import { nextContractNo } from '../core/contracts.js?v=876cadde';
+import { say } from './main-screen.js?v=876cadde';
+import * as A from '../core/affection.js?v=876cadde';
+import * as BI from './brandinv.js?v=876cadde'; // 设计35 第九节 品牌邀请不过期
 
 const imgOf = (x) => `assets/${x.kind}/${x.img || x.id}.webp`;
 const pic = (x, cls = 'as-img') => (hasAsset(imgOf(x)) ? `<img class="${cls}" src="${asset(imgOf(x))}" alt="">` : `<div class="${cls} as-ph">${x.brand}<small>${x.model}</small></div>`);
@@ -94,7 +95,7 @@ export function openLuxShop(kind, done) {
   const draw = () => {
     const s = game.state; const t = now();
     segBar.innerHTML = ''; for (const [k, n] of brands) { const b = h('button', 'seg' + (k === seg ? ' on' : ''), n); b.onclick = () => { seg = k; body.scrollTop = 0; draw(); }; segBar.appendChild(b); }
-    body.innerHTML = `<div class="tr-gain">个人现金 ${fmtMoney(s.cash)}；${kind === 'watch' ? '热门款要先在这个品牌买别的攒配货额度，买了扣掉' : '成衣现货；半定制量体等 5 分钟；全定制每个品牌每天 1 个预约，量体后试衣两次各 10 分钟'}</div>`;
+    body.innerHTML = `<div class="tr-gain">个人现金 ${fmtMoney(s.cash)}；${kind === 'watch' ? '热门款要先在这个品牌买别的攒配货额度，买了扣掉' : '成衣现货；半定制量体当场做好；全定制每个品牌每天 1 个预约，量体后试两次衣（当场改好）'}</div>`;
     body.appendChild(brandBar(s, kind, seg, draw));
     const grid = h('div', 'as-grid shop');
     for (const x of (kind === 'watch' ? LX.WATCHES : LX.SUITS).filter((y) => y.brandKey === seg)) grid.appendChild(shopCard(s, x, t, draw, null));
@@ -113,7 +114,7 @@ function shopCard(s, x, t, draw, secId) {
   else if (o) act = LX.needFitting(s, x.id, t) ? '<button class="btn gold fit">去试第二次衣</button>' : LX.orderReady(s, x.id, t) ? `<button class="btn gold get">${x.kind === 'bag' ? `到了，送给${SEC_BY_ID[secId].name}` : '到了，付尾款'}</button>` : `<button class="btn" disabled>${o.ch === 'invite' ? '等品牌来电' : x.fittings ? (o.stage ? '第二次试衣' : '量体、第一次试衣') : o.ch === 'custom' ? '定制中' : '排队中'} 还剩 ${fmtDuration((o.at - t) / 1000)}</button>`;
   else if (why) act = `<div class="sc-cond">${why}</div>`;
   else if (x.channel === 'auction') act = '<button class="btn gold auc">去拍卖会</button>';
-  else if (LX.queues(x)) act = `<button class="btn gold order two">${x.channel === 'invite' ? '登记，等邀请' : x.channel === 'custom' ? `${x.kind === 'suit' ? '预约量体' : '提交定制委托'}，付定金 ${fmtMoney(x.price * 0.3)}` : x.channel === 'alloc' ? '配货，排队' : x.kind === 'suit' ? '量体下单' : '下单排队'}<small>等 ${x.fittings ? x.fittings.join(' + ') : LX.waitOf(x)} 分钟</small></button>`;
+  else if (LX.queues(x)) act = `<button class="btn gold order two">${x.channel === 'invite' ? '登记，等邀请' : x.channel === 'custom' ? `${x.kind === 'suit' ? '预约量体' : '提交定制委托'}，付定金 ${fmtMoney(x.price * 0.3)}` : x.channel === 'alloc' ? '配货，排队' : x.kind === 'suit' ? '量体下单' : '下单排队'}<small>立刻交付</small></button>`;
   else act = `<button class="btn gold buy">${x.kind === 'bag' ? `买下送给${SEC_BY_ID[secId].name}` : '付款'}</button>`;
   let extra = '';
   if (x.kind === 'bag') { const g = LX.bagFavor(s, x, secId); extra = `<small>好感 +${Math.round(g.favor * A.favorMult(s))}${g.love ? '　爱慕 +1' : ''}${g.liked ? '　<b class="pos">♥ 她喜欢</b>' : ''}</small>`; }
@@ -121,7 +122,7 @@ function shopCard(s, x, t, draw, secId) {
   const on = (sel, fn) => { const y = c.querySelector(sel); if (y) y.onclick = fn; };
   on('.buy', () => (x.kind === 'bag' ? giveFlow(x, secId, false, draw) : invoiceBuy(x, draw)));
   on('.get', () => (x.kind === 'bag' ? giveFlow(x, secId, true, draw) : x.channel === 'custom' ? contractBuy(x, draw) : invoiceBuy(x, draw, true)));
-  on('.fit', () => { const r = LX.nextFitting(s, x.id, now()); if (!r.ok) { toast(r.why); return; } toast('第一次试衣改好了，第二次试衣 10 分钟后'); game.changed(); game.save(); draw(); });
+  on('.fit', () => { const r = LX.nextFitting(s, x.id, now()); if (!r.ok) { toast(r.why); return; } toast('第二次试衣也好了，可以签了'); game.changed(); game.save(); draw(); });
   on('.order', () => { const r = LX.placeOrder(s, x.id, now()); if (!r.ok) { toast(r.why); return; } toast(r.deposit ? `付了定金 ${fmtMoney(r.deposit)}` : '登记好了，到时间会通知你'); game.changed(); game.save(); draw(); });
   on('.auc', () => openAuction(x, draw));
   return c;
@@ -206,5 +207,5 @@ export function wearHtml(s) {
 
 // 每秒：排队到点进消息中心
 game.addTicker((s) => {
-  for (const x of LX.tick(s, now())) INB.addMsg(s, { kind: 'invite', type: 'asset_ready', title: x.text, body: LX.L[x.order.id].kind === 'bag' ? '去「商场 → 名包」送给她。' : '去「资产 → 穿戴」的表行 / 定制店。', actions: [{ key: 'approve', label: '知道了' }] }, now());
+  for (const x of LX.tick(s, now())) BI.notify(s, 'lux', x.order, x.text, LX.L[x.order.id].kind === 'bag' ? '去「商场 → 名包」送给她。' : '去「资产 → 穿戴」的表行 / 定制店。');
 });

@@ -1,17 +1,18 @@
 // 「资产 → 码头」（第 2-11 项）：上展示（码头背景 + 最贵的那艘）下列表；点一艘 → 详情（参数、编号、税单、包租、卖回）；
 // 「去买游艇」→ 船厂（现货 / 订单配额 / 邀请 / 定制委托）→ 合同 → 签字付款（合同 + 报关单 + 登记证书进档案柜）
-import * as YT from '../core/yacht.js?v=f10d7ba9';
-import * as PW from '../core/postwork.js?v=f10d7ba9';
-import * as INB from '../core/inbox.js?v=f10d7ba9';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=f10d7ba9';
-import { asset, hasAsset } from '../platform/assets.js?v=f10d7ba9';
-import { game } from '../game.js?v=f10d7ba9';
-import { now } from '../core/clock.js?v=f10d7ba9';
-import { h, openPanel, toast, liveRender } from './dom.js?v=f10d7ba9';
-import { openFull } from './shell.js?v=f10d7ba9';
-import { openContract } from './contract.js?v=f10d7ba9';
-import { nextContractNo } from '../core/contracts.js?v=f10d7ba9';
-import { showcase } from './assets.js?v=f10d7ba9';
+import * as YT from '../core/yacht.js?v=876cadde';
+import * as PW from '../core/postwork.js?v=876cadde';
+import * as INB from '../core/inbox.js?v=876cadde';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=876cadde';
+import { asset, hasAsset } from '../platform/assets.js?v=876cadde';
+import { game } from '../game.js?v=876cadde';
+import { now } from '../core/clock.js?v=876cadde';
+import { h, openPanel, toast, liveRender } from './dom.js?v=876cadde';
+import { openFull } from './shell.js?v=876cadde';
+import { openContract } from './contract.js?v=876cadde';
+import { nextContractNo } from '../core/contracts.js?v=876cadde';
+import { showcase } from './assets.js?v=876cadde';
+import * as BI from './brandinv.js?v=876cadde'; // 设计35 第九节 品牌邀请不过期
 
 const TIER = ['', '入门', '中档', '高档', '顶级', '顶级'];
 const imgPath = (y) => `assets/yacht/${y.id}.webp`;
@@ -92,7 +93,7 @@ export function openYachtShop(done) {
       else if (o) act = t >= o.at ? '<button class="btn gold buy">到了，签合同</button>' : `<button class="btn" disabled>${o.ch === 'invite' ? '等船厂来电' : o.ch === 'custom' ? '船厂审核委托' : '排队中'} 还剩 ${fmtDuration((o.at - t) / 1000)}</button>`;
       else if (why) act = `<div class="sc-cond">${why}</div>`;
       else if (y.channel === 'spot') act = '<button class="btn gold buy">签合同</button>';
-      else act = `<button class="btn gold order two">${y.channel === 'invite' ? '登记，等邀请' : y.channel === 'custom' ? '提交定制委托' : `付定金 ${fmtMoney(y.price * YT.YCFG.orderDeposit)} 下单`}<small>等 ${YT.waitMin(y)} 分钟</small></button>`;
+      else act = `<button class="btn gold order two">${y.channel === 'invite' ? '登记，等邀请' : y.channel === 'custom' ? '提交定制委托' : `付定金 ${fmtMoney(y.price * YT.YCFG.orderDeposit)} 下单`}<small>立刻交付</small></button>`;
       const c = h('div', 'as-card ' + frame(y) + (why ? ' dim' : ''), `${pic(y)}${badges(y)}<b>${YT.label(y)}</b><small>${y.len} 米${y.speed ? ` · 约 ${y.speed} 节` : ''}　${fmtMoney(y.price)}　税费 ${fmtMoney(q.total - y.price)}${y.noResale ? '　签不转卖' : ''}</small>${act}`);
       const on = (sel, fn) => { const x = c.querySelector(sel); if (x) x.onclick = fn; };
       on('.buy', () => contractBuy(y, !!o, draw));
@@ -125,6 +126,6 @@ function contractBuy(y, queued, done) {
 game.addTicker((s) => {
   for (const x of YT.tick(s, now())) {
     if (typeof x === 'string') { toast(x, 2600); INB.addMsg(s, { kind: 'system', type: 'yacht', title: x, body: '资产 → 码头' }, now()); }
-    else INB.addMsg(s, { kind: 'invite', type: 'asset_ready', title: x.text, body: '去「资产 → 码头 → 去买游艇」签合同。', actions: [{ key: 'approve', label: '知道了' }] }, now());
+    else BI.notify(s, 'yacht', x.order, x.text, '去「资产 → 码头 → 去买游艇」签合同。'); // 设计35 第九节：不过期，签了才关
   }
 });

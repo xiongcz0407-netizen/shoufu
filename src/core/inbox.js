@@ -24,6 +24,8 @@ export function act(s, id, action, t = Date.now()) {
   m.status = action === 'reject' ? 'rejected' : action === 'approve' ? 'approved' : 'done'; m.read = true;
   return true;
 }
+/** 设计35 第十节：「待处理」= 所有还没办的（要你签字 / 拍板 / 批准的），不限时，按来的先后排（早的在上） */
+export const pending = (s) => (s.inbox || []).filter((m) => m.status === 'open').sort((a, b) => a.t - b.t || a.id - b.id);
 export const markRead = (s, id) => { const m = (s.inbox || []).find((x) => x.id === id); if (m) m.read = true; };
 /** 各类数量：{ request: {open, unread}, ... } */
 export function counts(s) {

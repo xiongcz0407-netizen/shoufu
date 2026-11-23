@@ -1,15 +1,30 @@
 // 亲自站柜台（V2-04，设计28 第一节）：上半屏门店图 + 店名 / 今天主推 / 天气；下半屏柜台顾客排队（最多 4 个）；底部今天的统计和「离开柜台」
 // 离开页面就停（离线没有）；同一时间只能站一家店
-import * as CT from '../core/counter.js?v=f10d7ba9';
-import { IND_BY_ID } from '../config/industries.js?v=f10d7ba9';
-import { SEC_BY_ID } from '../config/secretaries.js?v=f10d7ba9';
-import { fmtMoney } from '../core/format.js?v=f10d7ba9';
-import { asset, hasAsset } from '../platform/assets.js?v=f10d7ba9';
-import { game } from '../game.js?v=f10d7ba9';
-import { now } from '../core/clock.js?v=f10d7ba9';
-import { h, toast } from './dom.js?v=f10d7ba9';
-import { openFull } from './shell.js?v=f10d7ba9';
-import { isStoryPlaying } from './story.js?v=f10d7ba9';
+import * as CT from '../core/counter.js?v=876cadde';
+import { IND_BY_ID } from '../config/industries.js?v=876cadde';
+import { SEC_BY_ID } from '../config/secretaries.js?v=876cadde';
+import { fmtMoney } from '../core/format.js?v=876cadde';
+import { asset, hasAsset } from '../platform/assets.js?v=876cadde';
+import { game } from '../game.js?v=876cadde';
+import { now } from '../core/clock.js?v=876cadde';
+import { h, toast } from './dom.js?v=876cadde';
+import { openFull } from './shell.js?v=876cadde';
+import { isStoryPlaying } from './story.js?v=876cadde';
+import { openPanel } from './dom.js?v=876cadde';
+import * as I from '../core/inbox.js?v=876cadde';
+import { actOn } from './inbox.js?v=876cadde';
+import * as AGD from '../core/agenda.js?v=876cadde';
+
+// V0.2.3（设计35 第四节）：离开柜台连击保留 2 分钟，2 分钟内回来接着算
+const KEEP_MS = 2 * 60e3; let kept = null;
+const KIND_TAG = { request: '请示', event: '事件', invite: '邀请' };
+/** 柜台顶上的提示条：第一件要你动手的事（经营事件 / 请示 / 邀请 / 急报 …），没有就看日程里现在能去的 */
+function pendingThing(s, t) {
+  const m = (s.inbox || []).find((x) => x.status === 'open' && I.NEEDS_ACTION[x.kind] && (x.actions || []).length);
+  if (m) return { kind: 'msg', m, text: `${m.type === 'biz_event' ? '📋' : m.kind === 'request' ? '✋' : '🔔'} ${m.type === 'biz_event' ? '经营' : KIND_TAG[m.kind] || '消息'}：${m.title.replace(/^经营：/, '')}` };
+  try { const it = AGD.unlocked(s) && AGD.ag(s).items.find((x) => !x.ext && ['invite', 'accepted'].includes(x.status) && !AGD.whyAttend(s, x, t)); if (it) return { kind: 'agenda', it, text: `📅 日程：${it.title}（现在能去）` }; } catch (e) { /* 日程没开 */ }
+  return null;
+}
 
 const C = CT.COUNTER_CFG;
 let open = null;   // 正在站的那一个（同一时间只能站一家）
@@ -26,18 +41,30 @@ export function openCounter(id) {
   const s0 = game.state; const st0 = CT.startSession(s0, id, now()); if (!st0.ok) { toast(st0.why); return; }
   if (open) open.close();
   const cfg = IND_BY_ID[id]; const sess = st0.sess;
-  let lastTick = now(), queue = [], nextAt = now() + 1500, secId = null, float = [], secLine = null, lastSave = now(), startAt = now(), minuteAt = now() + 60e3;
-  const p = openFull(`站柜台 · ${cfg.name}`, { onClose: () => { clearInterval(timer); open = null; game.changed(); game.save(); } });
+  if (kept && now() < kept.until) sess.combo = kept.combo; kept = null; // 2 分钟内回来，连击接着算
+  let lastTick = now(), queue = [], nextAt = now() + 1500, secId = null, secLine = null, lastSave = now(), startAt = now(), minuteAt = now() + 60e3, comboShown = sess.combo || 0;
+  const p = openFull(`站柜台 · ${cfg.name}`, { onClose: () => { clearInterval(timer); open = null; kept = { combo: sess.combo || 0, until: now() + KEEP_MS }; game.changed(); game.save(); } });
   open = p;
   const lk = CT.lookOf(s0, id); const img = `assets/ind/${cfg.img[lk]}.webp`;
   const top = h('div', 'ct-top', '');
   if (hasAsset(img)) top.style.backgroundImage = `linear-gradient(rgba(8,12,22,.35),rgba(8,12,22,.75)),url('${asset(img)}')`;
   const secs = h('div', 'tabs ct-secs');
   const cap = h('div', 'ct-cap', '今天够忙了，歇会儿吧（顾客照来，不再进账）');
+  const alert = h('div', 'ct-alert'); alert.style.display = 'none';
   const q = h('div', 'ct-queue');
+  const fl = h('div', 'ct-floats'); // 飘字单独一层：drawQ 不碰它（以前整块重画，飘字动画反复从头播）
   const foot = h('div', 'ct-foot');
   p.body.classList.add('ct-body');
-  p.body.append(top, secs, cap, q, foot);
+  const qwrap = h('div', 'ct-qwrap'); qwrap.append(q, fl);
+  p.body.append(top, alert, secs, cap, qwrap, foot);
+  alert.onclick = () => { const x = pendingThing(game.state, now()); if (!x) return; if (x.kind === 'agenda') { import('./agenda.js?v=876cadde').then((A) => A.openAgenda()); return; } openThing(x.m); };
+  /** 在柜台上面弹事件卡（同消息里那张，选项一样），选完回柜台 */
+  const openThing = (m) => {
+    const s = game.state; const from = SEC_BY_ID[m.from];
+    const pn = openPanel(m.title);
+    pn.body.innerHTML = `${from ? `<div class="tr-gain">${from.name}：</div>` : ''}<div class="ct-ev-body">${m.body}</div><div class="ind-btns" style="margin-top:10px">${m.actions.map((a) => `<button class="btn ${a.key === 'approve' ? 'gold' : ''}" data-a="${a.key}">${a.label}</button>`).join('')}</div>`;
+    pn.body.querySelectorAll('[data-a]').forEach((b) => (b.onclick = () => { const k = b.dataset.a; pn.close(); actOn(game.state, m, k, () => {}); I.markRead(game.state, m.id); game.changed(); game.save(); }));
+  };
   const drawSecs = () => {
     const s = game.state;
     secs.innerHTML = `<button class="tab ${secId ? '' : 'on'}" data-s="">自己站</button>` + Object.keys(s.secs).map((k) => { const why = CT.whySec(s, k); return `<button class="tab ${secId === k ? 'on' : ''}" data-s="${k}" ${why ? 'disabled' : ''}>带${SEC_BY_ID[k].name}${why ? (why.includes('踩点') ? '（踩点中）' : '（上课中）') : ''}</button>`; }).join('');
@@ -61,14 +88,15 @@ export function openCounter(id) {
     }
     return `<div class="ct-card ${c.kind === 'thief' ? 'red' : ''}"><i class="ct-av"></i><div class="ct-txt">${body}<i class="ct-pat"><b style="width:${pc}%"></b></i></div><div class="ct-btns">${btns}</div></div>`;
   };
-  const drawQ = () => { const t = now(); q.innerHTML = (sess.combo >= 2 ? `<div class="ct-combo${sess.combo % C.combo.every === 0 ? ' hit' : ''}">连击 ×${sess.combo}<small>${sess.combo % C.combo.every === 0 ? `这一单 +${Math.round(C.combo.bonus * 100)}%` : `再 ${C.combo.every - (sess.combo % C.combo.every)} 单 +${Math.round(C.combo.bonus * 100)}%`}</small></div>` : '') + queue.map((c) => card(c, t)).join('') + float.map((f) => `<i class="ct-float ${f.neg ? 'neg' : ''}" style="top:${f.y}px">${f.text}</i>`).join('') || '<div class="tr-gain" style="text-align:center;margin-top:30px">等客人进门……</div>'; };
+  const drawQ = () => { const t = now(); const hit = sess.combo !== comboShown && sess.combo % C.combo.every === 0; comboShown = sess.combo || 0; q.innerHTML = (sess.combo >= 2 ? `<div class="ct-combo${hit ? ' hit' : ''}">连击 ×${sess.combo}<small>${sess.combo % C.combo.every === 0 ? `这一单 +${Math.round(C.combo.bonus * 100)}%` : `再 ${C.combo.every - (sess.combo % C.combo.every)} 单 +${Math.round(C.combo.bonus * 100)}%`}</small></div>` : '') + queue.map((c) => card(c, t)).join('')  || '<div class="tr-gain" style="text-align:center;margin-top:30px">等客人进门……</div>'; };
   const drawFoot = () => {
     const s = game.state; const d = CT.statToday(s, id, now());
     foot.innerHTML = `<div class="ct-stat"><span>今天接待 <b>${d.n}</b> 位</span><span>今天营业额 <b>${money(d.rev)}</b></span><span>今天赚了 <b>${money(d.earn || 0)}</b></span><span>加购 <b>${d.up}</b>/${d.upTry}</span><span>跑掉 <b class="${d.lost > C.lostRepAt ? 'neg' : ''}">${d.lost}</b> 位</span></div><button class="btn big ct-leave">离开柜台</button>`;
     foot.querySelector('.ct-leave').onclick = () => p.close();
     cap.style.display = CT.leftToday(s, id, now()) <= 0 ? '' : 'none';
   };
-  const pop = (text, neg = false) => { float.push({ text, neg, y: 50 + (float.length % 3) * 26, until: now() + 1200 }); };
+  let popN = 0; const pop = (text, neg = false) => { const e = h('i', 'ct-float' + (neg ? ' neg' : ''), text); e.style.top = `${50 + (popN++ % 3) * 26}px`; fl.appendChild(e); setTimeout(() => e.remove(), 1200); };
+  const paused = () => isStoryPlaying() || !!document.querySelector('.story, .panel-mask'); // 剧情、事件卡、日程、谈判……盖在柜台上时暂停
   const take = (seq) => { const i = queue.findIndex((c) => c.seq === +seq); return i < 0 ? null : queue.splice(i, 1)[0]; };
   q.addEventListener('pointerdown', (e) => {
     const b = e.target.closest('[data-a]'); if (!b) return; e.preventDefault();
@@ -85,7 +113,8 @@ export function openCounter(id) {
   const tick = () => {
     const s = game.state; const t = now();
     // 剧情（比如目标完成）盖住柜台时暂停：顾客不走、不来新的
-    if (isStoryPlaying()) { const dt = t - lastTick; lastTick = t; nextAt += dt; minuteAt += dt; for (const c of queue) { c.at += dt; if (c.deadline) c.deadline += dt; } return; }
+    const th = pendingThing(s, t); alert.style.display = th ? '' : 'none'; if (th) alert.innerHTML = `${th.text}<em>点这里处理（柜台先停着）</em>`;
+    if (paused()) { const dt = t - lastTick; lastTick = t; nextAt += dt; minuteAt += dt; for (const c of queue) { c.at += dt; if (c.deadline) c.deadline += dt; } return; }
     lastTick = t;
     if (t >= nextAt) { if (queue.length < C.queueMax) { const c = CT.newCustomer(s, sess, t); if (c.kind === 'thief') c.deadline = t + CT.thiefWindow(secId) * 1000; queue.push(c); } nextAt = t + CT.nextGap(s, id, t) * 1000; }
     for (const c of queue.slice()) {
@@ -93,7 +122,6 @@ export function openCounter(id) {
       else if (c.kind === 'change' && t - c.at >= C.patience * 1000) { take(c.seq); const r = CT.change(s, sess, t, 'pay'); pop(`没理他，赔了 ${money(r.paid)}`, true); }
       else if (c.kind !== 'thief' && c.kind !== 'change' && t - c.at >= C.patience * 1000) { take(c.seq); const r = CT.walkout(s, sess, t); pop(r.rep ? '顾客等烦走了（今天跑太多，口碑 −1）' : '顾客等烦走了', true); }
     }
-    float = float.filter((f) => f.until > t);
     if (t >= minuteAt) { minuteAt += 60e3; const line = CT.secMinute(s, sess, secId, t); if (line) secLine = { text: line, until: t + 6000 }; }
     if (secLine && t > secLine.until) secLine = null;
     if (t - lastSave > 30e3) { lastSave = t; game.changed(); game.save(); }

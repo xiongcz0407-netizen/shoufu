@@ -1,11 +1,11 @@
 // 第 P-06 项：主页顶上「当前目标」条 + 整条链面板 + 做完的剧情（设计25 第四节）
-import * as G from '../core/goals.js?v=f10d7ba9';
-import { fmtMoney } from '../core/format.js?v=f10d7ba9';
-import { game } from '../game.js?v=f10d7ba9';
-import { now } from '../core/clock.js?v=f10d7ba9';
-import { onTap } from '../platform/input.js?v=f10d7ba9';
-import { h, openPanel, toast } from './dom.js?v=f10d7ba9';
-import { playStory, isStoryPlaying } from './story.js?v=f10d7ba9';
+import * as G from '../core/goals.js?v=876cadde';
+import { fmtMoney } from '../core/format.js?v=876cadde';
+import { game } from '../game.js?v=876cadde';
+import { now } from '../core/clock.js?v=876cadde';
+import { onTap } from '../platform/input.js?v=876cadde';
+import { h, openPanel, toast } from './dom.js?v=876cadde';
+import { playStory, isStoryPlaying } from './story.js?v=876cadde';
 
 const fmtN = (n) => (n >= 1e8 ? `${+(n / 1e8).toFixed(2)}亿` : n >= 1e4 ? `${+(n / 1e4).toFixed(1)}万` : `${Math.round(n)}`);
 function barHtml(s) {
@@ -39,8 +39,7 @@ game.addTicker((s) => {
   const done = G.check(s, now()); if (!done.length) return;
   for (const g of done) {
     const rw = G.rewardText(g);
-    if (g.line) playStory([{ who: 'narr', text: `目标完成：${g.text}${rw ? `　奖励：${rw}` : ''}` }, { who: G.GCFG.who, text: g.line }], { sec: G.GCFG.who, title: '新手目标' });
-    else toast(`目标完成：${g.text}${rw ? `（${rw}）` : ''}`, 2600, { top: true });
+    toast(`目标完成：${g.text}${rw ? `（${rw}）` : ''}`, 2600, { top: true });
   }
   game.changed(); game.save();
 });

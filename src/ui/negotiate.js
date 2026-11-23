@@ -1,15 +1,15 @@
 // 通用谈判界面（V2-06，设计29 第二节）：对方是谁 + 耐心条 + 现在要价；一来一回的对话；出价滑条 + 「出价」「按对方的价成交」「不谈了」；筹码一次
 // 接进来的：房东涨租（经营事件「谈」）、拍卖私洽（拍卖会每件的「私洽」）。开发1 的收购、融资、谈地也可以用 openNegotiate
-import * as NG from '../core/negotiate.js?v=f10d7ba9';
-import * as AU from '../core/auction.js?v=f10d7ba9';
-import * as BE from '../core/bizevents.js?v=f10d7ba9';
-import * as INB from './inbox.js?v=f10d7ba9';
-import { bigBonus, useBig } from '../core/manage.js?v=f10d7ba9';
-import { SEC_BY_ID } from '../config/secretaries.js?v=f10d7ba9';
-import { fmtMoney } from '../core/format.js?v=f10d7ba9';
-import { game } from '../game.js?v=f10d7ba9';
-import { now } from '../core/clock.js?v=f10d7ba9';
-import { h, openPanel, toast } from './dom.js?v=f10d7ba9';
+import * as NG from '../core/negotiate.js?v=876cadde';
+import * as AU from '../core/auction.js?v=876cadde';
+import * as BE from '../core/bizevents.js?v=876cadde';
+import * as INB from './inbox.js?v=876cadde';
+import { bigBonus, useBig } from '../core/manage.js?v=876cadde';
+import { SEC_BY_ID } from '../config/secretaries.js?v=876cadde';
+import { fmtMoney } from '../core/format.js?v=876cadde';
+import { game } from '../game.js?v=876cadde';
+import { now } from '../core/clock.js?v=876cadde';
+import { h, openPanel, toast } from './dom.js?v=876cadde';
 
 const C = NG.NEGO_CFG;
 /**
@@ -76,7 +76,7 @@ export function openPrivateAuction(l, redraw) {
     onDone: (res) => {
       if (res.quit || res.walked) { if (res.walked) toast('卖家不谈了，拍卖会上还能举牌', 2600); redraw && redraw(); return; }
       const x = AU.privateDeal(s, l.lot, res.deal, now()); if (!x.ok) { toast(x.why); return; }
-      toast(`私洽谈成：${fmtMoney(res.deal)}（连佣金税费 ${fmtMoney(x.total)}），${AU.AUCFG.payMin} 分钟内到「拍到的」里付款`, 3600);
+      toast(`私洽谈成：${fmtMoney(res.deal)}（连佣金税费 ${fmtMoney(x.total)}），到「拍到的」里签确认书付款（不限时）`, 3600);
       game.changed(); game.save(); redraw && redraw();
     },
   });

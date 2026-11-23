@@ -1,16 +1,17 @@
 // 地产（设计20 第二节 1）：拿地（挂牌竞价）→ 四证 → 开工 → 分 3 批预售（监管账户）→ 交房清算（增值税、土地增值税、所得税）；商业综合体可以持有收租
 // 不 import economy（economy 要用这里的 reValue 算身价）
-import { credit } from './credit.js?v=f10d7ba9'; // V3-01 亲自拍板攒投入度
-import C from '../config/realestate.json?v=f10d7ba9' with { type: 'json' };
-import { pay, receive, canPay } from './ledger.js?v=f10d7ba9';
-import { payTaxItem, TAX } from './companytax.js?v=f10d7ba9';
-import { addContract } from './contracts.js?v=f10d7ba9';
-import { staffFactor, establishment, fire, PAY } from './staff.js?v=f10d7ba9';
-import { addMsg, onAction } from './inbox.js?v=f10d7ba9';
-import { cityOpen, cityName as cityNm } from './cities.js?v=f10d7ba9';
-import { managerRevMult, holder, isSec } from './posts.js?v=f10d7ba9';
-import { MONTH_MS, monthIndex } from './gametime.js?v=f10d7ba9';
-import { gm } from './calib.js?v=f10d7ba9';
+import { whyCushion } from './cashflow.js?v=876cadde'; // V0.2.3 留够两个月工资
+import { credit } from './credit.js?v=876cadde'; // V3-01 亲自拍板攒投入度
+import C from '../config/realestate.json?v=876cadde' with { type: 'json' };
+import { pay, receive, canPay } from './ledger.js?v=876cadde';
+import { payTaxItem, TAX } from './companytax.js?v=876cadde';
+import { addContract } from './contracts.js?v=876cadde';
+import { staffFactor, establishment, fire, PAY } from './staff.js?v=876cadde';
+import { addMsg, onAction } from './inbox.js?v=876cadde';
+import { cityOpen, cityName as cityNm } from './cities.js?v=876cadde';
+import { managerRevMult, holder, isSec } from './posts.js?v=876cadde';
+import { MONTH_MS, monthIndex } from './gametime.js?v=876cadde';
+import { gm } from './calib.js?v=876cadde';
 export { C as RE_CFG };
 
 const MIN = 60e3;
@@ -69,6 +70,7 @@ export function whyNotBid(s, l, price, t = Date.now()) {
   if (s.title < C.types[l.type].minTitle) return '称号不够';
   if (!cityOpen(s, l.city, t)) return `先注册${cityNm(l.city)}分公司（公司 → 产业 → 地产 → 上面的城市）`;
   if (!canPay(s, 'company', landTotal(price)) || s.company - ((s.bank && s.bank.restricted) || 0) < landTotal(price)) return `公司账户自有资金不够（土地款 + 契税要 ${Math.round(landTotal(price) / 1e4)} 万，拿地只能用自有资金，不能贷款）`;
+  { const w = whyCushion(s, landTotal(price)); if (w) return w; } /* V0.2.3 */
   return null;
 }
 /** 你举牌：第一次按起拍价报名，之后按加价幅度。返回 { ok, why, won, npc } */
@@ -149,6 +151,7 @@ export function whyNotStart(s, p, pos = null) {
   if (p.stage !== 'ready') return '现在不能开工';
   const pre = Math.round(p.build * posBuild(p, pos) * C.buildPrepay);
   if (!canPay(s, 'company', pre)) return `公司账户不够（总包预付款 ${Math.round(pre / 1e4)} 万；四证齐了可以申请开发贷，银行在 2-08）`;
+  { const w = whyCushion(s, pre); if (w) return w; } /* V0.2.3 */
   return null;
 }
 /** 开工：跟总包签施工合同，先付 50%，竣工付尾款 */
@@ -249,7 +252,8 @@ export function tickRE(s, t) {
   refreshMarket(s, t);
   const ev = [];
   for (const p of re(s).projects) {
-    ev.push(...tickDecide(s, p, t)); // V2-09 到点没选的按稳健；建设期 / 预售期的事件
+    ev.push(...tickDecide(s, p, t)); // V2-09 建设期 / 预售期的事件
+    if (!(s.flags && s.flags.reAutoDefault) && holdFor(p, t)) continue; // V0.2.3（设计35 第十节）：有没拍板的事，工程停在这一步，往后的时间点一起顺延
     for (let guard = 0; guard < 10 && p.at && t >= p.at; guard++) {
       const at = p.at;
       if (p.stage === 'permit') { p.stage = 'ready'; p.at = 0; ev.push([p, '四证办齐了，可以开工']); }
@@ -313,14 +317,14 @@ function setPos(s, p, pos, t) {
   if (p.type !== 'residential') return;
   const k = D.pos[pos] ? pos : D.defaults.pos; p.dec.pos = k; p.build = Math.round(p.build * D.pos[k].build);
 }
-/** 开工时问开盘定价、营销（30 分钟不选按稳健） */
+/** 开工时问开盘定价、营销（V0.2.3：不选项目就停在这一步） */
 function askDecisions(s, p, t) {
   p.dec = p.dec || {}; p.pend = p.pend || [];
   for (const kind of ['price', 'mkt']) {
     if (p.dec[kind]) continue;
     const opts = Object.entries(D[kind]).map(([k, v]) => ({ key: k, label: kind === 'mkt' && v.cost ? `${v.name}（预计房款 ${(v.cost * 100).toFixed(1)}%）` : v.name }));
     const m = addMsg(s, { kind: 'invite', type: 're_dec', title: `${p.name}：${kind === 'price' ? '开盘定价' : '营销方案'}`, body: kind === 'price' ? '高价慢卖利润高、回款慢；平价快卖回款快、利润薄。' : '样板间稳、明星代言贵但带价、团购折扣卖得快但让价。', actions: opts, data: { pid: p.id, kind, until: t + D.waitMin * MIN } }, t);
-    p.pend.push({ kind, msg: m.id, until: t + D.waitMin * MIN });
+    p.pend.push({ kind, msg: m.id, ...(s.flags && s.flags.reAutoDefault ? { until: t + D.waitMin * MIN } : {}) });
   }
   // 建设期事件：开工后某个时候来一次（概率 eventP）
   const evs = Object.entries(D.events).filter(([, e]) => e.stage === 'build');
@@ -348,9 +352,18 @@ export function decide(s, pid, kind, key, t) {
   (p.decLog = p.decLog || []).push({ t, kind, key, text }); if (key != null) credit(s, 're', 1, t);
   return { ok: true, text };
 }
+/** 停工 / 复工：停着的时候记下起点；拍完板把 at、batchAt、buildEnd、evAt 一起往后挪停掉的时间 */
+function holdFor(p, t) {
+  const stop = (p.pend || []).length > 0 && p.stage !== 'done';
+  if (stop) { if (p.holdAt == null) p.holdAt = t; return true; }
+  if (p.holdAt != null) { const d = Math.max(0, t - p.holdAt); for (const k of ['at', 'batchAt', 'buildEnd', 'evAt']) if (p[k]) p[k] += d; p.holdAt = null; }
+  return false;
+}
+export const onHold = (p) => (p.pend || []).length > 0 && p.stage !== 'done';
 function tickDecide(s, p, t) {
   const out = [];
-  for (const x of [...(p.pend || [])]) if (t >= x.until) { const r = decide(s, p.id, x.kind, null, x.until); if (r.ok) out.push([p, `没来得及选，按稳健：${r.text}`]); }
+  /* V0.2.3（设计35 第十节）：不选不按默认，项目停在这一步（见 tickRE 的暂停）；测试可以 flags.reAutoDefault 用老规矩 */
+  if (s.flags && s.flags.reAutoDefault) for (const x of [...(p.pend || [])]) if (x.until && t >= x.until) decide(s, p.id, x.kind, null, x.until);
   if (p.evId && p.evAt && t >= p.evAt && (p.stage === 'build' || p.stage === 'presale')) { askEvent(s, p, p.evId, p.evAt); p.evId = null; p.evAt = 0; }
   if (!p.evOwners && (p.batch || 0) >= 1 && (p.stage === 'build' || p.stage === 'presale')) { p.evOwners = true; if (rng(p.id * 977 + (s.createdAt % 1e9))() < D.eventP * 0.5) askEvent(s, p, 'owners', t); } // 业主维权：开盘以后有一半机会来一次
   return out;
@@ -358,7 +371,7 @@ function tickDecide(s, p, t) {
 function askEvent(s, p, id, t) {
   const e = D.events[id]; p.pend = p.pend || [];
   const m = addMsg(s, { kind: 'invite', type: 're_dec', title: `${p.name}：${e.title}`, body: e.text, actions: e.options.map((o) => ({ key: o.key, label: o.label })), data: { pid: p.id, kind: id, until: t + D.waitMin * MIN } }, t);
-  p.pend.push({ kind: id, msg: m.id, until: t + D.waitMin * MIN });
+  p.pend.push({ kind: id, msg: m.id, ...(s.flags && s.flags.reAutoDefault ? { until: t + D.waitMin * MIN } : {}) });
 }
 onAction('re_dec', (s, m, a, t) => decide(s, m.data.pid, m.data.kind, a, t).ok);
 

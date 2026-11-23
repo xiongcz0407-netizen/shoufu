@@ -7,7 +7,7 @@ export const CATS = {
   // 公司收入
   revenue: ['营业收入', 'company'], prepaid: ['预收账款（会员卡 / 储值卡）', 'company'], franchise: ['加盟费', 'company'], acquired_revenue: ['收购来的产业收入', 'company'], capital: ['注册资本', 'company'], battle_bonus: ['商战奖金', 'company'], refund: ['退款', 'company'], tax_refund: ['退税', 'company'], presale: ['预售 / 售房回款', 'company'], rent_co: ['租金收入（公司）', 'company'], escrow_out: ['监管账户解冻', 'company'],
   // 公司支出
-  prepaid_used: ['会员卡消费冲预收', 'company'],
+  prepaid_used: ['会员卡消费冲预收', 'company'], ads: ['广告投放费', 'company'],
   cogs: ['进货成本', 'company'], payroll: ['员工工资', 'company'], social: ['社保公积金', 'company'], agency: ['劳务派遣费', 'company'], severance: ['裁员赔偿', 'company'], bonus: ['年终奖', 'company'], iit_withheld: ['代扣个税', 'company'], rent: ['房租', 'company'], opex: ['水电物业和杂费', 'company'], expand: ['升级 / 开分店', 'company'], recruit: ['招聘费', 'company'],
   training: ['员工培训费', 'company'], acquire: ['收购款', 'company'], investment: ['融资款（限公司用）', 'company'], option_strike: ['秘书行权缴款', 'company'], penalty: ['违约金', 'company'], tax_company: ['公司税费', 'company'], dividend_out: ['分红给老板', 'company'], sec_salary: ['秘书工资', 'company'], accrued: ['计提应付（备忘）', 'company'], loss: ['经营损失', 'company'], outsource: ['外包服务费', 'company'], welfare: ['职工福利费', 'company'], land: ['土地款', 'company'], construction: ['建安工程款', 'company'], re_cost: ['地产开发费用', 'company'], escrow_in: ['转入监管账户', 'company'], fleet: ['车队购置', 'company'], rnd: ['研发费用', 'company'], film_cost: ['影视制作 / 宣发', 'company'], filing: ['注册登记 / 代办费', 'company'], loan_in: ['借款到账', 'company'], deposit_in: ['存入银行', 'company'], deposit_out: ['银行取出', 'company'], interest_in: ['存款利息', 'company'], loan_out: ['还本金', 'company'], interest: ['利息', 'company'], rnd_extra: ['研发加计扣除（备忘）', 'company'], depreciation: ['折旧（备忘）', 'company'],
   // 个人收入
@@ -30,7 +30,7 @@ export const CATS = {
   newbie: ['新手奖励', 'personal'], margin_in: ['融资借款（买股票）', 'personal'], margin_repay: ['归还融资', 'personal'], margin_interest: ['融资利息', 'personal'], ipo_pay: ['新股中签缴款', 'personal'], // 第 P-06 项
 };
 export const KEEP_GAME_YEARS = 3;
-import BANKCFG from '../config/bank.json?v=f10d7ba9' with { type: 'json' };
+import BANKCFG from '../config/bank.json?v=876cadde' with { type: 'json' };
 const USE_CATS = BANKCFG.useCats;
 
 const bal = (s, w) => (w === 'company' ? s.company : w === 'offshore' ? (s.offshore || 0) : s.cash);

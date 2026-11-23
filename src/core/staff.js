@@ -1,12 +1,12 @@
 // 员工（设计17 第一节）：只是数字。按产业线 → 岗位记在岗人数；编制跟门店样子走
-import PAY from '../config/payroll.json?v=f10d7ba9' with { type: 'json' };
-import ECO from '../config/economy.json?v=f10d7ba9' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=f10d7ba9';
-import { pay, canPay, post } from './ledger.js?v=f10d7ba9';
-import { YEAR_MS } from './gametime.js?v=f10d7ba9';
-import { salaryOf, isSec } from './posts.js?v=f10d7ba9';
-import { lineK } from './cities.js?v=f10d7ba9';
-import { payerOfSec, satisfaction, turnoverMult } from './fiscal.js?v=f10d7ba9';
+import PAY from '../config/payroll.json?v=876cadde' with { type: 'json' };
+import ECO from '../config/economy.json?v=876cadde' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=876cadde';
+import { pay, canPay, post } from './ledger.js?v=876cadde';
+import { YEAR_MS } from './gametime.js?v=876cadde';
+import { salaryOf, isSec } from './posts.js?v=876cadde';
+import { lineK } from './cities.js?v=876cadde';
+import { payerOfSec, satisfaction, turnoverMult } from './fiscal.js?v=876cadde';
 export { PAY };
 
 const look = (ind) => { const c = IND_BY_ID[ind.id]; let i = 0; c.looks.forEach((lv, k) => { if (ind.level >= lv) i = k; }); return i; };
@@ -67,7 +67,7 @@ export function hire(s, id, role, n, channel, t, rnd = Math.random, by = '') {
   const c = PAY.channels[channel]; const cost = hireCost(channel, role, n);
   if (cost) pay(s, { wallet: 'company', cat: 'recruit', amount: cost, by, note: `${IND_BY_ID[id].name}招${PAY.roles[role].name} ${n} 人（${c.name}）` }, t);
   if (channel === 'agency') { line(s, id).agency[role] = (line(s, id).agency[role] || 0) + n; return { ok: true, at: t }; }
-  if (!(s.title || 0)) { line(s, id).staff[role] = (line(s, id).staff[role] || 0) + n; return { ok: true, at: t }; } /* V0.2.2 打工人阶段招人一律立刻到岗（设计34 第五节） */
+  { line(s, id).staff[role] = (line(s, id).staff[role] || 0) + n; return { ok: true, at: t }; } /* V0.2.3（设计35 第十一节）：任何渠道都立刻到岗，钱照各渠道收 */
   let mins = c.minMin + rnd() * (c.maxMin - c.minMin);
   if (by && s.secs[by] && s.secs[by].attrs) mins *= 1 - s.secs[by].attrs.social / 100 * 0.4; // 秘书交际高到岗快
   const at = t + mins * 60e3;
@@ -150,7 +150,9 @@ export function monthEnd(s, t, rnd = Math.random, acc = null) {
   const k = L.k ?? 1;
   const due = L.total + p.owed;
   const out = { labor: L, rent, paid: false };
-  if (canPay(s, 'company', due)) {
+  /* V0.2.3（设计35）：本月工资发得出就算不拖欠（门店照常开）；以前欠的工资 / 遣散赔偿能还多少还多少，不用一次还清 */
+  if (!canPay(s, 'company', due) && p.owed > 0 && canPay(s, 'company', L.total)) { const part = Math.max(0, Math.min(p.owed, (s.company || 0) - L.total)); if (part >= 0.01) { pay(s, { wallet: 'company', cat: 'payroll', amount: part, note: '补发拖欠工资（部分）' }, t); p.owed = Math.round((p.owed - part) * 100) / 100; } }
+  if (canPay(s, 'company', L.total + p.owed)) {
     if (p.owed) pay(s, { wallet: 'company', cat: 'payroll', amount: p.owed, note: '补发拖欠工资' }, t);
     if (L.wages) pay(s, { wallet: 'company', cat: 'payroll', amount: L.wages, note: `本月工资（${totalStaff(s)} 人，按天计提）` }, t);
     for (const id of Object.keys(s.secs || {})) { if (payerOfSec(s, id) === 'personal') continue; const w = salaryOf(s, id) * k; if (w >= 0.01) pay(s, { wallet: 'company', cat: 'sec_salary', amount: w, party: id, by: id, note: `秘书工资` }, t); }
@@ -158,8 +160,15 @@ export function monthEnd(s, t, rnd = Math.random, acc = null) {
     if (L.agency) pay(s, { wallet: 'company', cat: 'agency', amount: L.agency, note: '劳务派遣费' }, t);
     if (L.iit) post(s, { wallet: 'company', dir: 'out', cat: 'iit_withheld', amount: L.iit, memo: true, party: '税务局', note: '代扣员工个税（从工资里扣，不算公司成本）' }, t);
     p.arrears = 0; p.owed = 0; out.paid = true;
-    (s.iitWithheld = s.iitWithheld || []).push({ t, amount: L.iit, who: 'staff' });
+  } else if (canPay(s, 'company', L.total)) { /* 本月的发了，欠的还在 */
+    if (L.wages) pay(s, { wallet: 'company', cat: 'payroll', amount: L.wages, note: `本月工资（${totalStaff(s)} 人，按天计提）` }, t);
+    for (const id of Object.keys(s.secs || {})) { if (payerOfSec(s, id) === 'personal') continue; const w = salaryOf(s, id) * k; if (w >= 0.01) pay(s, { wallet: 'company', cat: 'sec_salary', amount: w, party: id, by: id, note: `秘书工资` }, t); }
+    if (L.social) pay(s, { wallet: 'company', cat: 'social', amount: L.social, note: '社保公积金（公司部分，含秘书）' }, t);
+    if (L.agency) pay(s, { wallet: 'company', cat: 'agency', amount: L.agency, note: '劳务派遣费' }, t);
+    if (L.iit) post(s, { wallet: 'company', dir: 'out', cat: 'iit_withheld', amount: L.iit, memo: true, party: '税务局', note: '代扣员工个税（从工资里扣，不算公司成本）' }, t);
+    p.arrears = 0; out.paid = true;
   } else { p.arrears += 1; p.owed += L.total; out.unpaidSecs = Object.keys(s.secs || {}); }
+  if (out.paid) (s.iitWithheld = s.iitWithheld || []).push({ t, amount: L.iit, who: 'staff' });
   if (rent) pay(s, { wallet: 'company', cat: 'rent', amount: rent, force: true, note: '门店房租' }, t);
   for (const id of Object.keys(s.secs || {})) if (payerOfSec(s, id) === 'personal') { const w = salaryOf(s, id) * (1 + socialRate()); if (w >= 0.01) pay(s, { wallet: 'personal', cat: 'family_office', amount: w, force: true, party: id, by: id, note: '家族办公室：秘书工资 + 社保（个人出）' }, t); }
   out.left = turnover(s, rnd);

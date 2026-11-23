@@ -1,0 +1,19 @@
+{
+ "_说明": "V0.2.3 广告投放（设计35 第七节 2）。每条门店线每天按投的钱算效果：ratio = 当天花的 ÷ 这条线一天营业额；人流 = L ×（1 − e^(−ratio / r)），越投越不划算；几个渠道合起来 = totalMax ×（1 − e^(−Σ / totalMax)）；停投以后 fadeDays 天线性退回。口碑每天 + rep × min(1, ratio / r)，最多推到 repCap；知名度每天 + aware × min(1, ratio / r)，永久人流 = 知名度 / 100 × awareMaxK，每天掉 awareDecay。团购平台另抽多卖营业额的 fee；点评运营每天 catchP 概率被查到刷好评，口碑 catchRep。短视频效果 ×（0.7 + 魅力 / 100 × 0.6）。ROI = 多卖的毛利 ÷ 花费",
+ "channels": {
+  "flyer":  { "name": "发传单 / 地推",      "minTitle": 0, "L": 0.12, "r": 0.03, "short": "人流（小）" },
+  "group":  { "name": "团购 / 本地生活平台", "minTitle": 0, "L": 0.15, "r": 0.05, "fee": 0.06, "rep": 0.3, "short": "人流 + 口碑（平台抽多卖的 6%）" },
+  "review": { "name": "点评运营 / 好评返现", "minTitle": 0, "L": 0.02, "r": 0.04, "rep": 0.6, "catchP": 0.03, "catchRep": -5, "short": "口碑（小概率被查刷好评）" },
+  "video":  { "name": "短视频投流",          "minTitle": 1, "L": 0.30, "r": 0.08, "charm": true, "short": "人流（大，看秘书魅力）" },
+  "mall":   { "name": "商场 / 地铁广告位",   "minTitle": 2, "L": 0.15, "r": 0.06, "aware": 0.4, "short": "人流 + 知名度" },
+  "tv":     { "name": "电视 / 户外大牌",     "minTitle": 3, "L": 0.04, "r": 0.10, "aware": 1.2, "short": "知名度（永久人流）" }
+ },
+ "totalMax": 0.6,
+ "fadeDays": 7,
+ "repCap": 85,
+ "awareMaxK": 0.25,
+ "awareDecay": 0.05,
+ "days": [1, 3, 7, 30],
+ "quick": [0.01, 0.03, 0.05, 0.1],
+ "auto": { "outK": 0.7, "outChannels": ["flyer", "group"], "defaultChannels": ["flyer", "group", "video"], "wrongP": 0.3, "overP": 0.3, "over": 0.1 }
+}

@@ -1,7 +1,7 @@
 // 剧情播放：全屏、立绘淡入、点一下下一句；多段排队
-import { SEC_BY_ID } from '../config/secretaries.js?v=f10d7ba9';
-import { asset } from '../platform/assets.js?v=f10d7ba9';
-import { h } from './dom.js?v=f10d7ba9';
+import { SEC_BY_ID } from '../config/secretaries.js?v=876cadde';
+import { asset } from '../platform/assets.js?v=876cadde';
+import { h } from './dom.js?v=876cadde';
 
 const queue = [];
 let playing = false;
@@ -14,6 +14,7 @@ export function playStory(lines, opts = {}) {
 export const isStoryPlaying = () => playing;
 
 function next() {
+  if (queue.length && document.querySelector('.sc-scene')) { playing = true; setTimeout(next, 800); return; } // V0.2.3（开发2）：日程 / 出差的小场景开着，剧情排队，不叠
   const item = queue.shift();
   if (!item) { playing = false; return; }
   playing = true;
@@ -57,6 +58,7 @@ function next() {
     });
     el.appendChild(box);
   };
+  if (opts.skip) { const sk = h('button', 'story-skip', '跳过'); sk.onclick = (e) => { e.stopPropagation(); i = lines.length - 1; step(); }; el.appendChild(sk); } // V0.2.3（开发2）：开场剧情可跳过
   el.addEventListener('click', () => { if (el.querySelector('.story-choices')) return; step(); });
   step();
 }

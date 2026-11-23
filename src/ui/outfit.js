@@ -1,15 +1,15 @@
 // 服装店（按秘书分页）和衣柜；换装出场
-import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=f10d7ba9';
-import { OUTFITS } from '../config/outfits.js?v=f10d7ba9';
-import { LINES } from '../config/lines.js?v=f10d7ba9';
-import * as STY from '../core/styles.js?v=f10d7ba9'; // V3-05 衣服名字和款式
-import * as O from '../core/outfits.js?v=f10d7ba9';
-import { fmtMoney } from '../core/format.js?v=f10d7ba9';
-import { asset } from '../platform/assets.js?v=f10d7ba9';
-import { game } from '../game.js?v=f10d7ba9';
-import { now } from '../core/clock.js?v=f10d7ba9';
-import { h, openPanel, toast } from './dom.js?v=f10d7ba9';
-import { say, dressUp } from './main-screen.js?v=f10d7ba9';
+import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=876cadde';
+import { OUTFITS, priceOf } from '../config/outfits.js?v=876cadde';
+import { LINES } from '../config/lines.js?v=876cadde';
+import * as STY from '../core/styles.js?v=876cadde'; // V3-05 衣服名字和款式
+import * as O from '../core/outfits.js?v=876cadde';
+import { fmtMoney } from '../core/format.js?v=876cadde';
+import { asset } from '../platform/assets.js?v=876cadde';
+import { game } from '../game.js?v=876cadde';
+import { now } from '../core/clock.js?v=876cadde';
+import { h, openPanel, toast } from './dom.js?v=876cadde';
+import { say, dressUp } from './main-screen.js?v=876cadde';
 
 export function openShop(secId, host) {
   const s = game.state;
@@ -31,10 +31,10 @@ export function openShop(secId, host) {
       const own = O.owns(s, cur, o.id); const wear = O.canWear(s, cur, o.id);
       const card = h('div', 'cloth' + (!wear && !own ? ' dim' : ''), `<img src="${asset(`assets/sec/${cur}/${o.id}.webp`)}" alt="">
         <div class="cloth-meta">${STY.nameOf(cur, o.id)}${STY.styleOf(cur, o.id) ? `<em class="cloth-st">${STY.styleOf(cur, o.id)}</em>` : ''}</div>
-        ${own ? `<div class="cloth-own">${wear ? '已买 · 能穿' : '已买 · ' + O.needText(o.id)}</div>` : `<div class="cloth-need">${s.secs[cur].favor >= o.needFavor ? '' : O.needText(o.id)}</div><button class="btn">${fmtMoney(o.price)}</button>`}`);
+        ${own ? `<div class="cloth-own">${wear ? '已买 · 能穿' : '已买 · ' + O.needText(o.id)}</div>` : `<div class="cloth-need">${s.secs[cur].favor >= o.needFavor ? '' : O.needText(o.id)}</div><button class="btn">${fmtMoney(priceOf(cur, o.id))}</button>`}`);
       const b = card.querySelector('.btn');
       if (b) {
-        b.disabled = s.cash < o.price;
+        b.disabled = s.cash < priceOf(cur, o.id);
         b.onclick = () => {
           const r = O.buyOutfit(s, cur, o.id, now());
           if (!r.ok) { toast(r.why); return; }
@@ -75,6 +75,6 @@ export function openWardrobe(id) {
   }
   const shop = h('button', 'btn', '去商场买衣服');
   shop.style.marginTop = '10px'; shop.style.width = '100%';
-  shop.onclick = () => { p.close(); import('./mall.js?v=f10d7ba9').then((m) => m.openMall(id, 'clothes')); };
+  shop.onclick = () => { p.close(); import('./mall.js?v=876cadde').then((m) => m.openMall(id, 'clothes')); };
   p.body.append(grid, shop);
 }

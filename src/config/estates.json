@@ -251,8 +251,8 @@
  "verify": {
   "minPrice": 30000000,
   "proofPrice": 100000000,
-  "verifyMin": 10,
-  "proofMin": 20,
+  "verifyMin": 0,
+  "proofMin": 0,
   "proofNetWorthX": 3,
   "auctionNetwork": 40,
   "auctionDeposit": 0.1

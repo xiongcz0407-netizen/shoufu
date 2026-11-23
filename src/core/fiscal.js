@@ -1,13 +1,13 @@
 // 财务补全（第 2-15 项，设计15 V0.2 + 设计17 V0.2）：年度汇算清缴、欠税滞纳金和征信、一般纳税人进项抵扣（房租、杂费、装修设备）、
 // 个人纳税记录（股票、基金、进口、境外所得……）、财务总监报税台词、销售提成、员工满意度、家族办公室
-import CFG from '../config/fiscal.json?v=f10d7ba9' with { type: 'json' };
-import { TAX } from './companytax.js?v=f10d7ba9';
-import { pay, receive } from './ledger.js?v=f10d7ba9';
-import { holder, isSec } from './posts.js?v=f10d7ba9';
-import { addMsg } from './inbox.js?v=f10d7ba9';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=f10d7ba9';
-import { SEC_BY_ID } from '../config/secretaries.js?v=f10d7ba9';
-import { IND_BY_ID } from '../config/industries.js?v=f10d7ba9';
+import CFG from '../config/fiscal.json?v=876cadde' with { type: 'json' };
+import { TAX } from './companytax.js?v=876cadde';
+import { pay, receive } from './ledger.js?v=876cadde';
+import { holder, isSec } from './posts.js?v=876cadde';
+import { addMsg } from './inbox.js?v=876cadde';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=876cadde';
+import { SEC_BY_ID } from '../config/secretaries.js?v=876cadde';
+import { IND_BY_ID } from '../config/industries.js?v=876cadde';
 
 export const FICFG = CFG;
 const r2 = (v) => Math.round(v * 100) / 100;

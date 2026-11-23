@@ -1,21 +1,21 @@
 // 财富 → 银行：征信、存款、贷款（经营贷、开发贷、股票质押、艺术品质押）、私人银行；申请和存款在底部抽屉
-import ECO from '../config/economy.json?v=f10d7ba9' with { type: 'json' };
+import ECO from '../config/economy.json?v=876cadde' with { type: 'json' };
 const PM = ECO.profitMul;
 /** 利率后面的小字：游戏年利率 = 现实 × 赚钱倍数（验收 2-16b） */
 const rn = (r) => `<small class="rate-note">（游戏年利率；现实 ${(r / PM * 100).toFixed(2).replace(/\.?0+$/, '')}% × 赚钱倍数 ${PM}）</small>`;
-import * as BK from '../core/bank.js?v=f10d7ba9';
-import * as RE from '../core/realestate.js?v=f10d7ba9';
-import * as PL from '../core/pledge.js?v=f10d7ba9';
-import * as SK from '../core/stocks.js?v=f10d7ba9';
-import * as AQ from '../core/antique.js?v=f10d7ba9';
-import * as LS from '../core/listing.js?v=f10d7ba9';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=f10d7ba9';
-import { asset, hasAsset } from '../platform/assets.js?v=f10d7ba9';
-import { now } from '../core/clock.js?v=f10d7ba9';
-import { game } from '../game.js?v=f10d7ba9';
-import { h, openPanel, toast, liveRender } from './dom.js?v=f10d7ba9';
-import { hint } from './guide.js?v=f10d7ba9';
-import { hintLater } from './guide2.js?v=f10d7ba9';
+import * as BK from '../core/bank.js?v=876cadde';
+import * as RE from '../core/realestate.js?v=876cadde';
+import * as PL from '../core/pledge.js?v=876cadde';
+import * as SK from '../core/stocks.js?v=876cadde';
+import * as AQ from '../core/antique.js?v=876cadde';
+import * as LS from '../core/listing.js?v=876cadde';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=876cadde';
+import { asset, hasAsset } from '../platform/assets.js?v=876cadde';
+import { now } from '../core/clock.js?v=876cadde';
+import { game } from '../game.js?v=876cadde';
+import { h, openPanel, toast, liveRender } from './dom.js?v=876cadde';
+import { hint } from './guide.js?v=876cadde';
+import { hintLater } from './guide2.js?v=876cadde';
 
 const C = BK.BANK_CFG;
 const logo = (k) => (hasAsset(`assets/org/${C.banks[k].logo}.webp`) ? `<img class="bk-logo" src="${asset(`assets/org/${C.banks[k].logo}.webp`)}" alt="">` : `<div class="bk-logo ph">${C.banks[k].name.slice(0, 2)}</div>`);
@@ -97,7 +97,7 @@ function openLoan(bk) {
         <div class="sd-rec-title">项目</div><div class="tabs">${projs().map((x) => `<button class="tab ${o.project === x.id ? 'on' : ''}" data-p="${x.id}">${x.name}（最多 ${fmtMoney(BK.devLimit(s, x))}）</button>`).join('') || '<span class="tr-gain">没有四证齐全的项目</span>'}</div>`}
       <div class="sd-rec-title">金额（元）</div><input class="amt" type="number" min="0" step="100000" value="${o.amount}" style="width:100%;padding:10px;border-radius:8px;border:1px solid #34425c;background:#18223a;color:var(--paper);font-size:16px">
       <div class="rate">年利率 ${pct(rate)}${rn(rate)}（征信${BK.CREDIT_NAME[BK.bank(s).credit].split('（')[0]}${s.positions && s.positions.biz ? '，商务总监谈低了 0.25%' : ''}）${o.type === 'biz' ? `，月供 ${fmtMoney(BK.monthlyPay(o.amount, rate, o.years * 12))}` : `，每月付息约 ${fmtMoney(o.amount * rate / 12)}`}${why ? `<br><span class="sc-cond">${why}</span>` : ''}</div>
-      <button class="btn gold big go" ${why ? 'disabled' : ''}>提交申请（审批 ${(o.type === 'dev' ? C.dev : C.biz).approveMin.join('～')} 分钟）</button>`;
+      <button class="btn gold big go" ${why ? 'disabled' : ''}>提交申请（马上出结果）</button>`;
     p.body.querySelectorAll('[data-t]').forEach((b) => (b.onclick = () => { o.type = b.dataset.t; if (o.type === 'dev' && pr) o.amount = BK.devLimit(s, pr); render(); }));
     p.body.querySelectorAll('[data-y]').forEach((b) => (b.onclick = () => { o.years = +b.dataset.y; render(); }));
     p.body.querySelectorAll('[data-p]').forEach((b) => (b.onclick = () => { o.project = +b.dataset.p; render(); }));

@@ -26,7 +26,7 @@ export const RIVALS = [
   { id: 'yunzhan', name: '云栈科技', ind: '科技', boss: '陈一舟', bossImg: 'boss_chen', bossAge: 37, desc: '技术天才创始人，傲、不懂人情、只认技术',
     growReal: 0.15, stage: 3, level: 2, profit: 3.8e6, pe: 30, power: 1e8, skill: 60, reward: 3e5, effect: { techProduct: { dir: 'cloud', q: 0.9 }, levelUp: { tech: 3 } } },
   { id: 'tianqiong', name: '天穹集团', ind: '科技 + 传媒', boss: '秦啸天', bossImg: 'boss_qin', bossAge: 56, desc: '帝国掌门人，霸道、手段狠、会反击',
-    growReal: 0.125, stage: 3, level: 3, profit: 7.2e7, pe: 25, power: 1.8e9, /* V3-01 调数值：28 亿 → 18 亿 */ skill: 70, reward: 5e5, final: true, effect: { techProduct: { dir: 'ai', q: 0.8 }, levelUp: { tech: 3, media: 3 }, boost: { media: 0.2 } } },
+    growReal: 0.125, stage: 3, level: 3, profit: 1.12e8, pe: 25, power: 2.8e+09, /* V3-01 调数值：28 亿 → 18 亿；V0.2.3 手续立刻、商战 10 分钟回、收购不冷却以后 B / C 快了，起始估值回到 28 亿（设计35 第十一节） */ skill: 70, reward: 5e5, final: true, effect: { techProduct: { dir: 'ai', q: 0.8 }, levelUp: { tech: 3, media: 3 }, boost: { media: 0.2 } } },
 ];
 for (const r of RIVALS) if (r.profit && r.pe) r.value = r.profit * r.pe;
 // 瑞霖资本（投行，不能收购）：企业家阶段「融资谈判」，赢一次 → 苏曼琳加入 + 一笔过桥融资（利率按谈的结果）
@@ -48,13 +48,13 @@ export const PROJECTS = [
   { id: 'network', name: '抢人脉', attr: 'social', desc: '比谁关系硬' },
 ];
 export const BATTLES_PER_DAY = 20;          // 商战次数上限（攒满 20 次）
-export const BATTLE_REGEN_MIN = 30;         // 每 30 分钟（真实时间，离线照样）恢复 1 次；原来是按自然日零点清零，下午打完要等到半夜（验收阶段二）
+export const BATTLE_REGEN_MIN = 10; // V0.2.3（设计35 第十一节）：10 分钟回 1 次；         // 每 30 分钟（真实时间，离线照样）恢复 1 次；原来是按自然日零点清零，下午打完要等到半夜（验收阶段二）
 export const WINS_TO_ACQUIRE = 3;
 export const TEAM_MAX = 2;
 export const ACQUIRE_REFUND = 0.5;          // 收购失败退一半
 // 收购款分期（验收阶段二 2-08b 第三轮）：首付 ≥ 30%（商务总监在任 20%），余款 12 个游戏月按月付；逾期按日 0.05% 违约金；连续 3 期付不上对方解除协议（股权收回，已付的扣 20% 退回，并进来的店和员工退回去）
 export const INSTALL = { down: 0.3, downBiz: 0.2, months: 12, lateDaily: 0.0005, missMax: 3, breachKeep: 0.2 };
-export const ACQUIRE_COOLDOWN_SEC = 10 * 60; // 失败后冷却 10 分钟（真实时间，离线照样走）
+export const ACQUIRE_COOLDOWN_SEC = 0; // V0.2.3：去掉收购失败冷却； // 失败后冷却 10 分钟（真实时间，离线照样走）
 export const ACQUIRE_EXTRA_WIN = 0.1;
 export const INTEL_PER_LOSS = 0.05, INTEL_MAX = 0.25; // 知己知彼：对同一家每输一次下次胜率 +5%，最多 +25%，赢一次清零        // 满 3 胜以后每多赢一次商战，收购成功率 +10%
 // V2-05 商战三回合（设计29 第一节）：六种打法，克制表、花费（按对手规模：对手月利润 / 月营收；挖人是一个店员年薪）、看哪项属性

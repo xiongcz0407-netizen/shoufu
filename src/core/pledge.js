@@ -1,18 +1,18 @@
 // 3-01 私人银行 + 股票质押 + 艺术品质押（设计23 第五节）
 // 私行：金融资产到门槛自动是客户（core/bank.js isPrivateAt / privateTier）：存款高一档、贷款低一档、人脉 +5、客户经理消息
 // 质押：个人的股票 / 古董押给银行，钱借给公司（专款专用）；按月付息、1 个游戏年到期还本；股票 150% 预警、130% 强平；逾期 3 期处置
-import { BANK_CFG as B, bank, loanDebt, rateFor, privateTier, isPrivateAt, setFinAssetsFn, setPledgeHooks, finAssets } from './bank.js?v=f10d7ba9';
-import * as SK from './stocks.js?v=f10d7ba9';
-import * as FD from './funds.js?v=f10d7ba9';
-import * as AQ from './antique.js?v=f10d7ba9';
-import { addAttrHook } from './boss.js?v=f10d7ba9';
-import { receive, pay, canPay } from './ledger.js?v=f10d7ba9';
-import { TAX } from './companytax.js?v=f10d7ba9';
-import { addContract } from './contracts.js?v=f10d7ba9';
-import { addMsg } from './inbox.js?v=f10d7ba9';
-import { YEAR_MS, monthIndex } from './gametime.js?v=f10d7ba9';
-import * as LS from './listing.js?v=f10d7ba9';
-import { stakeOf } from './economy.js?v=f10d7ba9';
+import { BANK_CFG as B, bank, loanDebt, rateFor, privateTier, isPrivateAt, setFinAssetsFn, setPledgeHooks, finAssets } from './bank.js?v=876cadde';
+import * as SK from './stocks.js?v=876cadde';
+import * as FD from './funds.js?v=876cadde';
+import * as AQ from './antique.js?v=876cadde';
+import { addAttrHook } from './boss.js?v=876cadde';
+import { receive, pay, canPay } from './ledger.js?v=876cadde';
+import { TAX } from './companytax.js?v=876cadde';
+import { addContract } from './contracts.js?v=876cadde';
+import { addMsg } from './inbox.js?v=876cadde';
+import { YEAR_MS, monthIndex } from './gametime.js?v=876cadde';
+import * as LS from './listing.js?v=876cadde';
+import { stakeOf } from './economy.js?v=876cadde';
 
 const r2 = (x) => Math.round(x * 100) / 100;
 setFinAssetsFn((s) => (s.mkt ? SK.holdValue(s) : 0) + (s.fund ? FD.value(s) : 0));

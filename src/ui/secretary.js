@@ -1,31 +1,31 @@
 // 「秘书」页签（设计18 第四节 2）：上面一条培训位、两列卡片（没来的剪影 + 条件）；
 // 秘书详情全屏：上半立绘、下半面板（资料 | 培养 | 衣柜 | 职位工资），底部动作条（互动 · 送礼 · 约会 · 陪着我）
-import * as CP from '../core/capital.js?v=f10d7ba9';
-import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=f10d7ba9';
-import { COURSE_BY_ID } from '../config/courses.js?v=f10d7ba9';
-import { OUTFITS } from '../config/outfits.js?v=f10d7ba9';
-import { IND_BY_ID } from '../config/industries.js?v=f10d7ba9';
-import * as S from '../core/secretary.js?v=f10d7ba9';
-import * as T from '../core/training.js?v=f10d7ba9';
-import { isScouting } from '../core/busy.js?v=f10d7ba9'; // V2-08
-import * as O from '../core/outfits.js?v=f10d7ba9';
-import * as A from '../core/affection.js?v=f10d7ba9';
-import { query } from '../core/ledger.js?v=f10d7ba9';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=f10d7ba9';
-import { asset } from '../platform/assets.js?v=f10d7ba9';
-import { now } from '../core/clock.js?v=f10d7ba9';
-import { game } from '../game.js?v=f10d7ba9';
-import { h, toast, liveRender } from './dom.js?v=f10d7ba9';
-import { openFull, closeTab, goHome } from './shell.js?v=f10d7ba9';
-import { switchSecretary, dressUp } from './main-screen.js?v=f10d7ba9';
-import { pickSec, renderCourses } from './training.js?v=f10d7ba9';
-import { openMall } from './mall.js?v=f10d7ba9';
-import { openDate } from './date.js?v=f10d7ba9';
-import { createPortrait } from './portrait.js?v=f10d7ba9';
-import { bgKeyFor } from './main-screen.js?v=f10d7ba9';
-import * as PO from '../core/posts.js?v=f10d7ba9';
-import { openTab } from './shell.js?v=f10d7ba9';
-import { addFavor } from '../core/affection.js?v=f10d7ba9';
+import * as CP from '../core/capital.js?v=876cadde';
+import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=876cadde';
+import { COURSE_BY_ID } from '../config/courses.js?v=876cadde';
+import { OUTFITS, priceOf } from '../config/outfits.js?v=876cadde';
+import { IND_BY_ID } from '../config/industries.js?v=876cadde';
+import * as S from '../core/secretary.js?v=876cadde';
+import * as T from '../core/training.js?v=876cadde';
+import { isScouting } from '../core/busy.js?v=876cadde'; // V2-08
+import * as O from '../core/outfits.js?v=876cadde';
+import * as A from '../core/affection.js?v=876cadde';
+import { query } from '../core/ledger.js?v=876cadde';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=876cadde';
+import { asset } from '../platform/assets.js?v=876cadde';
+import { now } from '../core/clock.js?v=876cadde';
+import { game } from '../game.js?v=876cadde';
+import { h, toast, liveRender } from './dom.js?v=876cadde';
+import { openFull, closeTab, goHome } from './shell.js?v=876cadde';
+import { switchSecretary, dressUp } from './main-screen.js?v=876cadde';
+import { pickSec, renderCourses } from './training.js?v=876cadde';
+import { openMall } from './mall.js?v=876cadde';
+import { openDate } from './date.js?v=876cadde';
+import { createPortrait } from './portrait.js?v=876cadde';
+import { bgKeyFor } from './main-screen.js?v=876cadde';
+import * as PO from '../core/posts.js?v=876cadde';
+import { openTab } from './shell.js?v=876cadde';
+import { addFavor } from '../core/affection.js?v=876cadde';
 
 const BEST_NAME = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 /** 她现在的职位名：没有返回 '' */
@@ -40,25 +40,11 @@ export function giftsTo(s, id) {
 export const salaryPaid = (s, id) => query(s, { cat: 'sec_salary' }).filter((r) => r.by === id || r.party === id).reduce((a, r) => a + r.amount, 0);
 const hearts = (n, max = 5) => '♥'.repeat(n) + '<i class="off">' + '♥'.repeat(max - n) + '</i>';
 
-/** 培训位条：谁在上课、剩多久；空位闪，点了安排上课 */
+/** 培养条（设计35 第八节：没有培训位了，付钱立刻学完） */
 function trainingBar(el) {
-  const s = game.state; const t = now(); const n = T.slotCount(s); const list = s.training || [];
-  el.innerHTML = `<div class="tb-title">培训位 ${list.length}/${n}<small>每升一个称号 +1</small></div>`;
-  const row = h('div', 'tb-slots');
-  for (let i = 0; i < n; i++) {
-    const x = list[i];
-    if (x) {
-      const pct = Math.min(100, ((t - x.start) / (x.end - x.start)) * 100);
-      const b = h('button', 'tb-slot', `<span class="tb-av"><img src="${asset(`assets/sec/${x.sec}/${s.secs[x.sec].outfit}.webp`)}" alt=""></span><div><b>${SEC_BY_ID[x.sec].name}</b><small>${COURSE_BY_ID[x.course].name}</small><div class="bar"><i style="width:${pct}%"></i></div><small>还剩 ${fmtDuration(Math.max(0, (x.end - t) / 1000))}</small></div>`);
-      b.onclick = () => openDetail(x.sec, 'train');
-      row.appendChild(b);
-    } else {
-      const b = h('button', 'tb-slot empty', '＋<small>空位，安排上课</small>');
-      b.onclick = () => pickSec(() => game.changed());
-      row.appendChild(b);
-    }
-  }
-  el.appendChild(row);
+  el.innerHTML = `<div class="tb-title">培养<small>付了学费属性立刻加上，属性越高越贵</small></div>`;
+  const b = h('button', 'btn gold tb-go', '＋ 给秘书上课'); b.onclick = () => pickSec(() => game.changed());
+  el.appendChild(b);
 }
 
 /** 「秘书」页签：培训位条 + 两列卡片 */
@@ -159,14 +145,6 @@ function drawInfo(el, id) {
 }
 
 function drawTrain(el, id) {
-  const s = game.state; const x = (s.training || []).find((y) => y.sec === id); const t = now();
-  if (x) {
-    const pct = Math.min(100, ((t - x.start) / (x.end - x.start)) * 100);
-    el.appendChild(h('div', 'tr-slot', `<img src="${asset(`assets/sec/${id}/${s.secs[id].outfit}.webp`)}" alt=""><div class="tr-info"><b>正在上「${COURSE_BY_ID[x.course].name}」</b><div class="bar"><i style="width:${pct}%"></i></div><small>还剩 ${fmtDuration(Math.max(0, (x.end - t) / 1000))}，结业自动加属性（离线也算）</small></div>`));
-    return;
-  }
-  const free = T.slotCount(s) - (s.training || []).length;
-  el.appendChild(h('div', 'tr-gain', `培训位空 ${free} 个${free ? '' : '（等别人结业，或者升称号多一个位）'}`));
   renderCourses(el, id, () => game.changed());
 }
 
@@ -177,7 +155,7 @@ function drawWardrobe(el, id, show, portrait) {
   for (const o of OUTFITS) {
     const own = O.owns(s, id, o.id); const ok = O.canWear(s, id, o.id); const on = r.outfit === o.id;
     const card = h('button', 'cloth' + (own && ok ? '' : ' dim') + (on ? ' on' : ''), `<img src="${asset(`assets/sec/${id}/${o.id}.webp`)}" alt="">
-      <div class="cloth-meta">第 ${o.id.slice(1)} 套${on ? ' · 穿着' : ''}</div>${!own ? `<div class="cloth-need">🔒 ${fmtMoney(o.price)}</div>` : ok ? '' : `<div class="cloth-need">${O.needText(o.id)}</div>`}`);
+      <div class="cloth-meta">第 ${o.id.slice(1)} 套${on ? ' · 穿着' : ''}</div>${!own ? `<div class="cloth-need">🔒 ${fmtMoney(priceOf(id, o.id))}</div>` : ok ? '' : `<div class="cloth-need">${O.needText(o.id)}</div>`}`);
     card.onclick = () => {
       if (!own) { openMall(id, 'clothes'); return; }
       if (!ok) { toast(O.needText(o.id)); return; }

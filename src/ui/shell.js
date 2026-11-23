@@ -1,8 +1,8 @@
 // 界面框架（设计18）：首页层 + 页面层叠加；底部 5 页签；二级分段；记住上次分段；逐步开放和锁；红点
-import { asset, hasAsset } from '../platform/assets.js?v=f10d7ba9';
-import { onTap } from '../platform/input.js?v=f10d7ba9';
-import { game } from '../game.js?v=f10d7ba9';
-import { h, toast } from './dom.js?v=f10d7ba9';
+import { asset, hasAsset } from '../platform/assets.js?v=876cadde';
+import { onTap } from '../platform/input.js?v=876cadde';
+import { game } from '../game.js?v=876cadde';
+import { h, toast } from './dom.js?v=876cadde';
 
 export const TABS = [
   { key: 'company', name: '公司', icon: 'icon_industry' },
@@ -86,7 +86,7 @@ export function openTab(key, segKey) {
   layer.innerHTML = '';
   const head = h('div', 'page-head', `<button class="page-back">‹</button><b>${def.title}</b><span class="page-help">${def.help ? '?' : ''}</span>`);
   head.querySelector('.page-back').onclick = () => closeTab();
-  if (def.help) head.querySelector('.page-help').onclick = () => toast(def.help, 3500);
+  if (def.help) head.querySelector('.page-help').onclick = () => (typeof def.help === 'function' ? def.help() : toast(def.help, 3500)); // V0.2.3：help 可以是打开面板的函数（开发2）
   const segBar = h('div', 'seg-bar' + (segs.length <= 1 ? ' hidden' : ''));
   const body = h('div', 'page-body');
   layer.append(head, segBar, body);

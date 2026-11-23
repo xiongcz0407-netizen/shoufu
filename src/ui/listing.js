@@ -1,17 +1,17 @@
 // 「财富 → 资本」里的「上市」一节（第 3-04 项）+ 「投资」页最上面你自己的股票 + 敲钟剧情
-import * as LS from '../core/listing.js?v=f10d7ba9';
-import { stakeOf } from '../core/economy.js?v=f10d7ba9';
-import { SEC_BY_ID } from '../config/secretaries.js?v=f10d7ba9';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=f10d7ba9';
-import { game } from '../game.js?v=f10d7ba9';
-import { now } from '../core/clock.js?v=f10d7ba9';
-import { h, toast } from './dom.js?v=f10d7ba9';
-import { MONTH_MS } from '../core/gametime.js?v=f10d7ba9';
-import { playStory } from './story.js?v=f10d7ba9';
-import { asset, hasAsset } from '../platform/assets.js?v=f10d7ba9';
-import { CAPITAL_SECTIONS } from './capital.js?v=f10d7ba9';
-import { HINTS } from './guide.js?v=f10d7ba9';
-import { hintLater } from './guide2.js?v=f10d7ba9';
+import * as LS from '../core/listing.js?v=876cadde';
+import { stakeOf } from '../core/economy.js?v=876cadde';
+import { SEC_BY_ID } from '../config/secretaries.js?v=876cadde';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=876cadde';
+import { game } from '../game.js?v=876cadde';
+import { now } from '../core/clock.js?v=876cadde';
+import { h, toast } from './dom.js?v=876cadde';
+import { MONTH_MS } from '../core/gametime.js?v=876cadde';
+import { playStory } from './story.js?v=876cadde';
+import { asset, hasAsset } from '../platform/assets.js?v=876cadde';
+import { CAPITAL_SECTIONS } from './capital.js?v=876cadde';
+import { HINTS } from './guide.js?v=876cadde';
+import { hintLater } from './guide2.js?v=876cadde';
 
 HINTS.ipo = '上市：选板块（主板、科创板、港股、纳斯达克，条件不一样）→ 选券商 → 股改 → 辅导 1 个游戏月 → 审核 1～2 个游戏月（可能问询，派财务总监回复）→ 选发行比例 → 路演 → 敲钟。募资进公司账户，你的持股被稀释；上市以后身价按市值 × 持股，锁定期过了才能减持。';
 const pct = (x, d = 1) => `${(x * 100).toFixed(d)}%`;
@@ -48,7 +48,7 @@ function section(el) {
   if (L.stage === 'inquiry') { const b = h('button', 'btn gold', '回复问询（派财务总监处理）'); b.onclick = () => { const r = LS.answer(s, now()); ok(r, r.who ? `${SEC_BY_ID[r.who].name}去写回复了` : '没有财务总监，券商代写回复'); }; box.appendChild(b); }
   if (L.stage === 'approved') {
     box.appendChild(h('small', 'fn-note', '选发行比例（新股占发行后总股本）：发得多募资多，你的持股稀释得也多'));
-    for (const p of LS.LCFG.issue) { const q = LS.issueQuote(s, p); const b = h('button', 'btn', `发 ${pct(p, 0)}：募资 ${fmtMoney(q.raised)}，到账 ${fmtMoney(q.net)}，你剩 ${pct(stakeOf(s) * (1 - p))}`); b.onclick = () => ok(LS.issue(s, p, now()), '路演开始了'); box.appendChild(b); }
+    for (const p of LS.LCFG.issue) { const q = LS.issueQuote(s, p); const b = h('button', 'btn', `发 ${pct(p, 0)}：募资 ${fmtMoney(q.raised)}，到账 ${fmtMoney(q.net)}，你剩 ${pct(stakeOf(s) * (1 - p))}`); b.onclick = () => ok(LS.issue(s, p, now()), '路演定价，马上发行'); box.appendChild(b); }
   }
   if (L.stage === 'roadshow') { const q = LS.issueQuote(s, L.issue); box.appendChild(h('small', 'fn-note', `发行 ${pct(L.issue, 0)}，预计募资 ${fmtMoney(q.raised)}，发行价约 ${q.price} 元`)); }
   el.appendChild(box);

@@ -1,33 +1,34 @@
 // 商战和收购：胜率、开战、赢满 3 次收购、收购效果、升称号
-import { credit } from './credit.js?v=f10d7ba9'; // V3-01 亲自拍板攒投入度
-import { MONTH_MS, gameDate, dateText } from './gametime.js?v=f10d7ba9';
-import { downRate, downOf, schedule, openDeal } from './equity.js?v=f10d7ba9';
-import { gm } from './calib.js?v=f10d7ba9';
-import { whyNotMa, maLoan } from './bank.js?v=f10d7ba9';
-import { needsBoard, boardApprove } from './capital.js?v=f10d7ba9';
-import { live, onBattle } from './rivalgrow.js?v=f10d7ba9'; // P-00 对手也在长大
-import { bigBonus, useBig } from './manage.js?v=f10d7ba9'; // P-05 老板亲自带队 / 亲自谈判
-import { ACQ_NEGO, RIVAL_BY_ID, RIVALS, PROJECTS, BATTLES_PER_DAY, BATTLE_REGEN_MIN, WINS_TO_ACQUIRE, TEAM_MAX, ACQUIRE_REFUND, ACQUIRE_COOLDOWN_SEC, ACQUIRE_EXTRA_WIN, INTEL_PER_LOSS, INTEL_MAX } from '../config/rivals.js?v=f10d7ba9';
-import { TITLES } from '../config/titles.js?v=f10d7ba9';
-import { netWorth, unlockIfReady, earningsValue } from './economy.js?v=f10d7ba9';
-import { ensureSec } from './secretary.js?v=f10d7ba9';
-import { addFavor, daily } from './affection.js?v=f10d7ba9';
-import { isTraining } from './training.js?v=f10d7ba9';
-import { isScouting } from './busy.js?v=f10d7ba9'; // V2-08 踩点占用（开发2）
-import { auraBattle, networkAcquire, visionBattle } from './boss.js?v=f10d7ba9';
-import { bump } from './daily.js?v=f10d7ba9';
-import { pay, receive, accrue, canPay } from './ledger.js?v=f10d7ba9';
-import { TAX } from './companytax.js?v=f10d7ba9';
-import { addContract } from './contracts.js?v=f10d7ba9';
-import { IND_BY_ID } from '../config/industries.js?v=f10d7ba9';
-import { establishment, staffUp } from './staff.js?v=f10d7ba9';
-import { bizBattle, bizAcquire, grantBridge } from './rivalry.js?v=f10d7ba9';
-import { logi, LOGI_CFG } from './logistics.js?v=f10d7ba9';
-import { addAcquiredProject } from './realestate.js?v=f10d7ba9';
-import { tech, TECH_CFG } from './tech.js?v=f10d7ba9';
-import { lookOf } from './staff.js?v=f10d7ba9';
-import { reValue } from './realestate.js?v=f10d7ba9';
-import { fleetValue } from './logistics.js?v=f10d7ba9';
+import { whyCushion } from './cashflow.js?v=876cadde'; // V0.2.3 留够两个月工资
+import { credit } from './credit.js?v=876cadde'; // V3-01 亲自拍板攒投入度
+import { MONTH_MS, gameDate, dateText } from './gametime.js?v=876cadde';
+import { downRate, downOf, schedule, openDeal } from './equity.js?v=876cadde';
+import { gm } from './calib.js?v=876cadde';
+import { whyNotMa, maLoan } from './bank.js?v=876cadde';
+import { needsBoard, boardApprove } from './capital.js?v=876cadde';
+import { live, onBattle } from './rivalgrow.js?v=876cadde'; // P-00 对手也在长大
+import { bigBonus, useBig } from './manage.js?v=876cadde'; // P-05 老板亲自带队 / 亲自谈判
+import { ACQ_NEGO, RIVAL_BY_ID, RIVALS, PROJECTS, BATTLES_PER_DAY, BATTLE_REGEN_MIN, WINS_TO_ACQUIRE, TEAM_MAX, ACQUIRE_REFUND, ACQUIRE_COOLDOWN_SEC, ACQUIRE_EXTRA_WIN, INTEL_PER_LOSS, INTEL_MAX } from '../config/rivals.js?v=876cadde';
+import { TITLES } from '../config/titles.js?v=876cadde';
+import { netWorth, unlockIfReady, earningsValue } from './economy.js?v=876cadde';
+import { ensureSec } from './secretary.js?v=876cadde';
+import { addFavor, daily } from './affection.js?v=876cadde';
+import { isTraining } from './training.js?v=876cadde';
+import { isScouting } from './busy.js?v=876cadde'; // V2-08 踩点占用（开发2）
+import { auraBattle, networkAcquire, visionBattle } from './boss.js?v=876cadde';
+import { bump } from './daily.js?v=876cadde';
+import { pay, receive, accrue, canPay } from './ledger.js?v=876cadde';
+import { TAX } from './companytax.js?v=876cadde';
+import { addContract } from './contracts.js?v=876cadde';
+import { IND_BY_ID } from '../config/industries.js?v=876cadde';
+import { establishment, staffUp } from './staff.js?v=876cadde';
+import { bizBattle, bizAcquire, grantBridge } from './rivalry.js?v=876cadde';
+import { logi, LOGI_CFG } from './logistics.js?v=876cadde';
+import { addAcquiredProject } from './realestate.js?v=876cadde';
+import { tech, TECH_CFG } from './tech.js?v=876cadde';
+import { lookOf } from './staff.js?v=876cadde';
+import { reValue } from './realestate.js?v=876cadde';
+import { fleetValue } from './logistics.js?v=876cadde';
 
 const PROJ = Object.fromEntries(PROJECTS.map((p) => [p.id, p]));
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -38,7 +39,7 @@ function rv(s, id) {
 }
 export const rivalState = rv;
 const REGEN = BATTLE_REGEN_MIN * 60e3;
-/** 商战次数：攒着用，最多 20 次，每 30 分钟恢复 1 次 */
+/** 商战次数：攒着用，最多 20 次，每 10 分钟恢复 1 次（V0.2.3） */
 export function battleEnergy(s, t) {
   const e = (s.battleEnergy = s.battleEnergy || { n: BATTLES_PER_DAY, t });
   const k = Math.floor((t - e.t) / REGEN);
@@ -133,6 +134,7 @@ export function whyNotAcquire(s, rivalId, team, t, plan = 'full', loan = null, s
   if (loan && loan.amount > 0) { const w = whyNotMa(s, loan.bank, r.value, payNow(s, r, plan), loan.amount); if (w) return w; }
   if (swap > 0) { const w = SWAP ? SWAP.why(s, r, plan, swap) : '还不能换股'; if (w) return w; if (((loan && loan.amount) || 0) + swap > payNow(s, r, plan) - 1e-6) return '贷款 + 换股超过了收购价，少贷一点'; }
   if (!canPay(s, 'company', payNow(s, r, plan) - ((loan && loan.amount) || 0) - (swap || 0))) return plan === 'install' ? `公司账户不够首付（${Math.round(downRate(s) * 100)}%）` : '公司账户不够';
+  { const w = whyCushion(s, payNow(s, r, plan) - ((loan && loan.amount) || 0) - (swap || 0)); if (w) return w; } /* V0.2.3 */
   return null;
 }
 /** 现在要付多少：一次付清 = 估值；分期 = 首付 */
@@ -143,8 +145,9 @@ export function acqNegoOpts(s, rivalId, team, t) {
   return { key: 'acq_' + rivalId, kind: 'buy', base: Math.round(r.value * ACQ_NEGO.ask), range: ACQ_NEGO.range, step: stepOf(r.value), persona: (RIVAL_BY_ID[rivalId] || {}).nego || '精明',
     chips: { intel: extraWins(s, rivalId) > 0 || (st.intel || 0) > 0, secId: (team && team[0]) || null, boss: bigBonus(s, 'deal') > 0 } };
 }
-export function setAcqPrice(s, rivalId, price, t) { rv(s, rivalId).deal = { price: Math.round(price), until: t + ACQ_NEGO.validMin * 60e3 }; }
-export const dealPrice = (s, rivalId, t) => { const d = rv(s, rivalId).deal; return d && d.until > t ? d.price : null; };
+export function setAcqPrice(s, rivalId, price, t) { void t; rv(s, rivalId).deal = { price: Math.round(price), value0: live(s, rivalId).value }; } /* V0.2.3（设计35 第十节）：谈好的价一直有效，对手估值变动超过 20% 才要重谈 */
+export const dealStale = (s, rivalId) => { const d = rv(s, rivalId).deal; return !!(d && d.value0 && Math.abs(live(s, rivalId).value / d.value0 - 1) > 0.2); };
+export const dealPrice = (s, rivalId, t) => { const d = rv(s, rivalId).deal; if (!d) return null; if (d.value0) return dealStale(s, rivalId) ? null : d.price; return d.until > t ? d.price : null; };
 export function liveDeal(s, rivalId, t) { const r = live(s, rivalId); const p = dealPrice(s, rivalId, t); return p && p < r.value ? { ...r, value: p } : r; } // 谈得比估值还贵就按估值（直接收购本来就是估值价）
 export const payNow = (s, r, plan) => (plan === 'install' ? downOf(s, r.value) : r.value);
 /** 收购。plan：'full' 一次付清 / 'install' 分期（首付付完就算成功）。成功：并进来、效果生效；失败：退一半钱、冷却 */

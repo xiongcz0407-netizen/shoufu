@@ -1,18 +1,18 @@
 // 阶段三 3-02：投资人融资 + 对赌 + 股东名册 + 董事会 + 施压（设计23 第一、二节）
 // 估值、持股在 core/economy.js（earningsValue / companyEquity / stakeOf），身价 = 公司估值 × 你的持股
-import { credit } from './credit.js?v=f10d7ba9'; // V3-01 亲自拍板攒投入度
-import CAP from '../config/capital.json?v=f10d7ba9' with { type: 'json' };
-import { companyEquity, stakeOf, profit12, earningsValue, lineNetMonth } from './economy.js?v=f10d7ba9';
-import { ensureSec } from './secretary.js?v=f10d7ba9';
-import { isTraining } from './training.js?v=f10d7ba9';
-import { receive, pay, canPay } from './ledger.js?v=f10d7ba9';
-import { bank } from './bank.js?v=f10d7ba9';
-import { addContract } from './contracts.js?v=f10d7ba9';
-import { addMsg } from './inbox.js?v=f10d7ba9';
-import { gm, profitMul } from './calib.js?v=f10d7ba9';
-import { MONTH_MS, YEAR_MS, monthIndex } from './gametime.js?v=f10d7ba9';
-import { holder, isSec, power, POSTS_CFG as P } from './posts.js?v=f10d7ba9';
-import { addFavor } from './affection.js?v=f10d7ba9';
+import { credit } from './credit.js?v=876cadde'; // V3-01 亲自拍板攒投入度
+import CAP from '../config/capital.json?v=876cadde' with { type: 'json' };
+import { companyEquity, stakeOf, profit12, earningsValue, lineNetMonth } from './economy.js?v=876cadde';
+import { ensureSec } from './secretary.js?v=876cadde';
+import { isTraining } from './training.js?v=876cadde';
+import { receive, pay, canPay } from './ledger.js?v=876cadde';
+import { bank } from './bank.js?v=876cadde';
+import { addContract } from './contracts.js?v=876cadde';
+import { addMsg } from './inbox.js?v=876cadde';
+import { gm, profitMul } from './calib.js?v=876cadde';
+import { MONTH_MS, YEAR_MS, monthIndex } from './gametime.js?v=876cadde';
+import { holder, isSec, power, POSTS_CFG as P } from './posts.js?v=876cadde';
+import { addFavor } from './affection.js?v=876cadde';
 export { CAP };
 
 const r2 = (x) => Math.round(x * 100) / 100;
@@ -42,11 +42,11 @@ export const shareholders = (s) => [{ name: '你', pct: stakeOf(s), me: true }, 
 /** 投资人主动约（每秒 / 离线检查）：估值到了、没在约，就发一条「XX 约您喝咖啡」，30 分钟内回 */
 export function tickCapital(s, t) {
   const C = cap(s); const r = nextRound(s); const ev = [];
-  if (C.invite && t > C.invite.until) { C.invite = null; }
+  if (C.invite && C.invite.until && t > C.invite.until) { C.invite = null; } /* V0.2.3（设计35 第十节）：新约的不过期，老存档里有时限的照旧 */
   if (!C.invite && r && !whyNotRound(s, r, t) && (!C.lastInviteRound || C.lastInviteRound !== r.id || t - (C.lastInviteAt || 0) > 4 * 3600e3)) {
     const who = r.investors[(C.seq++) % r.investors.length];
-    C.invite = { round: r.id, investor: who, until: t + CAP.inviteMin * 60e3 }; C.lastInviteRound = r.id; C.lastInviteAt = t;
-    addMsg(s, { kind: 'invite', type: 'invest_invite', title: `${who}约您喝咖啡（${r.name}）`, body: `对方看好公司，想谈${r.name}。${CAP.inviteMin} 分钟内回（财富 → 资本 → 融资）。`, data: { round: r.id } }, t);
+    C.invite = { round: r.id, investor: who }; C.lastInviteRound = r.id; C.lastInviteAt = t;
+    addMsg(s, { kind: 'invite', type: 'invest_invite', title: `${who}约您喝咖啡（${r.name}）`, body: `对方看好公司，想谈${r.name}。什么时候去谈都行，对方一直等（财富 → 资本 → 融资）。`, data: { round: r.id } }, t);
     ev.push(`${who}约您谈${r.name}`);
   }
   if (C.closing && t >= C.closing.at) ev.push(closeRound(s, C.closing.at));
@@ -88,7 +88,7 @@ export function whyNotTalk(s, roundId, team, t) {
 /** 谈一轮：成了 → 签投资协议 + 股东协议、钱进公司账户（限公司用）、你被稀释、名册更新；对赌另记 */
 export function raise(s, roundId, team, terms, t, rnd = Math.random) {
   const why = whyNotTalk(s, roundId, team, t); if (why) return { ok: false, why };
-  const C = cap(s); const invited = !!(C.invite && C.invite.round === roundId && t <= C.invite.until);
+  const C = cap(s); const invited = !!(C.invite && C.invite.round === roundId && (!C.invite.until || t <= C.invite.until));
   const rate = talkRate(s, roundId, team, terms, invited);
   if (rnd() >= rate) { C.cool = t + CAP.negotiateMin * 60e3; if (invited) C.invite = null; C.negPre = null; return { ok: true, success: false, rate }; }
   const q = quoteRound(s, roundId, terms); const r = q.round; const investor = invited ? C.invite.investor : r.investors[0];
@@ -222,7 +222,7 @@ export function secWorth(s, id, t = s._now || Date.now()) {
 /** 拿了期权的秘书：职位效率 × 1.1（posts.efficiency 挂这个） */
 export const optionEff = (s, id) => (s.cap && s.cap.options && s.cap.options[id] ? PL.eff : 1);
 const LINES = { 元气: '诶？这是……公司的股份？我会更拼命的！', 高冷: '……谢谢。我不会让它贬值。', 知性: '这是对我的信任。我会让公司值得这个价。', 绿茶: '老板只给我一个人的对吧？我就知道你最懂我～', 傲娇: '哼，给这么点……算了，看在你诚意的份上。' };
-import { SEC_BY_ID } from '../config/secretaries.js?v=f10d7ba9';
-import { bigBonus, useBig } from './manage.js?v=f10d7ba9';
+import { SEC_BY_ID } from '../config/secretaries.js?v=876cadde';
+import { bigBonus, useBig } from './manage.js?v=876cadde';
 const fmtGm = (ms) => `${Math.max(0.1, ms / MONTH_MS).toFixed(1)} 个游戏月`;
 export const optionLine = (s, id) => LINES[(SEC_BY_ID[id] || {}).type] || '谢谢老板。';

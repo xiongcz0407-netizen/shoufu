@@ -1,19 +1,18 @@
-import { avatarKey } from './main-screen.js?v=f10d7ba9';
-import * as MG from '../core/manage.js?v=f10d7ba9'; // P-05 精力
-import { totals as counterTotals } from '../core/counter.js?v=f10d7ba9'; // V2-04 站柜台统计
-import { asset, hasAsset } from '../platform/assets.js?v=f10d7ba9';
+import { avatarKey } from './main-screen.js?v=876cadde';
+import * as MG from '../core/manage.js?v=876cadde'; // P-05 精力
+import { asset, hasAsset } from '../platform/assets.js?v=876cadde';
 // 老板页：名字和公司、老板属性、称号进度、穿戴、统计、设置（存档、重新开始在「设置」里，设计22）
-import { TITLES } from '../config/titles.js?v=f10d7ba9';
-import { RIVALS } from '../config/rivals.js?v=f10d7ba9';
-import * as E from '../core/economy.js?v=f10d7ba9';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=f10d7ba9';
-import { versionText } from '../version.js?v=f10d7ba9';
-import { now } from '../core/clock.js?v=f10d7ba9';
-import { game } from '../game.js?v=f10d7ba9';
-import { h, toast } from './dom.js?v=f10d7ba9';
-import { openFull } from './shell.js?v=f10d7ba9';
-import { wearHtml } from './luxury.js?v=f10d7ba9';
-import { appendCloudSettings } from './cloudset.js?v=f10d7ba9';
+import { TITLES } from '../config/titles.js?v=876cadde';
+import { RIVALS } from '../config/rivals.js?v=876cadde';
+import * as E from '../core/economy.js?v=876cadde';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=876cadde';
+import { versionText } from '../version.js?v=876cadde';
+import { now } from '../core/clock.js?v=876cadde';
+import { game } from '../game.js?v=876cadde';
+import { h, toast } from './dom.js?v=876cadde';
+import { openFull } from './shell.js?v=876cadde';
+import { wearHtml } from './luxury.js?v=876cadde';
+import { appendCloudSettings } from './cloudset.js?v=876cadde';
 
 // 老板属性（设计09 第一节）由第 12 项提供：返回 [{ name, value, from }]
 let bossAttrs = () => [];
@@ -31,7 +30,7 @@ export function openBoss() {
         <div><div class="ind-name">${s.bossName || '老板'} <small>${TITLES[s.title].name}</small></div><div class="tr-gain">${s.companyName || ''}</div></div>
         <button class="btn rename">改名</button></div>
       <div class="sd-rec-title">精力</div>
-      <div class="tr-course"><div style="flex:1"><b>${Math.floor(MG.energy(s, t))} / ${MG.energyMax(s)}</b><div class="bar" style="margin-top:6px"><i style="width:${MG.energy(s, t) / MG.energyMax(s) * 100}%"></i></div><div class="tr-gain">每 20 秒回 1 点，离线照回。${MG.tip(s)}。门店详情里「亲自上阵」花精力；${(s.title || 0) >= 2 ? '老板以后亲自经营效果减半，精力多花在大事上：' : `能亲自管 ${MG.personalMax(s)} 家。`}</div>
+      <div class="tr-course"><div style="flex:1"><b>${Math.floor(MG.energy(s, t))} / ${MG.energyMax(s)}</b><div class="bar" style="margin-top:6px"><i style="width:${MG.energy(s, t) / MG.energyMax(s) * 100}%"></i></div><div class="tr-gain">每 20 秒回 1 点，离线照回。${MG.tip(s)}。门店详情里「亲自上阵」花精力；${(s.title || 0) >= 2 ? '老板以后亲自经营效果减半，精力多花在大事上：' : `精力够哪条线都能去。`}</div>
         ${(s.title || 0) >= 2 ? `<div class="ind-btns">${['battle', 'deal'].map((k) => `<button class="btn big-act" data-k="${k}" ${MG.whyNotBig(s, k, t) ? 'disabled' : ''}>${MG.MANAGE_CFG.big[k].name}（${MG.MANAGE_CFG.big[k].energy}）${MG.bigBonus(s, k) ? '<br><small>已准备好</small>' : ''}</button>`).join('')}</div>` : ''}</div></div>
       <div class="sd-rec-title">老板属性</div>
       <div class="boss-attrs">${bossAttrs(s).map((a) => `<div><b>${a.value}</b><span>${a.name}</span><small>${a.from}</small></div>`).join('') || '<div class="empty">第 12 项接上（气场、人脉）</div>'}</div>
@@ -41,7 +40,7 @@ export function openBoss() {
       <div class="sd-rec-title">穿戴</div>${wearHtml(s)}
       <div class="sd-rec-title">统计</div>
       <div class="sd-rec"><div>玩了<b>${fmtDuration((t - s.createdAt) / 1000)}</b></div><div>累计赚<b>${fmtMoney(st.earned || 0)}</b></div><div>商战<b>${st.battleWins || 0}/${st.battles || 0}</b></div>
-        <div>约会<b>${st.dates || 0}次</b></div><div>送礼<b>${st.gifts || 0}次</b></div><div>结业<b>${st.coursesDone || 0}门</b></div><div>站柜台<b>接待 ${counterTotals(s).n} 位，营业额 ${fmtMoney(counterTotals(s).rev)}，赚 ${fmtMoney(counterTotals(s).earn)}</b></div></div>
+        <div>约会<b>${st.dates || 0}次</b></div><div>送礼<b>${st.gifts || 0}次</b></div><div>结业<b>${st.coursesDone || 0}门</b></div></div>
       <div class="sd-rec-title">设置</div>
       <div class="tr-course"><div><b>人声</b><div class="tr-gain">秘书说话的配音（没有配音文件时只出气泡）</div></div><button class="btn voice">${s.settings.voice === false ? '关' : '开'}</button></div><div class="boss-cloud"></div>
       <div class="tr-gain" style="text-align:center;margin-top:12px">${versionText()}</div></div>`;

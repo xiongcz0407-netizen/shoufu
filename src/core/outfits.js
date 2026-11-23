@@ -1,9 +1,9 @@
 // 衣服：买（算送礼）、好感到了自动换上、衣柜、约会穿哪套
-import { OUTFITS, OUTFIT_BY_ID, GIFT_CLOTH_FAVOR, DATE_OUTFIT } from '../config/outfits.js?v=f10d7ba9';
-import { ensureSec, FAVOR_STAGES } from './secretary.js?v=f10d7ba9';
-import { addFavor } from './affection.js?v=f10d7ba9';
-import { pay, receive, accrue, canPay } from './ledger.js?v=f10d7ba9';
-import * as STY from './styles.js?v=f10d7ba9'; // V3-05 按款式挑
+import { OUTFITS, OUTFIT_BY_ID, GIFT_CLOTH_FAVOR, DATE_OUTFIT, priceOf } from '../config/outfits.js?v=876cadde';
+import { ensureSec, FAVOR_STAGES } from './secretary.js?v=876cadde';
+import { addFavor } from './affection.js?v=876cadde';
+import { pay, receive, accrue, canPay } from './ledger.js?v=876cadde';
+import * as STY from './styles.js?v=876cadde'; // V3-05 按款式挑
 
 function rec(s, id) {
   const r = ensureSec(s, id);
@@ -26,8 +26,9 @@ export function buyOutfit(s, id, o, t = Date.now()) {
   const r = rec(s, id); const cfg = OUTFIT_BY_ID[o];
   if (!cfg || o === 'c1') return { ok: false, why: '买不了' };
   if (r.owned.includes(o)) return { ok: false, why: '已经买过了' };
-  if (!canPay(s, 'personal', cfg.price)) return { ok: false, why: '个人现金不够' };
-  pay(s, { wallet: 'personal', cat: 'clothes', amount: cfg.price, party: id, note: `给${id}买第 ${o.slice(1)} 套` }, t); r.owned.push(o);
+  const price = priceOf(id, o); // 设计35 第十四节：按款式定价；已经买过的不退不补
+  if (!canPay(s, 'personal', price)) return { ok: false, why: '个人现金不够' };
+  pay(s, { wallet: 'personal', cat: 'clothes', amount: price, party: id, note: `给${id}买第 ${o.slice(1)} 套` }, t); r.owned.push(o);
   r.rec.clothes += 1; r.rec.gifts += 1; s.stats.clothes = (s.stats.clothes || 0) + 1;
   const favor = addFavor(s, id, GIFT_CLOTH_FAVOR);
   return { ok: true, favor, wearNow: canWear(s, id, o) };
@@ -38,7 +39,7 @@ export function autoWear(s, id) {
   const r = rec(s, id);
   const ready = OUTFITS.filter((x) => x.id !== 'c1' && canWear(s, id, x.id) && !r.worn.includes(x.id));
   if (!ready.length) return null;
-  const best = ready[ready.length - 1].id; // 配置按价格从低到高
+  const best = ready.slice().sort((a, b) => priceOf(id, b.id) - priceOf(id, a.id) || b.needFavor - a.needFavor)[0].id; // 同时到的换最贵那套（设计04）
   for (const x of ready) r.worn.push(x.id);
   r.outfit = best;
   return best;

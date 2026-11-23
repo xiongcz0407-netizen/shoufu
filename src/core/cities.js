@@ -1,7 +1,7 @@
 // 城市和分公司（设计20 第二节 5）：总部上海；新城市先注册分公司（5 分钟 + 代办费）；门店按城市分，工资、房租、收入、开店费乘城市系数
 // 只依赖 ledger（staff / economy / realestate 都要用这里）
-import C from '../config/cities.json?v=f10d7ba9' with { type: 'json' };
-import { pay, canPay } from './ledger.js?v=f10d7ba9';
+import C from '../config/cities.json?v=876cadde' with { type: 'json' };
+import { pay, canPay } from './ledger.js?v=876cadde';
 export { C as CITY_CFG };
 export const CITY_IDS = Object.keys(C.cities);
 export const cityName = (c) => C.cities[c].name;
@@ -21,7 +21,7 @@ export function whyNotRegister(s, c, t) {
   if (!canPay(s, 'company', C.registerFee)) return '公司账户不够';
   return null;
 }
-/** 注册分公司：代办费走公司账户，5 分钟后能开业 */
+/** 注册分公司：代办费走公司账户，V0.2.3 立刻能开业（registerMin = 0） */
 export function registerCity(s, c, t, by = '') {
   const why = whyNotRegister(s, c, t); if (why) return { ok: false, why };
   pay(s, { wallet: 'company', cat: 'filing', amount: C.registerFee, party: '代办公司', by, note: `注册${cityName(c)}分公司（营业执照、税务登记、刻章、开户）` }, t);

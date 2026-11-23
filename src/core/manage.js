@@ -1,19 +1,19 @@
 // P-05 前期核心玩法·经营（设计25 第一、三节）：老板精力、每家店四个亲自经营动作（可带秘书）、口碑、店长 / 秘书自动经营、大盘行情、老板以后的大事
 // 「店」= 一条门店线（便利店 / 餐饮 / 服装）；营业额、进货的加成通过 economy.setManageHooks 挂进去
-import { credit } from './credit.js?v=f10d7ba9'; // V3-01 亲自拍板攒投入度
-import M from '../config/manage.json?v=f10d7ba9' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=f10d7ba9';
-import { SEC_BY_ID } from '../config/secretaries.js?v=f10d7ba9';
-import { YEAR_MS, MONTH_MS } from './gametime.js?v=f10d7ba9';
-import { industryRevenue, setManageHooks } from './economy.js?v=f10d7ba9';
-import { setRateAdjFn } from './bank.js?v=f10d7ba9';
-import { pay, receive, canPay } from './ledger.js?v=f10d7ba9';
-import { holder, isSec, attrs } from './posts.js?v=f10d7ba9';
-import { bossAttrs } from './boss.js?v=f10d7ba9';
-import { addFavor } from './affection.js?v=f10d7ba9';
-import { isTraining } from './training.js?v=f10d7ba9';
-import { mark, energyBonus, onReward } from './goals.js?v=f10d7ba9'; // P-06 目标链（开发2）：做到了打勾、精力上限、奖励
-import { wage } from './staff.js?v=f10d7ba9';
+import { credit } from './credit.js?v=876cadde'; // V3-01 亲自拍板攒投入度
+import M from '../config/manage.json?v=876cadde' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=876cadde';
+import { SEC_BY_ID } from '../config/secretaries.js?v=876cadde';
+import { YEAR_MS, MONTH_MS } from './gametime.js?v=876cadde';
+import { industryRevenue, setManageHooks, setUpgradeHook } from './economy.js?v=876cadde';
+import { setRateAdjFn } from './bank.js?v=876cadde';
+import { pay, receive, canPay } from './ledger.js?v=876cadde';
+import { holder, isSec, attrs } from './posts.js?v=876cadde';
+import { bossAttrs } from './boss.js?v=876cadde';
+import { addFavor } from './affection.js?v=876cadde';
+import { isTraining } from './training.js?v=876cadde';
+import { mark, energyBonus, onReward } from './goals.js?v=876cadde'; // P-06 目标链（开发2）：做到了打勾、精力上限、奖励
+import { wage } from './staff.js?v=876cadde';
 
 export { M as MANAGE_CFG };
 export const DAY_MS = YEAR_MS / M.daysPerYear;
@@ -49,10 +49,12 @@ const active = (s, f) => f.until > ((s.mg && s.mg.t) || 0);
 /** 大盘：牛市 +3%、熊市 −3% */
 export const marketK = (s) => { const k = s.mkt && s.mkt.regime && s.mkt.regime.kind; return 1 + (M.market[k] || 0); };
 export const marketText = (s) => { const k = s.mkt && s.mkt.regime && s.mkt.regime.kind; return k === 'bull' ? '最近行情好，大家舍得花钱（营业额 +3%）' : k === 'bear' ? '最近行情差，大家捂紧钱包（营业额 −3%）' : ''; };
+/** V0.2.3 广告投放（core/ads.js 挂进来） */
+let adsHook = () => 1; export const setAdsHook = (fn) => { adsHook = fn; };
 export function revMult(s, id, valueMode = false) {
   const L = s.mg && s.mg.lines[id]; let k = repK(L ? L.rep : M.rep.start) * marketK(s);
   if (L && !valueMode) for (const f of L.fx) if (f.rev && active(s, f)) k *= 1 + f.rev;
-  return k;
+  return k * adsHook(s, id, valueMode); /* V0.2.3 广告：投放人流 × 知名度 */
 }
 export function cogsAdj(s, id, valueMode = false) {
   const L = s.mg && s.mg.lines[id]; let k = 1, add = 0; if (!L) return [1, 0];
@@ -67,6 +69,10 @@ export function addFx(s, id, fx, t, days = 0) {
   const L = line(s, id); const until = days >= 9999 ? Infinity : days ? s.createdAt + (dayIndex(s, t) + days) * DAY_MS : dayEnd(s, t);
   L.fx.push({ ...fx, until, perm: days >= 9999 }); mg(s, t);
 }
+/** V0.2.3（设计35 第十二节 2）升级带口碑：每升一级 +1，换样子那级（15、40）再 +5；没人管掉口碑的底线 = 50 + 等级给的，最高 85 */
+export function levelRep(s, id) { const c = IND_BY_ID[id]; const lv = (s.inds[id] && s.inds[id].level) || 1; return Math.max(0, lv - 1) * M.rep.perLevel + (c.looks || []).filter((x, j) => j > 0 && lv >= x).length * M.rep.perLook; }
+export const repFloor = (s, id) => Math.max(M.rep.floor, Math.min(M.rep.levelCap, M.rep.start + levelRep(s, id)));
+setUpgradeHook((s, id) => { if (!isShop(id)) return; const c = IND_BY_ID[id]; const lv = s.inds[id].level; addRep(s, id, M.rep.perLevel + ((c.looks || []).some((x, j) => j > 0 && x === lv) ? M.rep.perLook : 0)); });
 export const addRep = (s, id, n) => { const L = line(s, id); L.rep = clamp(L.rep + n, 0, 100); if (L.rep >= 60) mark(s, 'rep60'); };
 
 // ---------- 亲自经营 ----------
@@ -77,7 +83,7 @@ export function whyNot(s, id, act, t, secId = null) {
   const A = M.actions[act]; if (!A) return '没有这个动作';
   if (!isShop(id) || !s.inds[id] || !s.inds[id].branches) return '只有门店能亲自上阵';
   const L = line(s, id); if (L.act[act] === dayIndex(s, t)) return '今天做过了，明天再来';
-  const tl = todayLines(s, t); if (!tl.includes(id) && tl.length >= personalMax(s)) return `今天亲自顾得过来 ${personalMax(s)} 家（升称号能多管几家），其余的交给店长`;
+  /* V0.2.3（设计35 第十三节）：不再限一天顾几条线，只看精力 */
   if (energy(s, t) < A.energy) return `精力不够（要 ${A.energy}，现在 ${Math.floor(energy(s, t))}）`;
   if (secId && (!s.secs[secId] || isTraining(s, secId))) return '上课中的秘书不能带';
   return null;
@@ -158,7 +164,7 @@ export function tickManage(s, t) {
       const nb = s.inds[id].branches; if (L.nb && nb > L.nb) L.rep = (L.rep * L.nb + M.rep.start * (nb - L.nb)) / nb; L.nb = nb; // 新开 / 并进来的店口碑从 50 起，整条线按家数平均
       const e = autoEff(s, id);
       if (e > 0) { addFx(s, id, { cogs: -(M.actions.bargain.cogs[0] + M.actions.bargain.cogs[1]) / 2 * e }, at); if (L.rep < (M.auto.repCap || 100)) L.rep = Math.min(M.auto.repCap || 100, L.rep + M.auto.repDaily * e); L.care = g.day; }
-      else if (g.day - Math.max(L.care == null ? -Infinity : L.care, L.decay == null ? -Infinity : L.decay) >= M.rep.decayDays) { L.decay = g.day; if (L.rep > M.rep.floor) L.rep = Math.max(M.rep.floor, L.rep - 1); }
+      else if (g.day - Math.max(L.care == null ? -Infinity : L.care, L.decay == null ? -Infinity : L.decay) >= M.rep.decayDays) { L.decay = g.day; const fl = repFloor(s, id); if (L.rep > fl) L.rep = Math.max(fl, L.rep - 1); }
     }
     for (const p of g.prepaid) { if (p.left <= 0.01 || p.day >= g.day) continue; const a = Math.min(p.left, p.per); p.left = r2(p.left - a); pay(s, { wallet: 'company', cat: 'prepaid_used', amount: a, force: true, party: '顾客', note: `${IND_BY_ID[p.id].name}会员卡 / 储值卡消费冲预收（这部分营业额已经预收过）` }, at); }
     g.prepaid = g.prepaid.filter((p) => p.left > 0.01);
