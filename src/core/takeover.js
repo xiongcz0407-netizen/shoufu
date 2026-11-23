@@ -3,21 +3,21 @@
 // 股票列表里的公司：公司持股每 5% 举牌公告（core/stocks.js stake）；二级市场最多买到 30%，再往上要发要约（价格 ≥ 最近 3 个游戏天均价 = 现实 30 天 ÷ profitMul），
 // 要约期 3 个游戏天，股东按溢价决定卖多少；到 50% 以上 = 控股（并进集团，资本页、集团页显示）
 // 换股：上市以后收购对手（battle.acquire 的挂钩），最多 50% 用你公司的新股付，按你的股价算，你的持股被稀释
-import CFG from '../config/takeover.json?v=598ef1ae' with { type: 'json' };
-import SCFG from '../config/stocks.json?v=598ef1ae' with { type: 'json' };
-import * as SK from './stocks.js?v=598ef1ae';
-import { pay, receive, canPay } from './ledger.js?v=598ef1ae';
-import { taxRec } from './fiscal.js?v=598ef1ae';
-import { addCompanyAssetHook } from './economy.js?v=598ef1ae';
-import { maMax, whyNotMa, maLoan } from './bank.js?v=598ef1ae';
-import { holder, isSec } from './posts.js?v=598ef1ae';
-import { addContract } from './contracts.js?v=598ef1ae';
-import { MONTH_MS } from './gametime.js?v=598ef1ae';
-import { addMsg } from './inbox.js?v=598ef1ae';
-import { addAttrHook } from './boss.js?v=598ef1ae';
-import { setSwapHook } from './battle.js?v=598ef1ae';
-import { cap } from './capital.js?v=598ef1ae';
-import { listed, marketCap } from './listing.js?v=598ef1ae';
+import CFG from '../config/takeover.json?v=d69b03f5' with { type: 'json' };
+import SCFG from '../config/stocks.json?v=d69b03f5' with { type: 'json' };
+import * as SK from './stocks.js?v=d69b03f5';
+import { pay, receive, canPay } from './ledger.js?v=d69b03f5';
+import { taxRec } from './fiscal.js?v=d69b03f5';
+import { addCompanyAssetHook } from './economy.js?v=d69b03f5';
+import { maMax, whyNotMa, maLoan } from './bank.js?v=d69b03f5';
+import { holder, isSec } from './posts.js?v=d69b03f5';
+import { addContract } from './contracts.js?v=d69b03f5';
+import { MONTH_MS } from './gametime.js?v=d69b03f5';
+import { addMsg } from './inbox.js?v=d69b03f5';
+import { addAttrHook } from './boss.js?v=d69b03f5';
+import { setSwapHook } from './battle.js?v=d69b03f5';
+import { cap } from './capital.js?v=d69b03f5';
+import { listed, marketCap } from './listing.js?v=d69b03f5';
 
 export const TCFG = CFG;
 const r2 = (v) => Math.round(v * 100) / 100;
@@ -44,6 +44,8 @@ export function whyNotCoBuy(s, code, n) {
   if (freeCo(s) < SK.quote(s, code, n, 'buy').total) return '公司账户自有资金不够（融资款、贷款不能炒股）';
   return null;
 }
+/** 公司全仓（任务板 V0.2.11 第 1e 项）：公司账户自有资金最多能买几股（二级市场最多到 30%） */
+export const maxCoBuy = (s, code) => SK.maxBuyN(s, code, freeCo(s), Math.max(0, Math.floor(SCFG.stake.tender * total(code)) - ((coHold(s)[code] || { n: 0 }).n)));
 export function coBuy(s, code, n, t) {
   n = Math.floor(n); const why = whyNotCoBuy(s, code, n); if (why) return { ok: false, why };
   const q = SK.quote(s, code, n, 'buy'); const x = SK.BY[code];

@@ -1,17 +1,17 @@
 // 上市（第 3-04 项，设计23 第四节）：四个板块条件 → 选券商 → 股改 → 辅导 → 申报审核（可能问询）→ 发行定价 → 路演 → 敲钟
 // 上市后：你的公司进股票列表（自己一只，跟大盘和利润走）；身价 = 市值 × 你的持股；锁定期后每 3 个游戏月最多减持 1%（限售股 20% 个税）；每年年报 + 分红
-import CFG from '../config/listing.json?v=598ef1ae' with { type: 'json' };
-import { pay, receive, canPay, canPayMust } from './ledger.js?v=598ef1ae';
-import { addContract } from './contracts.js?v=598ef1ae';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=598ef1ae';
-import { taxRec } from './fiscal.js?v=598ef1ae';
-import { gm } from './calib.js?v=598ef1ae';
-import { addMsg } from './inbox.js?v=598ef1ae';
-import { holder, isSec } from './posts.js?v=598ef1ae';
-import { companyEquity, earningsValue, stakeOf, addNetWorthHook } from './economy.js?v=598ef1ae';
-import { cap, ipoPower } from './capital.js?v=598ef1ae';
-import { room } from './cashflow.js?v=598ef1ae'; // V0.2.3
-import * as SK from './stocks.js?v=598ef1ae';
+import CFG from '../config/listing.json?v=d69b03f5' with { type: 'json' };
+import { pay, receive, canPay, canPayMust } from './ledger.js?v=d69b03f5';
+import { addContract } from './contracts.js?v=d69b03f5';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=d69b03f5';
+import { taxRec } from './fiscal.js?v=d69b03f5';
+import { gm } from './calib.js?v=d69b03f5';
+import { addMsg } from './inbox.js?v=d69b03f5';
+import { holder, isSec } from './posts.js?v=d69b03f5';
+import { companyEquity, earningsValue, stakeOf, addNetWorthHook } from './economy.js?v=d69b03f5';
+import { cap, ipoPower } from './capital.js?v=d69b03f5';
+import { room } from './cashflow.js?v=d69b03f5'; // V0.2.3
+import * as SK from './stocks.js?v=d69b03f5';
 
 export const LCFG = CFG;
 export const BOARDS = CFG.boards;

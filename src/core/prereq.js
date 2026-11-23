@@ -1,10 +1,10 @@
 // V2-12 前置条件（设计31）：第一次满足某个条件时，秘书在消息里说一句（同一个条件只说一次；已经开了的不说）
-import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=598ef1ae';
-import { TITLES } from '../config/titles.js?v=598ef1ae';
-import { SEC_BY_ID } from '../config/secretaries.js?v=598ef1ae';
-import * as E from './economy.js?v=598ef1ae';
-import { addMsg } from './inbox.js?v=598ef1ae';
-import * as MG from './manage.js?v=598ef1ae';
+import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=d69b03f5';
+import { TITLES } from '../config/titles.js?v=d69b03f5';
+import { SEC_BY_ID } from '../config/secretaries.js?v=d69b03f5';
+import * as E from './economy.js?v=d69b03f5';
+import { addMsg } from './inbox.js?v=d69b03f5';
+import * as MG from './manage.js?v=d69b03f5';
 
 const keyOf = (need) => (need.retailTotal ? `retail:${need.retailTotal}` : `${need.line}:${need.n}`);
 /** 这个条件放开的事：{ acts 现在就能做的, wait 还差称号的 } */

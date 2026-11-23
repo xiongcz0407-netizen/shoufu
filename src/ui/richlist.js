@@ -1,14 +1,14 @@
 // V2-14 财富榜界面（设计32 第七节）：财富页「榜单」分段；两个页签「华夏」「全球」；你那一行金边；点人看简介（挂股票的能点进股票）；最下面「你身边的人」
-import * as RL from '../core/richlist.js?v=598ef1ae';
-import * as INB from './inbox.js?v=598ef1ae';
-import { BY as STOCK_BY } from '../core/stocks.js?v=598ef1ae';
-import { openStock } from './stocks.js?v=598ef1ae';
-import { fmtMoney } from '../core/format.js?v=598ef1ae';
-import { asset, hasAsset } from '../platform/assets.js?v=598ef1ae';
-import { game } from '../game.js?v=598ef1ae';
-import { now } from '../core/clock.js?v=598ef1ae';
-import { h, openPanel, toast } from './dom.js?v=598ef1ae';
-import { playStory, isStoryPlaying } from './story.js?v=598ef1ae';
+import * as RL from '../core/richlist.js?v=d69b03f5';
+import * as INB from './inbox.js?v=d69b03f5';
+import { BY as STOCK_BY } from '../core/stocks.js?v=d69b03f5';
+import { openStock } from './stocks.js?v=d69b03f5';
+import { fmtMoney } from '../core/format.js?v=d69b03f5';
+import { asset, hasAsset } from '../platform/assets.js?v=d69b03f5';
+import { game } from '../game.js?v=d69b03f5';
+import { now } from '../core/clock.js?v=d69b03f5';
+import { h, openPanel, toast } from './dom.js?v=d69b03f5';
+import { playStory, isStoryPlaying } from './story.js?v=d69b03f5';
 
 const C = RL.RICH_CFG;
 let tab = 'cn';

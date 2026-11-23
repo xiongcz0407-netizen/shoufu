@@ -1,14 +1,15 @@
 // 第 P-06 项：财富 → 投资 里的「打新 · 两融」页签、个股页的条件单 / 融资买入、行情顶上的看盘（设计25 第五节）
-import * as SK from '../core/stocks.js?v=598ef1ae';
-import * as TR from '../core/trade.js?v=598ef1ae';
-import * as AS from '../core/assets.js?v=598ef1ae';
-import { attrs as secAttrs } from '../core/posts.js?v=598ef1ae';
-import { SEC_BY_ID } from '../config/secretaries.js?v=598ef1ae';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=598ef1ae';
-import { profitMul } from '../core/calib.js?v=598ef1ae';
-import { game } from '../game.js?v=598ef1ae';
-import { now } from '../core/clock.js?v=598ef1ae';
-import { h, openPanel, toast } from './dom.js?v=598ef1ae';
+import * as SK from '../core/stocks.js?v=d69b03f5';
+import * as TR from '../core/trade.js?v=d69b03f5';
+import * as LK from '../core/look.js?v=d69b03f5'; // 设计41
+import * as AS from '../core/assets.js?v=d69b03f5';
+import { attrs as secAttrs } from '../core/posts.js?v=d69b03f5';
+import { SEC_BY_ID } from '../config/secretaries.js?v=d69b03f5';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=d69b03f5';
+import { profitMul } from '../core/calib.js?v=d69b03f5';
+import { game } from '../game.js?v=d69b03f5';
+import { now } from '../core/clock.js?v=d69b03f5';
+import { h, openPanel, toast } from './dom.js?v=d69b03f5';
 
 const C = SK.SCFG; const I = C.ipo, MG = C.margin;
 const COLOR = { 科技: '#3b6fd8', 消费: '#d8823b', 能源: '#3ba86b', 汽车: '#7a5cd6', 金融: '#c9a43b', 传媒: '#d64b7a', 奢侈品: '#8a6a3a' };
@@ -21,14 +22,20 @@ const pctTxt = (v) => `${Math.round(v * 100)}%`;
 export function watchRow(s, draw) {
   const w = s.mkt.watcher; const ok = TR.watcher(s);
   const odds = w && s.secs[w] ? TR.watchOdds(s, w) : null;
-  const el = h('button', 'sk-row watch-row', `<i class="sk-logo ph">看盘</i><div class="sk-name"><b>${w && s.secs[w] ? `${SEC_BY_ID[w].name} 在看盘${ok ? '' : '（在上课，暂停）'}` : '还没派人看盘'}</b><small>${odds ? `新闻出来前提前说一句的概率 ${pctTxt(odds.early)}，说准 ${pctTxt(odds.right)}（看智慧）` : '派一个秘书看盘：新闻出来前可能提前提醒你（智慧越高越准）'}${s.mkt.freeHint ? `　🎁 送的提示 ${s.mkt.freeHint} 次（一定准）` : ''}</small></div><div class="sk-px"><b>${w ? '换人' : '派人'}</b></div>`);
+  const el = h('button', 'sk-row watch-row', `<i class="sk-logo ph">看盘</i><div class="sk-name"><b>${w && s.secs[w] ? `${SEC_BY_ID[w].name} 在看盘${ok ? '' : '（在上课，暂停）'}` : '还没派人看盘'}</b><small>${odds ? `新闻前提前提醒 ${pctTxt(odds.early)}，说准 ${pctTxt(odds.right)}（看智慧）` : '派一个秘书看盘：新闻前提醒你，点「看盘」告诉你多少钱买、多少钱卖'}${s.mkt.freeHint ? `　🎁 送的提示 ${s.mkt.freeHint} 次（一定准）` : ''}</small></div><div class="sk-px"><b>${w ? '换人' : '派人'}</b></div>`);
   el.onclick = () => pickWatcher(s, draw);
-  return el;
+  if (!w || !s.secs[w]) return el;
+  // 设计41：「看盘」按钮（5 精力，马上给接下来 2 小时的买卖价）+ 她的战绩
+  const wk = LK.weekLook(s); const lu = LK.luCount(s, now());
+  const box = h('div', 'watch-box'); box.appendChild(el);
+  const bar = h('div', 'watch-bar', `<span>本周看盘 ${wk.n} 次，抓到涨停 ${wk.lu} 次，照她挂的单${wk.pnl >= 0 ? '赚' : '亏'} ${fmtMoney(Math.abs(wk.pnl))}<small>今天的涨停：已出 ${lu.out} 只${lu.left ? ` / 还有 ${lu.left} 只` : ''}</small></span><button class="btn sm gold lk-btn" ${ok ? '' : 'disabled'}>看盘<small>${C.watch.look.energy} 精力</small></button>`);
+  bar.querySelector('.lk-btn').onclick = () => { import('./look.js?v=d69b03f5').then((u) => { u.doLook(); draw(); }); };
+  box.appendChild(bar); return box;
 }
 function pickWatcher(s, draw) {
   const p = openPanel('派谁看盘');
   const ids = Object.keys(s.secs).sort((a, b) => secAttrs(s, b).wit - secAttrs(s, a).wit);
-  p.body.innerHTML = `<div class="tr-gain">看盘像派驻产业一样：派了就不能同时上课（上课期间暂停）。提前概率 = 智慧 / 150，说准 = 50% + 智慧 / 400。智慧最高的排在最前。</div>`;
+  p.body.innerHTML = `<div class="tr-gain">派了看盘：新闻出来前 3 跳她可能提前提醒你，还给买卖价（提前概率 = 智慧 / 100，说准 = 50% + 智慧 / 200）；点「看盘」她马上告诉你接下来 2 小时多少钱买、多少钱卖。智慧最高的排在最前。</div>`;
   for (const id of ids) {
     const o = TR.watchOdds(s, id);
     const b = h('button', 'sk-row', `<div class="sk-name"><b>${SEC_BY_ID[id].name}${s.mkt.watcher === id ? '（正在看）' : ''}</b><small>智慧 ${secAttrs(s, id).wit}　提前 ${pctTxt(o.early)}　准 ${pctTxt(o.right)}</small></div>`);
@@ -47,10 +54,11 @@ export function orderBlock(s, code, n, rerender) {
     const def = kind === 'buy' ? px * 0.95 : kind === 'tp' ? px * 1.1 : px * 0.92;
     el.innerHTML = `<div class="fn-row"><span><b>条件单</b><small>　不用一直盯盘：到价自动成交（离线也会触发），最多 ${C.orders.max} 张，${C.orders.expireDays} 个游戏天没触发自动撤</small></span></div>
       <div class="tabs">${Object.entries(TR.KIND).map(([k, v]) => `<button class="tab ${k === kind ? 'on' : ''}" data-k="${k}">${v}</button>`).join('')}</div>
-      <div class="ord-in"><span>${kind === 'tp' ? '涨到' : '跌到'}</span><input type="number" step="0.01" class="ord-px" value="${def.toFixed(2)}"><span>元，${kind === 'buy' ? '买' : '卖'} ${n.toLocaleString()} 股</span><button class="btn sm gold ord-go">挂单</button></div>
-      ${mine.map((o) => `<div class="fn-row"><span>${TR.KIND[o.kind]} ${o.px} · ${o.n.toLocaleString()} 股</span><b><button class="btn sm" data-x="${o.id}">撤</button></b></div>`).join('')}
+      <div class="ord-in"><span>${kind === 'tp' ? '涨到' : '跌到'}</span><input type="number" step="0.01" class="ord-px" value="${def.toFixed(2)}"><span>元，${kind === 'buy' ? '买' : '卖'} ${n.toLocaleString()} 股</span><button class="btn sm gold ord-go">挂单</button><button class="btn sm ord-max">${kind === 'buy' ? '全仓' : '全部'}</button></div>
+      ${mine.map((o) => `<div class="fn-row"><span>${TR.KIND[o.kind]} ${o.px} · ${o.n.toLocaleString()} 股${o.on === false ? '<small>（等前面成交才生效）</small>' : ''}</span><b><button class="btn sm" data-x="${o.id}">撤</button></b></div>`).join('')}
       ${TR.mg(s) ? `<div class="fn-row"><span><b>融资买入</b>　还能借 ${fmtMoney(TR.room(s))}</span></div><button class="btn sm gold mg-buy">借钱买 ${n.toLocaleString()} 股（约 ${fmtMoney(SK.quote(s, code, n, 'buy').total)}）</button>` : ''}`;
     el.querySelectorAll('[data-k]').forEach((b) => (b.onclick = () => { kind = b.dataset.k; draw(); }));
+    el.querySelector('.ord-max').onclick = () => { const p0 = +el.querySelector('.ord-px').value; const nn = kind === 'buy' ? Math.floor(SK.maxBuyN(s, code, Math.max(0, s.cash)) * SK.price(s, code) / Math.max(p0, 0.01)) : SK.maxSellMe(s, code) - m.orders.filter((x) => x.code === code && x.kind !== 'buy' && x.on !== false).reduce((a, x) => a + x.n, 0); if (!(nn >= 1)) { toast(kind === 'buy' ? '钱不够' : '没有能卖的'); return; } const r = TR.addOrder(s, { code, kind, px: p0, n: nn }, now()); if (!r.ok) { toast(r.why); return; } done(`挂好了：${TR.KIND[kind]} ${r.order.px} · ${nn.toLocaleString()} 股（${kind === 'buy' ? '全仓' : '全部'}）`); rerender(); };   // 任务板第 1e 项
     el.querySelector('.ord-go').onclick = () => { const r = TR.addOrder(s, { code, kind, px: +el.querySelector('.ord-px').value, n }, now()); if (!r.ok) { toast(r.why); return; } done(`挂好了：${TR.KIND[kind]} ${r.order.px}`); rerender(); };
     el.querySelectorAll('[data-x]').forEach((b) => (b.onclick = () => { TR.cancelOrder(s, +b.dataset.x); done('撤了'); rerender(); }));
     const mb = el.querySelector('.mg-buy'); if (mb) mb.onclick = () => { const r = TR.marginBuy(s, code, n, now()); if (!r.ok) { toast(r.why); return; } done(`融资买好了，借 ${fmtMoney(r.borrowed)}`); rerender(); };
@@ -80,7 +88,7 @@ export function renderTradeTab(s, wrap, draw) {
   // 条件单
   wrap.appendChild(h('div', 'sd-rec-title', `条件单 ${m.orders.length} / ${C.orders.max}`));
   const ob = h('div', 'fn-card');
-  ob.innerHTML = m.orders.length ? m.orders.map((o) => `<div class="fn-row"><span>${SK.BY[o.code].name}　${TR.KIND[o.kind]} ${o.px} · ${o.n.toLocaleString()} 股<small>　现价 ${SK.price(s, o.code).toFixed(2)}</small></span><b><button class="btn sm" data-x="${o.id}">撤</button></b></div>`).join('') : '<div class="tr-gain">还没挂：在个股页挂「到价买入 / 止盈 / 止损」</div>';
+  ob.innerHTML = m.orders.length ? m.orders.map((o) => `<div class="fn-row"><span>${SK.BY[o.code].name}　${TR.KIND[o.kind]} ${o.px} · ${o.n.toLocaleString()} 股${o.on === false ? '（等前面成交）' : ''}<small>　现价 ${SK.price(s, o.code).toFixed(2)}</small></span><b><button class="btn sm" data-x="${o.id}">撤</button></b></div>`).join('') : '<div class="tr-gain">还没挂：在个股页挂「到价买入 / 止盈 / 止损」</div>';
   ob.querySelectorAll('[data-x]').forEach((b) => (b.onclick = () => { TR.cancelOrder(s, +b.dataset.x); done('撤了'); draw(); }));
   wrap.appendChild(ob);
   // 两融

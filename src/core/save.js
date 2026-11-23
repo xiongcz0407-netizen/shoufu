@@ -1,10 +1,10 @@
 // 只有一个存档，自动存；带存档版本号，新版本必须能读旧存档
-import { APP_V } from '../version.js?v=598ef1ae';
-import { mkt } from './stocks.js?v=598ef1ae';
+import { APP_V } from '../version.js?v=d69b03f5';
+import { mkt } from './stocks.js?v=d69b03f5';
 
 export const SAVE_KEY = 'shoufu_save';
 export const SAVE_VERSION = 2; // 第一次发布（V0.1）是 1；2：V0.2 取消境外账户（设计30，core/migrate.js v1to2）
-import { v1to2 } from './migrate.js?v=598ef1ae';
+import { v1to2 } from './migrate.js?v=d69b03f5';
 
 /** 局号：每开一局一个 */
 export const newGid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);

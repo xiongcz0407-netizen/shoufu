@@ -1,15 +1,15 @@
 // 第 P-06 项（设计25 第五节）：前期炒股 —— 条件单、打新股、融资融券、看盘、炒股周报
 // 条件单和两融的平仓线每跳检查（挂在 stocks.js 的 addStepHook 上，离线补算一样走）；打新、利息、周报按时间走 tick()（在线 ticker 和 core/offcap.js 都叫）
-import * as SK from './stocks.js?v=598ef1ae';
-import { pay, receive } from './ledger.js?v=598ef1ae';
-import { addContract } from './contracts.js?v=598ef1ae';
-import { addMsg } from './inbox.js?v=598ef1ae';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=598ef1ae';
-import { profitMul } from './calib.js?v=598ef1ae';
-import { isTraining } from './training.js?v=598ef1ae';
-import { attrs as secAttrs } from './posts.js?v=598ef1ae';
-import { SEC_BY_ID } from '../config/secretaries.js?v=598ef1ae';
-import { netWorth } from './economy.js?v=598ef1ae';
+import * as SK from './stocks.js?v=d69b03f5';
+import { pay, receive } from './ledger.js?v=d69b03f5';
+import { addContract } from './contracts.js?v=d69b03f5';
+import { addMsg } from './inbox.js?v=d69b03f5';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=d69b03f5';
+import { profitMul } from './calib.js?v=d69b03f5';
+import { isTraining } from './training.js?v=d69b03f5';
+import { attrs as secAttrs } from './posts.js?v=d69b03f5';
+import { SEC_BY_ID } from '../config/secretaries.js?v=d69b03f5';
+import { netWorth } from './economy.js?v=d69b03f5';
 
 const C = SK.SCFG; const O = C.orders, I = C.ipo, MG = C.margin, W = C.weekly;
 export const DAY = MONTH_MS / 30;
@@ -41,7 +41,7 @@ export function setWatch(s, id) {
 export const watcher = (s) => { const w = s.mkt && s.mkt.watcher; return w && s.secs[w] && !isTraining(s, w) ? w : null; };
 SK.setWatcher(watcher);
 /** 看盘的提前概率、准确率（给界面看） */
-export const watchOdds = (s, id) => { const w = secAttrs(s, id).wit; return { early: Math.min(1, w / 150), right: 0.5 + w / 400 }; };
+export const watchOdds = (s, id) => { const w = secAttrs(s, id).wit; const T = C.watch.tip; return { early: Math.min(1, w / T.earlyDiv), right: Math.min(1, T.rightBase + w / T.rightDiv) }; };
 
 // ---------- 条件单 ----------
 export const KIND = { buy: '到价买入', tp: '止盈卖出', sl: '止损卖出' };
@@ -50,7 +50,8 @@ export function whyNotOrder(s, o) {
   if (!(m.px[o.code] > 0)) return '还没上市';
   if (m.orders.length >= O.max) return `最多同时挂 ${O.max} 张`;
   if (!(o.n >= 1)) return '最少 1 股'; if (!(o.px > 0)) return '填一个价格';
-  if (o.kind !== 'buy') { const h = m.hold[o.code]; const busy = m.orders.filter((x) => x.code === o.code && x.kind !== 'buy').reduce((a, x) => a + x.n, 0); if (!h || h.n - busy < o.n) return '持仓不够（已经挂了的卖单也算）'; }
+  { const B = SK.band(m, o.code); if (B.up != null && (o.px > B.up + 1e-9 || o.px < B.dn - 1e-9)) return `挂单价要在今天跌停 ${B.dn} 和涨停 ${B.up} 之间`; }   // 设计41 第九节
+  if (o.kind !== 'buy' && o.on !== false) { const h = m.hold[o.code]; const busy = m.orders.filter((x) => x.code === o.code && x.kind !== 'buy' && x.on !== false).reduce((a, x) => a + x.n, 0); if (!h || h.n - busy < o.n) return '持仓不够（已经挂了的卖单也算）'; }
   return null;
 }
 export function addOrder(s, o, t = Date.now()) {
@@ -58,18 +59,55 @@ export function addOrder(s, o, t = Date.now()) {
   const m = tr(s, t); const x = { id: ++m.ordSeq, code: o.code, kind: o.kind, px: r2(o.px), n: Math.floor(o.n), at: t };
   m.orders.push(x); return { ok: true, order: x };
 }
-export function cancelOrder(s, id) { const m = tr(s); const i = m.orders.findIndex((x) => x.id === id); if (i < 0) return false; m.orders.splice(i, 1); return true; }
+export function cancelOrder(s, id, filled = false) {
+  const m = tr(s); const i = m.orders.findIndex((x) => x.id === id); if (i < 0) return false; const o = m.orders[i]; m.orders.splice(i, 1);
+  if (o.grp && o.role === 'in' && !filled) m.orders = m.orders.filter((x) => !(x.grp === o.grp && x.on === false));   // 联动单：买入撤了，还没生效的止盈止损一起撤
+  return true;
+}
+// ---------- 设计41 第三节：联动单（买入成交以后止盈、止损才生效；一张成交另一张撤）----------
+/** legs: [{ kind, px, n, role: 'in' | 'out' }]（第一张 in，其余 out）；meta: { src: 'tip' | 'watch' | '', exp（到期撤没成交的买单）, lu }。一次全挂上，挂不上一张都不挂 */
+export function addGroup(s, legs, meta = {}, t = Date.now()) {
+  const m = tr(s, t); if (m.orders.length + legs.length > O.max) return { ok: false, why: `最多同时挂 ${O.max} 张（现在 ${m.orders.length} 张）` };
+  const ins = legs.filter((x) => x.role === 'in'); if (ins.length !== 1) return { ok: false, why: '联动单要一张开头的单子' };
+  for (const l of legs) { const why = whyNotOrder(s, { ...l, on: l.role === 'in' }); if (why) return { ok: false, why }; }
+  const g = (m.grpSeq = (m.grpSeq || 0) + 1); m.grps = m.grps || {};
+  m.grps[g] = { src: meta.src || '', code: ins[0].code, at: t, lu: !!meta.lu, cost: 0, n: 0 };
+  const out = legs.map((l) => { const x = { id: ++m.ordSeq, code: l.code, kind: l.kind, px: r2(l.px), n: Math.floor(l.n), at: t, grp: g, role: l.role, on: l.role === 'in' }; if (meta.exp && l.role === 'in') x.exp = meta.exp; m.orders.push(x); return x; });
+  return { ok: true, grp: g, orders: out };
+}
+/** 照她挂的单成交以后（战绩用）：fn(s, { grp, kind: 'in' | 'out', pnl, lu }) */
+const GROUP_HOOKS = []; export const addGroupHook = (fn) => { GROUP_HOOKS.push(fn); };
 const hit = (o, p) => (o.kind === 'tp' ? p >= o.px : p <= o.px);
 function checkOrders(s, tk) {
   const m = s.mkt; if (!m.orders || !m.orders.length) return;
   const t = tk * TICK;
   for (const o of m.orders.slice()) {
-    if (t - o.at > O.expireDays * DAY) { cancelOrder(s, o.id); addMsg(s, { kind: 'system', type: 'stock_order', title: `条件单过期撤了：${name(o.code)} ${KIND[o.kind]} ${o.px}`, body: `${O.expireDays} 个游戏天没触发` }, t); continue; }
+    if (!m.orders.includes(o) || o.on === false || (o.role === 'out' && o.at >= t)) continue;   // 联动单还没生效的不看；这一跳刚生效的下一跳才看
+    if (t - o.at > O.expireDays * DAY || (o.exp && t >= o.exp)) { cancelOrder(s, o.id); addMsg(s, { kind: 'system', type: 'stock_order', title: `条件单${o.exp && t >= o.exp ? '到期' : '过期'}撤了：${name(o.code)} ${KIND[o.kind]} ${o.px}`, body: o.exp && t >= o.exp ? '看盘的单子 2 小时没成交，撤了' : `${O.expireDays} 个游戏天没触发` }, t); continue; }
     const p = m.px[o.code]; if (!(p > 0) || !hit(o, p)) continue;
-    cancelOrder(s, o.id);
+    const bd = SK.onBoard(m, o.code); if ((o.kind === 'buy' && bd === 'up') || (o.kind !== 'buy' && bd === 'down')) continue;   // 设计41 第九节：封在板上这一跳不成交
+    cancelOrder(s, o.id, true);
     const r = o.kind === 'buy' ? SK.buy(s, o.code, o.n, t) : SK.sell(s, o.code, Math.min(o.n, (m.hold[o.code] || { n: 0 }).n), t);
+    if (o.grp && r.ok) linked(s, o, r, t);
     addMsg(s, { kind: 'system', type: 'stock_order', title: r.ok ? `条件单成交：${KIND[o.kind]} ${name(o.code)} ${o.n.toLocaleString()} 股，成交价 ${r.quote.exec}` : `条件单没成交：${name(o.code)} ${KIND[o.kind]}`, body: r.ok ? `触发价 ${o.px}，交割单 ${r.slip.no}${r.gain != null ? `，这笔${r.gain >= 0 ? '赚' : '亏'} ${fmt(Math.abs(r.gain))}` : ''}` : r.why }, t);
   }
+}
+
+/** 联动单成交以后：开头那张成交 → 后面的生效（股数照实际成交）；后面一张成交 → 同组其他的撤 */
+function linked(s, o, r, t) {
+  const m = s.mkt; const g = (m.grps || {})[o.grp]; const mates = m.orders.filter((x) => x.grp === o.grp);
+  if (o.role === 'in') {
+    const got = o.kind === 'buy' ? o.n : (r.quote ? Math.round(r.quote.gross / r.quote.exec) : o.n);
+    for (const x of mates) { x.on = true; x.n = got; x.at = t; }
+    if (g) { g.cost = o.kind === 'buy' ? r.quote.total : 0; g.n = got; g.side = o.kind; }
+    for (const fn of GROUP_HOOKS) fn(s, { grp: o.grp, kind: 'in', lu: g && g.lu, src: g && g.src });
+    if (!mates.length && g) delete m.grps[o.grp];
+    return;
+  }
+  for (const x of mates) cancelOrder(s, x.id);
+  let pnl = null; if (g && g.side === 'buy' && g.n) pnl = r2(r.quote.total - g.cost * Math.min(1, o.n / g.n));
+  for (const fn of GROUP_HOOKS) fn(s, { grp: o.grp, kind: 'out', pnl, lu: g && g.lu, src: g && g.src });
+  if (g) delete m.grps[o.grp];
 }
 
 // ---------- 融资融券（只做融资买入） ----------
@@ -205,19 +243,20 @@ export function weekStat(s) {
 }
 function weekly(s, t) {
   const m = s.mkt; if (t - m.wk.start < W.days * DAY) return null;
-  const st = weekStat(s); const end = m.wk.start + W.days * DAY; m.wk = snapWeek(s, t);
+  const st = weekStat(s); const end = m.wk.start + W.days * DAY; const lw = m.wk.look; m.wk = snapWeek(s, t);   // 设计41：她的战绩跟周报一起清零
   if (!st.rows.length) return null;
   const who = wisest(s); const type = who ? SEC_BY_ID[who].type : '知性'; const ls = W.lines[type] || W.lines['知性'];
   const rateTxt = st.rate == null ? '—' : `${Math.round(st.rate * 100)}%`; const pnlTxt = `${st.pnl >= 0 ? '赚了' : '亏了'} ${fmt(Math.abs(st.pnl))}`;
   const line = ls[Math.floor(SK.hu('WK' + type, Math.floor(end / DAY)) * ls.length)].replace('{rate}', rateTxt).replace('{pnl}', pnlTxt);
-  const body = `本周${pnlTxt}；胜率 ${rateTxt}${st.trades ? `（卖出 ${st.trades} 笔）` : '（这周没卖出）'}${st.best && st.best.pnl > 0 ? `；最赚：${name(st.best.code)} ${fmt(st.best.pnl)}` : ''}${st.worst && st.worst.pnl < 0 ? `；最亏：${name(st.worst.code)} ${fmt(st.worst.pnl)}` : ''}\n${who ? SEC_BY_ID[who].name : ''}：「${line}」`;
+  const body = `本周${pnlTxt}；胜率 ${rateTxt}${st.trades ? `（卖出 ${st.trades} 笔）` : '（这周没卖出）'}${st.best && st.best.pnl > 0 ? `；最赚：${name(st.best.code)} ${fmt(st.best.pnl)}` : ''}${st.worst && st.worst.pnl < 0 ? `；最亏：${name(st.worst.code)} ${fmt(st.worst.pnl)}` : ''}${lw && lw.n ? `\n看盘 ${lw.n} 次，抓到涨停 ${lw.lu} 次，照她挂的单${lw.pnl >= 0 ? '赚' : '亏'} ${fmt(Math.abs(lw.pnl))}` : ''}\n${who ? SEC_BY_ID[who].name : ''}：「${line}」`;
   addMsg(s, { kind: 'report', type: 'stock_weekly', from: who || '', title: `炒股周报：${pnlTxt}`, body }, t);
   return { ...st, line, who };
 }
 
 /** 按时间走的部分（在线 ticker、离线补算都叫）：打新、两融利息、周报 */
+const TICK_HOOKS = []; export const addTickHook = (fn) => { TICK_HOOKS.push(fn); };   // 设计41：看盘消息过期删（core/look.js）
 export function tick(s, t, rnd = Math.random) {
   if (!s.mkt) return null;
-  tr(s, t); ipoTick(s, t, rnd); interest(s, t); return weekly(s, t);
+  tr(s, t); ipoTick(s, t, rnd); interest(s, t); for (const fn of TICK_HOOKS) fn(s, t); return weekly(s, t);
 }
 SK.addStepHook((s, tk) => { if (!s.mkt) return; checkOrders(s, tk); checkMargin(s, tk); });
