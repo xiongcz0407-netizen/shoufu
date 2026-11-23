@@ -1,15 +1,15 @@
 // 设计41 秘书看盘给价（开发2）：新闻提醒弹框、「看盘」结果弹框、照她说的挂单（条件单表填好，玩家能改再挂）、消息「重要」里的按钮
-import * as SK from '../core/stocks.js?v=d69b03f5';
-import * as TR from '../core/trade.js?v=d69b03f5';
-import * as LK from '../core/look.js?v=d69b03f5';
-import * as I from '../core/inbox.js?v=d69b03f5';
-import { SEC_BY_ID } from '../config/secretaries.js?v=d69b03f5';
-import { fmtMoney } from '../core/format.js?v=d69b03f5';
-import { asset, hasAsset } from '../platform/assets.js?v=d69b03f5';
-import { game } from '../game.js?v=d69b03f5';
-import { now } from '../core/clock.js?v=d69b03f5';
-import { h, openPanel, toast } from './dom.js?v=d69b03f5';
-import { addActionUi } from './inbox.js?v=d69b03f5';
+import * as SK from '../core/stocks.js?v=59e44493';
+import * as TR from '../core/trade.js?v=59e44493';
+import * as LK from '../core/look.js?v=59e44493';
+import * as I from '../core/inbox.js?v=59e44493';
+import { SEC_BY_ID } from '../config/secretaries.js?v=59e44493';
+import { fmtMoney } from '../core/format.js?v=59e44493';
+import { asset, hasAsset } from '../platform/assets.js?v=59e44493';
+import { game } from '../game.js?v=59e44493';
+import { now } from '../core/clock.js?v=59e44493';
+import { h, openPanel, toast } from './dom.js?v=59e44493';
+import { addActionUi } from './inbox.js?v=59e44493';
 
 const W = SK.SCFG.watch;
 const done = (msg) => { if (msg) toast(msg); game.changed(); game.save(); };

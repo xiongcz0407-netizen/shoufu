@@ -1,16 +1,16 @@
 // 消息中心（铃铛）：请示 / 月报 / 邀请拍卖 / 系统；请示直接批准 / 驳回
-import * as I from '../core/inbox.js?v=d69b03f5';
-import { SEC_BY_ID } from '../config/secretaries.js?v=d69b03f5';
-import { asset } from '../platform/assets.js?v=d69b03f5';
-import { now } from '../core/clock.js?v=d69b03f5';
-import { game } from '../game.js?v=d69b03f5';
-import { h, toast } from './dom.js?v=d69b03f5';
-import { openFull } from './shell.js?v=d69b03f5';
-import { bump } from '../core/daily.js?v=d69b03f5';
-import { openEventMsg } from './event.js?v=d69b03f5';
-import * as CP from '../core/coupon.js?v=d69b03f5'; // 设计39 再来 10 件
-import { refillHtml, bindRefill } from './coupon.js?v=d69b03f5'; // 设计39 事件券（开发2）
-import { todayCount } from '../core/bizevents.js?v=d69b03f5';
+import * as I from '../core/inbox.js?v=59e44493';
+import { SEC_BY_ID } from '../config/secretaries.js?v=59e44493';
+import { asset, hasAsset } from '../platform/assets.js?v=59e44493';
+import { now } from '../core/clock.js?v=59e44493';
+import { game } from '../game.js?v=59e44493';
+import { h, toast } from './dom.js?v=59e44493';
+import { openFull } from './shell.js?v=59e44493';
+import { bump } from '../core/daily.js?v=59e44493';
+import { openEventMsg } from './event.js?v=59e44493';
+import * as CP from '../core/coupon.js?v=59e44493'; // 设计39 再来 10 件
+import { refillHtml, bindRefill } from './coupon.js?v=59e44493'; // 设计39 事件券（开发2）
+import { todayCount } from '../core/bizevents.js?v=59e44493';
 
 /** 页签那一排放不下时，把选中的滑到中间 */
 function showOn(row) { const b = row.querySelector('.seg.on'); if (!b || row.scrollWidth <= row.clientWidth) return; const r = row.getBoundingClientRect(), x = b.getBoundingClientRect(); if (x.left >= r.left && x.right <= r.right) return; row.scrollLeft += x.left - r.left - (r.width - x.width) / 2; }
@@ -49,7 +49,7 @@ export function openInbox(kind) {
     if (!items.length) list.appendChild(h('div', 'empty', cur === 'important' ? '没有要你签字拍板的事' : cur === 'biz' ? '今天的经营事件都处理完了' : '没有消息'));
     for (const m of items) {
       const from = SEC_BY_ID[m.from];
-      const card = h('div', 'msg' + (m.read ? '' : ' unread'), `${from ? `<img src="${asset(`assets/sec/${m.from}/c1.webp`)}" alt="">` : '<i class="msg-ico">📄</i>'}
+      const card = h('div', 'msg' + (m.read ? '' : ' unread'), `${from ? `<img src="${asset(`assets/sec/${m.from}/c1.webp`)}" alt="">` : m.type === 'gift_mail' && hasAsset('assets/ui/icon_gift.webp') ? `<img class="msg-gift" src="${asset('assets/ui/icon_gift.webp')}" alt="">` : '<i class="msg-ico">📄</i>'}
         <div class="msg-main"><div class="msg-title">${m.title}</div><div class="msg-body">${m.body}</div>
         <div class="msg-foot">${[from ? from.name : '', m.type === 'biz_event' && m.status === 'done' ? `已处理：${m.choice || ''}` : m.status === 'approved' ? '已批准' : m.status === 'rejected' ? '已驳回' : ''].filter(Boolean).join(' · ')}</div>
         ${m.status === 'open' ? `<div class="ind-btns">${m.actions.map((a) => `<button class="btn ${a.key === 'approve' ? 'gold' : ''}" data-a="${a.key}">${a.label}</button>`).join('')}</div>` : ''}</div>`);

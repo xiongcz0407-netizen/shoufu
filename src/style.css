@@ -1013,3 +1013,6 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 .lk-leg { display: flex; align-items: center; gap: 4px; margin: 6px 0; font-size: 12px; } .lk-leg span:first-child { width: 78px; } .lk-leg span small { display: block; font-size: 10px; opacity: .6; } .lk-leg input { width: 76px; background: #0f1626; color: inherit; border: 1px solid #2c3a56; border-radius: 6px; padding: 4px; }
 .all-btns { margin-top: 6px; } .all-btns .btn small { display: block; font-size: 10px; opacity: .8; } .lk-max { margin-left: 4px; }
 .lu-tag.dn { background: #2fb37a; } .band-row b { font-weight: 700; }
+.msg-body { white-space: pre-line; } /* 设计42：奖励邮件逐项一行（消息正文里的换行照着换） */
+.ub-gains li > span { flex: 1 1 40%; min-width: 7em; } .ub-gains li b { white-space: normal; text-align: right; max-width: 62%; } /* 设计42：值很长的（看盘 100% 准）换行，不把名字挤成一列 */
+.msg img.msg-gift { width: 44px; height: 44px; object-fit: contain; border-radius: 0; border: 0; background: none; } /* V0.2.12 第 1b 项：奖励邮件用礼物图标 */

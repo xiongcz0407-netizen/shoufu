@@ -1,12 +1,12 @@
 // 设计41 秘书看盘给价（开发2）：新闻提醒给价 + 玩家点「看盘」；进消息「重要」、过期直接删；她的战绩
 // 新闻提醒：core/stocks.js hint() 提前 3 跳出 → tipMsg 变成一条「重要」消息（带三张联动单）
 // 看盘：lookNow 用 SK.future 把接下来 240 跳先算出来（跟真实走的一样），挑真实会到的低点 L、之后的高点 H 定价，一定能成交
-import * as SK from './stocks.js?v=d69b03f5';
-import * as TR from './trade.js?v=d69b03f5';
-import { addMsg } from './inbox.js?v=d69b03f5';
-import { attrs as secAttrs } from './posts.js?v=d69b03f5';
-import { whyEnergy, doEnergy } from './manage.js?v=d69b03f5';
-import { SEC_BY_ID } from '../config/secretaries.js?v=d69b03f5';
+import * as SK from './stocks.js?v=59e44493';
+import * as TR from './trade.js?v=59e44493';
+import { addMsg } from './inbox.js?v=59e44493';
+import { attrs as secAttrs } from './posts.js?v=59e44493';
+import { whyEnergy, doEnergy } from './manage.js?v=59e44493';
+import { SEC_BY_ID } from '../config/secretaries.js?v=59e44493';
 
 const W = SK.SCFG.watch; const TICK = SK.SCFG.tickSec * 1000;
 const up2 = (v) => Math.ceil(v * 100 - 1e-7) / 100;     // 买入价往上取整到分

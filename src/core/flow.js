@@ -4,15 +4,15 @@
 // 写哪家店：一家店只写产业名；有分店「城市 + 几号店」随机挑；非零售线写城市（设计40 第二轮，说法、单价不用了）
 // 一笔一笔进来的大钱（地产预售、收租、传媒分账、商战奖励）用记账那一笔直接出一条
 // 存档 s.flow = { day, sum: { rev, cost }, list: [{ i, t, id, name, text, rev, cost }]（最新在前，最多 60）, seq }；离线不补
-import { IND_BY_ID } from '../config/industries.js?v=d69b03f5';
-import { setIncomeHook } from './economy.js?v=d69b03f5';
-import { addReceiveHook } from './ledger.js?v=d69b03f5';
-import { lineLabor } from './staff.js?v=d69b03f5';
-import { monthlyRent, monthlyOpex } from './accrual.js?v=d69b03f5';
-import { MONTH_MS, gameDate } from './gametime.js?v=d69b03f5';
-import { now } from './clock.js?v=d69b03f5';
-import { lineCities, cityName } from './cities.js?v=d69b03f5';
-import { st as siteSt } from './sites.js?v=d69b03f5';
+import { IND_BY_ID } from '../config/industries.js?v=59e44493';
+import { setIncomeHook } from './economy.js?v=59e44493';
+import { addReceiveHook } from './ledger.js?v=59e44493';
+import { lineLabor } from './staff.js?v=59e44493';
+import { monthlyRent, monthlyOpex } from './accrual.js?v=59e44493';
+import { MONTH_MS, gameDate } from './gametime.js?v=59e44493';
+import { now } from './clock.js?v=59e44493';
+import { lineCities, cityName } from './cities.js?v=59e44493';
+import { st as siteSt } from './sites.js?v=59e44493';
 
 export const FLOW_MAX = 60;
 const GAP = [2000, 5000];   // 隔 2～5 秒出一笔

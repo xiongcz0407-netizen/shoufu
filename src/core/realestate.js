@@ -1,17 +1,17 @@
 // 地产（设计20 第二节 1）：拿地（挂牌竞价）→ 四证 → 开工 → 分 3 批预售（监管账户）→ 交房清算（增值税、土地增值税、所得税）；商业综合体可以持有收租
 // 不 import economy（economy 要用这里的 reValue 算身价）
-import { whyCushion } from './cashflow.js?v=d69b03f5'; // V0.2.3 留够两个月工资
-import { credit } from './credit.js?v=d69b03f5'; // V3-01 亲自拍板攒投入度
-import C from '../config/realestate.json?v=d69b03f5' with { type: 'json' };
-import { pay, receive, canPay } from './ledger.js?v=d69b03f5';
-import { payTaxItem, TAX } from './companytax.js?v=d69b03f5';
-import { addContract } from './contracts.js?v=d69b03f5';
-import { staffFactor, establishment, fire, PAY } from './staff.js?v=d69b03f5';
-import { addMsg, onAction } from './inbox.js?v=d69b03f5';
-import { cityOpen, cityName as cityNm } from './cities.js?v=d69b03f5';
-import { managerRevMult, holder, isSec } from './posts.js?v=d69b03f5';
-import { MONTH_MS, monthIndex } from './gametime.js?v=d69b03f5';
-import { gm } from './calib.js?v=d69b03f5';
+import { whyCushion } from './cashflow.js?v=59e44493'; // V0.2.3 留够两个月工资
+import { credit } from './credit.js?v=59e44493'; // V3-01 亲自拍板攒投入度
+import C from '../config/realestate.json?v=59e44493' with { type: 'json' };
+import { pay, receive, canPay } from './ledger.js?v=59e44493';
+import { payTaxItem, TAX } from './companytax.js?v=59e44493';
+import { addContract } from './contracts.js?v=59e44493';
+import { staffFactor, establishment, fire, PAY } from './staff.js?v=59e44493';
+import { addMsg, onAction } from './inbox.js?v=59e44493';
+import { cityOpen, cityName as cityNm } from './cities.js?v=59e44493';
+import { managerRevMult, holder, isSec } from './posts.js?v=59e44493';
+import { MONTH_MS, monthIndex } from './gametime.js?v=59e44493';
+import { gm } from './calib.js?v=59e44493';
 export { C as RE_CFG };
 
 const MIN = 60e3;

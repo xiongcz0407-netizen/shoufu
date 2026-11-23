@@ -3,9 +3,9 @@
    - 游戏里切回前台、点任意处（5 分钟最多查一次）检查 → 顶部「有新版本，点这里更新」，玩家自己点；更新前先上传存档
    - 更新：先强制重新下载首页覆盖缓存，再原地址重开（带 ?u=时间）
    - 更新后弹一次「这一版新加了什么」 */
-import { APP_V } from '../version.js?v=d69b03f5';
-import { CHANGELOG } from '../config/changelog.js?v=d69b03f5';
-import { storage } from '../platform/storage.js?v=d69b03f5';
+import { APP_V } from '../version.js?v=59e44493';
+import { CHANGELOG } from '../config/changelog.js?v=59e44493';
+import { storage } from '../platform/storage.js?v=59e44493';
 
 export const SEEN_KEY = 'sf_seen_v';
 export const upd = { newV: 0, at: 0, beforeUpdate: null };

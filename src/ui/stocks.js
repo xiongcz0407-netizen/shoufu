@@ -1,25 +1,25 @@
 // 「财富 → 投资」股票（第 2-09 项，设计12 第八节）：行情 | 持仓 | 投资经理；点一只 → 个股（分时、指标、买卖、新闻、持仓）
-import * as SK from '../core/stocks.js?v=d69b03f5';
-import * as AS from '../core/assets.js?v=d69b03f5';
-import * as INB from '../core/inbox.js?v=d69b03f5';
-import { bossAttrs } from '../core/boss.js?v=d69b03f5';
-import { holder, isSec } from '../core/posts.js?v=d69b03f5';
-import { SEC_BY_ID } from '../config/secretaries.js?v=d69b03f5';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=d69b03f5';
-import { asset, hasAsset } from '../platform/assets.js?v=d69b03f5';
-import { game } from '../game.js?v=d69b03f5';
-import { now } from '../core/clock.js?v=d69b03f5';
-import { h, openPanel, toast, liveRender } from './dom.js?v=d69b03f5';
-import { say } from './main-screen.js?v=d69b03f5';
-import { renderFunds } from './funds.js?v=d69b03f5';
-import { hintLater } from './guide2.js?v=d69b03f5';
-import * as LSC from '../core/listing.js?v=d69b03f5';
-import { selfCard } from './listing.js?v=d69b03f5';
-import * as TKO from '../core/takeover.js?v=d69b03f5';
-import * as TR from '../core/trade.js?v=d69b03f5';
-import { renderTradeTab, orderBlock, watchRow, ipoLogo } from './trade.js?v=d69b03f5';
-import { onTip } from './look.js?v=d69b03f5'; // 设计41 秘书看盘给价（开发2）
-import { canPay } from '../core/ledger.js?v=d69b03f5';
+import * as SK from '../core/stocks.js?v=59e44493';
+import * as AS from '../core/assets.js?v=59e44493';
+import * as INB from '../core/inbox.js?v=59e44493';
+import { bossAttrs } from '../core/boss.js?v=59e44493';
+import { holder, isSec } from '../core/posts.js?v=59e44493';
+import { SEC_BY_ID } from '../config/secretaries.js?v=59e44493';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=59e44493';
+import { asset, hasAsset } from '../platform/assets.js?v=59e44493';
+import { game } from '../game.js?v=59e44493';
+import { now } from '../core/clock.js?v=59e44493';
+import { h, openPanel, toast, liveRender } from './dom.js?v=59e44493';
+import { say } from './main-screen.js?v=59e44493';
+import { renderFunds } from './funds.js?v=59e44493';
+import { hintLater } from './guide2.js?v=59e44493';
+import * as LSC from '../core/listing.js?v=59e44493';
+import { selfCard } from './listing.js?v=59e44493';
+import * as TKO from '../core/takeover.js?v=59e44493';
+import * as TR from '../core/trade.js?v=59e44493';
+import { renderTradeTab, orderBlock, watchRow, ipoLogo } from './trade.js?v=59e44493';
+import { onTip } from './look.js?v=59e44493'; // 设计41 秘书看盘给价（开发2）
+import { canPay } from '../core/ledger.js?v=59e44493';
 
 let tab = 'market', sector = '全部', sortBy = 'chg';
 const logo = (c, cls = 'sk-logo') => (SK.BY[c] && SK.BY[c].ipo ? ipoLogo(c, cls) : hasAsset(`assets/stock/logo_${c}.webp`) ? `<img class="${cls}" src="${asset(`assets/stock/logo_${c}.webp`)}" alt="">` : `<i class="${cls} ph">${c}</i>`);
