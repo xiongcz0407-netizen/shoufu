@@ -1,11 +1,11 @@
 // 第 P-06 项（设计25 第四节）：新手目标链 12 个 —— 主页顶上一条「当前目标」，做完自动领奖、弹一段剧情；做完整条链换成「下一个称号还差什么」
 // 亲自上阵、经营事件、口碑、店长是开发1（P-05）的东西：那边做到了叫 mark(s, 'act' | 'event' | 'rep60' | 'manager')；口碑奖励、店长工资减半通过 onReward 挂钩交给那边，没挂钩先记在 s.goals.pending
-import CFG from '../config/goals.json?v=876cadde' with { type: 'json' };
-import { receive } from './ledger.js?v=876cadde';
-import { netWorth, promoteRival } from './economy.js?v=876cadde';
-import { addFavor, addLove } from './affection.js?v=876cadde';
-import { TITLES } from '../config/titles.js?v=876cadde';
-import { RIVALS } from '../config/rivals.js?v=876cadde';
+import CFG from '../config/goals.json?v=77f12d68' with { type: 'json' };
+import { receive } from './ledger.js?v=77f12d68';
+import { netWorth, promoteRival } from './economy.js?v=77f12d68';
+import { addFavor, addLove } from './affection.js?v=77f12d68';
+import { TITLES } from '../config/titles.js?v=77f12d68';
+import { RIVALS } from '../config/rivals.js?v=77f12d68';
 
 export const GCFG = CFG; export const LIST = CFG.list;
 export function gl(s) { return (s.goals = s.goals || { i: 0, marks: {}, energy: 0, pending: {}, fresh: [], doneAt: {} }); }

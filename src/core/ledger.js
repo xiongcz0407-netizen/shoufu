@@ -30,7 +30,7 @@ export const CATS = {
   newbie: ['新手奖励', 'personal'], margin_in: ['融资借款（买股票）', 'personal'], margin_repay: ['归还融资', 'personal'], margin_interest: ['融资利息', 'personal'], ipo_pay: ['新股中签缴款', 'personal'], // 第 P-06 项
 };
 export const KEEP_GAME_YEARS = 3;
-import BANKCFG from '../config/bank.json?v=876cadde' with { type: 'json' };
+import BANKCFG from '../config/bank.json?v=77f12d68' with { type: 'json' };
 const USE_CATS = BANKCFG.useCats;
 
 const bal = (s, w) => (w === 'company' ? s.company : w === 'offshore' ? (s.offshore || 0) : s.cash);
@@ -42,7 +42,7 @@ export const canPay = (s, wallet, amount) => bal(s, wallet) - (wallet === 'perso
 /** 记一笔并改余额。out 时余额不够返回 null（不扣）；force 允许扣成负数（欠工资、欠税） */
 export function post(s, e, t = Date.now()) {
   const amount = Math.round((e.amount || 0) * 100) / 100;
-  if (!(amount > 0)) return null;
+  if (!(amount > 0) && !(e.memo && e.zero)) return null; // V0.2.4：备忘行可以是 0 元（人事贴招聘补员也要留一笔流水）
   const wallet = e.wallet || (CATS[e.cat] ? CATS[e.cat][1] : 'personal');
   if (e.dir === 'out' && !e.force && !e.memo && !canPay(s, wallet, amount)) return null;
   const k = e.dir === 'out' ? -1 : 1;

@@ -1,15 +1,15 @@
 // 娱乐传媒（设计20 第二节 4）：直播分成（平台 50%、主播再分 50%）、投拍电影 / 剧（偏态票房、真实分账、限薪令）、文化事业建设费 3%、联动
 // 不 import economy
-import { whyCushion } from './cashflow.js?v=876cadde'; // V0.2.3 留够两个月工资
-import M from '../config/media.json?v=876cadde' with { type: 'json' };
-import { headCap, gm } from './calib.js?v=876cadde';
-import { pay, receive, canPay } from './ledger.js?v=876cadde';
-import { payTaxItem, track } from './companytax.js?v=876cadde';
-import { onDutyRole, onDuty, lookOf } from './staff.js?v=876cadde';
-import { holder, isSec, attrs } from './posts.js?v=876cadde';
-import { MONTH_MS, monthIndex } from './gametime.js?v=876cadde';
-import { addMsg } from './inbox.js?v=876cadde';
-import { addContract } from './contracts.js?v=876cadde';
+import { whyCushion } from './cashflow.js?v=77f12d68'; // V0.2.3 留够两个月工资
+import M from '../config/media.json?v=77f12d68' with { type: 'json' };
+import { headCap, gm } from './calib.js?v=77f12d68';
+import { pay, receive, canPay } from './ledger.js?v=77f12d68';
+import { payTaxItem, track } from './companytax.js?v=77f12d68';
+import { onDutyRole, onDuty, lookOf } from './staff.js?v=77f12d68';
+import { holder, isSec, attrs } from './posts.js?v=77f12d68';
+import { MONTH_MS, monthIndex } from './gametime.js?v=77f12d68';
+import { addMsg } from './inbox.js?v=77f12d68';
+import { addContract } from './contracts.js?v=77f12d68';
 export { M as MEDIA_CFG };
 /** 一部片各段的游戏月（现实 ÷ profitMul，最少 1） */
 export const filmMonths = (kind) => { const m = M.months[kind]; return { shoot: gm(m.shoot), post: gm(m.post), release: gm(m.release) }; };

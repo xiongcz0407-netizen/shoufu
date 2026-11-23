@@ -1,21 +1,21 @@
 // 公司月 / 季 / 年结：挂到游戏时钟上（main.js、econsim、autoplay 都用这一份）
-import { onPeriod } from './gametime.js?v=876cadde';
-import { flushAccruals, pay } from './ledger.js?v=876cadde';
-import * as ST from './staff.js?v=876cadde';
-import * as CT from './companytax.js?v=876cadde';
-import { addMsg } from './inbox.js?v=876cadde';
-import { takeMonth } from './accrual.js?v=876cadde';
-import { monthEquity } from './equity.js?v=876cadde';
-import { monthPosts } from './postwork.js?v=876cadde';
-import { power } from './posts.js?v=876cadde';
+import { onPeriod } from './gametime.js?v=77f12d68';
+import { flushAccruals, pay } from './ledger.js?v=77f12d68';
+import * as ST from './staff.js?v=77f12d68';
+import * as CT from './companytax.js?v=77f12d68';
+import { addMsg } from './inbox.js?v=77f12d68';
+import { takeMonth } from './accrual.js?v=77f12d68';
+import { monthEquity } from './equity.js?v=77f12d68';
+import { monthPosts } from './postwork.js?v=77f12d68';
+import { power } from './posts.js?v=77f12d68';
 // 店长管理高，员工流失少（设计17 第一节 4）
 ST.setManagerMgmt((s, id) => power(s, 'manager_' + id) * 100);
-import { fmtMoney } from './format.js?v=876cadde';
-import * as FI from './fiscal.js?v=876cadde';
-import { bank } from './bank.js?v=876cadde';
-import * as CF from './cashflow.js?v=876cadde';
-import * as ADS from './ads.js?v=876cadde';
-import { YEAR_MS } from './gametime.js?v=876cadde';
+import { fmtMoney } from './format.js?v=77f12d68';
+import * as FI from './fiscal.js?v=77f12d68';
+import { bank } from './bank.js?v=77f12d68';
+import * as CF from './cashflow.js?v=77f12d68';
+import * as ADS from './ads.js?v=77f12d68';
+import { YEAR_MS } from './gametime.js?v=77f12d68';
 
 let hooked = false;
 export function hookCompany({ rnd = Math.random, onMonth } = {}) {
@@ -25,6 +25,7 @@ export function hookCompany({ rnd = Math.random, onMonth } = {}) {
     const acc = takeMonth(s, end);
     const pr = ST.monthEnd(s, end, rnd, acc);
     ADS.adsMonth(s, end); // V0.2.3 广告月报
+    { const h0 = CF.hr(s).hired || 0; CF.autoFill(s, end); pr.hired = (CF.hr(s).hired || 0) - (CF.hr(s).month0 ?? 0) ; CF.hr(s).month0 = CF.hr(s).hired || 0; pr.hrShort = CF.hr(s).blocked ? CF.hr(s).blocked.n : 0; void h0; } // V0.2.4 月底补一次流失，月报写这个月补了几个
     pr.cf = CF.monthCheck(s, end); // V0.2.3 欠薪停业满 1 个月遣散、公司负数给应急周转贷（设计35）
     if (acc.other >= 0.01) { pay(s, { wallet: 'company', cat: 'opex', amount: acc.other, force: true, note: '门店水电物业、营销和杂费' }, end); s.period = s.period || {}; s.period.other = (s.period.other || 0) + acc.other; pr.opex = acc.other; } // 进本月利润（所得税前扣）
     monthPosts(s, m, end, rnd); // 秘书绩效 / 提成、外包费、店长和资产月报、过期没报的税
@@ -36,7 +37,7 @@ export function hookCompany({ rnd = Math.random, onMonth } = {}) {
     s.yearProfit = (s.yearProfit || 0) + tx.profit;
     const label = `第${Math.floor(m / 12) + 1}年${(m % 12) + 1}月`;
     addMsg(s, { kind: 'report', type: 'month_report', title: `${label}经营月报`, data: { m, ...tx, labor: pr.labor.total, rent: pr.rent, paid: pr.paid },
-      body: `营收 ${fmtMoney(tx.rev)} − 进货 ${fmtMoney(tx.cogs)} − 人工 ${fmtMoney(pr.labor.total)} − 房租 ${fmtMoney(pr.rent)}${pr.opex ? ` − 水电杂费 ${fmtMoney(pr.opex)}` : ''} − 增值税和附加 ${fmtMoney(tx.vat + tx.surcharge)} = 利润 ${fmtMoney(tx.profit)}。${pr.paid ? '' : '⚠️ 公司账户不够，工资拖欠了！'}${pr.left ? `这个月走了 ${pr.left} 个员工。` : ''}` }, end);
+      body: `营收 ${fmtMoney(tx.rev)} − 进货 ${fmtMoney(tx.cogs)} − 人工 ${fmtMoney(pr.labor.total)} − 房租 ${fmtMoney(pr.rent)}${pr.opex ? ` − 水电杂费 ${fmtMoney(pr.opex)}` : ''} − 增值税和附加 ${fmtMoney(tx.vat + tx.surcharge)} = 利润 ${fmtMoney(tx.profit)}。${pr.paid ? '' : '⚠️ 公司账户不够，工资拖欠了！'}${pr.left ? `这个月走了 ${pr.left} 个员工。` : ''}${pr.hired ? `人事自动补员 ${pr.hired} 人。` : ''}${pr.hrShort ? `⚠️ 还缺 ${pr.hrShort} 人没补（钱只够留两个月工资）。` : ''}` }, end);
     onMonth && onMonth(s, m, { pr, tx });
   });
   onPeriod('month', (s, m, end) => monthEquity(s, m, end)); // 收购分期款（core/equity.js）

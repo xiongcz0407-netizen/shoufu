@@ -1,15 +1,15 @@
 // 通用谈判界面（V2-06，设计29 第二节）：对方是谁 + 耐心条 + 现在要价；一来一回的对话；出价滑条 + 「出价」「按对方的价成交」「不谈了」；筹码一次
 // 接进来的：房东涨租（经营事件「谈」）、拍卖私洽（拍卖会每件的「私洽」）。开发1 的收购、融资、谈地也可以用 openNegotiate
-import * as NG from '../core/negotiate.js?v=876cadde';
-import * as AU from '../core/auction.js?v=876cadde';
-import * as BE from '../core/bizevents.js?v=876cadde';
-import * as INB from './inbox.js?v=876cadde';
-import { bigBonus, useBig } from '../core/manage.js?v=876cadde';
-import { SEC_BY_ID } from '../config/secretaries.js?v=876cadde';
-import { fmtMoney } from '../core/format.js?v=876cadde';
-import { game } from '../game.js?v=876cadde';
-import { now } from '../core/clock.js?v=876cadde';
-import { h, openPanel, toast } from './dom.js?v=876cadde';
+import * as NG from '../core/negotiate.js?v=77f12d68';
+import * as AU from '../core/auction.js?v=77f12d68';
+import * as BE from '../core/bizevents.js?v=77f12d68';
+import * as INB from './inbox.js?v=77f12d68';
+import { bigBonus, useBig } from '../core/manage.js?v=77f12d68';
+import { SEC_BY_ID } from '../config/secretaries.js?v=77f12d68';
+import { fmtMoney } from '../core/format.js?v=77f12d68';
+import { game } from '../game.js?v=77f12d68';
+import { now } from '../core/clock.js?v=77f12d68';
+import { h, openPanel, toast } from './dom.js?v=77f12d68';
 
 const C = NG.NEGO_CFG;
 /**
@@ -34,7 +34,7 @@ export function openNegotiate(o) {
       <div class="ind-btns"><button class="btn gold ng-go">出价</button><button class="btn ng-acc">按对方的价成交</button></div>
       <div class="sd-rec-title">筹码（一次谈判只能用一个）${S.chipUsed ? '：已用' : ''}</div>
       ${(o.secs || []).length ? `<div class="tabs ng-secs"><button class="tab ${secId ? '' : 'on'}" data-s="">不带人</button>${o.secs.map((k) => `<button class="tab ${secId === k ? 'on' : ''}" data-s="${k}">带${SEC_BY_ID[k].name}</button>`).join('')}</div>` : ''}
-      <div class="ind-btns ng-chips">${[['intel', '情报'], ['social', '秘书交际'], ['boss', '亲自谈']].map(([k, n]) => `<button class="btn sm" data-c="${k}" ${S.chipUsed || ch[k] !== true ? 'disabled' : ''}>${n}${ch[k] !== true && !S.chipUsed ? `<br><small>${ch[k]}</small>` : ''}</button>`).join('')}</div>
+      <div class="ind-btns ng-chips">${[['intel', '情报'], ['social', '秘书交际'], ['boss', '亲自谈']].map(([k, n]) => `<button class="btn sm ${S.chipUsed === k ? 'on' : ''}" data-c="${k}" ${S.chipUsed || ch[k] !== true ? 'disabled' : ''}>${n}${S.chipUsed === k ? '（用了）' : ''}${ch[k] !== true && !S.chipUsed ? `<br><small>${ch[k]}</small>` : ''}</button>`).join('')}</div>
       <button class="btn ng-quit" style="width:100%;margin-top:8px">不谈了</button>`}`;
     const rg = p.body.querySelector('.ng-range'); if (rg) rg.oninput = () => { val = +rg.value; p.body.querySelector('.ng-offer b').textContent = fmt(val); };
     const on = (sel, fn) => { const x = p.body.querySelector(sel); if (x) x.onclick = fn; };

@@ -5,13 +5,13 @@
       - 云端能用：记住了名字口令直接登录，本机和云端取新的；没记住弹「登录」卡片（名字 + 6 位口令）
       - 云端不能用（开发版、本地文件、令牌为空）：直接用本机存档
    4. 定好存档写进本机 → 读游戏本体 main.js（它从本机读档、开局起名、开场剧情）→ 加载页淡出 */
-import { APP_V, versionText } from './version.js?v=876cadde';
-import { fitPhone } from './platform/screen.js?v=876cadde';
-import * as AD from './platform/assetdb.js?v=876cadde';
-import { loadList, devFetch, finishLoad, LOAD } from './platform/assets.js?v=876cadde';
-import * as CL from './core/cloud.js?v=876cadde';
-import { syncTime, setFloor, server } from './core/clock.js?v=876cadde';
-import { checkUpdate, upd, watch, whatsNew } from './ui/update.js?v=876cadde';
+import { APP_V, versionText } from './version.js?v=77f12d68';
+import { fitPhone } from './platform/screen.js?v=77f12d68';
+import * as AD from './platform/assetdb.js?v=77f12d68';
+import { loadList, devFetch, finishLoad, LOAD } from './platform/assets.js?v=77f12d68';
+import * as CL from './core/cloud.js?v=77f12d68';
+import { syncTime, setFloor, server } from './core/clock.js?v=77f12d68';
+import { checkUpdate, upd, watch, whatsNew } from './ui/update.js?v=77f12d68';
 
 const $ = (s) => document.querySelector(s);
 const mb = (b) => (b / 1048576).toFixed(1);
@@ -140,22 +140,22 @@ async function main() {
   if (!server.synced && r.text) { try { setFloor(JSON.parse(r.text).lastSeen || 0); } catch (e) { /* */ } }   // 没取到服务器时间：不让时间倒退
   $('.bt-txt').textContent = '开门营业…';
   // 存档：本机马上存，云端隔 1 分钟传一次
-  const { game } = await import('./game.js?v=876cadde');
+  const { game } = await import('./game.js?v=77f12d68');
   const save0 = game.save;
   game.save = function () { if (CL.lock.on) return; save0.call(this); CL.onSave(); };   // 重新开始 / 换名字时，刷新前不再存
-  const [E, { TITLES }, { fmtMoney }] = await Promise.all([import('./core/economy.js?v=876cadde'), import('./config/titles.js?v=876cadde'), import('./core/format.js?v=876cadde')]);
+  const [E, { TITLES }, { fmtMoney }] = await Promise.all([import('./core/economy.js?v=77f12d68'), import('./config/titles.js?v=77f12d68'), import('./core/format.js?v=77f12d68')]);
   CL.bind(() => game.state, (s) => `${(TITLES[s.title] || {}).name || ''}　身价 ${fmtMoney(E.netWorth(s))}　${s.companyName || ''}`);
   CL.onState(cloudNote); CL.startRetry();
   upd.beforeUpdate = () => { game.save(); return CL.push(true); };
   clearInterval(tipT);
-  await import('./main.js?v=876cadde');
-  const { addDebugInfo } = await import('./debug.js?v=876cadde');
+  await import('./main.js?v=77f12d68');
+  const { addDebugInfo } = await import('./debug.js?v=77f12d68');
   addDebugInfo(() => { const a = AD.stat; return `素材：${AD.dbOK() ? '库能用' : '库不能用（' + (a.why || LOAD.mode) + '）'}　存了 ${a.have + a.got} 个 ${(a.storedBytes / 1048576).toFixed(1)} MB　这次本机拿 ${a.have} 个、新下 ${a.got} 个（${mb(a.gotBytes)} MB）`; });
   addDebugInfo(() => `云端：${CL.onCloud() ? CL.acct.name + '　' + (CL.cloudState.ok === false ? '没连上 ' + CL.cloudState.err : CL.cloudState.at ? '已传' : '待传') : '只用本机'}　服务器时间 ${server.synced ? '已对' : '没取到'}`);
   cloudNote(); watch();
   const items = whatsNew();
   if (items.length) setTimeout(async () => {
-    const { openPanel, h } = await import('./ui/dom.js?v=876cadde');
+    const { openPanel, h } = await import('./ui/dom.js?v=77f12d68');
     const p = openPanel('这一版新加了什么');
     p.body.appendChild(h('div', 'tr-gain', items.map((x) => '· ' + esc(x)).join('<br>')));
   }, 2500);

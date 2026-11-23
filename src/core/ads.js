@@ -1,16 +1,16 @@
 // V0.2.3 广告投放（设计35 第七节 2，取代站柜台）：渠道 + 预算 + 天数，公司账户按天扣，留够两个月工资；
 // 人流（投放期营业额 +X%，边际递减，停投 7 天退回）、口碑（团购 / 点评可推到 85）、知名度（每条线 0～100，永久人流最多 +25%）。
 // 秘书店长可以托管（每月预算：金额或营业额 %），按上月各渠道 ROI 分配；外包经理人只投传单 + 团购、效果 ×0.7。
-import C from '../config/ads.json?v=876cadde' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=876cadde';
-import * as MG from './manage.js?v=876cadde';
-import { cogsRate } from './economy.js?v=876cadde';
-import { pay, canPay } from './ledger.js?v=876cadde';
-import { holder, isSec, attrs, OUT } from './posts.js?v=876cadde';
-import { whyCushion } from './cashflow.js?v=876cadde';
-import { addMsg } from './inbox.js?v=876cadde';
-import { MONTH_MS, monthIndex } from './gametime.js?v=876cadde';
-import { fmtMoney } from './format.js?v=876cadde';
+import C from '../config/ads.json?v=77f12d68' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=77f12d68';
+import * as MG from './manage.js?v=77f12d68';
+import { cogsRate } from './economy.js?v=77f12d68';
+import { pay, canPay } from './ledger.js?v=77f12d68';
+import { holder, isSec, attrs, OUT } from './posts.js?v=77f12d68';
+import { whyCushion } from './cashflow.js?v=77f12d68';
+import { addMsg } from './inbox.js?v=77f12d68';
+import { MONTH_MS, monthIndex } from './gametime.js?v=77f12d68';
+import { fmtMoney } from './format.js?v=77f12d68';
 
 export { C as ADS_CFG };
 const r2 = (x) => Math.round(x * 100) / 100;
@@ -34,27 +34,35 @@ const baseDay = (s, id) => { const L = s.ads && s.ads.lines[id]; return MG.dayRe
 const gm = (s, id) => Math.max(0, 1 - cogsRate(s, id));
 /** 会上「广告」方向（设计29）：投放打折 + 效果加成（门店不再直接加营业额） */
 let meetAd = () => 0; export const setMeetAdHook = (fn) => { meetAd = fn; };
-/** 一个渠道花 daily 一天的人流（未合并） */
-export function chLift(s, id, ch, daily, eff = 1) {
-  const b = baseDay(s, id); if (!(b > 0) || !(daily > 0)) return 0; const c = CH[ch];
-  const charmK = c.charm ? 0.7 + (bestCharm(s, id) / 100) * 0.6 : 1;
-  return c.L * (1 - Math.exp(-(daily / b) / c.r)) * eff * charmK * (1 + meetAd(s));
+/** V0.2.4 回报率（设计36 第 2 条）：x = 花的 ÷ 日营业额（≤ 10%）；ROI(x) = roi10 ×（x / 10%）^(p − 1) */
+export const roiAt = (c, x) => c.roi10 * Math.pow(Math.min(C.maxX, Math.max(1e-6, x)) / C.maxX, C.p - 1);
+const charmK = (s, id, c) => (c.charm ? 0.9 + (bestCharm(s, id) / 100) * 0.3 : 1);
+/** 一个渠道花 daily 一天多赚的毛利（未封顶） */
+export function chGross(s, id, ch, daily) {
+  const b = baseDay(s, id); if (!(b > 0) || !(daily > 0)) return 0; const c = CH[ch]; const d = Math.min(daily, b * C.maxX);
+  return d * roiAt(c, d / b) * charmK(s, id, c) * (1 + meetAd(s));
 }
-const combine = (sum) => C.totalMax * (1 - Math.exp(-sum / C.totalMax));
+/** 一个渠道的人流 = 多赚的毛利 ÷ 毛利率 ÷ 日营业额 */
+export function chLift(s, id, ch, daily) { const b = baseDay(s, id); const g = gm(s, id); return b > 0 && g > 0 ? chGross(s, id, ch, daily) / g / b : 0; }
+const combine = (sum) => Math.min(C.totalMax, sum);
 function bestCharm(s, id) { const w = holder(s, 'manager_' + id); if (isSec(w)) return attrs(s, w).charm || 0; return Math.max(30, ...Object.keys(s.secs || {}).map((k) => attrs(s, k).charm || 0)); }
 /** 投之前：预计每天多卖多少、花多少、ROI */
 export function preview(s, id, ch, daily, days = 1) {
-  const L = adLine(s, id); const b = baseDay(s, id); const cur = activeSpend(s, id);
+  const b = baseDay(s, id); const g = gm(s, id); const cur = activeSpend(s, id); const c = CH[ch];
   const sum0 = Object.entries(cur).reduce((a, [k, v]) => a + chLift(s, id, k, v), 0);
   const sum1 = Object.entries({ ...cur, [ch]: (cur[ch] || 0) + daily }).reduce((a, [k, v]) => a + chLift(s, id, k, v), 0);
-  const lift = combine(sum1) - combine(sum0); const extra = b * lift; const c = CH[ch];
-  const gross = extra * Math.max(0, gm(s, id) - (c.fee || 0)); const cost = daily * (1 - meetAd(s));
-  void L; return { lift, extraRev: r2(extra), gross: r2(gross), costDay: r2(cost), total: r2(cost * days), roi: cost > 0 ? gross / cost : 0, rep: c.rep ? c.rep * Math.min(1, daily / Math.max(1, b) / c.r) : 0, aware: c.aware ? c.aware * Math.min(1, daily / Math.max(1, b) / c.r) : 0 };
+  const lift = combine(sum1) - combine(sum0); const extra = b * lift; const gross = extra * g; const cost = daily * (1 - meetAd(s));
+  const x = b > 0 ? daily / b : 0; const k = Math.min(1, x / c.r);
+  return { lift, full: sum1 >= C.totalMax, x, extraRev: r2(extra), gross: r2(gross), costDay: r2(cost), net: r2(gross - cost), total: r2(cost * days), roi: cost > 0 ? gross / cost : 0, rep: c.rep ? c.rep * k : 0, aware: c.aware ? c.aware * k : 0 };
 }
+/** 这个渠道这条线今天还能投多少（每个渠道最多日营业额的 10%，手动 + 托管合计） */
+export const chRoom = (s, id, ch) => Math.max(0, Math.floor(baseDay(s, id) * C.maxX - (activeSpend(s, id)[ch] || 0)));
 /** 手动投放：渠道 + 每天预算 + 天数 */
 export function whyNotBuy(s, id, ch, daily, days) {
   if (!isAdLine(s, id)) return '这条线还没开店'; const w = whyNotCh(s, ch); if (w) return w;
   if (!(daily > 0) || !(days > 0)) return '预算、天数不对';
+  if (daily > chRoom(s, id, ch) + 0.5) return `每个渠道最多投营业额的 10%（这个渠道今天还能加 ${fmtMoney(chRoom(s, id, ch))}）`;
+  if (activeLift(s, id) >= C.totalMax - 1e-6) return '这条线人流满了（+100%），再投也不会多来客人';
   const cost = daily * (1 - meetAd(s)); if (!canPay(s, 'company', cost)) return '公司账户不够第一天的钱';
   return whyCushion(s, cost * Math.min(days, 30));
 }
@@ -69,6 +77,7 @@ export function buy(s, id, ch, daily, days, t) {
   return { ok: true, camp: cp };
 }
 export function stop(s, id, campId) { const L = adLine(s, id); const n = L.camps.length; L.camps = L.camps.filter((c) => c.id !== campId); return L.camps.length < n; }
+const activeLift = (s, id) => Object.entries(activeSpend(s, id)).reduce((a, [k, v]) => a + chLift(s, id, k, v), 0);
 const activeSpend = (s, id) => { const o = {}; const L = s.ads && s.ads.lines[id]; for (const c of (L && L.camps) || []) if (c.left > 0) o[c.ch] = (o[c.ch] || 0) + c.daily; for (const [k, v] of Object.entries((L && L.autoToday) || {})) o[k] = (o[k] || 0) + v; return o; };
 
 /** 托管：{ mode: 'amt' | 'pct', v }（v = 0 不投） */
@@ -78,7 +87,7 @@ export function autoWho(s, id) { const w = holder(s, 'manager_' + id); return is
 /** 这个月托管每天能花多少 */
 export function autoDaily(s, id) {
   const a = autoOf(s, id); if (!(a.v > 0) || !autoWho(s, id)) return 0;
-  return a.mode === 'amt' ? a.v / 30 : baseDay(s, id) * a.v;
+  return Math.min(baseDay(s, id) * C.maxX, a.mode === 'amt' ? a.v / 30 : baseDay(s, id) * a.v); /* 托管上限也是 10% */
 }
 /** 托管按上月 ROI 挑渠道分钱 */
 function autoPlan(s, id, rnd) {
@@ -103,8 +112,8 @@ function spendDay(s, id, t, add, opts = {}) {
     if (!canPay(s, 'company', cost) || whyCushion(s, cost)) { per[ch] = { stopped: true }; continue; }
     pay(s, { wallet: 'company', cat: 'ads', amount: cost, party: CH[ch].name, note: `${IND_BY_ID[id].name}广告：${CH[ch].name}` }, t);
     s.period = s.period || {}; s.period.other = (s.period.other || 0) + cost;
-    const eff = opts.eff || 1; const l = chLift(s, id, ch, d, eff); sum += l; per[ch] = { cost, lift: l };
-    const c = CH[ch]; const k = Math.min(1, d / Math.max(1, b) / c.r) * eff;
+    const eff = opts.eff || 1; const l = chLift(s, id, ch, d); sum += l; per[ch] = { cost, lift: l };
+    const c = CH[ch]; const k = Math.min(1, d / Math.max(1, b) / c.r) * eff; /* 外包只打口碑、知名度的折，回报不打折（守住 ≥ 1.3） */
     if (c.rep) { const ln = MG.line(s, id); if (ln.rep < C.repCap) ln.rep = Math.min(C.repCap, ln.rep + c.rep * k); ln.care = MG.dayIndex(s, t); }
     if (c.catchP && (opts.rnd || Math.random)() < c.catchP) { MG.addRep(s, id, c.catchRep); addMsg(s, { kind: 'system', type: 'ads', title: `${IND_BY_ID[id].name}被平台查到刷好评`, body: `点评运营被平台判定刷好评，口碑 ${c.catchRep}。` }, t); }
     if (c.aware) L.aware = Math.min(100, (L.aware || 0) + c.aware * k);
@@ -134,8 +143,8 @@ export function adsDay(s, day, at, rnd = Math.random) {
     // 算回报：今天多卖的毛利按各渠道人流分
     const b = r1.b; const g = Math.max(0, gm(s, id)); const parts = [...Object.entries(r1.per), ...Object.entries(r2_.per)].filter(([, x]) => x.lift > 0);
     const tot = parts.reduce((a, [, x]) => a + x.lift, 0);
-    for (const [ch, x] of parts) { const extra = b * lift * x.lift / tot; const gain = extra * Math.max(0, g - (CH[ch].fee || 0)); const m = L.month; m.rev = r2(m.rev + extra); m.gain = r2(m.gain + gain); m.byCh[ch].gain = r2(m.byCh[ch].gain + gain);
-      if (CH[ch].fee) { const fee = r2(extra * CH[ch].fee); if (fee > 0.5) { pay(s, { wallet: 'company', cat: 'ads', amount: fee, force: true, party: CH[ch].name, note: `${IND_BY_ID[id].name}团购平台抽成` }, at); s.period.other = (s.period.other || 0) + fee; } } }
+    for (const [ch, x] of parts) { const extra = b * lift * x.lift / tot; const gain = extra * g; const m = L.month; m.rev = r2(m.rev + extra); m.gain = r2(m.gain + gain); m.byCh[ch].gain = r2(m.byCh[ch].gain + gain);
+      /* V0.2.4：团购抽成已经算在回报里，不另扣 */ }
   }
   return out;
 }

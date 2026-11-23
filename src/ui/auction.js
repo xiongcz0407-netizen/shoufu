@@ -1,16 +1,16 @@
 // 拍卖会界面（第 2-14b 项）：车行「拍卖」分段和收藏「拍卖会」页签都画这一个（车和古董同一场）
-import * as AU from '../core/auction.js?v=876cadde';
-import * as AQ from '../core/antique.js?v=876cadde';
-import * as AS from '../core/assets.js?v=876cadde';
-import * as INB from '../core/inbox.js?v=876cadde';
-import { SEC_BY_ID } from '../config/secretaries.js?v=876cadde';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=876cadde';
-import { asset, hasAsset } from '../platform/assets.js?v=876cadde';
-import { game } from '../game.js?v=876cadde';
-import { now } from '../core/clock.js?v=876cadde';
-import { h, openPanel, toast } from './dom.js?v=876cadde';
-import { showcase } from './assets.js?v=876cadde';
-import { hintLater } from './guide2.js?v=876cadde';
+import * as AU from '../core/auction.js?v=77f12d68';
+import * as AQ from '../core/antique.js?v=77f12d68';
+import * as AS from '../core/assets.js?v=77f12d68';
+import * as INB from '../core/inbox.js?v=77f12d68';
+import { SEC_BY_ID } from '../config/secretaries.js?v=77f12d68';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=77f12d68';
+import { asset, hasAsset } from '../platform/assets.js?v=77f12d68';
+import { game } from '../game.js?v=77f12d68';
+import { now } from '../core/clock.js?v=77f12d68';
+import { h, openPanel, toast } from './dom.js?v=77f12d68';
+import { showcase } from './assets.js?v=77f12d68';
+import { hintLater } from './guide2.js?v=77f12d68';
 
 let bidX = 1.3;
 const pic = (l) => {
@@ -53,7 +53,7 @@ export function renderAuctionHouse(wrap, redraw, carFilter = null) {   // 设计
       const pb = p.body.querySelector('.btn'); if (pb) pb.onclick = () => { const x = AU.pay(s, r.w.lot, now()); if (!x.ok) { toast(x.why); return; } p.close(); toast(`成交：${x.contract.no}`); game.changed(); game.save(); if (l.kind === 'car') showcase(AS.ITEM[l.id]); redraw(); };
       game.changed(); game.save(); redraw();
     };
-    card.querySelector('.me').onclick = () => go(false); card.querySelector('.priv').onclick = () => import('./negotiate.js?v=876cadde').then((N) => N.openPrivateAuction(l, redraw)); const pp = card.querySelector('.proxy'); if (pp) pp.onclick = () => go(true);
+    card.querySelector('.me').onclick = () => go(false); card.querySelector('.priv').onclick = () => import('./negotiate.js?v=77f12d68').then((N) => N.openPrivateAuction(l, redraw)); const pp = card.querySelector('.proxy'); if (pp) pp.onclick = () => go(true);
     grid.appendChild(card);
   }
   if (!c.lots.length) grid.appendChild(h('div', 'empty', '这一场没有你能举的（人脉不够、或者都举过了）'));

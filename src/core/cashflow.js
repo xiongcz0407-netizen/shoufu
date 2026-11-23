@@ -1,15 +1,15 @@
 // V0.2.3 资金链断裂（设计35）：花钱前留够两个月工资 + 社保 + 房租；跨样子升级先算账；可用 < 1 个月工资发急报；
 // 欠薪停业满 1 个游戏月员工自动遣散（N+1 记应付）；公司账户负数时银行给一次应急周转贷（3 个月工资，利率高一档）
-import { IND_BY_ID } from '../config/industries.js?v=876cadde';
-import B from '../config/bank.json?v=876cadde' with { type: 'json' };
-import * as ST from './staff.js?v=876cadde';
-import { available, monthlyRent, payables } from './accrual.js?v=876cadde';
-import { lineK } from './cities.js?v=876cadde';
-import { pay, receive } from './ledger.js?v=876cadde';
-import { addMsg } from './inbox.js?v=876cadde';
-import { holder, isSec } from './posts.js?v=876cadde';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=876cadde';
-import { fmtMoney } from './format.js?v=876cadde';
+import { IND_BY_ID } from '../config/industries.js?v=77f12d68';
+import B from '../config/bank.json?v=77f12d68' with { type: 'json' };
+import * as ST from './staff.js?v=77f12d68';
+import { available, monthlyRent, payables } from './accrual.js?v=77f12d68';
+import { lineK } from './cities.js?v=77f12d68';
+import { pay, receive, post } from './ledger.js?v=77f12d68';
+import { addMsg } from './inbox.js?v=77f12d68';
+import { holder, isSec } from './posts.js?v=77f12d68';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=77f12d68';
+import { fmtMoney } from './format.js?v=77f12d68';
 
 export const CUSHION_MONTHS = 2;
 const r2 = (x) => Math.round(x * 100) / 100;
@@ -83,4 +83,25 @@ export function emergencyLoan(s, t) {
   X.loans.push({ id: X.seq, bank: bk, type: 'biz', principal: amt, amount: amt, rate, n, left: n, payment, project: null, overdue: 0, contract: '', start: t, emergency: true });
   addMsg(s, { kind: 'system', type: 'fund_loan', from: cfoOf(s), title: `银行给了应急周转贷 ${fmtMoney(amt)}`, body: `公司账户成了负数，${B.banks[bk].name}给了一次应急周转贷（3 个月工资，年利率 ${(rate * 100).toFixed(1)}%，比经营贷高一档，12 个月还）。有钱先还它（银行页「提前还清」）；还清以前不会再给。` }, t);
   return `应急周转贷 ${fmtMoney(amt)}`;
+}
+
+// ---------- V0.2.4 自动补员（设计36 第 3 条）：人事页开关，默认开；不管有没有店长，按缺编用贴招聘补满，立刻到岗 ----------
+export const hr = (s) => (s.hr = s.hr || { auto: true, hired: 0, blocked: null });
+export const autoOn = (s) => hr(s).auto !== false;
+export function setAuto(s, on) { hr(s).auto = !!on; if (!on) hr(s).blocked = null; }
+/** 每秒（在线）/ 离线结算后：补满编制；跨样子编制变大也补；钱不够留两个月工资（小老板起）就不补，记下来给首页提示 */
+export function autoFill(s, t) {
+  if (!autoOn(s)) return 0; const H = hr(s); let n = 0; let short = 0;
+  const social = Object.values(ST.PAY.social).reduce((a, b) => a + b, 0);
+  for (const id of Object.keys(s.inds)) {
+    for (const [role, k] of Object.entries(ST.shortage(s, id))) {
+      const pend = (s.hires || []).filter((h) => h.ind === id && h.role === role).reduce((a, h) => a + h.n, 0); const need = k - pend; if (need <= 0) continue;
+      const add = need * ST.wage(role) * lineK(s, id) * (1 + social); // 招进来以后每月多的人工
+      if ((s.title || 0) && cushionShort(s, CUSHION_MONTHS * add) > 0) { short += need; continue; }
+      const r = ST.hire(s, id, role, need, 'door', t, Math.random, ''); if (!r.ok) { short += need; continue; }
+      post(s, { wallet: 'company', dir: 'out', cat: 'recruit', amount: 0, memo: true, zero: true, by: '人事', note: `招聘 · 经手人：人事（${IND_BY_ID[id].name}${ST.PAY.roles[role].name} ${need} 人，贴招聘，立刻到岗）` }, t);
+      n += need;
+    }
+  }
+  H.hired = (H.hired || 0) + n; H.blocked = short > 0 ? { n: short, t } : null; return n;
 }

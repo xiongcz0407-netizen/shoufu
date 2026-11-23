@@ -1,19 +1,19 @@
 // P-05 前期核心玩法·经营（设计25 第一、三节）：老板精力、每家店四个亲自经营动作（可带秘书）、口碑、店长 / 秘书自动经营、大盘行情、老板以后的大事
 // 「店」= 一条门店线（便利店 / 餐饮 / 服装）；营业额、进货的加成通过 economy.setManageHooks 挂进去
-import { credit } from './credit.js?v=876cadde'; // V3-01 亲自拍板攒投入度
-import M from '../config/manage.json?v=876cadde' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=876cadde';
-import { SEC_BY_ID } from '../config/secretaries.js?v=876cadde';
-import { YEAR_MS, MONTH_MS } from './gametime.js?v=876cadde';
-import { industryRevenue, setManageHooks, setUpgradeHook } from './economy.js?v=876cadde';
-import { setRateAdjFn } from './bank.js?v=876cadde';
-import { pay, receive, canPay } from './ledger.js?v=876cadde';
-import { holder, isSec, attrs } from './posts.js?v=876cadde';
-import { bossAttrs } from './boss.js?v=876cadde';
-import { addFavor } from './affection.js?v=876cadde';
-import { isTraining } from './training.js?v=876cadde';
-import { mark, energyBonus, onReward } from './goals.js?v=876cadde'; // P-06 目标链（开发2）：做到了打勾、精力上限、奖励
-import { wage } from './staff.js?v=876cadde';
+import { credit } from './credit.js?v=77f12d68'; // V3-01 亲自拍板攒投入度
+import M from '../config/manage.json?v=77f12d68' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=77f12d68';
+import { SEC_BY_ID } from '../config/secretaries.js?v=77f12d68';
+import { YEAR_MS, MONTH_MS } from './gametime.js?v=77f12d68';
+import { industryRevenue, setManageHooks, setUpgradeHook } from './economy.js?v=77f12d68';
+import { setRateAdjFn } from './bank.js?v=77f12d68';
+import { pay, receive, canPay } from './ledger.js?v=77f12d68';
+import { holder, isSec, attrs } from './posts.js?v=77f12d68';
+import { bossAttrs } from './boss.js?v=77f12d68';
+import { addFavor } from './affection.js?v=77f12d68';
+import { isTraining } from './training.js?v=77f12d68';
+import { mark, energyBonus, onReward } from './goals.js?v=77f12d68'; // P-06 目标链（开发2）：做到了打勾、精力上限、奖励
+import { wage } from './staff.js?v=77f12d68';
 
 export { M as MANAGE_CFG };
 export const DAY_MS = YEAR_MS / M.daysPerYear;

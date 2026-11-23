@@ -1,16 +1,16 @@
 // 约会：选地点 → 开车去 → 约会画面（背景、她的台词、加了多少）→ 次数解锁
-import { SEC_BY_ID } from '../config/secretaries.js?v=876cadde';
-import { DATE_PLACES, DATES_PER_DAY, DATE5_LINES, DATE50_TITLE, RARE_NARR, RARE_REACT, ROOFTOP_LINES } from '../config/dates.js?v=876cadde';
-import * as LMK from '../core/landmark.js?v=876cadde';
-import { FIRST_DATE_LINES, DATE50_LINES } from '../config/love-stories.js?v=876cadde';
-import { LINES } from '../config/lines.js?v=876cadde';
-import * as D from '../core/dates.js?v=876cadde';
-import { fmtMoney } from '../core/format.js?v=876cadde';
-import { now } from '../core/clock.js?v=876cadde';
-import { asset, hasAsset } from '../platform/assets.js?v=876cadde';
-import { game } from '../game.js?v=876cadde';
-import { h, openPanel, toast } from './dom.js?v=876cadde';
-import { playStory } from './story.js?v=876cadde';
+import { SEC_BY_ID } from '../config/secretaries.js?v=77f12d68';
+import { DATE_PLACES, DATES_PER_DAY, DATE5_LINES, DATE50_TITLE, RARE_NARR, RARE_REACT, ROOFTOP_LINES } from '../config/dates.js?v=77f12d68';
+import * as LMK from '../core/landmark.js?v=77f12d68';
+import { FIRST_DATE_LINES, DATE50_LINES } from '../config/love-stories.js?v=77f12d68';
+import { LINES } from '../config/lines.js?v=77f12d68';
+import * as D from '../core/dates.js?v=77f12d68';
+import { fmtMoney } from '../core/format.js?v=77f12d68';
+import { now } from '../core/clock.js?v=77f12d68';
+import { asset, hasAsset } from '../platform/assets.js?v=77f12d68';
+import { game } from '../game.js?v=77f12d68';
+import { h, openPanel, toast } from './dom.js?v=77f12d68';
+import { playStory } from './story.js?v=77f12d68';
 
 // 车：返回 { tier, name, rarity: 'normal'|'limited'|'unique', count }；没车就打车
 let carFor = () => ({ tier: 0, name: '' });

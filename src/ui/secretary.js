@@ -1,31 +1,32 @@
 // 「秘书」页签（设计18 第四节 2）：上面一条培训位、两列卡片（没来的剪影 + 条件）；
 // 秘书详情全屏：上半立绘、下半面板（资料 | 培养 | 衣柜 | 职位工资），底部动作条（互动 · 送礼 · 约会 · 陪着我）
-import * as CP from '../core/capital.js?v=876cadde';
-import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=876cadde';
-import { COURSE_BY_ID } from '../config/courses.js?v=876cadde';
-import { OUTFITS, priceOf } from '../config/outfits.js?v=876cadde';
-import { IND_BY_ID } from '../config/industries.js?v=876cadde';
-import * as S from '../core/secretary.js?v=876cadde';
-import * as T from '../core/training.js?v=876cadde';
-import { isScouting } from '../core/busy.js?v=876cadde'; // V2-08
-import * as O from '../core/outfits.js?v=876cadde';
-import * as A from '../core/affection.js?v=876cadde';
-import { query } from '../core/ledger.js?v=876cadde';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=876cadde';
-import { asset } from '../platform/assets.js?v=876cadde';
-import { now } from '../core/clock.js?v=876cadde';
-import { game } from '../game.js?v=876cadde';
-import { h, toast, liveRender } from './dom.js?v=876cadde';
-import { openFull, closeTab, goHome } from './shell.js?v=876cadde';
-import { switchSecretary, dressUp } from './main-screen.js?v=876cadde';
-import { pickSec, renderCourses } from './training.js?v=876cadde';
-import { openMall } from './mall.js?v=876cadde';
-import { openDate } from './date.js?v=876cadde';
-import { createPortrait } from './portrait.js?v=876cadde';
-import { bgKeyFor } from './main-screen.js?v=876cadde';
-import * as PO from '../core/posts.js?v=876cadde';
-import { openTab } from './shell.js?v=876cadde';
-import { addFavor } from '../core/affection.js?v=876cadde';
+import * as CP from '../core/capital.js?v=77f12d68';
+import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=77f12d68';
+import { COURSE_BY_ID } from '../config/courses.js?v=77f12d68';
+import { OUTFITS, priceOf } from '../config/outfits.js?v=77f12d68';
+import { IND_BY_ID } from '../config/industries.js?v=77f12d68';
+import * as S from '../core/secretary.js?v=77f12d68';
+import * as T from '../core/training.js?v=77f12d68';
+import { isScouting } from '../core/busy.js?v=77f12d68'; // V2-08
+import * as STY from '../core/styles.js?v=77f12d68'; // 设计36 第 4 条：衣柜写衣服名字 + 款式
+import * as O from '../core/outfits.js?v=77f12d68';
+import * as A from '../core/affection.js?v=77f12d68';
+import { query } from '../core/ledger.js?v=77f12d68';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=77f12d68';
+import { asset } from '../platform/assets.js?v=77f12d68';
+import { now } from '../core/clock.js?v=77f12d68';
+import { game } from '../game.js?v=77f12d68';
+import { h, toast, liveRender } from './dom.js?v=77f12d68';
+import { openFull, closeTab, goHome } from './shell.js?v=77f12d68';
+import { switchSecretary, dressUp } from './main-screen.js?v=77f12d68';
+import { pickSec, renderCourses } from './training.js?v=77f12d68';
+import { openMall } from './mall.js?v=77f12d68';
+import { openDate } from './date.js?v=77f12d68';
+import { createPortrait } from './portrait.js?v=77f12d68';
+import { bgKeyFor } from './main-screen.js?v=77f12d68';
+import * as PO from '../core/posts.js?v=77f12d68';
+import { openTab } from './shell.js?v=77f12d68';
+import { addFavor } from '../core/affection.js?v=77f12d68';
 
 const BEST_NAME = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 /** 她现在的职位名：没有返回 '' */
@@ -155,7 +156,7 @@ function drawWardrobe(el, id, show, portrait) {
   for (const o of OUTFITS) {
     const own = O.owns(s, id, o.id); const ok = O.canWear(s, id, o.id); const on = r.outfit === o.id;
     const card = h('button', 'cloth' + (own && ok ? '' : ' dim') + (on ? ' on' : ''), `<img src="${asset(`assets/sec/${id}/${o.id}.webp`)}" alt="">
-      <div class="cloth-meta">第 ${o.id.slice(1)} 套${on ? ' · 穿着' : ''}</div>${!own ? `<div class="cloth-need">🔒 ${fmtMoney(priceOf(id, o.id))}</div>` : ok ? '' : `<div class="cloth-need">${O.needText(o.id)}</div>`}`);
+      <div class="cloth-meta">${STY.nameOf(id, o.id)}${STY.styleOf(id, o.id) ? `<em class="cloth-st">${STY.styleOf(id, o.id)}</em>` : ''}${on ? ' · 穿着' : ''}</div>${!own ? `<div class="cloth-need">🔒 ${fmtMoney(priceOf(id, o.id))}</div>` : ok ? '' : `<div class="cloth-need">${O.needText(o.id)}</div>`}`);
     card.onclick = () => {
       if (!own) { openMall(id, 'clothes'); return; }
       if (!ok) { toast(O.needText(o.id)); return; }

@@ -1,12 +1,12 @@
 // 培养（设计35 第八节）：选人 → 选课；付钱属性立刻加上（一句台词 + 飘字），可以「再上一节」或「上到 N」一次买多节
-import { SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=876cadde';
-import { GRAD_LINES } from '../config/courses.js?v=876cadde';
-import * as T from '../core/training.js?v=876cadde';
-import { fmtMoney } from '../core/format.js?v=876cadde';
-import { asset, hasAsset } from '../platform/assets.js?v=876cadde';
-import { now } from '../core/clock.js?v=876cadde';
-import { game } from '../game.js?v=876cadde';
-import { h, openPanel, toast } from './dom.js?v=876cadde';
+import { SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=77f12d68';
+import { GRAD_LINES } from '../config/courses.js?v=77f12d68';
+import * as T from '../core/training.js?v=77f12d68';
+import { fmtMoney } from '../core/format.js?v=77f12d68';
+import { asset, hasAsset } from '../platform/assets.js?v=77f12d68';
+import { now } from '../core/clock.js?v=77f12d68';
+import { game } from '../game.js?v=77f12d68';
+import { h, openPanel, toast } from './dom.js?v=77f12d68';
 
 const AN = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 const gainText = (g) => Object.entries(g).filter(([, v]) => v > 0).map(([k, v]) => `${AN[k]}+${v}`).join(' ');

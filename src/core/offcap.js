@@ -1,17 +1,17 @@
 // 第 3-09 项：离线补算里的资本部分（股市、基金、上市、要约、集团费用、地标收租和估值）
 // main.js 的 settleAway 按游戏日一段段叫这些（跟在线 ticker 叫的是同一批函数，所以结果一样）；前后各拍一张快照，离开期间对账单里列出来
-import * as SK from './stocks.js?v=876cadde';
-import * as FD from './funds.js?v=876cadde';
-import * as LS from './listing.js?v=876cadde';
-import * as TKO from './takeover.js?v=876cadde';
-import * as GR from './group.js?v=876cadde';
-import * as LMK from './landmark.js?v=876cadde';
-import { recalc } from './assets.js?v=876cadde';
-import { addMsg } from './inbox.js?v=876cadde';
-import * as TR from './trade.js?v=876cadde';
-import * as MT from './meeting.js?v=876cadde'; // V2-13 每周经营会
-import * as RL from './richlist.js?v=876cadde'; // V2-14 财富榜：跨年发榜（只发最近一年的）
-import * as AGD from './agenda.js?v=876cadde'; // V3-02 日程表：离线时秘书替你推掉，不扣
+import * as SK from './stocks.js?v=77f12d68';
+import * as FD from './funds.js?v=77f12d68';
+import * as LS from './listing.js?v=77f12d68';
+import * as TKO from './takeover.js?v=77f12d68';
+import * as GR from './group.js?v=77f12d68';
+import * as LMK from './landmark.js?v=77f12d68';
+import { recalc } from './assets.js?v=77f12d68';
+import { addMsg } from './inbox.js?v=77f12d68';
+import * as TR from './trade.js?v=77f12d68';
+import * as MT from './meeting.js?v=77f12d68'; // V2-13 每周经营会
+import * as RL from './richlist.js?v=77f12d68'; // V2-14 财富榜：跨年发榜（只发最近一年的）
+import * as AGD from './agenda.js?v=77f12d68'; // V3-02 日程表：离线时秘书替你推掉，不扣
 
 const TICK_MS = SK.SCFG.tickSec * 1000;
 const r2 = (v) => Math.round(v * 100) / 100;

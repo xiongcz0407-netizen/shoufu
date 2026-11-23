@@ -857,3 +857,18 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 @keyframes trUp { 0% { opacity: 0; transform: translateY(6px); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-28px); } }
 .tb-go { width: 100%; margin-top: 4px; }
 .todo-bar .todo-n { color: #ff8a7a; }
+/* V0.2.4 统一选中样式（设计36 第 1 条）：「选一个」的按钮组，选中 = 金色实底（标签）或金框 + 浅金底 + ✓（卡片） */
+.tab.on, .tabs .tab.on { background: linear-gradient(180deg, #e8c27a, #b08a45); color: #2a1d08; border-color: transparent; font-weight: 800; }
+.tr-course.ch.on, .tr-course.ad-ch.on, .pick.on { border: 1px solid var(--gold); background: rgba(232, 194, 122, .16); position: relative; }
+.tr-course.ch.on::after, .tr-course.ad-ch.on::after, .pick.on::after { content: '✓'; position: absolute; top: 4px; right: 8px; color: var(--gold); font-weight: 800; font-size: 14px; }
+.tr-course.ad-ch { width: 100%; color: var(--paper); text-align: left; }
+.tm.on, .tm-pick.on { border-color: var(--gold); background: rgba(232, 194, 122, .16); position: relative; }
+.tm.on::after, .tm-pick.on::after { content: '✓'; position: absolute; top: 2px; right: 4px; color: var(--gold); font-weight: 800; font-size: 12px; }
+/* 设计36 第 1 条：全游戏「选一个」的选中态统一（开发2 加在最后，覆盖前面各自的写法）
+   文字按钮 / 页签：金色实底（同 .seg.on）；卡片：金框 + 浅金底 + 右上角 ✓ */
+.tab.on, .fn-period button.on, .fn-seg button.on { background: linear-gradient(180deg, #e8c27a, #b08a45); color: #2a1d08; border-color: transparent; font-weight: 800; }
+.tab.on small, .tab.on em { color: #2a1d08; }
+.cloth.on, .sw-card.on, .tm.on, .tm-pick.on, .pick.on, .tr-course.ch.on, .tr-course.ad-ch.on, .tp-sec.on, .ng-chips .btn.on { position: relative; border: 2px solid #f0c96a; background-color: rgba(232, 194, 122, .16); box-shadow: 0 0 0 1px rgba(240, 201, 106, .35); }
+.ng-chips .btn.on:disabled { opacity: 1; color: var(--paper); }
+.cloth.on::after, .sw-card.on::after, .tm.on::after, .tm-pick.on::after, .pick.on::after, .tr-course.ch.on::after, .tr-course.ad-ch.on::after, .tp-sec.on::after, .ng-chips .btn.on::after { content: '✓'; position: absolute; top: 4px; right: 5px; width: 18px; height: 18px; border-radius: 9px; background: #e8c27a; color: #2a1d08; font-size: 12px; font-weight: 900; line-height: 18px; text-align: center; z-index: 2; pointer-events: none; }
+.cloth-st { white-space: nowrap; display: inline-block; line-height: 1.5; } /* 设计36 第 4 条：款式标签不折行 */

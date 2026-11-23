@@ -1,11 +1,11 @@
 // V0.2.3 资金链预警（设计35 第二节 3）：首页红条 + 财务总监急报，4 个选项直达
-import * as CF from '../core/cashflow.js?v=876cadde';
-import { available } from '../core/accrual.js?v=876cadde';
-import { fmtMoney } from '../core/format.js?v=876cadde';
-import { game } from '../game.js?v=876cadde';
-import { openPanel, h } from './dom.js?v=876cadde';
-import { openTab } from './shell.js?v=876cadde';
-import * as INB from './inbox.js?v=876cadde';
+import * as CF from '../core/cashflow.js?v=77f12d68';
+import { available } from '../core/accrual.js?v=77f12d68';
+import { fmtMoney } from '../core/format.js?v=77f12d68';
+import { game } from '../game.js?v=77f12d68';
+import { openPanel, h } from './dom.js?v=77f12d68';
+import { openTab } from './shell.js?v=77f12d68';
+import * as INB from './inbox.js?v=77f12d68';
 
 /** 直达：注资 → 资金页签；经营贷 → 银行；卖股票 / 资产 → 投资；裁员 / 关店 → 人事 */
 export function goFund(key) {
@@ -25,7 +25,7 @@ INB.addActionUi((s, m, a) => { if (m.type !== 'fund_low' || !CF.FUND_ACTIONS.som
 
 /** 首页红条：可用 < 1 个月工资时一直显示，点了看 4 个选项 */
 export function mountFundBar(root) {
-  const bar = h('button', 'fund-bar hidden', ''); bar.onclick = openFundHelp; root.appendChild(bar);
-  const upd = (s) => { const low = CF.fundLow(s); bar.classList.toggle('hidden', !low); if (low) bar.innerHTML = `⚠ 公司快发不出工资：可用 ${fmtMoney(available(s))}，一个月工资 ${fmtMoney(CF.monthlyWage(s))}<i>点这里 ›</i>`; };
+  const bar = h('button', 'fund-bar hidden', ''); bar.onclick = () => (bar.dataset.k === 'hr' ? openTab('company', 'hr') : openFundHelp()); root.appendChild(bar);
+  const upd = (s) => { const low = CF.fundLow(s); const hb = !low && CF.autoOn(s) && CF.hr(s).blocked; bar.classList.toggle('hidden', !low && !hb); bar.dataset.k = low ? 'low' : hb ? 'hr' : ''; if (low) bar.innerHTML = `⚠ 公司快发不出工资：可用 ${fmtMoney(available(s))}，一个月工资 ${fmtMoney(CF.monthlyWage(s))}<i>点这里 ›</i>`; else if (hb) bar.innerHTML = `⚠ 自动补员停了：还缺 ${CF.hr(s).blocked.n} 人，钱只够留两个月工资<i>点这里 ›</i>`; }; /* V0.2.4 自动补员停了也提示 */
   upd(game.state); game.onChange(upd);
 }
