@@ -1,11 +1,11 @@
 // V0.2.3 资金链预警（设计35 第二节 3）：首页红条 + 财务总监急报，4 个选项直达
-import * as CF from '../core/cashflow.js?v=b3791cdb';
-import { available } from '../core/accrual.js?v=b3791cdb';
-import { fmtMoney } from '../core/format.js?v=b3791cdb';
-import { game } from '../game.js?v=b3791cdb';
-import { openPanel, h } from './dom.js?v=b3791cdb';
-import { openTab } from './shell.js?v=b3791cdb';
-import * as INB from './inbox.js?v=b3791cdb';
+import * as CF from '../core/cashflow.js?v=0553afd8';
+import { available } from '../core/accrual.js?v=0553afd8';
+import { fmtMoney } from '../core/format.js?v=0553afd8';
+import { game } from '../game.js?v=0553afd8';
+import { openPanel, h } from './dom.js?v=0553afd8';
+import { openTab } from './shell.js?v=0553afd8';
+import * as INB from './inbox.js?v=0553afd8';
 
 /** 直达：注资 → 资金页签；经营贷 → 银行；卖股票 / 资产 → 投资；裁员 / 关店 → 人事 */
 export function goFund(key) {
@@ -21,7 +21,7 @@ export function openFundHelp() {
   p.body.appendChild(h('div', 'rate', `公司可用 <b class="neg">${fmtMoney(available(s))}</b>，一个月工资社保 ${fmtMoney(w)}、房租 ${fmtMoney(CF.burn(s) - w)}<br><small>发不出工资员工会走；拖两个月门店全部停业，停业满一个月员工自动遣散</small>`));
   for (const a of CF.FUND_ACTIONS) { const b = h('button', `btn big ${a.key === 'inject' ? 'gold' : ''}`, a.label); b.onclick = () => { p.close(); goFund(a.key); }; p.body.appendChild(b); }
 }
-INB.addActionUi((s, m, a) => { if (m.type !== 'fund_low' || !CF.FUND_ACTIONS.some((x) => x.key === a)) return false; m.read = true; goFund(a); return true; });
+INB.addActionUi((s, m, a, _r, closeInbox) => { if (m.type !== 'fund_low' || !CF.FUND_ACTIONS.some((x) => x.key === a)) return false; m.read = true; if (closeInbox) closeInbox(); goFund(a); return true; }); // 先关消息页：页签开在消息页下面，不关就像按钮点不动
 
 /** 首页红条：可用 < 1 个月工资时一直显示，点了看 4 个选项 */
 export function mountFundBar(root) {

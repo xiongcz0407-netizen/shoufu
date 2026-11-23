@@ -1,20 +1,20 @@
 // 消息中心（铃铛）：请示 / 月报 / 邀请拍卖 / 系统；请示直接批准 / 驳回
-import * as I from '../core/inbox.js?v=b3791cdb';
-import { SEC_BY_ID } from '../config/secretaries.js?v=b3791cdb';
-import { asset } from '../platform/assets.js?v=b3791cdb';
-import { now } from '../core/clock.js?v=b3791cdb';
-import { game } from '../game.js?v=b3791cdb';
-import { h, toast } from './dom.js?v=b3791cdb';
-import { openFull } from './shell.js?v=b3791cdb';
-import { bump } from '../core/daily.js?v=b3791cdb';
-import { openEventMsg } from './event.js?v=b3791cdb';
-import * as CP from '../core/coupon.js?v=b3791cdb'; // 设计39 再来 10 件
-import { refillHtml, bindRefill } from './coupon.js?v=b3791cdb'; // 设计39 事件券（开发2）
-import { todayCount } from '../core/bizevents.js?v=b3791cdb';
+import * as I from '../core/inbox.js?v=0553afd8';
+import { SEC_BY_ID } from '../config/secretaries.js?v=0553afd8';
+import { asset } from '../platform/assets.js?v=0553afd8';
+import { now } from '../core/clock.js?v=0553afd8';
+import { game } from '../game.js?v=0553afd8';
+import { h, toast } from './dom.js?v=0553afd8';
+import { openFull } from './shell.js?v=0553afd8';
+import { bump } from '../core/daily.js?v=0553afd8';
+import { openEventMsg } from './event.js?v=0553afd8';
+import * as CP from '../core/coupon.js?v=0553afd8'; // 设计39 再来 10 件
+import { refillHtml, bindRefill } from './coupon.js?v=0553afd8'; // 设计39 事件券（开发2）
+import { todayCount } from '../core/bizevents.js?v=0553afd8';
 
 /** 页签那一排放不下时，把选中的滑到中间 */
 function showOn(row) { const b = row.querySelector('.seg.on'); if (!b || row.scrollWidth <= row.clientWidth) return; const r = row.getBoundingClientRect(), x = b.getBoundingClientRect(); if (x.left >= r.left && x.right <= r.right) return; row.scrollLeft += x.left - r.left - (r.width - x.width) / 2; }
-/** 挂钩（V2-06 开发2）：某类消息的某个按钮不直接办，先开一个界面（比如「谈」开谈判）；fn(s, m, action, rerender) 返回 true = 接管了 */
+/** 挂钩（V2-06 开发2）：某类消息的某个按钮不直接办，先开一个界面（比如「谈」开谈判）；fn(s, m, action, rerender, closeInbox) 返回 true = 接管了；要跳到页签的先 closeInbox()（页签在消息页下面，不关看不见） */
 const ACTION_UI = [];
 export const addActionUi = (fn) => { ACTION_UI.push(fn); };
 /** V0.2.3（开发2，站柜台里直接处理）：跟消息卡片上点按钮一样办；返回 true = 办了（或交给了挂钩 / 事件剧情） */
@@ -55,7 +55,7 @@ export function openInbox(kind) {
       card.onclick = (e) => {
         const a = e.target.dataset && e.target.dataset.a;
         if (a === 'open' && m.type === 'event') { I.markRead(s, m.id); openEventMsg(m, render); } // 事件：播剧情 + 选择（选完才算处理）
-        else if (a && ACTION_UI.some((fn) => fn(s, m, a, render))) { /* 交给挂钩（谈判等）*/ }
+        else if (a && ACTION_UI.some((fn) => fn(s, m, a, render, p.close))) { /* 交给挂钩（谈判等）*/ }
         else if (a) { const lab = (m.actions.find((x) => x.key === a) || {}).label || ''; if (I.act(s, m.id, a, now())) toast(m.type === 'biz_event' ? `已处理：${lab}${m.result ? `\n${m.result}` : ''}` : a === 'reject' ? '已驳回' : '已批准', m.type === 'biz_event' ? 3200 : undefined); else toast(m.why || '办不了（钱不够或已经过期）'); }
         else { if (m.kind === 'report' && !m.read) bump(s, now(), 'report'); I.markRead(s, m.id); }
         game.changed(); game.save(); render();

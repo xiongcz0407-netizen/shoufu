@@ -1,17 +1,17 @@
 // V3-03 出差界面：选带谁去（她这趟要用的属性、爱慕阶段、有没有专属剧情）→ 看交通住宿和花费 → 出发：白天办事（选一次）→ 晚上 → 过夜 → 早上
-import * as TP from '../core/trip.js?v=b3791cdb';
-import * as AG from '../core/agenda.js?v=b3791cdb';
-import * as SL from '../core/storylib.js?v=b3791cdb';
-import * as STY from '../core/styles.js?v=b3791cdb';
-import { SEC_BY_ID } from '../config/secretaries.js?v=b3791cdb';
-import { attrs } from '../core/posts.js?v=b3791cdb';
-import { ensureSec, loveStage, LOVE_STAGES } from '../core/secretary.js?v=b3791cdb';
-import { fmtMoney } from '../core/format.js?v=b3791cdb';
-import { asset } from '../platform/assets.js?v=b3791cdb';
-import { game } from '../game.js?v=b3791cdb';
-import { now } from '../core/clock.js?v=b3791cdb';
-import { openPanel, toast } from './dom.js?v=b3791cdb';
-import { playScene } from './scene.js?v=b3791cdb';
+import * as TP from '../core/trip.js?v=0553afd8';
+import * as AG from '../core/agenda.js?v=0553afd8';
+import * as SL from '../core/storylib.js?v=0553afd8';
+import * as STY from '../core/styles.js?v=0553afd8';
+import { SEC_BY_ID } from '../config/secretaries.js?v=0553afd8';
+import { attrs } from '../core/posts.js?v=0553afd8';
+import { ensureSec, loveStage, LOVE_STAGES } from '../core/secretary.js?v=0553afd8';
+import { fmtMoney } from '../core/format.js?v=0553afd8';
+import { asset } from '../platform/assets.js?v=0553afd8';
+import { game } from '../game.js?v=0553afd8';
+import { now } from '../core/clock.js?v=0553afd8';
+import { openPanel, toast } from './dom.js?v=0553afd8';
+import { playScene } from './scene.js?v=0553afd8';
 
 const C = TP.TRIP_CFG; const ATTR = { charm: '魅力', wit: '智慧', social: '交际', manage: '管理' };
 export function openTrip(it) {

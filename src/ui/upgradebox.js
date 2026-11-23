@@ -1,18 +1,18 @@
 // 设计37 第三节：通用升级框 upgradeBox —— 顶上金光「升级！」，三行：升了什么 / 带来什么（前 → 后）/ 下一步；一个「好」，点框外不关。
 // 同一时间只放一个，其余排队；剧情、小场景开着时先等（跟设计35 第五节第 4 条的队列一个规矩）。
 // 开发2 这边接：秘书上课（ui/training.js）、好感升阶、老板属性涨（下面两个看守，每秒比一次）。开发1 的店铺 / 广告 / 分店直接调 upgradeBox。
-import { SEC_BY_ID } from '../config/secretaries.js?v=b3791cdb';
-import { OUTFITS } from '../config/outfits.js?v=b3791cdb';
-import { LINES } from '../config/lines.js?v=b3791cdb';
-import { FAVOR_STAGES, favorStage } from '../core/secretary.js?v=b3791cdb';
-import { bossAttrs, auraBattle, networkAcquire, visionIncome, visionBattle } from '../core/boss.js?v=b3791cdb';
-import { favorMult } from '../core/affection.js?v=b3791cdb';
-import { nameOf } from '../core/styles.js?v=b3791cdb';
-import { RIVALS } from '../config/rivals.js?v=b3791cdb';
-import P from '../config/posts.json?v=b3791cdb' with { type: 'json' };
-import { game } from '../game.js?v=b3791cdb';
-import { h } from './dom.js?v=b3791cdb';
-import { isStoryPlaying } from './story.js?v=b3791cdb';
+import { SEC_BY_ID } from '../config/secretaries.js?v=0553afd8';
+import { OUTFITS } from '../config/outfits.js?v=0553afd8';
+import { LINES } from '../config/lines.js?v=0553afd8';
+import { FAVOR_STAGES, favorStage } from '../core/secretary.js?v=0553afd8';
+import { bossAttrs, auraBattle, networkAcquire, visionIncome, visionBattle } from '../core/boss.js?v=0553afd8';
+import { favorMult } from '../core/affection.js?v=0553afd8';
+import { nameOf } from '../core/styles.js?v=0553afd8';
+import { RIVALS } from '../config/rivals.js?v=0553afd8';
+import P from '../config/posts.json?v=0553afd8' with { type: 'json' };
+import { game } from '../game.js?v=0553afd8';
+import { h } from './dom.js?v=0553afd8';
+import { isStoryPlaying } from './story.js?v=0553afd8';
 
 const esc = (x) => String(x == null ? '' : x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const Q = []; let showing = false;
@@ -28,8 +28,8 @@ let settleAt = 0;
 function pump() {
   if (showing || !Q.length) return;
   if (busy()) { settleAt = 0; setTimeout(pump, 400); return; }
-  // 同一下触发的剧情（比如升广告带出「陆诗雨加入」）会晚一点进队：先等 0.6 秒再看一眼
-  const t = Date.now(); if (!settleAt) settleAt = t + 600; if (t < settleAt) { setTimeout(pump, settleAt - t + 10); return; }
+  // 同一下触发的剧情（比如升广告带出「陆诗雨加入」）会晚一点进队：先等 0.15 秒再看一眼（剧情是同一下同步进队的，不用等久）
+  const t = Date.now(); if (!settleAt) settleAt = t + 150; if (t < settleAt) { setTimeout(pump, settleAt - t + 10); return; }
   settleAt = 0;
   const { opts: o, resolve } = Q.shift(); showing = true;
   const gains = (o.gains || []).map((g) => (typeof g === 'string' ? `<li>${esc(g)}</li>` : `<li class="${g.need ? 'ub-off' : ''}"><span>${g.need ? `<em>${esc(g.need)}：</em>` : ''}${esc(g.name)}</span><b>${esc(g.from)} <i>→</i> ${esc(g.to)}</b></li>`)).join('');
@@ -82,8 +82,7 @@ function reasonOf(s, o) {
   return '';
 }
 let last = null, lastFav = null, lastT = 0, lastS = null;
-game.addTicker((s) => {
-  const t = Date.now(); if (t - lastT < 1000) return; lastT = t;
+function watch(s) {
   if (!s || !s.secs) return;
   if (s !== lastS) { lastS = s; last = null; lastFav = null; } // 读档 / 换档：重新拍，不把差当升级
   // 好感
@@ -101,6 +100,10 @@ game.addTicker((s) => {
     }
   }
   last = now;
-});
+}
+// 弹窗延迟修复：以前每秒（实际常常 2 秒）比一次；现在每秒照比，另外每次点完（game.changed）马上再比一次
+game.addTicker((s) => watch(s));
+let soonT = null;
+if (typeof document !== 'undefined') game.onChange((s) => { if (soonT) return; soonT = setTimeout(() => { soonT = null; lastT = Date.now(); watch(game.state); }, 0); });
 /** 读档 / 换档时重新拍一张，不把老存档的差当成「升级」 */
 export const resetWatch = () => { last = null; lastFav = null; };

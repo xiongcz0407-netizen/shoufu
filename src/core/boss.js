@@ -1,7 +1,7 @@
 // 老板属性（设计09 第一节）：气场（车）、人脉（豪宅、收购）、眼光（飞机、分店、称号）。只靠「拥有」和「做成事」涨
-import B from '../config/boss.json?v=b3791cdb' with { type: 'json' };
-import { CARS, PLANES } from '../config/vehicles.js?v=b3791cdb';
-import { HOUSES } from '../config/estates.js?v=b3791cdb';
+import B from '../config/boss.json?v=0553afd8' with { type: 'json' };
+import { CARS, PLANES } from '../config/vehicles.js?v=0553afd8';
+import { HOUSES } from '../config/estates.js?v=0553afd8';
 export { B as BOSS_CFG };
 
 const BY = {}; for (const x of CARS) BY[x.id] = { ...x, kind: 'car' }; for (const x of PLANES) BY[x.id] = { ...x, kind: 'plane' }; for (const x of HOUSES) BY[x.id] = { ...x, kind: 'house' };

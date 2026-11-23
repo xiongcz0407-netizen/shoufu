@@ -1,5 +1,5 @@
 // 存档迁移（core/save.js 的 MIGRATIONS 用）。只依赖记账，不引别的玩法模块（避免循环引用）
-import { receive } from './ledger.js?v=b3791cdb';
+import { receive } from './ledger.js?v=0553afd8';
 
 /** saveV 1 → 2（V0.2，设计30 取消换汇和境外账户）：
  *  境外账户余额全部转回个人现金、香港子公司（ODI）的钱转回公司账户，各记一笔流水；开户 / 购汇 / ODI 记录删掉；

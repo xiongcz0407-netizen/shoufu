@@ -1,22 +1,22 @@
 // 首页「今日日常」（设计39 第六节，开发2）：今天还剩什么，做完划掉，点一项直接跳过去
 // 开发1 挂钩：setRoutineHooks({ actions(s, t) → '便利店 4 个生效中、餐饮 2 个已到期' })
-import * as DL from '../core/daily.js?v=b3791cdb';
-import * as MG from '../core/manage.js?v=b3791cdb';
-import * as CP from '../core/coupon.js?v=b3791cdb';
-import * as A2 from '../core/affection.js?v=b3791cdb';
-import * as I from '../core/inbox.js?v=b3791cdb';
-import { todayCount } from '../core/bizevents.js?v=b3791cdb';
-import { talksLeft, dayKey, DAILY_TALKS } from '../core/affection.js?v=b3791cdb';
-import { SEC_BY_ID } from '../config/secretaries.js?v=b3791cdb';
-import { now } from '../core/clock.js?v=b3791cdb';
-import { game } from '../game.js?v=b3791cdb';
-import { h, openPanel } from './dom.js?v=b3791cdb';
-import { openDaily } from './daily.js?v=b3791cdb';
-import { openInbox } from './inbox.js?v=b3791cdb';
-import { asset, hasAsset } from '../platform/assets.js?v=b3791cdb';
-import { openWallet, couponIcon, itemIcon, walletIcon } from './coupon.js?v=b3791cdb';
-import { openDetail } from './secretary.js?v=b3791cdb';
-import { openTab } from './shell.js?v=b3791cdb';
+import * as DL from '../core/daily.js?v=0553afd8';
+import * as MG from '../core/manage.js?v=0553afd8';
+import * as CP from '../core/coupon.js?v=0553afd8';
+import * as A2 from '../core/affection.js?v=0553afd8';
+import * as I from '../core/inbox.js?v=0553afd8';
+import { todayCount } from '../core/bizevents.js?v=0553afd8';
+import { talksLeft, dayKey, DAILY_TALKS } from '../core/affection.js?v=0553afd8';
+import { SEC_BY_ID } from '../config/secretaries.js?v=0553afd8';
+import { now } from '../core/clock.js?v=0553afd8';
+import { game } from '../game.js?v=0553afd8';
+import { h, openPanel } from './dom.js?v=0553afd8';
+import { openDaily } from './daily.js?v=0553afd8';
+import { openInbox } from './inbox.js?v=0553afd8';
+import { asset, hasAsset } from '../platform/assets.js?v=0553afd8';
+import { openWallet, couponIcon, itemIcon, walletIcon } from './coupon.js?v=0553afd8';
+import { openDetail } from './secretary.js?v=0553afd8';
+import { openTab } from './shell.js?v=0553afd8';
 
 const H = { actions: null };
 export const setRoutineHooks = (o) => Object.assign(H, o);
@@ -46,14 +46,21 @@ const SHORT = { potion: '药水', battle: '商战', date: '约会', auto: '自�
 // 设计39 第七节：每行前面的小图（没图就不放）
 const ROW_IC = { sign: 'icon_checkin', tasks: 'icon_routine', energy: 'icon_potion', biz: 'icon_ticket_event', important: 'icon_bell', date: 'icon_date', talk: 'icon_ticket_talk' };
 const rowIcon = (k) => (ROW_IC[k] && hasAsset(`assets/ui/${ROW_IC[k]}.webp`) ? `<img class="rt-ic" src="${asset(`assets/ui/${ROW_IC[k]}.webp`)}" alt="">` : '');
+// 从今日日常点进去的页面 / 窗口全关掉后，回到今日日常（Arvin：不要回到桌面）
+const onTop = () => !!document.querySelector('.panel-mask, .full, .page-layer:not(.hidden), .ub-mask, .story, .sc-scene');
+let backT = null;
+function backHere() {
+  clearInterval(backT); let seen = false, n = 0;
+  backT = setInterval(() => { if (onTop()) seen = true; else if (seen) { clearInterval(backT); openRoutine(); } else if (++n > 10) clearInterval(backT); }, 300);
+}
 export function openRoutine() {
   const p = openPanel(`${rowIcon('tasks').replace('rt-ic', 'rt-head-ic')}今日日常`);
   const draw = () => {
     const s = game.state; const list = routine(s);
     p.body.innerHTML = `<div class="tr-gain">每天 0 点重置。点一项直接过去。</div><div class="rt-list">${list.map((x, i) => `<button class="rt-row ${x.done ? 'done' : ''}" data-i="${i}"><span>${rowIcon(x.key)}${x.done ? '✓ ' : ''}${x.name}</span><b>${x.text}</b><i>›</i></button>`).join('')}</div>
       <button class="btn rt-coupon" style="width:100%;margin-top:8px"><span class="rt-cp-t">${walletIcon('rt-ic')}卡包 · ${couponIcon('rt-ic')}${CP.balance(s)}</span><span class="rt-cp-list">${CP.ITEM_KEYS.map((k) => `<i>${itemIcon(k, 'rt-ic')}<em>${SHORT[k]} ${CP.have(s, k)}</em></i>`).join('')}</span> ›</button>`;
-    p.body.querySelectorAll('.rt-row').forEach((b) => (b.onclick = () => { const x = list[+b.dataset.i]; p.close(); setTimeout(() => x.go(), 220); }));
-    p.body.querySelector('.rt-coupon').onclick = () => { p.close(); setTimeout(() => openWallet(), 220); };
+    p.body.querySelectorAll('.rt-row').forEach((b) => (b.onclick = () => { const x = list[+b.dataset.i]; p.close(); setTimeout(() => { x.go(); backHere(); }, 220); }));
+    p.body.querySelector('.rt-coupon').onclick = () => { p.close(); setTimeout(() => { openWallet(); backHere(); }, 220); };
   };
   draw();
   const off = game.onChange(() => { if (!document.body.contains(p.body)) { off(); return; } draw(); });

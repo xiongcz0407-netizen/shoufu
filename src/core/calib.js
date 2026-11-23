@@ -2,9 +2,9 @@
 // 成本照真实（进货占比、编制工资 + 社保、房租），营收反推到「月净利 = 真实净利 × profitMul」
 //   游戏月营收 = (profitMul × 真实营收 × 真实净利率 + 每店工资社保 + 房租 + 其他经营费用) ÷ (1 − 进货占比 − calibVat)
 // 只用配置（industries.js real、payroll.json、economy.json），不 import economy / staff（避免循环）
-import ECO from '../config/economy.json?v=b3791cdb' with { type: 'json' };
-import PAY from '../config/payroll.json?v=b3791cdb' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=b3791cdb';
+import ECO from '../config/economy.json?v=0553afd8' with { type: 'json' };
+import PAY from '../config/payroll.json?v=0553afd8' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=0553afd8';
 export { ECO };
 
 const sumv = (o) => Object.values(o || {}).reduce((a, b) => a + b, 0);
