@@ -1,14 +1,14 @@
 // V2-08 选址开分店（设计29 第三节）：选城市以后出 3 个候选铺位，可以先派秘书踩点（10 分钟），选一个开；线详情里看每家分店的铺位和表现、关店转让
-import * as SI from '../core/sites.js?v=b7d8e042';
-import * as E from '../core/economy.js?v=b7d8e042';
-import { IND_BY_ID } from '../config/industries.js?v=b7d8e042';
-import { SEC_BY_ID } from '../config/secretaries.js?v=b7d8e042';
-import { attrs } from '../core/posts.js?v=b7d8e042';
-import { isTraining } from '../core/training.js?v=b7d8e042';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=b7d8e042';
-import { now } from '../core/clock.js?v=b7d8e042';
-import { game } from '../game.js?v=b7d8e042';
-import { openPanel, toast, liveRender } from './dom.js?v=b7d8e042';
+import * as SI from '../core/sites.js?v=385b5781';
+import * as E from '../core/economy.js?v=385b5781';
+import { IND_BY_ID } from '../config/industries.js?v=385b5781';
+import { SEC_BY_ID } from '../config/secretaries.js?v=385b5781';
+import { attrs } from '../core/posts.js?v=385b5781';
+import { isTraining } from '../core/training.js?v=385b5781';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=385b5781';
+import { now } from '../core/clock.js?v=385b5781';
+import { game } from '../game.js?v=385b5781';
+import { openPanel, toast, liveRender } from './dom.js?v=385b5781';
 
 const C = SI.SITE_CFG;
 const kTxt = (k) => `×${k.toFixed(2)}`;

@@ -1,10 +1,10 @@
 // 培养：课程价格 / 时间、培训位、开课、结业（离线也算）
-import { COURSES, COURSE_BY_ID, BASE_SLOTS, PRICE_BASE, PRICE_GROW, TIME_BASE_SEC, TIME_GROW, BEST_DISCOUNT } from '../config/courses.js?v=b7d8e042';
-import { SEC_BY_ID } from '../config/secretaries.js?v=b7d8e042';
-import { ensureSec } from './secretary.js?v=b7d8e042';
-import { bump } from './daily.js?v=b7d8e042';
-import { isScouting } from './busy.js?v=b7d8e042'; // V2-08 踩点占用（开发2）
-import { pay, receive, accrue, canPay } from './ledger.js?v=b7d8e042';
+import { COURSES, COURSE_BY_ID, BASE_SLOTS, PRICE_BASE, PRICE_GROW, TIME_BASE_SEC, TIME_GROW, BEST_DISCOUNT } from '../config/courses.js?v=385b5781';
+import { SEC_BY_ID } from '../config/secretaries.js?v=385b5781';
+import { ensureSec } from './secretary.js?v=385b5781';
+import { bump } from './daily.js?v=385b5781';
+import { isScouting } from './busy.js?v=385b5781'; // V2-08 踩点占用（开发2）
+import { pay, receive, accrue, canPay } from './ledger.js?v=385b5781';
 
 export const ATTR_MAX = 100;
 export const slotCount = (s) => BASE_SLOTS + s.title;

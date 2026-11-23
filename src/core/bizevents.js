@@ -1,20 +1,20 @@
 // P-05 经营事件（设计25 第二节，config/events.json）：在线每 3～5 分钟来一件，最多挂 1 件（左侧「限时」浮动 + 消息中心邀请），2 分钟不理按默认；
 // 离线不来、不补；按你有的店、行业、称号筛；同一件 1 个游戏月内不重复；相关属性最高的秘书出主意（对的概率 50% + 属性 / 2）
-import { credit } from './credit.js?v=b7d8e042'; // V3-01 亲自拍板攒投入度
-import EV from '../config/events.json?v=b7d8e042' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=b7d8e042';
-import { SEC_BY_ID } from '../config/secretaries.js?v=b7d8e042';
-import { MONTH_MS } from './gametime.js?v=b7d8e042';
-import { addMsg, onAction } from './inbox.js?v=b7d8e042';
-import { pay, receive } from './ledger.js?v=b7d8e042';
-import { addContract } from './contracts.js?v=b7d8e042';
-import { attrs } from './posts.js?v=b7d8e042';
-import { isTraining } from './training.js?v=b7d8e042';
-import * as MG from './manage.js?v=b7d8e042';
-import * as PK from './pick.js?v=b7d8e042';
-import * as PQ from './prereq.js?v=b7d8e042';
-import './late.js?v=b7d8e042'; // V3-01 后期不挂机（挂钩注册） // V2-12 前置条件第一次满足时秘书说一句 // V2-03 进货挑品：暴雨跟着天气、节日事件跟着节日
-import { mark } from './goals.js?v=b7d8e042';
+import { credit } from './credit.js?v=385b5781'; // V3-01 亲自拍板攒投入度
+import EV from '../config/events.json?v=385b5781' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=385b5781';
+import { SEC_BY_ID } from '../config/secretaries.js?v=385b5781';
+import { MONTH_MS } from './gametime.js?v=385b5781';
+import { addMsg, onAction } from './inbox.js?v=385b5781';
+import { pay, receive } from './ledger.js?v=385b5781';
+import { addContract } from './contracts.js?v=385b5781';
+import { attrs } from './posts.js?v=385b5781';
+import { isTraining } from './training.js?v=385b5781';
+import * as MG from './manage.js?v=385b5781';
+import * as PK from './pick.js?v=385b5781';
+import * as PQ from './prereq.js?v=385b5781';
+import './late.js?v=385b5781'; // V3-01 后期不挂机（挂钩注册） // V2-12 前置条件第一次满足时秘书说一句 // V2-03 进货挑品：暴雨跟着天气、节日事件跟着节日
+import { mark } from './goals.js?v=385b5781';
 
 export { EV as EVENTS_CFG };
 const r2 = (x) => Math.round(x * 100) / 100;

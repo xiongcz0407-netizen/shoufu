@@ -1,15 +1,15 @@
 // 亲自站柜台（V2-04，设计28 第一节）：上半屏门店图 + 店名 / 今天主推 / 天气；下半屏柜台顾客排队（最多 4 个）；底部今天的统计和「离开柜台」
 // 离开页面就停（离线没有）；同一时间只能站一家店
-import * as CT from '../core/counter.js?v=b7d8e042';
-import { IND_BY_ID } from '../config/industries.js?v=b7d8e042';
-import { SEC_BY_ID } from '../config/secretaries.js?v=b7d8e042';
-import { fmtMoney } from '../core/format.js?v=b7d8e042';
-import { asset, hasAsset } from '../platform/assets.js?v=b7d8e042';
-import { game } from '../game.js?v=b7d8e042';
-import { now } from '../core/clock.js?v=b7d8e042';
-import { h, toast } from './dom.js?v=b7d8e042';
-import { openFull } from './shell.js?v=b7d8e042';
-import { isStoryPlaying } from './story.js?v=b7d8e042';
+import * as CT from '../core/counter.js?v=385b5781';
+import { IND_BY_ID } from '../config/industries.js?v=385b5781';
+import { SEC_BY_ID } from '../config/secretaries.js?v=385b5781';
+import { fmtMoney } from '../core/format.js?v=385b5781';
+import { asset, hasAsset } from '../platform/assets.js?v=385b5781';
+import { game } from '../game.js?v=385b5781';
+import { now } from '../core/clock.js?v=385b5781';
+import { h, toast } from './dom.js?v=385b5781';
+import { openFull } from './shell.js?v=385b5781';
+import { isStoryPlaying } from './story.js?v=385b5781';
 
 const C = CT.COUNTER_CFG;
 let open = null;   // 正在站的那一个（同一时间只能站一家）
@@ -61,14 +61,14 @@ export function openCounter(id) {
     }
     return `<div class="ct-card ${c.kind === 'thief' ? 'red' : ''}"><i class="ct-av"></i><div class="ct-txt">${body}<i class="ct-pat"><b style="width:${pc}%"></b></i></div><div class="ct-btns">${btns}</div></div>`;
   };
-  const drawQ = () => { const t = now(); q.innerHTML = queue.map((c) => card(c, t)).join('') + float.map((f) => `<i class="ct-float ${f.neg ? 'neg' : ''}" style="top:${f.y}px">${f.text}</i>`).join('') || '<div class="tr-gain" style="text-align:center;margin-top:30px">等客人进门……</div>'; };
+  const drawQ = () => { const t = now(); q.innerHTML = (sess.combo >= 2 ? `<div class="ct-combo${sess.combo % C.combo.every === 0 ? ' hit' : ''}">连击 ×${sess.combo}<small>${sess.combo % C.combo.every === 0 ? `这一单 +${Math.round(C.combo.bonus * 100)}%` : `再 ${C.combo.every - (sess.combo % C.combo.every)} 单 +${Math.round(C.combo.bonus * 100)}%`}</small></div>` : '') + queue.map((c) => card(c, t)).join('') + float.map((f) => `<i class="ct-float ${f.neg ? 'neg' : ''}" style="top:${f.y}px">${f.text}</i>`).join('') || '<div class="tr-gain" style="text-align:center;margin-top:30px">等客人进门……</div>'; };
   const drawFoot = () => {
     const s = game.state; const d = CT.statToday(s, id, now());
     foot.innerHTML = `<div class="ct-stat"><span>今天接待 <b>${d.n}</b> 位</span><span>今天营业额 <b>${money(d.rev)}</b></span><span>今天赚了 <b>${money(d.earn || 0)}</b></span><span>加购 <b>${d.up}</b>/${d.upTry}</span><span>跑掉 <b class="${d.lost > C.lostRepAt ? 'neg' : ''}">${d.lost}</b> 位</span></div><button class="btn big ct-leave">离开柜台</button>`;
     foot.querySelector('.ct-leave').onclick = () => p.close();
     cap.style.display = CT.leftToday(s, id, now()) <= 0 ? '' : 'none';
   };
-  const pop = (text, neg = false) => { float.push({ text, neg, y: 10 + (float.length % 3) * 26, until: now() + 1200 }); };
+  const pop = (text, neg = false) => { float.push({ text, neg, y: 50 + (float.length % 3) * 26, until: now() + 1200 }); };
   const take = (seq) => { const i = queue.findIndex((c) => c.seq === +seq); return i < 0 ? null : queue.splice(i, 1)[0]; };
   q.addEventListener('pointerdown', (e) => {
     const b = e.target.closest('[data-a]'); if (!b) return; e.preventDefault();
@@ -76,7 +76,7 @@ export function openCounter(id) {
     if (a === 'up') { c.upsell = !c.upsell; drawQ(); return; }
     if (a === 'chat') { const r = CT.chat(s, sess, t); c.chatted = true; pop(r.rep ? `口碑 +${r.rep}` : '聊得挺开心'); drawQ(); return; }
     take(seq);
-    if (a === 'pay-out') { const r = CT.checkout(s, c, sess, t, { secId, upsell: !!c.upsell }); if (!r.ok) { toast(r.why); return; } pop(r.amount > 0 ? `营业额 +${money(r.sale)} · 赚 ${money(r.amount)}${c.upsell ? (r.upsold ? ' 加购成功' : ' 没加购') : ''}` : '今天够忙了'); }
+    if (a === 'pay-out') { const r = CT.checkout(s, c, sess, t, { secId, upsell: !!c.upsell }); if (!r.ok) { toast(r.why); return; } pop(r.amount > 0 ? `${r.comboHit ? `连击 ×${r.combo}！+${Math.round(C.combo.bonus * 100)}% ` : ''}营业额 +${money(r.sale)} · 赚 ${money(r.amount)}${c.upsell ? (r.upsold ? ' 加购成功' : ' 没加购') : ''}` : '今天够忙了'); }
     else if (a === 'catch') { CT.thief(s, c, sess, t, true); pop(`抓住了！口碑 +${C.events.thief.rep}`); }
     else if (a === 'pay') { const r = CT.change(s, sess, t, 'pay'); pop(`赔了 ${money(r.paid)}`, true); }
     else if (a === 'check') { const r = CT.change(s, sess, t, 'check'); pop(r.his ? `是他记错了，口碑 +${r.rep}` : `真是你找错了，口碑 ${r.rep}`, !r.his); }

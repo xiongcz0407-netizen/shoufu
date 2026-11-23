@@ -1,14 +1,14 @@
 // 第 P-06 项：财富 → 投资 里的「打新 · 两融」页签、个股页的条件单 / 融资买入、行情顶上的看盘（设计25 第五节）
-import * as SK from '../core/stocks.js?v=b7d8e042';
-import * as TR from '../core/trade.js?v=b7d8e042';
-import * as AS from '../core/assets.js?v=b7d8e042';
-import { attrs as secAttrs } from '../core/posts.js?v=b7d8e042';
-import { SEC_BY_ID } from '../config/secretaries.js?v=b7d8e042';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=b7d8e042';
-import { profitMul } from '../core/calib.js?v=b7d8e042';
-import { game } from '../game.js?v=b7d8e042';
-import { now } from '../core/clock.js?v=b7d8e042';
-import { h, openPanel, toast } from './dom.js?v=b7d8e042';
+import * as SK from '../core/stocks.js?v=385b5781';
+import * as TR from '../core/trade.js?v=385b5781';
+import * as AS from '../core/assets.js?v=385b5781';
+import { attrs as secAttrs } from '../core/posts.js?v=385b5781';
+import { SEC_BY_ID } from '../config/secretaries.js?v=385b5781';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=385b5781';
+import { profitMul } from '../core/calib.js?v=385b5781';
+import { game } from '../game.js?v=385b5781';
+import { now } from '../core/clock.js?v=385b5781';
+import { h, openPanel, toast } from './dom.js?v=385b5781';
 
 const C = SK.SCFG; const I = C.ipo, MG = C.margin;
 const COLOR = { 科技: '#3b6fd8', 消费: '#d8823b', 能源: '#3ba86b', 汽车: '#7a5cd6', 金融: '#c9a43b', 传媒: '#d64b7a', 奢侈品: '#8a6a3a' };

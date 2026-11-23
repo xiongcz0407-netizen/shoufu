@@ -1,19 +1,19 @@
 // V3-02 老板日程表界面：首页「日程」→ 今天 / 明天，每个时段的邀请：答应 / 推掉 / 派人代去 / 去参加；外部事件「去处理」
 // 出席宴会、讲座、慈善、私人场合先选车 / 表 / 西装 / 女伴；参加 = 小场景（ui/scene.js）
-import * as AG from '../core/agenda.js?v=b7d8e042';
-import { openTrip } from './trip.js?v=b7d8e042';
-import * as INB from './inbox.js?v=b7d8e042';
-import { SEC_BY_ID } from '../config/secretaries.js?v=b7d8e042';
-import { attrs } from '../core/posts.js?v=b7d8e042';
-import { dayIndex } from '../core/manage.js?v=b7d8e042';
-import { game } from '../game.js?v=b7d8e042';
-import { now } from '../core/clock.js?v=b7d8e042';
-import { openPanel, toast } from './dom.js?v=b7d8e042';
-import { playScene } from './scene.js?v=b7d8e042';
-import { lineOf, setFavorFn } from '../core/storylib.js?v=b7d8e042';
-import { favorStage } from '../core/secretary.js?v=b7d8e042';
+import * as AG from '../core/agenda.js?v=385b5781';
+import { openTrip } from './trip.js?v=385b5781';
+import * as INB from './inbox.js?v=385b5781';
+import { SEC_BY_ID } from '../config/secretaries.js?v=385b5781';
+import { attrs } from '../core/posts.js?v=385b5781';
+import { dayIndex } from '../core/manage.js?v=385b5781';
+import { game } from '../game.js?v=385b5781';
+import { now } from '../core/clock.js?v=385b5781';
+import { openPanel, toast } from './dom.js?v=385b5781';
+import { playScene } from './scene.js?v=385b5781';
+import { lineOf, setFavorFn } from '../core/storylib.js?v=385b5781';
+import { favorStage } from '../core/secretary.js?v=385b5781';
 setFavorFn((id) => { const r = game.state && game.state.secs && game.state.secs[id]; return r ? favorStage(r.favor || 0) : 0; }); // V3-04：{ t, fav } 好感到了才说
-import * as STY from '../core/styles.js?v=b7d8e042';
+import * as STY from '../core/styles.js?v=385b5781';
 
 const C = AG.AGENDA_CFG;
 const OPENERS = {};
@@ -90,7 +90,7 @@ export function runScene(x, sel) {
   playScene([...(inv ? [{ who: comp, text: inv }] : []), ...fl, ...v.intro.map(sub), ...round(0)], { sec: comp && SEC_BY_ID[comp] ? comp : null, outfit: fit ? fit.o : undefined, bg: BG[x.kind], title: `${C.kinds[x.kind].name} · ${x.title}` });
 }
 INB.addActionUi((s, m, a) => { if (m.type !== 'agenda' || a !== 'open') return false; openAgenda(); return true; });
-import('./meeting.js?v=b7d8e042').then((M) => registerOpen('meeting', () => M.openMeeting()));
+import('./meeting.js?v=385b5781').then((M) => registerOpen('meeting', () => M.openMeeting()));
 for (const k of ['project', 'attack', 'realestate']) registerOpen(k, () => INB.openInbox('invite')); // 开发1 的消息（带按钮），在消息中心「邀请」页处理
 let last = 0;
 game.addTicker((s) => { const t = now(); if (t - last < 2000) return; last = t; const r = AG.tick(s, t); if (r && r.invites) toast(`${AG.scheduler(s) ? SEC_BY_ID[AG.scheduler(s)].name : '秘书'}把明天的日程排好了（${r.invites} 个邀请）`, 3000); });

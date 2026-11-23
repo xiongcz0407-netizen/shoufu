@@ -1,19 +1,19 @@
 // 亲自站柜台（V2-04，设计28 第一节）：不花精力，在线就能一直做；只在店少、店小的时候有用
 // 顾客排队结账 → 照现实记账：营业额 = 客单价（加购 +30%），赚的（进账）= 客单价 × mul[线][档]，进货成本 = 营业额 − 进账（都走记账，按秒攒成流水）；
 // 柜台小事件（加购、熟客、小偷、找零）、秘书陪站、每天上限（这条线挂机一天营业额的 50%）、请了店长 ×0.5、第三档店不能站；不算进估值（估值看 lineNetMonth，不看流水）
-import C from '../config/counter.json?v=b7d8e042' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=b7d8e042';
-import { SEC_BY_ID } from '../config/secretaries.js?v=b7d8e042';
-import { lookIndex } from './economy.js?v=b7d8e042';
-import { accrue } from './ledger.js?v=b7d8e042';
-import { track } from './companytax.js?v=b7d8e042';
-import { holder, attrs } from './posts.js?v=b7d8e042';
-import { isTraining } from './training.js?v=b7d8e042';
-import { isScouting } from './busy.js?v=b7d8e042';
-import { addFavor } from './affection.js?v=b7d8e042';
-import { mark } from './goals.js?v=b7d8e042';
-import { dayIndex, dayRev, addRep, isShop } from './manage.js?v=b7d8e042';
-import * as PK from './pick.js?v=b7d8e042';
+import C from '../config/counter.json?v=385b5781' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=385b5781';
+import { SEC_BY_ID } from '../config/secretaries.js?v=385b5781';
+import { lookIndex } from './economy.js?v=385b5781';
+import { accrue } from './ledger.js?v=385b5781';
+import { track } from './companytax.js?v=385b5781';
+import { holder, attrs } from './posts.js?v=385b5781';
+import { isTraining } from './training.js?v=385b5781';
+import { isScouting } from './busy.js?v=385b5781';
+import { addFavor } from './affection.js?v=385b5781';
+import { mark } from './goals.js?v=385b5781';
+import { dayIndex, dayRev, addRep, isShop } from './manage.js?v=385b5781';
+import * as PK from './pick.js?v=385b5781';
 
 export { C as COUNTER_CFG };
 const r2 = (x) => Math.round(x * 100) / 100;
@@ -92,7 +92,8 @@ export function whySec(s, secId) { if (!secId) return null; if (!s.secs[secId]) 
 /** 记一单：营业额 sale（客单价），赚 amt（= 客单价 × 换算）；进货成本 = 营业额 − 赚的。到上限就少记或不记。返回 { got 赚的, sale 记的营业额 } */
 function book(s, id, sale, amt, t) {
   const left = leftToday(s, id, t); const got = r2(Math.min(amt, left)); if (got <= 0) return { got: 0, sale: 0 };
-  const rev = r2(sale * got / amt); const cg = r2(rev - got); const name = IND_BY_ID[id].name;
+  // V0.2.1：mul ×5 以后小吃摊赚的会超过客单价，营业额按赚的记、进货 0
+  const rev = r2(Math.max(sale, amt) * got / amt); const cg = r2(rev - got); const name = IND_BY_ID[id].name;
   accrue(s, 'counter_' + id, 'company', 'counter', rev, `${name}老板站柜台营业额`);
   if (cg > 0) accrue(s, 'counter_cogs_' + id, 'company', 'cogs', cg, `${name}站柜台卖掉的货（进货成本）`, 'out');
   track(s, id, rev, cg); const d = today(s, id, t); d.rev = r2(d.rev + rev); d.earn = r2((d.earn || 0) + got);
@@ -104,14 +105,15 @@ export function checkout(s, cust, sess, t, { secId = null, upsell = false, rnd =
   if (cust.kind === 'thief') return { ok: false, why: '这位不是来买东西的' };
   let upsold = false; const d = today(s, id, t);
   if (upsell && cust.kind === 'upsell') { d.upTry += 1; upsold = rnd() < upsellP(s, secId); if (upsold) d.up += 1; }
-  const sale = r2(cust.price * (upsold ? 1 + C.events.upsell.add : 1)); const amt = r2(sale * mulOf(s, id));
+  sess.combo = (sess.combo || 0) + 1; const comboHit = C.combo && sess.combo % C.combo.every === 0; // V0.2.1 连击：连续结账不让人跑掉，每 N 连击那一单 +20%
+  const sale = r2(cust.price * (upsold ? 1 + C.events.upsell.add : 1) * (comboHit ? 1 + C.combo.bonus : 1)); const amt = r2(sale * mulOf(s, id));
   const { got, sale: rev } = book(s, id, sale, amt, t);
   d.n += 1; cs(s).total.n += 1; mark(s, 'act');   // 目标链第 1 个：第一次亲自上阵或站柜台
-  return { ok: true, sale: rev, amount: got, capped: got < amt - 0.005, upsold };
+  return { ok: true, sale: rev, amount: got, capped: got < amt - 0.005, upsold, combo: sess.combo, comboHit: !!comboHit };
 }
 /** 顾客等太久走了：当天跑掉超过 10 位，这家店口碑 −1（一天一次） */
 export function walkout(s, sess, t) {
-  const id = sess.id; const d = today(s, id, t); d.lost += 1;
+  const id = sess.id; const d = today(s, id, t); d.lost += 1; sess.combo = 0; // 跑了一个，连击断
   if (d.lost > C.lostRepAt && !d.repHit) { d.repHit = true; addRep(s, id, -C.lostRep); return { rep: -C.lostRep }; }
   return { rep: 0 };
 }

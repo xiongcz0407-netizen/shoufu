@@ -1,13 +1,13 @@
 // 科技（设计20 第二节 3）：产品项目（立项 → 研发 → 上线 → S 曲线 → 止损）、研发费用加计扣除 100%、软件即征即退、联动管理效率 +3%
 // 不 import economy
-import T from '../config/tech.json?v=b7d8e042' with { type: 'json' };
-import { headCap, gm } from './calib.js?v=b7d8e042';
-import { pay, receive, canPay } from './ledger.js?v=b7d8e042';
-import { holder, isSec, attrs } from './posts.js?v=b7d8e042';
-import { bossAttrs } from './boss.js?v=b7d8e042';
-import { lookOf, establishment, wage, PAY, onDuty } from './staff.js?v=b7d8e042';
-import { MONTH_MS, monthIndex } from './gametime.js?v=b7d8e042';
-import { addMsg } from './inbox.js?v=b7d8e042';
+import T from '../config/tech.json?v=385b5781' with { type: 'json' };
+import { headCap, gm } from './calib.js?v=385b5781';
+import { pay, receive, canPay } from './ledger.js?v=385b5781';
+import { holder, isSec, attrs } from './posts.js?v=385b5781';
+import { bossAttrs } from './boss.js?v=385b5781';
+import { lookOf, establishment, wage, PAY, onDuty } from './staff.js?v=385b5781';
+import { MONTH_MS, monthIndex } from './gametime.js?v=385b5781';
+import { addMsg } from './inbox.js?v=385b5781';
 export { T as TECH_CFG };
 
 const MIN = 60e3; const MONTH_SEC = MONTH_MS / 1000;

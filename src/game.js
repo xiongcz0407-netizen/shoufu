@@ -1,9 +1,9 @@
 // 游戏总控：持有存档、每秒走一次逻辑、自动存档、后台停
-import { storage } from './platform/storage.js?v=b7d8e042';
-import { loadGame, saveGame } from './core/save.js?v=b7d8e042';
-import { now } from './core/clock.js?v=b7d8e042';
-import { processPeriods } from './core/gametime.js?v=b7d8e042';
-import { flushAccruals } from './core/ledger.js?v=b7d8e042';
+import { storage } from './platform/storage.js?v=385b5781';
+import { loadGame, saveGame } from './core/save.js?v=385b5781';
+import { now } from './core/clock.js?v=385b5781';
+import { processPeriods } from './core/gametime.js?v=385b5781';
+import { flushAccruals } from './core/ledger.js?v=385b5781';
 
 const listeners = new Set();
 const tickers = [];        // 每秒逻辑：fn(state, dtSec, t)

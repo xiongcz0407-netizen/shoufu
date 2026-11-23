@@ -1,13 +1,13 @@
 // 消息中心（铃铛）：请示 / 月报 / 邀请拍卖 / 系统；请示直接批准 / 驳回
-import * as I from '../core/inbox.js?v=b7d8e042';
-import { SEC_BY_ID } from '../config/secretaries.js?v=b7d8e042';
-import { asset } from '../platform/assets.js?v=b7d8e042';
-import { now } from '../core/clock.js?v=b7d8e042';
-import { game } from '../game.js?v=b7d8e042';
-import { h, toast } from './dom.js?v=b7d8e042';
-import { openFull } from './shell.js?v=b7d8e042';
-import { bump } from '../core/daily.js?v=b7d8e042';
-import { openEventMsg } from './event.js?v=b7d8e042';
+import * as I from '../core/inbox.js?v=385b5781';
+import { SEC_BY_ID } from '../config/secretaries.js?v=385b5781';
+import { asset } from '../platform/assets.js?v=385b5781';
+import { now } from '../core/clock.js?v=385b5781';
+import { game } from '../game.js?v=385b5781';
+import { h, toast } from './dom.js?v=385b5781';
+import { openFull } from './shell.js?v=385b5781';
+import { bump } from '../core/daily.js?v=385b5781';
+import { openEventMsg } from './event.js?v=385b5781';
 
 /** 页签那一排放不下时，把选中的滑到中间 */
 function showOn(row) { const b = row.querySelector('.seg.on'); if (!b || row.scrollWidth <= row.clientWidth) return; const r = row.getBoundingClientRect(), x = b.getBoundingClientRect(); if (x.left >= r.left && x.right <= r.right) return; row.scrollLeft += x.left - r.left - (r.width - x.width) / 2; }

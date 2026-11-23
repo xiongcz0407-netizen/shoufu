@@ -1,13 +1,13 @@
 // 培训面板：培训位、进度；安排上课（选人 → 选课）
-import { SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=b7d8e042';
-import { COURSE_BY_ID } from '../config/courses.js?v=b7d8e042';
-import * as T from '../core/training.js?v=b7d8e042';
-import { isScouting } from '../core/busy.js?v=b7d8e042'; // V2-08
-import { fmtMoney, fmtDuration } from '../core/format.js?v=b7d8e042';
-import { asset, hasAsset } from '../platform/assets.js?v=b7d8e042';
-import { now } from '../core/clock.js?v=b7d8e042';
-import { game } from '../game.js?v=b7d8e042';
-import { h, openPanel, toast } from './dom.js?v=b7d8e042';
+import { SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=385b5781';
+import { COURSE_BY_ID } from '../config/courses.js?v=385b5781';
+import * as T from '../core/training.js?v=385b5781';
+import { isScouting } from '../core/busy.js?v=385b5781'; // V2-08
+import { fmtMoney, fmtDuration } from '../core/format.js?v=385b5781';
+import { asset, hasAsset } from '../platform/assets.js?v=385b5781';
+import { now } from '../core/clock.js?v=385b5781';
+import { game } from '../game.js?v=385b5781';
+import { h, openPanel, toast } from './dom.js?v=385b5781';
 
 const AN = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 const gainText = (g) => Object.entries(g).map(([k, v]) => `${AN[k]}+${v}`).join(' ');

@@ -30,8 +30,8 @@ INDUSTRIES.push({ id: 'media', name: '娱乐传媒', kind: 'media', unlockTitle:
   looks: [1, 15, 40], img: ['ind_media_1', 'ind_media_2', 'ind_media_3'], lookNames: ['MCN 直播工作室', '影视公司', '传媒集团'] });
 /** V2-12 前置条件（设计31）：needFirst 开第一家 / 解锁要，needBranch 开第 2 家起要。{ line, n }：那条线分店 ≥ n；{ retailTotal }：三种门店合计 ≥ n。称号要求照旧 */
 const NEED = {
-  food: { needBranch: { line: 'store', n: 3 } },
-  fashion: { needFirst: { line: 'store', n: 3 }, needBranch: { line: 'food', n: 3 } },
+  food: { needBranch: { line: 'store', n: 3 }, firstCost: 10000 }, // V0.2.1（设计34）：第一家小吃摊、服装摊 1 万
+  fashion: { needFirst: { line: 'store', n: 3 }, needBranch: { line: 'food', n: 3 }, firstCost: 10000 },
   logistics: { needFirst: { retailTotal: 20 } },
   realestate: { needFirst: { retailTotal: 30 } },
   tech: { needFirst: { line: 'logistics', n: 5 } },

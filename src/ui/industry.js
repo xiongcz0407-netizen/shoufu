@@ -1,14 +1,15 @@
 // 产业面板：升级、开分店、派驻秘书；产业图按等级换样子
-import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=b7d8e042';
-import { TITLES } from '../config/titles.js?v=b7d8e042';
-import * as PQ from '../core/prereq.js?v=b7d8e042'; // V2-12 前置条件
-import { SEC_BY_ID } from '../config/secretaries.js?v=b7d8e042';
-import * as E from '../core/economy.js?v=b7d8e042';
-import { fmtMoney } from '../core/format.js?v=b7d8e042';
-import { asset, hasAsset } from '../platform/assets.js?v=b7d8e042';
-import { game } from '../game.js?v=b7d8e042';
-import { now } from '../core/clock.js?v=b7d8e042';
-import { h, openPanel, toast } from './dom.js?v=b7d8e042';
+import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=385b5781';
+import { TITLES } from '../config/titles.js?v=385b5781';
+import * as PQ from '../core/prereq.js?v=385b5781'; // V2-12 前置条件
+import { shortText } from './company.js?v=385b5781'; // V0.2.1 灰按钮写原因
+import { SEC_BY_ID } from '../config/secretaries.js?v=385b5781';
+import * as E from '../core/economy.js?v=385b5781';
+import { fmtMoney } from '../core/format.js?v=385b5781';
+import { asset, hasAsset } from '../platform/assets.js?v=385b5781';
+import { game } from '../game.js?v=385b5781';
+import { now } from '../core/clock.js?v=385b5781';
+import { h, openPanel, toast } from './dom.js?v=385b5781';
 
 export function openIndustry(host) {
   const p = host || openPanel('我的产业');
@@ -40,8 +41,8 @@ export function openIndustry(host) {
           <div class="ind-line">${ind.level} 级 · ${ind.branches} 家${nextLook ? `<span class="ind-next">${nextLook} 级升${cfg.lookNames[look + 1]}</span>` : ''}</div>
           <div class="ind-line">每秒 <b>${fmtMoney(E.industryIncome(s, cfg.id, SEC_BY_ID))}</b>${ind.sec ? `　派驻：${secName}（+${Math.round(E.secBonus(s, ind, SEC_BY_ID) * 100)}%）` : ''}</div>
           <div class="ind-btns">
-            <button class="btn up" ${s.company < upC ? 'disabled' : ''}>升级<br><small>${fmtMoney(upC)}</small></button>
-            <button class="btn br" ${brC == null || s.company < brC ? 'disabled' : ''}>${brC == null ? '分店满了' : `开分店<br><small>${fmtMoney(brC)}</small>`}</button>
+            <button class="btn up" ${s.company < upC ? 'disabled' : ''}>升级<br><small>${fmtMoney(upC)}${shortText(s, upC)}</small></button>
+            <button class="btn br" ${brC == null || s.company < brC ? 'disabled' : ''}>${brC == null ? (E.whyNotBranch(s, cfg.id) || '分店满了') : `开分店<br><small>${fmtMoney(brC)}${shortText(s, brC)}</small>`}</button>
             <button class="btn sec">${ind.sec ? '换人' : '派驻'}</button>
           </div>
         </div>`);

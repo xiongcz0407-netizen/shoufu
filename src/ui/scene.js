@@ -1,8 +1,8 @@
 // V3-02 / V3-03 小场景播放器（不动开发1 的 ui/story.js）：全屏、背景、立绘、一句一句点；'#黑屏' 转场；中间可以停下来让你选（选完接着播选了以后的话）
 // steps：字符串（「」开头当她说话，其余旁白）、{ who, text }、'#黑屏'、{ choice: { q, opts: [label…] }, then(i) → 接下来的 steps }
-import { SEC_BY_ID } from '../config/secretaries.js?v=b7d8e042';
-import { asset, hasAsset } from '../platform/assets.js?v=b7d8e042';
-import { h } from './dom.js?v=b7d8e042';
+import { SEC_BY_ID } from '../config/secretaries.js?v=385b5781';
+import { asset, hasAsset } from '../platform/assets.js?v=385b5781';
+import { h } from './dom.js?v=385b5781';
 
 export function playScene(steps, opts = {}) {
   return new Promise((done) => {
