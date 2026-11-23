@@ -1,42 +1,42 @@
 // 「公司」页签：产业（摘要卡 + 产业线卡 → 产业线详情）、人事（员工、招聘、裁员）；分红到个人
-import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=0553afd8';
-import { TITLES } from '../config/titles.js?v=0553afd8';
-import * as PQ from '../core/prereq.js?v=0553afd8'; // V2-12 前置条件
-import { SEC_BY_ID } from '../config/secretaries.js?v=0553afd8';
-import * as E from '../core/economy.js?v=0553afd8';
-import * as CB from '../core/calib.js?v=0553afd8';
-import * as ST from '../core/staff.js?v=0553afd8';
-import * as CT from '../core/companytax.js?v=0553afd8';
-import { MONTH_MS, monthIndex } from '../core/gametime.js?v=0553afd8';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=0553afd8';
-import { asset, hasAsset } from '../platform/assets.js?v=0553afd8';
-import { now } from '../core/clock.js?v=0553afd8';
-import { game } from '../game.js?v=0553afd8';
-import { h, openPanel, toast, liveRender } from './dom.js?v=0553afd8';
-import * as AC from '../core/accrual.js?v=0553afd8';
-import * as PO from '../core/posts.js?v=0553afd8';
-import { dividendAdvice } from '../core/postwork.js?v=0553afd8';
-import { openPost } from './posts.js?v=0553afd8';
-import { openRealEstate } from './realestate.js?v=0553afd8';
-import * as RE from '../core/realestate.js?v=0553afd8';
-import * as LGI from '../core/logistics.js?v=0553afd8';
-import * as TC from '../core/tech.js?v=0553afd8';
-import * as MD from '../core/media.js?v=0553afd8';
-import * as CY from '../core/cities.js?v=0553afd8';
-import * as RVY from '../core/rivalry.js?v=0553afd8';
-import { hintLater } from './guide2.js?v=0553afd8';
-import * as MG from '../core/manage.js?v=0553afd8'; // P-05 亲自经营
-import * as PK from '../core/pick.js?v=0553afd8'; // V2-03 进货挑品
-import * as LT from '../core/late.js?v=0553afd8'; // V3-01 后期不挂机
-import { isTraining } from '../core/training.js?v=0553afd8';
-import { bank } from '../core/bank.js?v=0553afd8'; // V0.2.1 资金页签：贷款限用途
-import { openTab } from './shell.js?v=0553afd8';
-import { askFill, doFill } from './fill.js?v=0553afd8';
-import * as CF from '../core/cashflow.js?v=0553afd8'; // V0.2.3 资金链（设计35）
-import * as ADS from '../core/ads.js?v=0553afd8'; // V0.2.5 广告升级 // V0.2.2 开店补满人
-import { openSitePick, sitesBlockHtml, bindSitesBlock } from './sites.js?v=0553afd8'; // V2-08 选址（开发2）
-import { confirmBox } from './confirm.js?v=0553afd8'; // 设计37 第一节：游戏样式确认框
-import { autoHtml, bindAuto, potionHtml, bindPotion } from './coupon.js?v=0553afd8'; // 设计39 自动上阵、精力药水（开发2）
+import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=6f6c00ef';
+import { TITLES } from '../config/titles.js?v=6f6c00ef';
+import * as PQ from '../core/prereq.js?v=6f6c00ef'; // V2-12 前置条件
+import { SEC_BY_ID } from '../config/secretaries.js?v=6f6c00ef';
+import * as E from '../core/economy.js?v=6f6c00ef';
+import * as CB from '../core/calib.js?v=6f6c00ef';
+import * as ST from '../core/staff.js?v=6f6c00ef';
+import * as CT from '../core/companytax.js?v=6f6c00ef';
+import { MONTH_MS, monthIndex } from '../core/gametime.js?v=6f6c00ef';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=6f6c00ef';
+import { asset, hasAsset } from '../platform/assets.js?v=6f6c00ef';
+import { now } from '../core/clock.js?v=6f6c00ef';
+import { game } from '../game.js?v=6f6c00ef';
+import { h, openPanel, toast, liveRender } from './dom.js?v=6f6c00ef';
+import * as AC from '../core/accrual.js?v=6f6c00ef';
+import * as PO from '../core/posts.js?v=6f6c00ef';
+import { dividendAdvice } from '../core/postwork.js?v=6f6c00ef';
+import { openPost } from './posts.js?v=6f6c00ef';
+import { openRealEstate } from './realestate.js?v=6f6c00ef';
+import * as RE from '../core/realestate.js?v=6f6c00ef';
+import * as LGI from '../core/logistics.js?v=6f6c00ef';
+import * as TC from '../core/tech.js?v=6f6c00ef';
+import * as MD from '../core/media.js?v=6f6c00ef';
+import * as CY from '../core/cities.js?v=6f6c00ef';
+import * as RVY from '../core/rivalry.js?v=6f6c00ef';
+import { hintLater } from './guide2.js?v=6f6c00ef';
+import * as MG from '../core/manage.js?v=6f6c00ef'; // P-05 亲自经营
+import * as PK from '../core/pick.js?v=6f6c00ef'; // V2-03 进货挑品
+import * as LT from '../core/late.js?v=6f6c00ef'; // V3-01 后期不挂机
+import { isTraining } from '../core/training.js?v=6f6c00ef';
+import { bank } from '../core/bank.js?v=6f6c00ef'; // V0.2.1 资金页签：贷款限用途
+import { openTab } from './shell.js?v=6f6c00ef';
+import { askFill, doFill } from './fill.js?v=6f6c00ef';
+import * as CF from '../core/cashflow.js?v=6f6c00ef'; // V0.2.3 资金链（设计35）
+import * as ADS from '../core/ads.js?v=6f6c00ef'; // V0.2.5 广告升级 // V0.2.2 开店补满人
+import { openSitePick, sitesBlockHtml, bindSitesBlock } from './sites.js?v=6f6c00ef'; // V2-08 选址（开发2）
+import { confirmBox } from './confirm.js?v=6f6c00ef'; // 设计37 第一节：游戏样式确认框
+import { autoHtml, bindAuto, potionHtml, bindPotion } from './coupon.js?v=6f6c00ef'; // 设计39 自动上阵、精力药水（开发2）
 
 const sum = (o) => Object.values(o || {}).reduce((a, b) => a + b, 0);
 /** 本月到现在：营收、进货、预估人工和房租、利润（月底才真正扣人工、房租、税） */
@@ -271,7 +271,7 @@ function openCityPick(id, done) {
 /** 产业线详情（底部抽屉）：门店、升级、开分店、编制和招聘 */
 export function openLine(id, ctx) {
   const p = openPanel(IND_BY_ID[id].name);
-  if (['logistics', 'tech', 'media'].includes(id)) setTimeout(() => import('./guide.js?v=0553afd8').then((G) => G.hint(id)), 400);
+  if (['logistics', 'tech', 'media'].includes(id)) setTimeout(() => import('./guide.js?v=6f6c00ef').then((G) => G.hint(id)), 400);
   const render = () => {
     const s = game.state; const cfg = IND_BY_ID[id]; const ind = s.inds[id];
     const upC = E.upCostOf(s, id); const brWhy = E.whyNotBranch(s, id); const upWhy = E.whyNotUpgrade(s, id); const brC = brWhy ? null : E.brCostOf(s, id);
@@ -372,7 +372,7 @@ export function openHire(id, done, pre) {
     p.body.querySelector('.m').onclick = () => { n = Math.max(1, n - 1); render(); };
     p.body.querySelector('.p').onclick = () => { n += 1; render(); };
     const go = p.body.querySelector('.go'); go.disabled = !!why;
-    go.onclick = () => { const r = ST.hire(s, id, role, n, ch, now()); if (!r.ok) { toast(r.why); return; } import('../core/daily.js?v=0553afd8').then((D) => D.bump(s, now(), 'hire')); toast(ch === 'agency' ? '派遣员工已到岗' : `${Math.ceil((r.at - now()) / 60000)} 分钟后到岗`); game.changed(); game.save(); p.close(); done && done(); };
+    go.onclick = () => { const r = ST.hire(s, id, role, n, ch, now()); if (!r.ok) { toast(r.why); return; } import('../core/daily.js?v=6f6c00ef').then((D) => D.bump(s, now(), 'hire')); toast(ch === 'agency' ? '派遣员工已到岗' : `${Math.ceil((r.at - now()) / 60000)} 分钟后到岗`); game.changed(); game.save(); p.close(); done && done(); };
   };
   render();
 }
@@ -444,7 +444,7 @@ export function openInject(ctx, preset) {
 
 export function openDividend(ctx) {
   const s = game.state; let pct = 30;
-  setTimeout(() => import('./guide.js?v=0553afd8').then((g) => g.hint('wallets')), 400);
+  setTimeout(() => import('./guide.js?v=6f6c00ef').then((g) => g.hint('wallets')), 400);
   const p = openPanel('分红到个人');
   const render = () => {
     const av = Math.max(0, Math.floor(AC.available(s)));

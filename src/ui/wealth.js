@@ -1,24 +1,24 @@
 // 「财富 → 财务」（第 13 项，设计15 第三节 + 设计17 第三节、设计18 第四节 5）
 // 横滑标签：总览 | 利润表 | 个人收支 | 资产清单 | 纳税 | 流水 | 档案柜；右上角切 今天 / 本月 / 本年 / 全部
-import * as EQ from '../core/equity.js?v=0553afd8';
-import * as F from '../core/finance.js?v=0553afd8';
-import * as E from '../core/economy.js?v=0553afd8';
-import * as ST from '../core/staff.js?v=0553afd8';
-import * as AC from '../core/accrual.js?v=0553afd8';
-import * as AS from '../core/assets.js?v=0553afd8';
-import * as PO from '../core/posts.js?v=0553afd8';
-import { cityPL } from '../core/citypl.js?v=0553afd8';
-import { cityName } from '../core/cities.js?v=0553afd8';
-import { IND_BY_ID } from '../config/industries.js?v=0553afd8';
-import { CATS, WALLET_NAME } from '../core/ledger.js?v=0553afd8';
-import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=0553afd8';
-import { fmtMoney } from '../core/format.js?v=0553afd8';
-import { asset, hasAsset } from '../platform/assets.js?v=0553afd8';
-import { now } from '../core/clock.js?v=0553afd8';
-import { game } from '../game.js?v=0553afd8';
-import { h, openPanel, liveRender } from './dom.js?v=0553afd8';
-import { giftsTo, spentOn } from './secretary.js?v=0553afd8';
-import { extendFinance } from './wealth2.js?v=0553afd8';
+import * as EQ from '../core/equity.js?v=6f6c00ef';
+import * as F from '../core/finance.js?v=6f6c00ef';
+import * as E from '../core/economy.js?v=6f6c00ef';
+import * as ST from '../core/staff.js?v=6f6c00ef';
+import * as AC from '../core/accrual.js?v=6f6c00ef';
+import * as AS from '../core/assets.js?v=6f6c00ef';
+import * as PO from '../core/posts.js?v=6f6c00ef';
+import { cityPL } from '../core/citypl.js?v=6f6c00ef';
+import { cityName } from '../core/cities.js?v=6f6c00ef';
+import { IND_BY_ID } from '../config/industries.js?v=6f6c00ef';
+import { CATS, WALLET_NAME } from '../core/ledger.js?v=6f6c00ef';
+import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=6f6c00ef';
+import { fmtMoney } from '../core/format.js?v=6f6c00ef';
+import { asset, hasAsset } from '../platform/assets.js?v=6f6c00ef';
+import { now } from '../core/clock.js?v=6f6c00ef';
+import { game } from '../game.js?v=6f6c00ef';
+import { h, openPanel, liveRender } from './dom.js?v=6f6c00ef';
+import { giftsTo, spentOn } from './secretary.js?v=6f6c00ef';
+import { extendFinance } from './wealth2.js?v=6f6c00ef';
 
 const TABS = [['overview', '总览'], ['pl', '利润表'], ['personal', '个人收支'], ['assets', '资产清单'], ['tax', '纳税'], ['ledger', '流水'], ['archive', '档案柜']];
 let tab = 'overview', period = 'month', lf = { wallet: '', cat: '', by: '' };
@@ -57,8 +57,8 @@ const DRAW = {
       <div class="fn-pie"><i style="background:${pie}"></i><div>${parts.map((x, i) => `<div><em style="background:${colors[i]}"></em>${x[0]} ${pct(x[1] / tot)}</div>`).join('')}</div></div>
       ${cfoComment(s, pl, last && last.profit)}
       <div class="ind-btns"><button class="btn sm fn-inject">注资到公司</button><button class="btn sm gold fn-div">分红到个人</button></div>`;
-    el.querySelector('.fn-inject').onclick = () => import('./company.js?v=0553afd8').then((m) => m.openInject());
-    el.querySelector('.fn-div').onclick = () => import('./company.js?v=0553afd8').then((m) => m.openDividend());
+    el.querySelector('.fn-inject').onclick = () => import('./company.js?v=6f6c00ef').then((m) => m.openInject());
+    el.querySelector('.fn-div').onclick = () => import('./company.js?v=6f6c00ef').then((m) => m.openDividend());
   },
   pl(el, s, from, t) {
     const pl = F.companyPL(s, from, t);
@@ -122,3 +122,4 @@ export function renderFinance(body, ctx) {
   ctx.onCleanup(liveRender(el, () => { if (tab !== 'ledger' && tab !== 'archive') draw(); }, (fn) => game.onChange(fn), body));
   if (tab === 'ledger' || tab === 'archive') draw();
 }
+game.on('tabHome', () => { tab = 'overview'; }); // 从底下导航点进来：回到第一个小页签

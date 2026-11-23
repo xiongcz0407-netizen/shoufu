@@ -1,9 +1,9 @@
 // V3-05 衣服有用（设计33 第四之五节）：设计/剧情/衣服款式.json（每人 c1～c11 的款式和名字，tools/story_sync.mjs 拷进来）
 // 场合要什么款式：她肯穿的里挑同款最贵的，没有就按退的顺序；扮装只在私下（出差回酒店、恋人以上、20%）
-import { OUTFIT_STYLES } from '../config/story/index.js?v=0553afd8';
-import { OUTFITS, priceOf } from '../config/outfits.js?v=0553afd8';
-import { canWear } from './outfits.js?v=0553afd8';
-import { ensureSec, loveStage } from './secretary.js?v=0553afd8';
+import { OUTFIT_STYLES } from '../config/story/index.js?v=6f6c00ef';
+import { OUTFITS, priceOf } from '../config/outfits.js?v=6f6c00ef';
+import { canWear } from './outfits.js?v=6f6c00ef';
+import { ensureSec, loveStage } from './secretary.js?v=6f6c00ef';
 export { OUTFIT_STYLES };
 
 export const COSTUME = '扮装';

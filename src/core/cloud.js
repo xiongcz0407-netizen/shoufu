@@ -5,9 +5,9 @@
    - 本机一直存一份（core/save.js 的 SAVE_KEY），断网照常玩，联网后补传；两次上传至少隔 1 分钟，切后台、关页面时补传
    - 本地 file:// 打开、或令牌为空：只用本机存档
    - io.fetch、本机存储都能换成假的（node 测试） */
-import { GH_SAVE } from '../ghcfg.js?v=0553afd8';
-import { storage } from '../platform/storage.js?v=0553afd8';
-import { SAVE_KEY, deserialize } from './save.js?v=0553afd8';
+import { GH_SAVE } from '../ghcfg.js?v=6f6c00ef';
+import { storage } from '../platform/storage.js?v=6f6c00ef';
+import { SAVE_KEY, deserialize } from './save.js?v=6f6c00ef';
 
 export const GAP = 60000;        // 两次上传至少隔多久（GitHub 接口频率限制）
 export const NAME_MAX = 8;
@@ -88,6 +88,14 @@ export const cloudRestart = wrap(async (data, brief) => {
   const a = await auth(); await archive(savePath(a.u));
   await put(savePath(a.u), data, 'restart'); a.u.save = { brief, savedAt: io.now(), gid: gidOf(data) }; await put(a.path, JSON.stringify(a.u), 'restart');
   return { ok: true };
+});
+/* ---------- 礼物信箱（V0.2.8）：作者送金券 / 券，不碰存档。shoufu/gifts/<id>.json = { list: [{ id, coupons, items: { potion: 5 … }, why, at }] }
+   游戏开着每 2 分钟、回到前台时看一眼；领过的 id 记在存档里（不会重复领），领完把信箱删掉 ---------- */
+const giftPath = (u) => `gifts/${u.id}.json`;
+export const cloudGifts = wrap(async () => { const a = await auth(); const t = await get(giftPath(a.u)); let list = []; try { list = t ? JSON.parse(t).list || [] : []; } catch (e) { list = []; } return { ok: true, list }; });
+export const cloudGiftsDone = wrap(async () => {
+  const a = await auth(); const p = giftPath(a.u); if (!shas[p]) await get(p); if (!shas[p]) return { ok: true };
+  const r = await req('DELETE', p, { message: 'gift claimed', sha: shas[p] }); if (r.ok || r.status === 404) delete shas[p]; return { ok: r.ok || r.status === 404 };
 });
 export const errTxt = (e) => ({ pin: '口令不对。', input: '名字不能是空的，口令要 6 位数字。', nouser: '这个名字还没有人用。', token: '云端存档的钥匙失效了，请联系作者。', net: '连不上云端，检查一下网络。', size: '存档太大，存不进去。' }[e] || '云端出错了，请稍后再试。');
 

@@ -1,10 +1,10 @@
 // 好感、爱慕、每天互动、送礼、台词触发规则（设计03 第五节）、吃醋 / 冷落
-import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=0553afd8';
-import { GIFT_BY_ID } from '../config/gifts.js?v=0553afd8';
-import { LINES } from '../config/lines.js?v=0553afd8';
-import { ensureSec, favorStage, loveStage, FAVOR_MAX, LOVE_STAGES } from './secretary.js?v=0553afd8';
-import { bump } from './daily.js?v=0553afd8';
-import { pay, receive, accrue, canPay } from './ledger.js?v=0553afd8';
+import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=6f6c00ef';
+import { GIFT_BY_ID } from '../config/gifts.js?v=6f6c00ef';
+import { LINES } from '../config/lines.js?v=6f6c00ef';
+import { ensureSec, favorStage, loveStage, FAVOR_MAX, LOVE_STAGES } from './secretary.js?v=6f6c00ef';
+import { bump } from './daily.js?v=6f6c00ef';
+import { pay, receive, accrue, canPay } from './ledger.js?v=6f6c00ef';
 
 export const DAILY_TALKS = 10;      // 每人每天点她涨好感的次数
 export const TALK_FAVOR = 2;

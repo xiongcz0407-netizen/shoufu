@@ -1,19 +1,19 @@
 // 「公司 → 职位」（设计16 第六节、设计18 第四节 1）：组织架构图（你在最上，下面一排职位卡：头像 / 空缺 / 外包），
 // 点职位卡 → 底部抽屉：选人（最适合的打星）、外包、撤职、授权额度、店长托管（月预算 + 回本期）、资产管家出租、看她的月报
-import * as ADS from '../core/ads.js?v=0553afd8'; // V0.2.5 自动升级广告
-import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=0553afd8';
-import { IND_BY_ID } from '../config/industries.js?v=0553afd8';
-import * as PO from '../core/posts.js?v=0553afd8';
-import * as MG from '../core/manage.js?v=0553afd8';
-import { noteUp } from '../core/upnote.js?v=0553afd8'; // V0.2.5 升级框
-import * as PW from '../core/postwork.js?v=0553afd8';
-import * as T from '../core/training.js?v=0553afd8';
-import { fmtMoney } from '../core/format.js?v=0553afd8';
-import { asset, hasAsset } from '../platform/assets.js?v=0553afd8';
-import { now } from '../core/clock.js?v=0553afd8';
-import { game } from '../game.js?v=0553afd8';
-import { h, openPanel, toast, liveRender } from './dom.js?v=0553afd8';
-import { avatarKey } from './main-screen.js?v=0553afd8';
+import * as ADS from '../core/ads.js?v=6f6c00ef'; // V0.2.5 自动升级广告
+import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=6f6c00ef';
+import { IND_BY_ID } from '../config/industries.js?v=6f6c00ef';
+import * as PO from '../core/posts.js?v=6f6c00ef';
+import * as MG from '../core/manage.js?v=6f6c00ef';
+import { noteUp } from '../core/upnote.js?v=6f6c00ef'; // V0.2.5 升级框
+import * as PW from '../core/postwork.js?v=6f6c00ef';
+import * as T from '../core/training.js?v=6f6c00ef';
+import { fmtMoney } from '../core/format.js?v=6f6c00ef';
+import { asset, hasAsset } from '../platform/assets.js?v=6f6c00ef';
+import { now } from '../core/clock.js?v=6f6c00ef';
+import { game } from '../game.js?v=6f6c00ef';
+import { h, openPanel, toast, liveRender } from './dom.js?v=6f6c00ef';
+import { avatarKey } from './main-screen.js?v=6f6c00ef';
 
 const AN = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 const icon = (k, cls = 'pc-ic') => (hasAsset(`assets/ui/${k}.webp`) ? `<img class="${cls}" src="${asset(`assets/ui/${k}.webp`)}" alt="">` : '');

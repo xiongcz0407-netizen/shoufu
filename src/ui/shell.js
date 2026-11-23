@@ -1,8 +1,8 @@
 // 界面框架（设计18）：首页层 + 页面层叠加；底部 5 页签；二级分段；记住上次分段；逐步开放和锁；红点
-import { asset, hasAsset } from '../platform/assets.js?v=0553afd8';
-import { onTap } from '../platform/input.js?v=0553afd8';
-import { game } from '../game.js?v=0553afd8';
-import { h, toast } from './dom.js?v=0553afd8';
+import { asset, hasAsset } from '../platform/assets.js?v=6f6c00ef';
+import { onTap } from '../platform/input.js?v=6f6c00ef';
+import { game } from '../game.js?v=6f6c00ef';
+import { h, toast } from './dom.js?v=6f6c00ef';
 
 export const TABS = [
   { key: 'company', name: '公司', icon: 'icon_industry' },
@@ -79,7 +79,8 @@ export function openTab(key, segKey) {
   const def = pages[key]; if (!def) { toast('还在做'); return; }
   if (!current) history.pushState({ page: key }, '');
   const segs = def.segments.filter((x) => !x.visible || x.visible(s));
-  let seg = segKey || s.ui.lastSeg[key] || segs[0].key;
+  let seg = segKey || segs[0].key;   // Arvin：底下导航、边栏点进来永远是这一页的首页（不记上次停在哪个页签）
+  if (!segKey) game.emit('tabHome', key);   // 页签里面的小页签（资产、财富、股票…）也回到第一个
   if (!segs.find((x) => x.key === seg)) seg = segs[0].key;
   current = { key, seg, cleanup: [] };
   layer.classList.remove('hidden');

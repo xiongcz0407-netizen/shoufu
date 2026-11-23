@@ -1,23 +1,23 @@
 // 「财富 → 投资」股票（第 2-09 项，设计12 第八节）：行情 | 持仓 | 投资经理；点一只 → 个股（分时、指标、买卖、新闻、持仓）
-import * as SK from '../core/stocks.js?v=0553afd8';
-import * as AS from '../core/assets.js?v=0553afd8';
-import * as INB from '../core/inbox.js?v=0553afd8';
-import { bossAttrs } from '../core/boss.js?v=0553afd8';
-import { holder, isSec } from '../core/posts.js?v=0553afd8';
-import { SEC_BY_ID } from '../config/secretaries.js?v=0553afd8';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=0553afd8';
-import { asset, hasAsset } from '../platform/assets.js?v=0553afd8';
-import { game } from '../game.js?v=0553afd8';
-import { now } from '../core/clock.js?v=0553afd8';
-import { h, openPanel, toast, liveRender } from './dom.js?v=0553afd8';
-import { say } from './main-screen.js?v=0553afd8';
-import { renderFunds } from './funds.js?v=0553afd8';
-import { hintLater } from './guide2.js?v=0553afd8';
-import * as LSC from '../core/listing.js?v=0553afd8';
-import { selfCard } from './listing.js?v=0553afd8';
-import * as TKO from '../core/takeover.js?v=0553afd8';
-import * as TR from '../core/trade.js?v=0553afd8';
-import { renderTradeTab, orderBlock, watchRow, ipoLogo } from './trade.js?v=0553afd8';
+import * as SK from '../core/stocks.js?v=6f6c00ef';
+import * as AS from '../core/assets.js?v=6f6c00ef';
+import * as INB from '../core/inbox.js?v=6f6c00ef';
+import { bossAttrs } from '../core/boss.js?v=6f6c00ef';
+import { holder, isSec } from '../core/posts.js?v=6f6c00ef';
+import { SEC_BY_ID } from '../config/secretaries.js?v=6f6c00ef';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=6f6c00ef';
+import { asset, hasAsset } from '../platform/assets.js?v=6f6c00ef';
+import { game } from '../game.js?v=6f6c00ef';
+import { now } from '../core/clock.js?v=6f6c00ef';
+import { h, openPanel, toast, liveRender } from './dom.js?v=6f6c00ef';
+import { say } from './main-screen.js?v=6f6c00ef';
+import { renderFunds } from './funds.js?v=6f6c00ef';
+import { hintLater } from './guide2.js?v=6f6c00ef';
+import * as LSC from '../core/listing.js?v=6f6c00ef';
+import { selfCard } from './listing.js?v=6f6c00ef';
+import * as TKO from '../core/takeover.js?v=6f6c00ef';
+import * as TR from '../core/trade.js?v=6f6c00ef';
+import { renderTradeTab, orderBlock, watchRow, ipoLogo } from './trade.js?v=6f6c00ef';
 
 let tab = 'market', sector = '全部', sortBy = 'chg';
 const logo = (c, cls = 'sk-logo') => (SK.BY[c] && SK.BY[c].ipo ? ipoLogo(c, cls) : hasAsset(`assets/stock/logo_${c}.webp`) ? `<img class="${cls}" src="${asset(`assets/stock/logo_${c}.webp`)}" alt="">` : `<i class="${cls} ph">${c}</i>`);
@@ -168,3 +168,4 @@ function takeoverBlock(s, code, redraw) {
   }
   return el;
 }
+game.on('tabHome', () => { tab = 'market'; }); // 从底下导航点进来：回到第一个小页签

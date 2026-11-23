@@ -1,13 +1,13 @@
 // 离开期间（设计21 第六节、设计22 第七节）：离线不封顶，按游戏日一段段补算
 // 每段：产钱（营收、进货）→ 招的人到岗 → 计提工资房租 → 店长 / 财务总监干活 → 各产业到点的事 → 月结（发工资、报税、月报）
 // 回来出「离开期间」账单：这段时间流水按类别汇总（2-08c 的账单界面用同一份数据 s.awayBill）
-import ECO from '../config/economy.json?v=0553afd8' with { type: 'json' };
-import { CATS, flushAccruals } from './ledger.js?v=0553afd8';
-import { offlineIncome, netWorth } from './economy.js?v=0553afd8';
-import { accruePayables } from './accrual.js?v=0553afd8';
-import { processHires } from './staff.js?v=0553afd8';
-import { tickPosts } from './postwork.js?v=0553afd8';
-import { processPeriods, MONTH_MS } from './gametime.js?v=0553afd8';
+import ECO from '../config/economy.json?v=6f6c00ef' with { type: 'json' };
+import { CATS, flushAccruals } from './ledger.js?v=6f6c00ef';
+import { offlineIncome, netWorth } from './economy.js?v=6f6c00ef';
+import { accruePayables } from './accrual.js?v=6f6c00ef';
+import { processHires } from './staff.js?v=6f6c00ef';
+import { tickPosts } from './postwork.js?v=6f6c00ef';
+import { processPeriods, MONTH_MS } from './gametime.js?v=6f6c00ef';
 
 const DAY_MS = MONTH_MS / 30;
 

@@ -2,20 +2,20 @@
 // 穿戴：上展示戴着的表、穿着的西装；下两格「表柜 / 衣帽间」，点一件 → 详情（戴上 / 穿上、卖回、发票）
 // 表行 / 定制店：按品牌分段，顶上写这个品牌的累计消费、配货额度（变差 / 拉黑的可以让商务总监去求情）
 // 名包：在商场按秘书分页，买了直接送她（喜欢的牌子 ♥），走个人现金、出发票
-import * as LX from '../core/luxury.js?v=0553afd8';
-import * as INB from '../core/inbox.js?v=0553afd8';
-import { SEC_BY_ID } from '../config/secretaries.js?v=0553afd8';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=0553afd8';
-import { asset, hasAsset } from '../platform/assets.js?v=0553afd8';
-import { game } from '../game.js?v=0553afd8';
-import { now } from '../core/clock.js?v=0553afd8';
-import { h, openPanel, toast, liveRender } from './dom.js?v=0553afd8';
-import { openFull } from './shell.js?v=0553afd8';
-import { openContract } from './contract.js?v=0553afd8';
-import { nextContractNo } from '../core/contracts.js?v=0553afd8';
-import { say } from './main-screen.js?v=0553afd8';
-import * as A from '../core/affection.js?v=0553afd8';
-import * as BI from './brandinv.js?v=0553afd8'; // 设计35 第九节 品牌邀请不过期
+import * as LX from '../core/luxury.js?v=6f6c00ef';
+import * as INB from '../core/inbox.js?v=6f6c00ef';
+import { SEC_BY_ID } from '../config/secretaries.js?v=6f6c00ef';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=6f6c00ef';
+import { asset, hasAsset } from '../platform/assets.js?v=6f6c00ef';
+import { game } from '../game.js?v=6f6c00ef';
+import { now } from '../core/clock.js?v=6f6c00ef';
+import { h, openPanel, toast, liveRender } from './dom.js?v=6f6c00ef';
+import { openFull } from './shell.js?v=6f6c00ef';
+import { openContract } from './contract.js?v=6f6c00ef';
+import { nextContractNo } from '../core/contracts.js?v=6f6c00ef';
+import { say } from './main-screen.js?v=6f6c00ef';
+import * as A from '../core/affection.js?v=6f6c00ef';
+import * as BI from './brandinv.js?v=6f6c00ef'; // 设计35 第九节 品牌邀请不过期
 
 const imgOf = (x) => `assets/${x.kind}/${x.img || x.id}.webp`;
 const pic = (x, cls = 'as-img') => (hasAsset(imgOf(x)) ? `<img class="${cls}" src="${asset(imgOf(x))}" alt="">` : `<div class="${cls} as-ph">${x.brand}<small>${x.model}</small></div>`);
@@ -209,3 +209,4 @@ export function wearHtml(s) {
 game.addTicker((s) => {
   for (const x of LX.tick(s, now())) BI.notify(s, 'lux', x.order, x.text, LX.L[x.order.id].kind === 'bag' ? '去「商场 → 名包」送给她。' : '去「资产 → 穿戴」的表行 / 定制店。');
 });
+game.on('tabHome', () => { curKind = 'watch'; }); // 从底下导航点进来：回到第一个小页签

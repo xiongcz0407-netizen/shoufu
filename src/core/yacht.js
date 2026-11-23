@@ -3,12 +3,12 @@
 // 凭证：买卖合同 + 进口货物报关单 + 船舶登记证书；税：关税 10%、消费税 10%（8～90 米）、进口增值税 13%、登记检验费
 // 持有：每年维护、船员、泊位托管约船价 10%（资产管家打折）；交给资产管家包租，每游戏月收租（代扣 20% 个税）
 // 老板属性：气场 + 人脉；约会「游艇」去自己的（不花钱，按档次加成）
-import CFG from '../config/yacht.json?v=0553afd8' with { type: 'json' };
-import { pay, receive, accrue } from './ledger.js?v=0553afd8';
-import { YEAR_MS, monthIndex } from './gametime.js?v=0553afd8';
-import { addContract } from './contracts.js?v=0553afd8';
-import { stewardSellRate, stewardUpkeepMult, stewardQueueMult, holder, isSec } from './posts.js?v=0553afd8';
-import { isRented, setRent } from './postwork.js?v=0553afd8';
+import CFG from '../config/yacht.json?v=6f6c00ef' with { type: 'json' };
+import { pay, receive, accrue } from './ledger.js?v=6f6c00ef';
+import { YEAR_MS, monthIndex } from './gametime.js?v=6f6c00ef';
+import { addContract } from './contracts.js?v=6f6c00ef';
+import { stewardSellRate, stewardUpkeepMult, stewardQueueMult, holder, isSec } from './posts.js?v=6f6c00ef';
+import { isRented, setRent } from './postwork.js?v=6f6c00ef';
 
 export const YCFG = CFG;
 export const YACHTS = CFG.yachts.map((y) => ({ ...y, kind: 'yacht' }));
@@ -169,11 +169,11 @@ export function dateAdj(s) {
 }
 
 // ---------- 挂进资产、老板属性、约会（这几个文件只开了挂钩，游艇的东西都在这里） ----------
-import { addAssetHook, recalc, ITEM } from './assets.js?v=0553afd8';
-import { addAttrHook, bossAttrs } from './boss.js?v=0553afd8';
-import { addPlaceAdj } from './dates.js?v=0553afd8';
-import { taxRec, payerOfPost } from './fiscal.js?v=0553afd8';
-import { profitMul } from './calib.js?v=0553afd8';
+import { addAssetHook, recalc, ITEM } from './assets.js?v=6f6c00ef';
+import { addAttrHook, bossAttrs } from './boss.js?v=6f6c00ef';
+import { addPlaceAdj } from './dates.js?v=6f6c00ef';
+import { taxRec, payerOfPost } from './fiscal.js?v=6f6c00ef';
+import { profitMul } from './calib.js?v=6f6c00ef';
 addAssetHook({ value, upkeep: upkeepYearAll, count: (s) => mine(s).length });
 addAttrHook(attrs);
 setNetworkFn((s) => bossAttrs(s).network);

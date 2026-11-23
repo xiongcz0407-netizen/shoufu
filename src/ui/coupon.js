@@ -1,15 +1,15 @@
 // 卡包（金券 + 六种券，唯一买券的地方）、顶栏金券数、各处「用券」小块（设计39 第五节、第五之二节，开发2）
 // 各页面只用券不买券：有券写「还有 N 张 · 用一张」，没券写「去卡包买 XX」→ 跳卡包定位到那格（闪金框），右上角「返回」回原页面
 // 开发1 用：potionHtml(s) 精力不够时按钮旁那一小块；bindPotion(el, after) 绑上点击
-import * as CP from '../core/coupon.js?v=0553afd8';
-import { IND_BY_ID } from '../config/industries.js?v=0553afd8';
-import { dateText, gameDate } from '../core/gametime.js?v=0553afd8';
-import { now } from '../core/clock.js?v=0553afd8';
-import { game } from '../game.js?v=0553afd8';
-import { h, toast, openPanel } from './dom.js?v=0553afd8';
-import { openFull, openTab } from './shell.js?v=0553afd8';
-import { confirmBox } from './confirm.js?v=0553afd8';
-import { asset, hasAsset } from '../platform/assets.js?v=0553afd8';
+import * as CP from '../core/coupon.js?v=6f6c00ef';
+import { IND_BY_ID } from '../config/industries.js?v=6f6c00ef';
+import { dateText, gameDate } from '../core/gametime.js?v=6f6c00ef';
+import { now } from '../core/clock.js?v=6f6c00ef';
+import { game } from '../game.js?v=6f6c00ef';
+import { h, toast, openPanel } from './dom.js?v=6f6c00ef';
+import { openFull, openTab } from './shell.js?v=6f6c00ef';
+import { confirmBox } from './confirm.js?v=6f6c00ef';
+import { asset, hasAsset } from '../platform/assets.js?v=6f6c00ef';
 
 const IT = CP.ITEMS;
 /** 图标（设计39 第七节）：有图用图，没有用表情 */
@@ -91,8 +91,8 @@ function goUse(k, close, redraw) {
   if (k === 'auto') { openPickLine(redraw); return; }
   close();
   setTimeout(() => {
-    if (k === 'battle') import('./battle.js?v=0553afd8').then((u) => u.openBattle());
-    else if (k === 'event') import('./inbox.js?v=0553afd8').then((u) => u.openInbox('biz'));
+    if (k === 'battle') import('./battle.js?v=6f6c00ef').then((u) => u.openBattle());
+    else if (k === 'event') import('./inbox.js?v=6f6c00ef').then((u) => u.openInbox('biz'));
     else openTab('secretary');
   }, 220);
 }

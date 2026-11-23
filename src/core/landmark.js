@@ -1,18 +1,18 @@
 // 地标建筑（第 3-07 项，设计19 第四节 + 设计23 第八节）：公司买（公司账户 + 并购贷款）
 // 流程：仲梁联行牵线 → 尽职调查 15 分钟 → 谈判报价 / 竞标 → 签意向、付 10% 定金 → 审批（海外：当地审查（设计30 去掉了 ODI），可能被否，被否定金退回）→ 签资产买卖合同付尾款
 // 持有：每个游戏月收租（估值 × 真实回报率 × profitMul），运营成本、房产税照真实；人脉、眼光加；身价按估值（公司资产）
-import CFG from '../config/landmarks.json?v=0553afd8' with { type: 'json' };
-import { pay, receive } from './ledger.js?v=0553afd8';
-import { addContract } from './contracts.js?v=0553afd8';
-import { MONTH_MS, monthIndex } from './gametime.js?v=0553afd8';
-import { payTaxItem } from './companytax.js?v=0553afd8';
-import { taxRec } from './fiscal.js?v=0553afd8';
-import { profitMul } from './calib.js?v=0553afd8';
-import { addMsg } from './inbox.js?v=0553afd8';
-import { holder, isSec } from './posts.js?v=0553afd8';
-import { addAttrHook, bossAttrs } from './boss.js?v=0553afd8';
-import { netWorth, addCompanyAssetHook } from './economy.js?v=0553afd8';
-import { maMax, whyNotMa, maLoan, repay as repayLoan } from './bank.js?v=0553afd8';
+import CFG from '../config/landmarks.json?v=6f6c00ef' with { type: 'json' };
+import { pay, receive } from './ledger.js?v=6f6c00ef';
+import { addContract } from './contracts.js?v=6f6c00ef';
+import { MONTH_MS, monthIndex } from './gametime.js?v=6f6c00ef';
+import { payTaxItem } from './companytax.js?v=6f6c00ef';
+import { taxRec } from './fiscal.js?v=6f6c00ef';
+import { profitMul } from './calib.js?v=6f6c00ef';
+import { addMsg } from './inbox.js?v=6f6c00ef';
+import { holder, isSec } from './posts.js?v=6f6c00ef';
+import { addAttrHook, bossAttrs } from './boss.js?v=6f6c00ef';
+import { netWorth, addCompanyAssetHook } from './economy.js?v=6f6c00ef';
+import { maMax, whyNotMa, maLoan, repay as repayLoan } from './bank.js?v=6f6c00ef';
 
 export const LCFG = CFG;
 export const LANDMARKS = CFG.landmarks;
@@ -195,6 +195,6 @@ export function tick(s, t, rnd) {
 
 // ---------- 身价、属性 ----------
 addCompanyAssetHook((s) => value(s) + escrow(s));   // 公司资产（按买入价），进公司估值 × 你的持股；并购贷款本金在 loanDebt 里已经算负债
-import { addPlaceGate } from './dates.js?v=0553afd8';
+import { addPlaceGate } from './dates.js?v=6f6c00ef';
 addPlaceGate((s, pid) => (pid === 'rooftop' && !(s.landmark && mine(s).length) ? '要先有一座地标' : null));   // 楼顶约会（验收阶段三）
 addAttrHook((s) => { const n = s.landmark ? mine(s).length : 0; return { network: n * CFG.attr.network, vision: n * CFG.attr.vision }; });
