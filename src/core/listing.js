@@ -1,18 +1,16 @@
 // 上市（第 3-04 项，设计23 第四节）：四个板块条件 → 选券商 → 股改 → 辅导 → 申报审核（可能问询）→ 发行定价 → 路演 → 敲钟
 // 上市后：你的公司进股票列表（自己一只，跟大盘和利润走）；身价 = 市值 × 你的持股；锁定期后每 3 个游戏月最多减持 1%（限售股 20% 个税）；每年年报 + 分红
-import CFG from '../config/listing.json?v=1236a42d' with { type: 'json' };
-import { pay, receive, canPay } from './ledger.js?v=1236a42d';
-import { addContract } from './contracts.js?v=1236a42d';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=1236a42d';
-import { taxRec } from './fiscal.js?v=1236a42d';
-import { gm } from './calib.js?v=1236a42d';
-import { addMsg } from './inbox.js?v=1236a42d';
-import { holder, isSec } from './posts.js?v=1236a42d';
-import { companyEquity, earningsValue, stakeOf, addNetWorthHook } from './economy.js?v=1236a42d';
-import { cap, ipoPower } from './capital.js?v=1236a42d';
-import * as SK from './stocks.js?v=1236a42d';
-import { redchipDone } from './group.js?v=1236a42d';
-import * as OF from './offshore.js?v=1236a42d';
+import CFG from '../config/listing.json?v=b7d8e042' with { type: 'json' };
+import { pay, receive, canPay } from './ledger.js?v=b7d8e042';
+import { addContract } from './contracts.js?v=b7d8e042';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=b7d8e042';
+import { taxRec } from './fiscal.js?v=b7d8e042';
+import { gm } from './calib.js?v=b7d8e042';
+import { addMsg } from './inbox.js?v=b7d8e042';
+import { holder, isSec } from './posts.js?v=b7d8e042';
+import { companyEquity, earningsValue, stakeOf, addNetWorthHook } from './economy.js?v=b7d8e042';
+import { cap, ipoPower } from './capital.js?v=b7d8e042';
+import * as SK from './stocks.js?v=b7d8e042';
 
 export const LCFG = CFG;
 export const BOARDS = CFG.boards;
@@ -46,8 +44,7 @@ export function conditions(s, board, t = Date.now()) {
   if (N.tech) out.push(['有科技线', s.inds && s.inds.tech ? '有' : '没有', '有', !!(s.inds && s.inds.tech)]);
   if (N.rnd) { const x = rndShare(s, t); out.push(['研发占营收', `${(x * 100).toFixed(1)}%`, `${N.rnd * 100}%`, x >= N.rnd]); }
   if (N.cap) { const c = preMoney(s, board); out.push(['预计市值（发行前）', c, N.cap, c >= N.cap]); }
-  if (N.offshore) { const ok = OF.isOpen(s) && (OF.odiDone(s) || redchipDone(s)); out.push(['境外账户 + 香港子公司（或红筹）', ok ? '有' : '没有', '有', ok]); }
-  if (N.redchip) out.push(['境外红筹架构（开曼 → 香港 → 境内）', redchipDone(s) ? '搭好了' : '没有', '搭好', redchipDone(s)]);
+  // 设计30：港股 / 纳斯达克不再要境外账户、红筹架构，只看利润、市值这些门槛
   return { items: out, ok: out.every((x) => x[3]) };
 }
 export function whyNotStart(s, board, t) {
@@ -68,7 +65,7 @@ export function start(s, board, bi, t) {
   return { ok: true };
 }
 /** 问询概率：券商便宜问得多；有投融资总监少问一些 */
-export const inquiryRate = (s) => Math.max(0, lst(s).broker[2] - (finSec(s) ? CFG.inquiryFinCut * Math.min(1, ipoPower(s)) : 0));
+export const inquiryRate = (s) => Math.max(0, lst(s).broker[2] - (finSec(s) ? CFG.inquiryFinCut * Math.min(1, ipoPower(s)) : 0) - Math.min(0.1, ((s.agenda && s.agenda.gov) || 0) * 0.02)); // V3-02：慈善攒的政府关系，每点问询概率 −2%（最多 −10%）
 /** 回复问询：派财务总监（没有就外包给券商）处理，几分钟后接着审 */
 export function answer(s, t) {
   const L = lst(s); if (L.stage !== 'inquiry') return { ok: false, why: '没有问询' };
@@ -94,7 +91,7 @@ function goPublic(s, t) {
   // 稀释：跟融资一样，所有老股东 × (1 − 发行比例)；新进公众股东
   const k = 1 - L.issue; C.stake = C.stake * k; for (const h of C.holders) { h.pct *= k; if (h.pool) { h.free *= k; h.dil = (h.dil || 1) * k; } }
   for (const g of Object.values(C.options || {})) { g.pct *= k; g.done = (g.done || 0) * k; }   // 激励池和期权一起稀释（照 capital.raise）
-  C.holders.push({ name: B.ccy === 'CNY' ? '公众股东（流通股）' : '公众股东（境外）', round: 'ipo', roundName: '上市发行', pct: L.issue, invest: q.raised, pre: q.pre, contract: ct.no });
+  C.holders.push({ name: L.board === 'hk' || L.board === 'nasdaq' ? '公众股东（境外）' : '公众股东（流通股）', round: 'ipo', roundName: '上市发行', pct: L.issue, invest: q.raised, pre: q.pre, contract: ct.no });
   C.listed = true;
   const code = { main: '6', star: '688', hk: 'HK', nasdaq: 'NQ' }[L.board];
   L.listed = { at: t, shares: q.shares, px: q.price, issuePx: q.price, hist: [q.price], name: s.companyName || '我的公司', code: `${code}${String(Math.floor(t / 1000) % 1000).padStart(3, '0')}`, lockUntil: t + gm(CFG.lockRealMonths) * MONTH_MS, win: t, used: 0, divYear: Math.floor((t - s.createdAt) / YEAR_MS), board: L.board, raised: q.raised };

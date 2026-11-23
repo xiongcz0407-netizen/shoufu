@@ -1,19 +1,18 @@
 // 地标建筑（第 3-07 项，设计19 第四节 + 设计23 第八节）：公司买（公司账户 + 并购贷款）
-// 流程：仲梁联行牵线 → 尽职调查 15 分钟 → 谈判报价 / 竞标 → 签意向、付 10% 定金 → 审批（海外：ODI 核准 + 当地审查，可能被否，被否定金退回）→ 签资产买卖合同付尾款
+// 流程：仲梁联行牵线 → 尽职调查 15 分钟 → 谈判报价 / 竞标 → 签意向、付 10% 定金 → 审批（海外：当地审查（设计30 去掉了 ODI），可能被否，被否定金退回）→ 签资产买卖合同付尾款
 // 持有：每个游戏月收租（估值 × 真实回报率 × profitMul），运营成本、房产税照真实；人脉、眼光加；身价按估值（公司资产）
-import { isOpen } from './offshore.js?v=1236a42d';
-import CFG from '../config/landmarks.json?v=1236a42d' with { type: 'json' };
-import { pay, receive } from './ledger.js?v=1236a42d';
-import { addContract } from './contracts.js?v=1236a42d';
-import { MONTH_MS, monthIndex } from './gametime.js?v=1236a42d';
-import { payTaxItem } from './companytax.js?v=1236a42d';
-import { taxRec } from './fiscal.js?v=1236a42d';
-import { profitMul } from './calib.js?v=1236a42d';
-import { addMsg } from './inbox.js?v=1236a42d';
-import { holder, isSec } from './posts.js?v=1236a42d';
-import { addAttrHook, bossAttrs } from './boss.js?v=1236a42d';
-import { netWorth, addCompanyAssetHook } from './economy.js?v=1236a42d';
-import { maMax, whyNotMa, maLoan, repay as repayLoan } from './bank.js?v=1236a42d';
+import CFG from '../config/landmarks.json?v=b7d8e042' with { type: 'json' };
+import { pay, receive } from './ledger.js?v=b7d8e042';
+import { addContract } from './contracts.js?v=b7d8e042';
+import { MONTH_MS, monthIndex } from './gametime.js?v=b7d8e042';
+import { payTaxItem } from './companytax.js?v=b7d8e042';
+import { taxRec } from './fiscal.js?v=b7d8e042';
+import { profitMul } from './calib.js?v=b7d8e042';
+import { addMsg } from './inbox.js?v=b7d8e042';
+import { holder, isSec } from './posts.js?v=b7d8e042';
+import { addAttrHook, bossAttrs } from './boss.js?v=b7d8e042';
+import { netWorth, addCompanyAssetHook } from './economy.js?v=b7d8e042';
+import { maMax, whyNotMa, maLoan, repay as repayLoan } from './bank.js?v=b7d8e042';
 
 export const LCFG = CFG;
 export const LANDMARKS = CFG.landmarks;
@@ -50,7 +49,6 @@ export function whyNotStart(s, id) {
   if (owns(s, id)) return '已经是你的了';
   const d = lm(s).deals[id]; if (d && !['lost', 'rejected'].includes(d.stage)) return '已经在谈了';
   if ((s.title || 0) < CFG.minTitle) return '要「企业家」才有经纪来牵线';
-  if (x.needAccount && !isOpen(s)) return '要先开境外账户（财富 → 境外）';   // 第 P-07 项：港澳酒店同香港房产
   if (freeCompany(s) < x.value * CFG.depositRate) return `公司账户至少要有定金 ${fmt(x.value * CFG.depositRate)}（自有资金）`;
   return null;
 }
@@ -197,6 +195,6 @@ export function tick(s, t, rnd) {
 
 // ---------- 身价、属性 ----------
 addCompanyAssetHook((s) => value(s) + escrow(s));   // 公司资产（按买入价），进公司估值 × 你的持股；并购贷款本金在 loanDebt 里已经算负债
-import { addPlaceGate } from './dates.js?v=1236a42d';
+import { addPlaceGate } from './dates.js?v=b7d8e042';
 addPlaceGate((s, pid) => (pid === 'rooftop' && !(s.landmark && mine(s).length) ? '要先有一座地标' : null));   // 楼顶约会（验收阶段三）
 addAttrHook((s) => { const n = s.landmark ? mine(s).length : 0; return { network: n * CFG.attr.network, vision: n * CFG.attr.vision }; });

@@ -1,16 +1,16 @@
 // 拍卖会界面（第 2-14b 项）：车行「拍卖」分段和收藏「拍卖会」页签都画这一个（车和古董同一场）
-import * as AU from '../core/auction.js?v=1236a42d';
-import * as AQ from '../core/antique.js?v=1236a42d';
-import * as AS from '../core/assets.js?v=1236a42d';
-import * as INB from '../core/inbox.js?v=1236a42d';
-import { SEC_BY_ID } from '../config/secretaries.js?v=1236a42d';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=1236a42d';
-import { asset, hasAsset } from '../platform/assets.js?v=1236a42d';
-import { game } from '../game.js?v=1236a42d';
-import { now } from '../core/clock.js?v=1236a42d';
-import { h, openPanel, toast } from './dom.js?v=1236a42d';
-import { showcase } from './assets.js?v=1236a42d';
-import { hintLater } from './guide2.js?v=1236a42d';
+import * as AU from '../core/auction.js?v=b7d8e042';
+import * as AQ from '../core/antique.js?v=b7d8e042';
+import * as AS from '../core/assets.js?v=b7d8e042';
+import * as INB from '../core/inbox.js?v=b7d8e042';
+import { SEC_BY_ID } from '../config/secretaries.js?v=b7d8e042';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=b7d8e042';
+import { asset, hasAsset } from '../platform/assets.js?v=b7d8e042';
+import { game } from '../game.js?v=b7d8e042';
+import { now } from '../core/clock.js?v=b7d8e042';
+import { h, openPanel, toast } from './dom.js?v=b7d8e042';
+import { showcase } from './assets.js?v=b7d8e042';
+import { hintLater } from './guide2.js?v=b7d8e042';
 
 let bidX = 1.3;
 const pic = (l) => {
@@ -29,7 +29,7 @@ export function renderAuctionHouse(wrap, redraw, carFilter = null) {   // 设计
   // 拍到了还没付的
   for (const w of AU.wonList(s)) {
     const tot = AU.wonTotal(s, w);
-    const r = h('div', 'tr-course', `<div><b>拍到了：${w.name}</b><div class="tr-gain">落槌 ${fmtMoney(w.hammer)}，连佣金税费 ${fmtMoney(tot)}；<span class="neg">${fmtDuration(Math.max(0, w.deadline - t) / 1000)} 内不付款算违约，人脉 −${AU.AUCFG.defaultNetwork}</span></div></div><button class="btn gold">签确认书付款</button>`);
+    const r = h('div', 'tr-course', `<div><b>${w.private ? '私洽谈成' : '拍到了'}：${w.name}</b><div class="tr-gain">落槌 ${fmtMoney(w.hammer)}，连佣金税费 ${fmtMoney(tot)}；<span class="neg">${fmtDuration(Math.max(0, w.deadline - t) / 1000)} 内不付款算违约，人脉 −${AU.AUCFG.defaultNetwork}</span></div></div><button class="btn gold">签确认书付款</button>`);
     r.querySelector('.btn').onclick = () => {
       const x = AU.pay(s, w.lot, now()); if (!x.ok) { toast(x.why); return; }
       toast(`成交：${x.contract.no}`); game.changed(); game.save();
@@ -44,7 +44,7 @@ export function renderAuctionHouse(wrap, redraw, carFilter = null) {   // 设计
   const grid = h('div', 'as-grid shop');
   for (const l of c.lots.filter((x) => !carFilter || (x.kind === 'car' && AS.ITEM[x.id] && carFilter(AS.ITEM[x.id])))) {
     const max = Math.round(l.start * bidX);
-    const card = h('div', 'as-card fr-auction', `${pic(l)}<span class="badge auction">${hasAsset('assets/ui/badge_auction.webp') ? `<img src="${asset('assets/ui/badge_auction.webp')}" alt="">` : ''}拍卖</span><b>${l.name}</b><small>起拍 ${fmtMoney(l.start)}　${l.kind === 'car' ? `原价 ${fmtMoney(l.base)}` : `估价 ${fmtMoney(l.base)}`}　人脉 ≥ ${l.need}</small><small>你最多出 ${fmtMoney(max)}</small><button class="btn gold me">举牌</button>${l.kind === 'antique' && who ? `<button class="btn proxy">交给${SEC_BY_ID[who].name}代拍</button>` : ''}`);
+    const card = h('div', 'as-card fr-auction', `${pic(l)}<span class="badge auction">${hasAsset('assets/ui/badge_auction.webp') ? `<img src="${asset('assets/ui/badge_auction.webp')}" alt="">` : ''}拍卖</span><b>${l.name}</b><small>起拍 ${fmtMoney(l.start)}　${l.kind === 'car' ? `原价 ${fmtMoney(l.base)}` : `估价 ${fmtMoney(l.base)}`}　人脉 ≥ ${l.need}</small><small>你最多出 ${fmtMoney(max)}</small><button class="btn gold me">举牌</button><button class="btn priv">私洽（直接找卖家谈）</button>${l.kind === 'antique' && who ? `<button class="btn proxy">交给${SEC_BY_ID[who].name}代拍</button>` : ''}`);
     const go = (proxy) => {
       if (s.cash < max) { toast('个人现金不够你的最高出价'); return; }
       const r = AU.bid(s, l.lot, max, now(), { proxy }); if (!r.ok) { toast(r.why); return; }
@@ -53,7 +53,7 @@ export function renderAuctionHouse(wrap, redraw, carFilter = null) {   // 设计
       const pb = p.body.querySelector('.btn'); if (pb) pb.onclick = () => { const x = AU.pay(s, r.w.lot, now()); if (!x.ok) { toast(x.why); return; } p.close(); toast(`成交：${x.contract.no}`); game.changed(); game.save(); if (l.kind === 'car') showcase(AS.ITEM[l.id]); redraw(); };
       game.changed(); game.save(); redraw();
     };
-    card.querySelector('.me').onclick = () => go(false); const pp = card.querySelector('.proxy'); if (pp) pp.onclick = () => go(true);
+    card.querySelector('.me').onclick = () => go(false); card.querySelector('.priv').onclick = () => import('./negotiate.js?v=b7d8e042').then((N) => N.openPrivateAuction(l, redraw)); const pp = card.querySelector('.proxy'); if (pp) pp.onclick = () => go(true);
     grid.appendChild(card);
   }
   if (!c.lots.length) grid.appendChild(h('div', 'empty', '这一场没有你能举的（人脉不够、或者都举过了）'));

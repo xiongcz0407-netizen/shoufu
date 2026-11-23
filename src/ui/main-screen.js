@@ -1,18 +1,18 @@
 // 主界面：背景（跟称号换）、顶部条、立绘、台词气泡、底部 5 个按钮
-import { asset, hasAsset } from '../platform/assets.js?v=1236a42d';
-import { onTap } from '../platform/input.js?v=1236a42d';
-import { TITLES } from '../config/titles.js?v=1236a42d';
-import { SEC_BY_ID } from '../config/secretaries.js?v=1236a42d';
-import { fmtMoney, fmtNum } from '../core/format.js?v=1236a42d';
-import { gameDate, dateText } from '../core/gametime.js?v=1236a42d';
-import { bell as bellOf } from '../core/inbox.js?v=1236a42d';
-import { now as nowFn } from '../core/clock.js?v=1236a42d';
-import ECON from '../config/economy.json?v=1236a42d' with { type: 'json' };
-import { game } from '../game.js?v=1236a42d';
-import { h, openPanel, toast } from './dom.js?v=1236a42d';
-import { createPortrait } from './portrait.js?v=1236a42d';
-import { audio } from '../platform/audio.js?v=1236a42d';
-import { voiceFile } from '../config/lines.js?v=1236a42d';
+import { asset, hasAsset } from '../platform/assets.js?v=b7d8e042';
+import { onTap } from '../platform/input.js?v=b7d8e042';
+import { TITLES } from '../config/titles.js?v=b7d8e042';
+import { SEC_BY_ID } from '../config/secretaries.js?v=b7d8e042';
+import { fmtMoney, fmtNum } from '../core/format.js?v=b7d8e042';
+import { gameDate, dateText } from '../core/gametime.js?v=b7d8e042';
+import * as PK from '../core/pick.js?v=b7d8e042'; // V2-03 进货挑品
+import { bell as bellOf } from '../core/inbox.js?v=b7d8e042';
+import { now as nowFn } from '../core/clock.js?v=b7d8e042';
+import { game } from '../game.js?v=b7d8e042';
+import { h, openPanel, toast } from './dom.js?v=b7d8e042';
+import { createPortrait } from './portrait.js?v=b7d8e042';
+import { audio } from '../platform/audio.js?v=b7d8e042';
+import { voiceFile } from '../config/lines.js?v=b7d8e042';
 
 export const NAV = [
   { key: 'industry', name: '产业', icon: 'icon_industry' },
@@ -53,6 +53,8 @@ export const setTodoProvider = (fn) => { todoProvider = fn; };
 const FLOATS = [
   { key: 'daily', side: 'l', name: '签到', icon: 'icon_checkin' },
   { key: 'limited', side: 'l', name: '限时', icon: 'icon_invite' },
+  { key: 'counter', side: 'l', name: '站柜台', icon: 'icon_counter' },
+  { key: 'agenda', side: 'l', name: '日程', icon: 'icon_agenda' }, // V3-02 日程表（开发2，ui/agenda.js）：小老板起显示，红点 = 待定或现在能去的 // V2-04：只在打工人、小老板显示（main.js 的 floatState）
   { key: 'mall', side: 'r', name: '商场', icon: 'icon_mall' },
   { key: 'date', side: 'r', name: '约会', icon: 'icon_date' },
   { key: 'wardrobe', side: 'r', name: '衣柜', icon: 'icon_wardrobe' },
@@ -72,7 +74,7 @@ export function buildMain(root) {
   const bg = h('div', 'main-bg');
   const top = h('div', 'topbar2', `
     <div class="tb-l1"><button class="tb-avatar">我</button><div class="tb-who"><b class="tb-boss"></b><span class="tb-badge"></span></div>
-      <div class="tb-worth-box"><small>身价</small><b class="tb-worth"></b><small class="tb-usd"></small></div></div>
+      <div class="tb-worth-box"><small>身价</small><b class="tb-worth"></b></div></div>
     <div class="tb-l2"><span class="tb-date"></span><span class="tb-cash">💰 个人 <b></b></span><button class="tb-bell">${hasAsset('assets/ui/icon_bell.webp') ? `<img src="${asset('assets/ui/icon_bell.webp')}" alt="">` : '🔔'}<i class="dot"></i><i class="cnt"></i></button></div>`);
   const stage = h('div', 'stage');
   const bubble = h('div', 'bubble hidden', '<div class="bubble-name"></div><div class="bubble-text"></div>');
@@ -177,8 +179,7 @@ function refresh(s) {
   w.textContent = fmtNum(nw);
   if (ui.lastWorth != null && nw > ui.lastWorth * 1.001 + 1) { w.classList.remove('up'); void w.offsetWidth; w.classList.add('up'); }
   ui.lastWorth = nw;
-  ui.top.querySelector('.tb-usd').textContent = `≈ $${fmtNum(nw / ECON.usdRate)}`;
-  ui.top.querySelector('.tb-date').textContent = '📅 ' + dateText(gameDate(s, t));
+  { const x = PK.today(s, t); ui.top.querySelector('.tb-date').textContent = '📅 ' + dateText(gameDate(s, t)) + ` ${PK.PICK_CFG.weatherIcon[x.weather]}${x.holiday ? ' ' + x.holiday.name : ''}`; } /* V2-03 今天的天气、节日 */
   const fz = (s.freezes || []).reduce((a, f) => a + f.amount, 0);
   const left = fz ? Math.max(0, Math.min(...s.freezes.map((f) => f.until)) - t) / 1000 : 0;
   ui.top.querySelector('.tb-cash b').textContent = fmtNum(s.cash - fz) + (fz ? `（冻结 ${fmtNum(fz)} ${String(Math.floor(left / 60)).padStart(2, '0')}:${String(Math.floor(left % 60)).padStart(2, '0')}）` : '');

@@ -1,58 +1,420 @@
 {
-  "_说明": "地产（设计20 第二节 1）。钱都是元；时间是真实分钟（离线照样走）；面积 ㎡。数值用 tools/econsim.mjs 调",
-  "cities": {
-    "shanghai": { "name": "上海", "k": 1.0 },
-    "beijing": { "name": "北京", "k": 1.0 },
-    "shenzhen": { "name": "深圳", "k": 0.95 },
-    "guangzhou": { "name": "广州", "k": 0.85 },
-    "suzhou": { "name": "苏州", "k": 0.7, "small": true },
-    "foshan": { "name": "佛山", "k": 0.6, "small": true },
-    "jiaxing": { "name": "嘉兴", "k": 0.5, "small": true }
+ "_说明": "地产（设计20 第二节 1）。钱都是元；时间是真实分钟（离线照样走）；面积 ㎡。数值用 tools/econsim.mjs 调",
+ "cities": {
+  "shanghai": {
+   "name": "上海",
+   "k": 1.0
   },
-  "_small": "小地块（验收阶段二 2-16b）：每月除了北上广深，再挂 2～3 块郊区 / 二线城市住宅小地块：可建 1～3 万 ㎡、起拍楼面价 2000～5000 元/㎡（已是当地价，不再乘城市系数）、总投入约 3000 万～1 亿；要先注册当地分公司",
-  "small": { "listings": [2, 3], "gfa": [10000, 30000], "floorPrice": [2000, 5000], "far": [1.8, 2.2] },
-  "districts": {
-    "shanghai": ["嘉定新城", "临港新片区", "松江新城", "青浦新城"],
-    "beijing": ["大兴新城", "顺义新城", "通州副中心", "昌平新城"],
-    "shenzhen": ["龙华", "光明", "坪山", "大鹏"],
-    "guangzhou": ["南沙", "增城", "从化", "花都"],
-    "suzhou": ["吴江", "相城", "昆山", "太仓"],
-    "foshan": ["顺德", "三水", "高明", "南海"],
-    "jiaxing": ["嘉善", "平湖", "海宁", "桐乡"]
+  "beijing": {
+   "name": "北京",
+   "k": 1.0
   },
-  "types": {
-    "residential": { "name": "住宅小区", "minTitle": 2, "use": "居住用地", "years": 70, "landArea": [6000, 15000], "far": [1.8, 2.2], "floorPrice": [2200, 4200], "buildCost": 3000, "markup": 1.4, "devFeeRate": 0.06, "ordinary": true },
-    "commercial": { "name": "商业综合体", "minTitle": 3, "use": "商服用地", "years": 40, "landArea": [40000, 80000], "far": [2.5, 3.2], "floorPrice": [3800, 6000], "buildCost": 4500, "markup": 1.55, "devFeeRate": 0.07, "ordinary": false, "canHold": true }
+  "shenzhen": {
+   "name": "深圳",
+   "k": 0.95
   },
-  "market": {
-    "listings": [3, 5],
-    "npcMaxPremium": [0.0, 0.35],
-    "raiseStep": [0.05, 0.1],
-    "npcRounds": 3,
-    "npcNames": ["锦城置业", "华荣地产", "鼎盛置业", "恒泰发展", "润江地产", "新航置业"],
-    "heat": { "cold": { "name": "冷", "sell": 0.55, "price": 0.95, "w": 0.25 }, "normal": { "name": "平稳", "sell": 0.8, "price": 1.0, "w": 0.5 }, "hot": { "name": "热", "sell": 1.0, "price": 1.05, "w": 0.25 } }
+  "guangzhou": {
+   "name": "广州",
+   "k": 0.85
   },
-  "_time": "项目周期写现实月份，游戏里 = 现实 ÷ profitMul、每段最少 1 个游戏月（设计21 第九节）：拿地办证 3、建设住宅 12 / 商业 24、开工满 6 个月起 3 批预售每批隔 3、竣工且卖完后交房清算 3",
-  "time": { "permit": 3, "build": { "residential": 12, "commercial": 24 }, "presaleFrom": 6, "batchGap": 3, "deliver": 3 },
-  "maxProjects": [0, 0, 2, 4, 6, 6, 6, 6],
-  "buildPrepay": 0.5,
-  "batches": 3,
-  "escrowKeep": 0.3,
-  "tailDiscount": { "cold": 0.8, "normal": 0.88, "hot": 0.95 },
-  "agentCommission": 0.001,
-  "dismissMin": 30,
-  "tax": {
-    "deed": 0.03,
-    "stampLand": 0.0005,
-    "stampSale": 0.0003,
-    "vat": 0.09,
-    "vatPrepay": 0.03,
-    "latPrepay": 0.02,
-    "latExemptOrdinary": 0.2,
-    "latDevFee": 0.1,
-    "latExtra": 0.2,
-    "latBrackets": [[0.5, 0.3, 0], [1.0, 0.4, 0.05], [2.0, 0.5, 0.15], [1e9, 0.6, 0.35]],
-    "propertyTaxRent": 0.12
+  "suzhou": {
+   "name": "苏州",
+   "k": 0.7,
+   "small": true
   },
-  "hold": { "valueK": 1.3, "rentYield": 0.045, "mgmtRate": 0.1 }
+  "foshan": {
+   "name": "佛山",
+   "k": 0.6,
+   "small": true
+  },
+  "jiaxing": {
+   "name": "嘉兴",
+   "k": 0.5,
+   "small": true
+  }
+ },
+ "_small": "小地块（验收阶段二 2-16b）：每月除了北上广深，再挂 2～3 块郊区 / 二线城市住宅小地块：可建 1～3 万 ㎡、起拍楼面价 2000～5000 元/㎡（已是当地价，不再乘城市系数）、总投入约 3000 万～1 亿；要先注册当地分公司",
+ "small": {
+  "listings": [
+   2,
+   3
+  ],
+  "gfa": [
+   10000,
+   30000
+  ],
+  "floorPrice": [
+   2000,
+   5000
+  ],
+  "far": [
+   1.8,
+   2.2
+  ]
+ },
+ "districts": {
+  "shanghai": [
+   "嘉定新城",
+   "临港新片区",
+   "松江新城",
+   "青浦新城"
+  ],
+  "beijing": [
+   "大兴新城",
+   "顺义新城",
+   "通州副中心",
+   "昌平新城"
+  ],
+  "shenzhen": [
+   "龙华",
+   "光明",
+   "坪山",
+   "大鹏"
+  ],
+  "guangzhou": [
+   "南沙",
+   "增城",
+   "从化",
+   "花都"
+  ],
+  "suzhou": [
+   "吴江",
+   "相城",
+   "昆山",
+   "太仓"
+  ],
+  "foshan": [
+   "顺德",
+   "三水",
+   "高明",
+   "南海"
+  ],
+  "jiaxing": [
+   "嘉善",
+   "平湖",
+   "海宁",
+   "桐乡"
+  ]
+ },
+ "types": {
+  "residential": {
+   "name": "住宅小区",
+   "minTitle": 2,
+   "use": "居住用地",
+   "years": 70,
+   "landArea": [
+    6000,
+    15000
+   ],
+   "far": [
+    1.8,
+    2.2
+   ],
+   "floorPrice": [
+    2200,
+    4200
+   ],
+   "buildCost": 3000,
+   "markup": 1.4,
+   "devFeeRate": 0.06,
+   "ordinary": true
+  },
+  "commercial": {
+   "name": "商业综合体",
+   "minTitle": 3,
+   "use": "商服用地",
+   "years": 40,
+   "landArea": [
+    40000,
+    80000
+   ],
+   "far": [
+    2.5,
+    3.2
+   ],
+   "floorPrice": [
+    3800,
+    6000
+   ],
+   "buildCost": 4500,
+   "markup": 1.55,
+   "devFeeRate": 0.07,
+   "ordinary": false,
+   "canHold": true
+  }
+ },
+ "market": {
+  "listings": [
+   3,
+   5
+  ],
+  "npcMaxPremium": [
+   0.0,
+   0.35
+  ],
+  "raiseStep": [
+   0.05,
+   0.1
+  ],
+  "npcRounds": 3,
+  "npcNames": [
+   "锦城置业",
+   "华荣地产",
+   "鼎盛置业",
+   "恒泰发展",
+   "润江地产",
+   "新航置业"
+  ],
+  "heat": {
+   "cold": {
+    "name": "冷",
+    "sell": 0.55,
+    "price": 0.95,
+    "w": 0.25
+   },
+   "normal": {
+    "name": "平稳",
+    "sell": 0.8,
+    "price": 1.0,
+    "w": 0.5
+   },
+   "hot": {
+    "name": "热",
+    "sell": 1.0,
+    "price": 1.05,
+    "w": 0.25
+   }
+  }
+ },
+ "_time": "项目周期写现实月份，游戏里 = 现实 ÷ profitMul、每段最少 1 个游戏月（设计21 第九节）：拿地办证 3、建设住宅 12 / 商业 24、开工满 6 个月起 3 批预售每批隔 3、竣工且卖完后交房清算 3",
+ "time": {
+  "permit": 3,
+  "build": {
+   "residential": 12,
+   "commercial": 24
+  },
+  "presaleFrom": 6,
+  "batchGap": 3,
+  "deliver": 3
+ },
+ "maxProjects": [
+  0,
+  0,
+  2,
+  4,
+  6,
+  6,
+  6,
+  6
+ ],
+ "buildPrepay": 0.5,
+ "batches": 3,
+ "escrowKeep": 0.3,
+ "tailDiscount": {
+  "cold": 0.8,
+  "normal": 0.88,
+  "hot": 0.95
+ },
+ "agentCommission": 0.001,
+ "dismissMin": 30,
+ "tax": {
+  "deed": 0.03,
+  "stampLand": 0.0005,
+  "stampSale": 0.0003,
+  "vat": 0.09,
+  "vatPrepay": 0.03,
+  "latPrepay": 0.02,
+  "latExemptOrdinary": 0.2,
+  "latDevFee": 0.1,
+  "latExtra": 0.2,
+  "latBrackets": [
+   [
+    0.5,
+    0.3,
+    0
+   ],
+   [
+    1.0,
+    0.4,
+    0.05
+   ],
+   [
+    2.0,
+    0.5,
+    0.15
+   ],
+   [
+    1000000000.0,
+    0.6,
+    0.35
+   ]
+  ],
+  "propertyTaxRent": 0.12
+ },
+ "hold": {
+  "valueK": 1.3,
+  "rentYield": 0.045,
+  "mgmtRate": 0.1
+ },
+ "decide": {
+  "_说明": "V2-09 地产项目每一步拿主意（设计29 第四节）。定位只管住宅：build 建安成本倍数、price 售价倍数、sell 去化倍数；地段（城市系数 k）决定最合适的，对路去化 × fitSell、不对路 × missSell。开盘定价、营销在开工时问，中途事件建设期抽一次、预售期抽一次；每一步 waitMin 分钟（真实）不选按「稳健」（default）",
+  "waitMin": 30,
+  "pos": {
+   "basic": {
+    "name": "刚需",
+    "build": 0.85,
+    "price": 0.85,
+    "sell": 1.15
+   },
+   "improve": {
+    "name": "改善",
+    "build": 1,
+    "price": 1,
+    "sell": 1
+   },
+   "luxury": {
+    "name": "豪宅",
+    "build": 1.35,
+    "price": 1.4,
+    "sell": 0.75
+   }
+  },
+  "posFit": [
+   [
+    0.95,
+    "luxury"
+   ],
+   [
+    0.8,
+    "improve"
+   ],
+   [
+    0,
+    "basic"
+   ]
+  ],
+  "fitSell": 1.1,
+  "missSell": 0.8,
+  "price": {
+   "high": {
+    "name": "高价慢卖",
+    "price": 1.12,
+    "sell": 0.75
+   },
+   "steady": {
+    "name": "稳着卖",
+    "price": 1,
+    "sell": 1
+   },
+   "fast": {
+    "name": "平价快卖",
+    "price": 0.92,
+    "sell": 1.25
+   }
+  },
+  "mkt": {
+   "show": {
+    "name": "样板间",
+    "cost": 0.004,
+    "sell": 1.08,
+    "price": 1
+   },
+   "star": {
+    "name": "明星代言",
+    "cost": 0.012,
+    "sell": 1.15,
+    "price": 1.03
+   },
+   "group": {
+    "name": "团购折扣",
+    "cost": 0,
+    "sell": 1.3,
+    "price": 0.95
+   }
+  },
+  "defaults": {
+   "pos": "improve",
+   "price": "steady",
+   "mkt": "show"
+  },
+  "events": {
+   "material": {
+    "stage": "build",
+    "title": "建材涨价",
+    "text": "钢材、水泥这个月涨了一截，总包要求调价。",
+    "options": [
+     {
+      "key": "accept",
+      "label": "接受调价（建安 +5%）",
+      "fx": {
+       "build": 0.05
+      }
+     },
+     {
+      "key": "switch",
+      "label": "换便宜的供应商",
+      "fx": {
+       "chance": 0.5,
+       "sellMul": 0.9
+      }
+     },
+     {
+      "key": "wait",
+      "label": "停工等降价（晚 1 个月竣工）",
+      "fx": {
+       "delayMonths": 1
+      }
+     }
+    ],
+    "default": "accept"
+   },
+   "inspect": {
+    "stage": "build",
+    "title": "住建局停工检查",
+    "text": "住建局来查安全文明施工，要求停工整改。",
+    "options": [
+     {
+      "key": "fix",
+      "label": "马上整改（建安 1%）",
+      "fx": {
+       "payBuild": 0.01
+      }
+     },
+     {
+      "key": "guanxi",
+      "label": "托关系先复工",
+      "fx": {
+       "chance": 0.5,
+       "payBuild": 0.03,
+       "delayMonths": 1
+      }
+     }
+    ],
+    "default": "fix"
+   },
+   "owners": {
+    "stage": "presale",
+    "title": "业主维权",
+    "text": "一批业主拉横幅：说样板间跟实际不一样，要求赔偿。",
+    "options": [
+     {
+      "key": "pay",
+      "label": "赔偿、道歉（已收房款 0.5%）",
+      "fx": {
+       "payReceived": 0.005
+      }
+     },
+     {
+      "key": "hard",
+      "label": "硬扛，走法律程序",
+      "fx": {
+       "sellMul": 0.85
+      }
+     }
+    ],
+    "default": "pay"
+   }
+  },
+  "eventP": 0.7
+ }
 }

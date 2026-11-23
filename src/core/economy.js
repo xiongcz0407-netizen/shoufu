@@ -1,22 +1,22 @@
 // 经济：产钱、升级、分店、派驻、身价、离线收益（纯函数，node 测试能跑）
-import { INDUSTRIES, IND_BY_ID, SEC_BONUS_PER_POINT, BRANCH_CAP, LOOK3_TITLE } from '../config/industries.js?v=1236a42d';
-import * as CB from './calib.js?v=1236a42d';
-import CAP from '../config/capital.json?v=1236a42d' with { type: 'json' };
-import { TITLES } from '../config/titles.js?v=1236a42d';
-import { pay, receive, accrue, canPay } from './ledger.js?v=1236a42d';
-import { staffFactor, staffUp, PAY, estTotal } from './staff.js?v=1236a42d';
-import { track } from './companytax.js?v=1236a42d';
-import { payables } from './accrual.js?v=1236a42d';
-import { visionIncome } from './boss.js?v=1236a42d';
-import { managerRevMult, managerCostMult, stat } from './posts.js?v=1236a42d';
-import { reValue } from './realestate.js?v=1236a42d';
-import { logiRevPerSec, linkCogsMult, fleetValue } from './logistics.js?v=1236a42d';
-import { techRevPerSec, techLink } from './tech.js?v=1236a42d';
-import { liveRevPerSec, mediaLink } from './media.js?v=1236a42d';
-import { lineK, lineCities, cityOpen, cityK, cityName, CITY_CFG } from './cities.js?v=1236a42d';
-import { revK, debt } from './rivalry.js?v=1236a42d';
-import { depositTotal, loanDebt, setNW } from './bank.js?v=1236a42d';
-import { equityOwed } from './equity.js?v=1236a42d';
+import { INDUSTRIES, IND_BY_ID, SEC_BONUS_PER_POINT, BRANCH_CAP, LOOK3_TITLE } from '../config/industries.js?v=b7d8e042';
+import * as CB from './calib.js?v=b7d8e042';
+import CAP from '../config/capital.json?v=b7d8e042' with { type: 'json' };
+import { TITLES } from '../config/titles.js?v=b7d8e042';
+import { pay, receive, accrue, canPay } from './ledger.js?v=b7d8e042';
+import { staffFactor, staffUp, PAY, estTotal } from './staff.js?v=b7d8e042';
+import { track } from './companytax.js?v=b7d8e042';
+import { payables } from './accrual.js?v=b7d8e042';
+import { visionIncome } from './boss.js?v=b7d8e042';
+import { managerRevMult, managerCostMult, stat } from './posts.js?v=b7d8e042';
+import { reValue } from './realestate.js?v=b7d8e042';
+import { logiRevPerSec, linkCogsMult, fleetValue } from './logistics.js?v=b7d8e042';
+import { techRevPerSec, techLink } from './tech.js?v=b7d8e042';
+import { liveRevPerSec, mediaLink } from './media.js?v=b7d8e042';
+import { lineK, lineCities, cityOpen, cityK, cityName, CITY_CFG } from './cities.js?v=b7d8e042';
+import { revK, debt } from './rivalry.js?v=b7d8e042';
+import { depositTotal, loanDebt, setNW } from './bank.js?v=b7d8e042';
+import { equityOwed } from './equity.js?v=b7d8e042';
 
 /** 存档里的产业：{ store: { level, branches, spent, sec, staff, agency, openedAt } } */
 export function newIndustry(t = Date.now()) { return { level: 1, branches: 1, spent: 0, sec: null, staff: {}, agency: {}, openedAt: t }; }
@@ -27,7 +27,7 @@ export const upgradeCost = (cfg, level, branches = 1) => cfg.retail ? Math.ceil(
 /** 开分店费：门店 = 单店投资（现在的样子）× 城市系数 × 1.12^已有家数（设计21）；物流照旧 */
 export const branchCost = (cfg, branches, city, level = 1) => cfg.retail ? Math.ceil(CB.branchCostAt(cfg, level, branches, city ? cityK(city) : 1)) : Math.ceil(cfg.branchCost * Math.pow(cfg.branchGrow, branches - 1) * (city ? cityK(city) : 1)); // 开店费乘城市系数
 export const upCostOf = (s, id) => upgradeCost(IND_BY_ID[id], s.inds[id].level, s.inds[id].branches);
-export const brCostOf = (s, id, city) => branchCost(IND_BY_ID[id], s.inds[id].branches, city, s.inds[id].level);
+export const brCostOf = (s, id, city) => Math.ceil(branchCost(IND_BY_ID[id], s.inds[id].branches, city, s.inds[id].level) * meetBr(s, id)); // V2-13 经营会「扩张」打折
 export function lookIndex(cfg, level) { let i = 0; cfg.looks.forEach((lv, k) => { if (level >= lv) i = k; }); return i; }
 
 /** 秘书属性（培养后的）；s.secs[id].attrs 有就用，没有用配置起点 */
@@ -49,16 +49,31 @@ export function secBonus(s, ind, secCfgById) {
 let revHook = () => 1, cogsHook = () => [1, 0]; let VALUE_MODE = false;
 export const setManageHooks = (rev, cogs) => { revHook = rev; cogsHook = cogs; };
 const mgRev = (s, id) => (IND_BY_ID[id].retail ? revHook(s, id, VALUE_MODE) : 1);
+/** V2-08 选址（开发2，core/sites.js 挂进来）：每家分店按铺位的营业额系数（整条线平均）；开分店成功后记铺位 */
+let siteRev = () => 1, siteOpen = null;
+/** V2-05 商战抢份额（core/war.js 挂进来）：这条线这个月营收 +2% × 赢的回合数；估值不算 */
+let warRev = () => 1; export const setWarHook = (fn) => { warRev = fn; }; const warK = (s, id) => (VALUE_MODE ? 1 : warRev(s, id));
+/** V2-13 每周经营会（开发2，core/meeting.js 挂进来）：这一周的营业额加成（估值时 VALUE_MODE 不算）、开分店的钱打折 */
+let meetRev = () => 1, meetBr = () => 1;
+export const setMeetingHooks = (rev, br) => { meetRev = rev; meetBr = br; };
+export const setSiteHooks = (rev, open) => { siteRev = rev; siteOpen = open; };
 /** 一个产业每秒的营业收入（毛的，按在岗 / 编制打折） */
-export function industryRevenue(s, id, secCfgById) {
+let lateRev = () => 1; export const setLateHook = (fn) => { lateRev = fn; }; // V3-01 后期不挂机（core/late.js）：老板起全公司经营倍数
+/** 经营倍数作用在利润上：营业额加 (倍数 − 1) × 净利 ÷ (1 − 进货占比)，这样净利正好 × 倍数（门店按真实经济的净利率，别的线按 0.3 估） */
+function lateK(s, id) { const m = lateRev(s, VALUE_MODE); if (m === 1) return 1; const cfg = IND_BY_ID[id]; const ind = s.inds[id]; let share = 0.3;
+  if (cfg.retail && ind) { const rv = CB.gameRev(cfg, ind.level), c = CB.cogsAt(cfg, ind.level); if (rv > 0 && c < 1) share = Math.max(0.05, Math.min(1, CB.gameNet(cfg, ind.level) / (rv * (1 - c)))); }
+  else { const sh = s.late && s.late.share && s.late.share[id]; share = sh != null ? sh : 0.05; } /* 别的线按实际净利率（core/late.js 每天算一次），没算过按 5% 保守 */
+  return Math.max(0, 1 + (m - 1) * share); }
+export function industryRevenue(s, id, secCfgById) { const r = industryRevenue0(s, id, secCfgById); return r ? r * meetRev(s, id, VALUE_MODE) * lateK(s, id) : r; } // V2-13 经营会加成
+function industryRevenue0(s, id, secCfgById) {
   const ind = s.inds[id]; const cfg = IND_BY_ID[id];
   if (!ind || !cfg) return 0;
   const boost = ((s.flags && s.flags.indBoost && s.flags.indBoost[id]) || 0) + visionIncome(s) + techLink(s) + mediaLink(s, id); // 有科技：管理效率 +3%；有传媒：服装餐饮广告 +5% // 收购对手给的加成 + 老板眼光（替换原来的豪宅加成）
   if (cfg.kind === 'media') return liveRevPerSec(s) * (managerRevMult(s, id) + boost) * (staffFactor(s, id) > 0 ? 1 : 0); // 传媒：直播按主播人头（投拍另结）
-  if (cfg.kind === 'product') return techRevPerSec(s) * (managerRevMult(s, id) + boost) * (staffFactor(s, id) > 0 ? 1 : 0); // 科技：按上线产品；人手已经算在人效上限里，只留缺一半停业
-  if (cfg.kind === 'scale') return logiRevPerSec(s) * revK(s, id, lineCities(s, id)) * (managerRevMult(s, id) + boost) * staffFactor(s, id); // 物流：按人头和车，乘城市系数
+  if (cfg.kind === 'product') return techRevPerSec(s) * (managerRevMult(s, id) + boost) * (staffFactor(s, id) > 0 ? 1 : 0) * warK(s, id); // 科技：按上线产品；人手已经算在人效上限里，只留缺一半停业
+  if (cfg.kind === 'scale') return logiRevPerSec(s) * revK(s, id, lineCities(s, id)) * (managerRevMult(s, id) + boost) * staffFactor(s, id) * warK(s, id); // 物流：按人头和车，乘城市系数
   if (!cfg.retail) return 0; // 地产：项目制，回款另算
-  return CB.gameRev(cfg, ind.level) / MONTH_SEC * ind.branches * revK(s, id, lineCities(s, id)) * (managerRevMult(s, id) + boost) * staffFactor(s, id) * mgRev(s, id); // 真实经济（core/calib.js）；城市系数：广州客单价低
+  return CB.gameRev(cfg, ind.level) / MONTH_SEC * ind.branches * revK(s, id, lineCities(s, id)) * (managerRevMult(s, id) + boost) * staffFactor(s, id) * mgRev(s, id) * siteRev(s, id) * warK(s, id); // 真实经济（core/calib.js）；城市系数：广州客单价低
 }
 /** 一个产业每秒的毛利（营收 − 进货），给界面和 econsim 看 */
 export const baseCogs = (s, id) => { const c = IND_BY_ID[id]; return c.retail && s.inds[id] ? CB.cogsAt(c, s.inds[id].level) : c.cogs; }; // 门店按样子
@@ -120,10 +135,29 @@ export const stakeOf = (s) => (s.cap && s.cap.stake != null ? s.cap.stake : 1);
 export const netWorth = (s) => s.cash + (s.assetValue || 0) + depositTotal(s, 'personal') + companyEquity(s) * stakeOf(s) + nwExtra(s);
 const NW_HOOKS = []; export const addNetWorthHook = (fn) => NW_HOOKS.push(fn); const nwExtra = (s) => NW_HOOKS.reduce((a, f) => a + (f(s) || 0), 0); // 开发2：上市市值等挂这里 // 应付股权转让款（收购分期）算负债 // 存款算资产；瑞霖过桥、银行贷款本金算负债 // reValue：地产项目和持有物业（core/realestate.js）
 
+// ---------- V2-12 前置条件（设计31）：按现在的分店数现算，只管新开；老档已开的线、分店不收回 ----------
+const RETAIL = INDUSTRIES.filter((c) => c.retail).map((c) => c.id);
+export const branchesOf = (s, id) => (s.inds[id] ? s.inds[id].branches || 0 : 0);
+export const retailTotal = (s) => RETAIL.reduce((a, id) => a + branchesOf(s, id), 0);
+/** 条件现在的数和要的数 */
+export function needProgress(s, need) {
+  if (!need) return null;
+  return need.retailTotal ? { cur: retailTotal(s), n: need.retailTotal } : { cur: branchesOf(s, need.line), n: need.n };
+}
+export const needMet = (s, need) => { if (s.flags && s.flags.noNeed) return true; /* 只给老测试用：跳过前置条件 */ const p = needProgress(s, need); return !p || p.cur >= p.n; };
+const unit = (need) => (need.line === 'logistics' ? '个网点' : '家');
+/** 条件的说法：「便利店开到 3 家」「三种门店加起来 20 家」 */
+export const needName = (need) => (need.retailTotal ? `三种门店加起来 ${need.retailTotal} 家` : `${IND_BY_ID[need.line].name}开到 ${need.n} ${unit(need)}`);
+/** 不够时的提示：「便利店开到 3 家才能开餐饮分店（现在 1 家）」 */
+export function whyNeed(s, id, which) {
+  const cfg = IND_BY_ID[id]; const need = cfg[which]; if (needMet(s, need)) return null; const p = needProgress(s, need);
+  const what = which === 'needBranch' ? `开${cfg.name}分店` : cfg.retail ? `开第一家${cfg.name}` : `开${cfg.name}`;
+  return `${needName(need)}才能${what}（现在 ${p.cur} ${need.retailTotal ? '家' : unit(need)}）`;
+}
 export const isUnlocked = (s, id) => s.title >= IND_BY_ID[id].unlockTitle || !!(s.flags && s.flags.earlyUnlock && s.flags.earlyUnlock[id]);
 
 export function unlockIfReady(s) {
-  for (const cfg of INDUSTRIES) if (!s.inds[cfg.id] && isUnlocked(s, cfg.id)) { s.inds[cfg.id] = newIndustry(s._t); if (cfg.kind === 'project' || cfg.startEmpty) s.inds[cfg.id].branches = 0; else staffUp(s, cfg.id); } // 摆摊：0 家，自己花钱开第一家 // 地产：拿到地才组项目公司
+  for (const cfg of INDUSTRIES) if (!s.inds[cfg.id] && isUnlocked(s, cfg.id) && (cfg.startEmpty || needMet(s, cfg.needFirst) || (s.flags && s.flags.earlyUnlock && s.flags.earlyUnlock[cfg.id]))) { /* V2-12：物流、地产、科技、传媒要前置条件才出现（收购提前解锁的不管）；餐饮、服装是空的线，开第一家时再看 */ s.inds[cfg.id] = newIndustry(s._t); if (cfg.kind === 'project' || cfg.startEmpty) s.inds[cfg.id].branches = 0; else staffUp(s, cfg.id); if (cfg.needFirst && !cfg.startEmpty) s.inds[cfg.id].fresh = true; /* V2-12：前置条件刚满足出现的，秘书说一句后清掉 */ } // 摆摊：0 家，自己花钱开第一家 // 地产：拿到地才组项目公司
 }
 
 // 升级 / 开分店从公司账户扣，记流水
@@ -142,7 +176,7 @@ export function whyNotUpgrade(s, id) {
   for (let j = cfg.looks.length - 1; j > 0; j--) if (ind.level + 1 >= cfg.looks[j] && s.title < (lt[j] || 0)) return `升到 ${cfg.looks[j]} 级（${cfg.lookNames[j]}）要「${TITLES[lt[j]].name}」称号`;
   return null;
 }
-export function whyNotBranch(s, id) { const ind = s.inds[id]; if (!ind || ['project', 'product', 'media'].includes(IND_BY_ID[id].kind)) return '这条线不开分店'; if (ind.branches >= maxBranches(s, id)) return ind.branches >= IND_BY_ID[id].maxBranch ? '分店满了' : `现在最多 ${maxBranches(s, id)} 家（升称号能多开）`; return null; }
+export function whyNotBranch(s, id) { const ind = s.inds[id]; if (!ind || ['project', 'product', 'media'].includes(IND_BY_ID[id].kind)) return '这条线不开分店'; if (ind.branches >= maxBranches(s, id)) return ind.branches >= IND_BY_ID[id].maxBranch ? '分店满了' : `现在最多 ${maxBranches(s, id)} 家（升称号能多开）`; return whyNeed(s, id, ind.branches ? 'needBranch' : 'needFirst'); }
 export function upgrade(s, id, t = Date.now(), by = '') {
   const ind = s.inds[id]; if (!ind || whyNotUpgrade(s, id)) return false; // 项目制另有玩法；第 3 个样子要老板
   if (!payInd(s, ind, upCostOf(s, id), id, `升到 ${ind.level + 1} 级`, t, by)) return false;
@@ -152,8 +186,10 @@ export function openBranch(s, id, t = Date.now(), by = '', city = CITY_CFG.hq) {
   const ind = s.inds[id]; const cfg = IND_BY_ID[id];
   if (!ind || whyNotBranch(s, id) || !cityOpen(s, city, t)) return false; // 新城市先注册分公司
   const cs = lineCities(s, id);
-  if (!payInd(s, ind, branchCost(cfg, ind.branches, city, ind.level), id, `开第 ${ind.branches + 1} 家店（${cityName(city)}）`, t, by)) return false;
+  const cost = Math.ceil(branchCost(cfg, ind.branches, city, ind.level) * meetBr(s, id)); // V2-13 扩张打折；V2-08：开店费记进铺位（关店转让拿回 30%）
+  if (!payInd(s, ind, cost, id, `开第 ${ind.branches + 1} 家店（${cityName(city)}）`, t, by)) return false;
   ind.branches += 1; cs[city] = (cs[city] || 0) + 1; s.stats.maxStoreBranches = Math.max(s.stats.maxStoreBranches || 0, s.inds.store ? s.inds.store.branches : 0);
+  if (siteOpen) siteOpen(s, id, city, t, cost); // V2-08 记铺位（core/sites.js）
   return true;
 }
 /** 第一轮的派驻：现在就是任命店长 */
@@ -203,5 +239,5 @@ export function canPromote(s) {
 }
 
 // 资产的验资要看身价（避免互相 import）
-import { setNetWorthFn } from './assets.js?v=1236a42d';
+import { setNetWorthFn } from './assets.js?v=b7d8e042';
 setNetWorthFn(netWorth); setNW(netWorth);

@@ -3,15 +3,15 @@
 // 拍卖：跟车同一个拍卖会（core/auction.js）；这里算古董成交的佣金和海外进口税、收藏顾问代拍提成
 // 私洽：达·芬奇 救世主只给大藏家（人脉 90 + 藏品 10 件），名额 1，等 30 分钟
 // 估价每小时随机走；再拍卖卖出扣 10% 佣金，赚了交 20%；算身价（估价），加眼光 + 人脉；不送人
-import CFG from '../config/antique.json?v=1236a42d' with { type: 'json' };
-import { pay, receive } from './ledger.js?v=1236a42d';
-import { addContract } from './contracts.js?v=1236a42d';
-import { premium, addAssetHook } from './assets.js?v=1236a42d';
-import { addAttrHook, bossAttrs } from './boss.js?v=1236a42d';
-import { holder, isSec, attrs as secAttrs, OUT } from './posts.js?v=1236a42d';
-import { SEC_BY_ID } from '../config/secretaries.js?v=1236a42d';
-import { taxRec } from './fiscal.js?v=1236a42d';
-import { payerOfPost } from './fiscal.js?v=1236a42d';
+import CFG from '../config/antique.json?v=b7d8e042' with { type: 'json' };
+import { pay, receive } from './ledger.js?v=b7d8e042';
+import { addContract } from './contracts.js?v=b7d8e042';
+import { premium, addAssetHook } from './assets.js?v=b7d8e042';
+import { addAttrHook, bossAttrs } from './boss.js?v=b7d8e042';
+import { holder, isSec, attrs as secAttrs, OUT } from './posts.js?v=b7d8e042';
+import { SEC_BY_ID } from '../config/secretaries.js?v=b7d8e042';
+import { taxRec } from './fiscal.js?v=b7d8e042';
+import { payerOfPost } from './fiscal.js?v=b7d8e042';
 
 export const ACFG = CFG;
 export const ITEMS = CFG.items.map((x) => ({ ...x, kind: 'antique' }));

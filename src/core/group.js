@@ -1,16 +1,16 @@
 // 集团架构和节税（第 3-06 项，设计23 第六节）：控股公司 + 子公司、个人持股平台、高新技术企业、境外红筹架构、集团合并报表
 // 企业所得税按子公司各算（companytax.quarterTax 的挂钩 setCitHook；年度汇算 fiscal.setAnnualHook）
-import CFG from '../config/group.json?v=1236a42d' with { type: 'json' };
-import { pay, receive, canPay } from './ledger.js?v=1236a42d';
-import { addContract } from './contracts.js?v=1236a42d';
-import { MONTH_MS, YEAR_MS, monthIndex } from './gametime.js?v=1236a42d';
-import { TAX, setCitHook } from './companytax.js?v=1236a42d';
-import { taxRec, setAnnualHook } from './fiscal.js?v=1236a42d';
-import { gm } from './calib.js?v=1236a42d';
-import { addMsg } from './inbox.js?v=1236a42d';
-import { holder, isSec } from './posts.js?v=1236a42d';
-import { IND_BY_ID } from '../config/industries.js?v=1236a42d';
-import { liveProducts } from './tech.js?v=1236a42d';
+import CFG from '../config/group.json?v=b7d8e042' with { type: 'json' };
+import { pay, receive, canPay } from './ledger.js?v=b7d8e042';
+import { addContract } from './contracts.js?v=b7d8e042';
+import { MONTH_MS, YEAR_MS, monthIndex } from './gametime.js?v=b7d8e042';
+import { TAX, setCitHook } from './companytax.js?v=b7d8e042';
+import { taxRec, setAnnualHook } from './fiscal.js?v=b7d8e042';
+import { gm } from './calib.js?v=b7d8e042';
+import { addMsg } from './inbox.js?v=b7d8e042';
+import { holder, isSec } from './posts.js?v=b7d8e042';
+import { IND_BY_ID } from '../config/industries.js?v=b7d8e042';
+import { liveProducts } from './tech.js?v=b7d8e042';
 
 export const GCFG = CFG;
 const r2 = (v) => Math.round(v * 100) / 100;
@@ -31,7 +31,7 @@ export function entityName(s, id) {
 }
 export const holdingReady = (s) => !!(s.group && s.group.holding && s.group.holding.ready);
 export const platformReady = (s) => !!(s.group && s.group.platform && s.group.platform.ready);
-export const redchipDone = (s) => !!(s.group && s.group.red && s.group.red.done.length === CFG.redchip.steps.length);
+export const redchipDone = (s) => !!(s.group && s.group.red && CFG.redchip.steps.every((x) => s.group.red.done.includes(x.key)));   // 设计30 删了香港那一步：旧档 done 里多一个 hk 也算搭好
 export function hitechActive(s, t = Date.now()) { const h = s.group && s.group.hitech; return !!(h && h.ready && t < h.until); }
 const lines = (s) => Object.keys(s.inds || {}).filter((id) => IND_BY_ID[id]);
 
@@ -93,7 +93,7 @@ export function applyHitech(s, t) {
   grp(s).hitech = { at: t + CFG.hitech.months * MONTH_MS, from: t, ready: false, scope: c.scope }; return { ok: true };
 }
 // ---------- 境外红筹 ----------
-export function nextRedStep(s) { const R = grp(s).red; return R.step ? null : CFG.redchip.steps[R.done.length] || null; }
+export function nextRedStep(s) { const R = grp(s).red; return R.step ? null : CFG.redchip.steps.find((x) => !R.done.includes(x.key)) || null; }
 export function whyNotRed(s) {
   const R = grp(s).red; if (redchipDone(s)) return '红筹架构已经搭好了';
   if (R.step) return '上一步还在办';
@@ -107,17 +107,17 @@ export function startRed(s, t) {
   pay(s, { wallet: 'company', cat: 'filing', amount: st.fee, party: st.key === 'safe37' ? '外汇管理局' : '境外律师事务所', by: cfoBy(s), note: `红筹架构：${st.name}` }, t);
   R.step = st.key; R.at = t + CFG.redchip.months * MONTH_MS; return { ok: true, step: st };
 }
-/** 红筹分红：境内子公司 → 香港（预提所得税 5%）→ 开曼 → 你的境外账户（境外所得个税 20%） */
+/** 红筹分红：境内子公司 → 开曼（预提所得税 5%）→ 你的个人现金（个税 20%）。设计30：没有香港中间控股、没有境外账户 */
 export function redDividend(s, amount, t) {
   if (!redchipDone(s)) return { ok: false, why: '红筹架构还没搭好' };
   if (!(amount > 0) || !canPay(s, 'company', amount)) return { ok: false, why: '公司账户不够' };
   const wht = r2(amount * CFG.redchip.wht); const net = r2(amount - wht); const ptax = r2(net * CFG.redchip.personal); const by = cfoBy(s);
-  pay(s, { wallet: 'company', cat: 'dividend_out', amount: net, party: '香港中间控股公司', by, note: `红筹分红：${entityName(s, 'holding')} → 香港 → 开曼` }, t);
-  const c1 = taxRec(s, { kind: '预提所得税（股息，内地和香港税收安排 5%）', base: amount, rate: CFG.redchip.wht, amount: wht, payer: 'company', t });
+  pay(s, { wallet: 'company', cat: 'dividend_out', amount: net, party: '开曼控股公司', by, note: `红筹分红：${entityName(s, 'holding')} → 开曼` }, t);
+  const c1 = taxRec(s, { kind: '预提所得税（股息 5%）', base: amount, rate: CFG.redchip.wht, amount: wht, payer: 'company', t });
   pay(s, { wallet: 'company', cat: 'tax_company', amount: wht, ref: c1 || '', party: '税务局', by, note: '红筹分红代扣预提所得税 5%' }, t);
-  receive(s, { wallet: 'offshore', cat: 'dividend_abroad', amount: net, party: '开曼控股公司', note: '红筹分红（香港、开曼不收股息税）' }, t);
-  const c2 = taxRec(s, { kind: '境外所得个税', base: net, rate: CFG.redchip.personal, amount: ptax, t });
-  pay(s, { wallet: 'offshore', cat: 'tax_personal', amount: ptax, tax: ptax, ref: c2 || '', by, party: '税务局', note: '境外所得个税 20%（CRS 申报）', force: true }, t);
+  receive(s, { wallet: 'personal', cat: 'dividend_abroad', amount: net, party: '开曼控股公司', note: '红筹分红（开曼不收股息税）' }, t);
+  const c2 = taxRec(s, { kind: '红筹分红个税', base: net, rate: CFG.redchip.personal, amount: ptax, t });
+  pay(s, { wallet: 'personal', cat: 'tax_personal', amount: ptax, tax: ptax, ref: c2 || '', by, party: '税务局', note: '红筹分红个税 20%', force: true }, t);
   return { ok: true, wht, net, tax: ptax, toYou: r2(net - ptax) };
 }
 

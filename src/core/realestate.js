@@ -1,15 +1,16 @@
 // 地产（设计20 第二节 1）：拿地（挂牌竞价）→ 四证 → 开工 → 分 3 批预售（监管账户）→ 交房清算（增值税、土地增值税、所得税）；商业综合体可以持有收租
 // 不 import economy（economy 要用这里的 reValue 算身价）
-import C from '../config/realestate.json?v=1236a42d' with { type: 'json' };
-import { pay, receive, canPay } from './ledger.js?v=1236a42d';
-import { payTaxItem, TAX } from './companytax.js?v=1236a42d';
-import { addContract } from './contracts.js?v=1236a42d';
-import { staffFactor, establishment, fire, PAY } from './staff.js?v=1236a42d';
-import { addMsg, onAction } from './inbox.js?v=1236a42d';
-import { cityOpen, cityName as cityNm } from './cities.js?v=1236a42d';
-import { managerRevMult, holder, isSec } from './posts.js?v=1236a42d';
-import { MONTH_MS, monthIndex } from './gametime.js?v=1236a42d';
-import { gm } from './calib.js?v=1236a42d';
+import { credit } from './credit.js?v=b7d8e042'; // V3-01 亲自拍板攒投入度
+import C from '../config/realestate.json?v=b7d8e042' with { type: 'json' };
+import { pay, receive, canPay } from './ledger.js?v=b7d8e042';
+import { payTaxItem, TAX } from './companytax.js?v=b7d8e042';
+import { addContract } from './contracts.js?v=b7d8e042';
+import { staffFactor, establishment, fire, PAY } from './staff.js?v=b7d8e042';
+import { addMsg, onAction } from './inbox.js?v=b7d8e042';
+import { cityOpen, cityName as cityNm } from './cities.js?v=b7d8e042';
+import { managerRevMult, holder, isSec } from './posts.js?v=b7d8e042';
+import { MONTH_MS, monthIndex } from './gametime.js?v=b7d8e042';
+import { gm } from './calib.js?v=b7d8e042';
 export { C as RE_CFG };
 
 const MIN = 60e3;
@@ -82,6 +83,29 @@ export function bid(s, id, step, t, rnd = Math.random) {
   if (l.npcRaises < C.market.npcRounds && next <= l.npcMax) { l.cur = next; l.leader = 'npc'; l.npcRaises += 1; return { ok: true, won: false, npc: next }; }
   return { ok: true, won: true, ...win(s, l, t) };
 }
+// ---------- V2-07 谈地（接开发2 的 core/negotiate.js）：挂牌期间找想拿这块地的开发商私下谈，谈成它不举牌，你按谈下来的价拿地 ----------
+export const LAND_NEGO = { ask: 1.05, range: [0.85, 0.97], persona: '精明' };
+export function landNegoOpts(s, id, secId = null, boss = false) {
+  const l = re(s).listings.find((x) => x.id === id); if (!l) return null;
+  return { key: 'land_' + id, kind: 'buy', base: Math.round(Math.max(l.cur, l.npcMax * LAND_NEGO.ask) / 1e4) * 1e4, range: LAND_NEGO.range, step: 1e4, persona: LAND_NEGO.persona, chips: { intel: (l.npcRaises || 0) > 0, secId, boss } };
+}
+/** 谈成：按这个价拿地（同样只能用自有资金） */
+export function winByDeal(s, id, price, t) {
+  const l = re(s).listings.find((x) => x.id === id); price = Math.round(Math.max(price, l ? l.start : 0));
+  const why = whyNotBid(s, l, price, t); if (why) return { ok: false, why };
+  l.cur = price; l.leader = 'me'; credit(s, 'nego', 1, t); return { ok: true, won: true, ...win(s, l, t) };
+}
+/** V2-09 拿地定上限：你定一个最高价，按最小加价幅度跟到赢或者超过上限为止（超过上限就停下，你可以再加或放弃） */
+export function bidUpTo(s, id, max, t, rnd = Math.random) {
+  const l = re(s).listings.find((x) => x.id === id); if (!l || l.status !== 'open') return { ok: false, why: '这块地已经挂牌结束了' };
+  let last = null;
+  for (let i = 0; i < 20; i++) {
+    const next = l.leader == null ? l.start : Math.round(l.cur * (1 + C.market.raiseStep[0]));
+    if (l.leader === 'me') break; if (next > max) return { ok: true, won: false, stopped: true, cur: l.cur, last };
+    last = bid(s, id, C.market.raiseStep[0], t, rnd); if (!last.ok) return last; if (last.won) return last;
+  }
+  return last || { ok: false, why: '没出价' };
+}
 export function giveUp(s, id) { const l = re(s).listings.find((x) => x.id === id); if (!l || l.status !== 'open') return false; if (l.leader === 'npc' || l.leader == null) { l.status = 'lost'; return true; } return false; }
 
 /** 成交：付土地款（自有资金）+ 契税 + 印花税，签出让合同，项目开始办四证 */
@@ -114,25 +138,27 @@ export function addAcquiredProject(s, spec, from, t) {
 
 // ---------- 项目 ----------
 /** 每平米售价：按市场楼面价 + 建安成本 × 加成（多花的地价就是你少赚的）；冷热 ±5% */
-export const priceOf = (s, p) => Math.round((p.floorPrice + C.types[p.type].buildCost) * C.types[p.type].markup * heatOf(s).price);
+export const priceOf = (s, p) => Math.round((p.floorPrice + C.types[p.type].buildCost) * C.types[p.type].markup * heatOf(s).price * projK(p).price); // V2-09 定位、开盘定价、营销
 export const buildMonths = (p) => gm(C.time.build[p.type] ?? 12);
 /** 下一件到点的事：竣工、下一批开盘，取早的 */
 export const nextAt = (p) => Math.min(p.buildEnd || Infinity, p.batchAt || Infinity) === Infinity ? 0 : Math.min(p.buildEnd || Infinity, p.batchAt || Infinity);
 export const totalInvest = (p) => p.land + p.deed + p.stamp + p.build;
 export const STAGE = { permit: '办四证', ready: '四证齐了，等开工', build: '建设中', built: '竣工，选卖还是持有', presale: '预售中', deliver: '交房清算中', done: '清算完', held: '持有出租' };
 
-export function whyNotStart(s, p) {
+export function whyNotStart(s, p, pos = null) {
   if (p.stage !== 'ready') return '现在不能开工';
-  const pre = Math.round(p.build * C.buildPrepay);
+  const pre = Math.round(p.build * posBuild(p, pos) * C.buildPrepay);
   if (!canPay(s, 'company', pre)) return `公司账户不够（总包预付款 ${Math.round(pre / 1e4)} 万；四证齐了可以申请开发贷，银行在 2-08）`;
   return null;
 }
 /** 开工：跟总包签施工合同，先付 50%，竣工付尾款 */
-export function startBuild(s, id, t) {
-  const p = re(s).projects.find((x) => x.id === id); const why = p ? whyNotStart(s, p) : '没有这个项目'; if (why) return { ok: false, why };
+export function startBuild(s, id, t, pos = null) {
+  const p = re(s).projects.find((x) => x.id === id); const why = p ? whyNotStart(s, p, pos) : '没有这个项目'; if (why) return { ok: false, why };
+  if (pos) credit(s, 're', 1, t); setPos(s, p, pos, t); // V2-09 定位（住宅）：建安成本跟着变；然后问开盘定价、营销
   const pre = Math.round(p.build * C.buildPrepay);
   const ct = addContract(s, { prefix: 'SG', kind: 'build', title: '建设工程施工合同（总包）', parties: [['发包人', s.companyName || '我的公司'], ['承包人', '中建某局（总包）']], subject: `${p.name} ${p.gfa} ㎡`, rows: [['建安工程款（含 9% 增值税）', p.build], ['开工预付', pre], ['竣工结算付', p.build - pre]], total: p.build, wallet: 'company' }, t);
   pay(s, { wallet: 'company', cat: 'construction', amount: pre, party: '总包', ref: ct.no, by: by(s), note: `地产 ${p.name} 开工预付 50%` }, t);
+  askDecisions(s, p, t);
   p.paidBuild = pre; p.stage = 'build'; p.buildEnd = t + buildMonths(p) * MONTH_MS; p.batchAt = C.types[p.type].canHold ? 0 : t + gm(C.time.presaleFrom) * MONTH_MS; p.at = nextAt(p); p.buildContract = ct.no;
   return { ok: true };
 }
@@ -154,7 +180,7 @@ export const setLoanHook = (fn) => { loanHook = fn; };
 
 function batch(s, p, t) {
   const left = p.gfa - p.sold; const plan = left / (C.batches - p.batch);
-  const area = Math.floor(plan * sellRate(s)); const price = priceOf(s, p); const money = area * price;
+  const area = Math.floor(Math.min(left, plan * Math.min(1.5, sellRate(s) * projK(p).sell))); const price = priceOf(s, p); const money = area * price; // V2-09 去化跟着定位、定价、营销、事件走
   p.batch += 1; p.sold += area; p.received += money;
   if (money > 0) {
     receive(s, { wallet: 'company', cat: 'presale', amount: money, party: '购房人', by: by(s), note: `地产 ${p.name} 第 ${p.batch} 批预售 ${area} ㎡ × ${price}` }, t);
@@ -223,6 +249,7 @@ export function tickRE(s, t) {
   refreshMarket(s, t);
   const ev = [];
   for (const p of re(s).projects) {
+    ev.push(...tickDecide(s, p, t)); // V2-09 到点没选的按稳健；建设期 / 预售期的事件
     for (let guard = 0; guard < 10 && p.at && t >= p.at; guard++) {
       const at = p.at;
       if (p.stage === 'permit') { p.stage = 'ready'; p.at = 0; ev.push([p, '四证办齐了，可以开工']); }
@@ -260,6 +287,81 @@ function collectRent(s, t) {
     }
   }
 }
+// ---------- V2-09 地产项目每一步拿主意（设计29 第四节）----------
+const D = C.decide;
+/** 这块地最合适的定位（看城市系数） */
+export const bestPos = (p) => D.posFit.find(([k]) => (C.cities[p.city] ? C.cities[p.city].k : 1) >= k)[1];
+const posBuild = (p, pos) => (p.type === 'residential' && pos && D.pos[pos] ? D.pos[pos].build : 1);
+/** 定位 / 开盘定价 / 营销 / 事件 合起来的售价和去化倍数 */
+export function projK(p) {
+  const x = p.dec || {}; let price = 1, sell = 1;
+  if (x.pos && D.pos[x.pos]) { price *= D.pos[x.pos].price; sell *= D.pos[x.pos].sell * (x.pos === bestPos(p) ? D.fitSell : D.missSell); }
+  if (x.price && D.price[x.price]) { price *= D.price[x.price].price; sell *= D.price[x.price].sell; }
+  if (x.mkt && D.mkt[x.mkt]) { price *= D.mkt[x.mkt].price; sell *= D.mkt[x.mkt].sell; }
+  sell *= x.sellMul || 1;
+  return { price, sell };
+}
+/** 秘书出主意：智慧最高、没在上课的，对的概率 50% + 智慧 / 2 */
+export function posAdvice(s, p, rnd = Math.random) {
+  const ids = Object.keys(s.secs || {}); if (!ids.length) return null;
+  const at = (id) => ((s.secs[id] && s.secs[id].attrs) || {}).wit || 0; const sec = ids.sort((a, b) => at(b) - at(a))[0];
+  const best = bestPos(p); const right = rnd() < 0.5 + at(sec) / 200; const others = Object.keys(D.pos).filter((k) => k !== best);
+  return { sec, pos: right ? best : others[Math.floor(rnd() * others.length)], right };
+}
+function setPos(s, p, pos, t) {
+  p.dec = p.dec || {};
+  if (p.type !== 'residential') return;
+  const k = D.pos[pos] ? pos : D.defaults.pos; p.dec.pos = k; p.build = Math.round(p.build * D.pos[k].build);
+}
+/** 开工时问开盘定价、营销（30 分钟不选按稳健） */
+function askDecisions(s, p, t) {
+  p.dec = p.dec || {}; p.pend = p.pend || [];
+  for (const kind of ['price', 'mkt']) {
+    if (p.dec[kind]) continue;
+    const opts = Object.entries(D[kind]).map(([k, v]) => ({ key: k, label: kind === 'mkt' && v.cost ? `${v.name}（预计房款 ${(v.cost * 100).toFixed(1)}%）` : v.name }));
+    const m = addMsg(s, { kind: 'invite', type: 're_dec', title: `${p.name}：${kind === 'price' ? '开盘定价' : '营销方案'}`, body: kind === 'price' ? '高价慢卖利润高、回款慢；平价快卖回款快、利润薄。' : '样板间稳、明星代言贵但带价、团购折扣卖得快但让价。', actions: opts, data: { pid: p.id, kind, until: t + D.waitMin * MIN } }, t);
+    p.pend.push({ kind, msg: m.id, until: t + D.waitMin * MIN });
+  }
+  // 建设期事件：开工后某个时候来一次（概率 eventP）
+  const evs = Object.entries(D.events).filter(([, e]) => e.stage === 'build');
+  const r = rng(p.id * 7919 + (s.createdAt % 1e9)); if (r() < D.eventP && evs.length) { p.evId = evs[Math.floor(r() * evs.length)][0]; p.evAt = t + Math.round(buildMonths(p) * MONTH_MS * 0.4); }
+}
+/** 选一个（消息按钮 / 超时默认 / autoplay） */
+export function decide(s, pid, kind, key, t) {
+  const p = re(s).projects.find((x) => x.id === pid); if (!p) return { ok: false, why: '没有这个项目' };
+  p.dec = p.dec || {}; const pend = (p.pend || []).find((x) => x.kind === kind); if (!pend) return { ok: false, why: '这件事已经定了' };
+  p.pend = p.pend.filter((x) => x !== pend); const m = (s.inbox || []).find((x) => x.id === pend.msg); let text = '';
+  if (kind === 'price' || kind === 'mkt') {
+    const k = D[kind][key] ? key : D.defaults[kind]; p.dec[kind] = k; text = `${p.name}：${D[kind][k].name}`;
+    if (kind === 'mkt' && D.mkt[k].cost) { const est = Math.round(priceOf(s, p) * (p.gfa - p.sold) * D.mkt[k].cost); if (est > 0) { pay(s, { wallet: 'company', cat: 're_cost', amount: est, force: true, party: '营销公司', note: `地产 ${p.name} ${D.mkt[k].name}` }, t); text += `，花了 ${Math.round(est / 1e4)} 万`; } }
+  } else {
+    const e = D.events[kind]; const o = e.options.find((x) => x.key === key) || e.options.find((x) => x.key === e.default); text = `${e.title}：${o.label}`;
+    const fx = o.fx; const hit = fx.chance == null || rng(p.id * 131 + Math.floor(t / 1000) % 1e6)() < fx.chance;
+    if (fx.build) { const add = Math.round(p.build * fx.build); p.build += add; text += `，建安多 ${Math.round(add / 1e4)} 万`; }
+    if (hit && fx.sellMul) { p.dec.sellMul = (p.dec.sellMul || 1) * fx.sellMul; text += '，口碑受影响，之后去化变慢'; }
+    if (hit && fx.payBuild) { const c = Math.round(p.build * fx.payBuild); pay(s, { wallet: 'company', cat: 're_cost', amount: c, force: true, party: kind === 'inspect' ? '整改 / 罚款' : e.title, note: `地产 ${p.name} ${e.title}` }, t); text += `，花了 ${Math.round(c / 1e4)} 万`; }
+    if (hit && fx.payReceived) { const c = Math.round((p.received || 0) * fx.payReceived); if (c > 0) { pay(s, { wallet: 'company', cat: 're_cost', amount: c, force: true, party: '业主', note: `地产 ${p.name} 业主赔偿` }, t); text += `，赔了 ${Math.round(c / 1e4)} 万`; } }
+    if (hit && fx.delayMonths && p.buildEnd) { p.buildEnd += fx.delayMonths * MONTH_MS; p.at = nextAt(p); text += `，竣工晚 ${fx.delayMonths} 个月`; }
+    if (fx.chance != null && !hit) text += '，这回运气好，没出事';
+  }
+  if (m) { m.status = 'done'; m.read = true; m.result = text; }
+  (p.decLog = p.decLog || []).push({ t, kind, key, text }); if (key != null) credit(s, 're', 1, t);
+  return { ok: true, text };
+}
+function tickDecide(s, p, t) {
+  const out = [];
+  for (const x of [...(p.pend || [])]) if (t >= x.until) { const r = decide(s, p.id, x.kind, null, x.until); if (r.ok) out.push([p, `没来得及选，按稳健：${r.text}`]); }
+  if (p.evId && p.evAt && t >= p.evAt && (p.stage === 'build' || p.stage === 'presale')) { askEvent(s, p, p.evId, p.evAt); p.evId = null; p.evAt = 0; }
+  if (!p.evOwners && (p.batch || 0) >= 1 && (p.stage === 'build' || p.stage === 'presale')) { p.evOwners = true; if (rng(p.id * 977 + (s.createdAt % 1e9))() < D.eventP * 0.5) askEvent(s, p, 'owners', t); } // 业主维权：开盘以后有一半机会来一次
+  return out;
+}
+function askEvent(s, p, id, t) {
+  const e = D.events[id]; p.pend = p.pend || [];
+  const m = addMsg(s, { kind: 'invite', type: 're_dec', title: `${p.name}：${e.title}`, body: e.text, actions: e.options.map((o) => ({ key: o.key, label: o.label })), data: { pid: p.id, kind: id, until: t + D.waitMin * MIN } }, t);
+  p.pend.push({ kind: id, msg: m.id, until: t + D.waitMin * MIN });
+}
+onAction('re_dec', (s, m, a, t) => decide(s, m.data.pid, m.data.kind, a, t).ok);
+
 /** 项目公司：每个在做的项目一套班子（编制 = 在做的项目数，没有项目就没有编制） */
 export function syncTeams(s) { const x = s.inds.realestate; if (x) x.branches = activeProjects(s).length; }
 

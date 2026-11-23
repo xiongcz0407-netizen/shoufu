@@ -1,16 +1,16 @@
 // 财务页补充（第 2-15 项）：资产负债表、完整资产清单、员工满意度和福利、家族办公室、进项抵扣、年度汇算、欠税
-import * as F from '../core/finance.js?v=1236a42d';
-import * as FI from '../core/fiscal.js?v=1236a42d';
-import * as ST from '../core/staff.js?v=1236a42d';
-import { TAX } from '../core/companytax.js?v=1236a42d';
-import { bank } from '../core/bank.js?v=1236a42d';
-import { YEAR_MS } from '../core/gametime.js?v=1236a42d';
-import { fmtMoney } from '../core/format.js?v=1236a42d';
-import { SECRETARIES } from '../config/secretaries.js?v=1236a42d';
-import { now } from '../core/clock.js?v=1236a42d';
-import { game } from '../game.js?v=1236a42d';
-import { toast } from './dom.js?v=1236a42d';
-import { hintLater } from './guide2.js?v=1236a42d';
+import * as F from '../core/finance.js?v=b7d8e042';
+import * as FI from '../core/fiscal.js?v=b7d8e042';
+import * as ST from '../core/staff.js?v=b7d8e042';
+import { TAX } from '../core/companytax.js?v=b7d8e042';
+import { bank } from '../core/bank.js?v=b7d8e042';
+import { YEAR_MS } from '../core/gametime.js?v=b7d8e042';
+import { fmtMoney } from '../core/format.js?v=b7d8e042';
+import { SECRETARIES } from '../config/secretaries.js?v=b7d8e042';
+import { now } from '../core/clock.js?v=b7d8e042';
+import { game } from '../game.js?v=b7d8e042';
+import { toast } from './dom.js?v=b7d8e042';
+import { hintLater } from './guide2.js?v=b7d8e042';
 
 const row = (k, v, cls = '') => `<div class="fn-row ${cls}"><span>${k}</span><b>${typeof v === 'number' ? fmtMoney(v) : v}</b></div>`;
 const RARE = { unique: '<em class="fn-rare u">孤品</em>', limited: '<em class="fn-rare l">限量</em>' };
@@ -22,7 +22,7 @@ function balance(el, s) {
   const b = F.balanceSheet(s); const C = b.company, P = b.personal;
   el.innerHTML = `<div class="sum-card"><div><small>身价（个人净资产）</small><b>${fmtMoney(P.net)}</b></div><div><small>公司所有者权益</small><b class="${C.equity < 0 ? 'neg' : ''}">${fmtMoney(C.equity)}</b></div><div><small>公司资产负债率</small><b>${C.A > 0 ? ((C.L / C.A) * 100).toFixed(1) + '%' : '—'}</b></div></div>
     <div class="sd-rec-title">公司（${s.companyName || '公司'}）</div>
-    <div class="fn-card">${row('资产', C.A, 'pos')}${C.assets.map(([k, v]) => row('　' + k, v)).join('')}${row('负债', Math.round(C.L), 'neg')}${C.liabilities.filter(([, v]) => Math.abs(v) >= 0.5).map(([k, v]) => row('　' + k, Math.round(v))).join('') || row('　（没有）', '')}${row('所有者权益 = 资产 − 负债', C.equity, 'sum')}</div>
+    <div class="fn-card">${row('资产', C.A, 'pos')}${C.assets.map(([k, v]) => row('　' + k, v)).join('')}${row('负债', Math.round(C.L), 'neg')}${C.liabilities.filter(([, v]) => Math.abs(v) >= 0.5).map(([k, v]) => row('　' + k, Math.round(v))).join('') || row('　（没有）', '')}${row('所有者权益 = 资产 − 负债', C.equity, 'sum')}${row('　实收资本（老板注资）', C.paidIn)}${row('　留存收益和估值增值', C.retained)}</div>
     <div class="sd-rec-title">老板个人</div>
     <div class="fn-card">${row('资产', P.A, 'pos')}${P.assets.map(([k, v]) => row('　' + k, v)).join('')}${row('负债', 0)}${row('净资产 = 身价', P.net, 'sum')}</div>
     <div class="tr-gain">车房飞机、游艇、表、西装按现在卖回去能拿到的算；古董按估价；股票基金按现价。公司按 100% 股权、所有者权益算进个人。</div>`;
@@ -70,12 +70,12 @@ export function extendFinance(TABS, DRAW) {
 }
 
 // ---------- 第 3-06 项：「集团」页（架构、节税、合并报表） ----------
-import * as GR from '../core/group.js?v=1236a42d';
-import { CAPITAL_SECTIONS } from './capital.js?v=1236a42d';
-import * as TKC from '../core/takeover.js?v=1236a42d';
-import { allRows as _allRows } from '../core/finance.js?v=1236a42d';
-import { fmtDuration } from '../core/format.js?v=1236a42d';
-import * as DL3 from '../core/daily.js?v=1236a42d';
+import * as GR from '../core/group.js?v=b7d8e042';
+import { CAPITAL_SECTIONS } from './capital.js?v=b7d8e042';
+import * as TKC from '../core/takeover.js?v=b7d8e042';
+import { allRows as _allRows } from '../core/finance.js?v=b7d8e042';
+import { fmtDuration } from '../core/format.js?v=b7d8e042';
+import * as DL3 from '../core/daily.js?v=b7d8e042';
 const tick36 = (s) => { for (const x of GR.tick(s, now())) toast(x, 2600); };
 game.addTicker(tick36);
 function groupData(s, from, t) {
@@ -109,12 +109,12 @@ function groupView(el, s, from, t, mode) {
     ${row('控股公司', st(g.holding))}<small class="fn-note">每条产业线一家子公司，企业所得税各算（各自判断小型微利），子公司分到控股公司的分红免企业所得税；代价是每家每年代账审计 ${fmtMoney(C.holding.subYearly)}。成立：${fmtMoney(GR.holdingCost(s))}，等 1 个游戏月。</small>${g.holding ? '' : `<button class="btn sm gold g-hold" ${GR.whyNotHolding(s) ? 'disabled' : ''}>成立控股公司</button>${GR.whyNotHolding(s) ? `<small class="fn-note neg">${GR.whyNotHolding(s)}</small>` : ''}`}
     ${row('员工持股平台', st(g.platform))}${g.platform ? '' : `<button class="btn sm g-plat" ${GR.whyNotPlatform(s) ? 'disabled' : ''}>设持股平台（${fmtMoney(C.platform.fee)}）</button>`}
     ${row('高新技术企业', hi ? `<b class="pos">有效</b>（${fmtDur(g.hitech.until - t)}后重新认定）` : st(g.hitech && !g.hitech.ready ? g.hitech : null))}<small class="fn-note">研发占科技收入 ${(hc.rndRatio * 100).toFixed(1)}%（要 ≥ 5%）${hc.scope === 'company' ? `，科技收入占全公司 ${(hc.techShare * 100).toFixed(1)}%（没有控股架构要 ≥ 60%）` : '，科技子公司单独认定'}；企业所得税 15%</small>${hi || (g.hitech && !g.hitech.ready) ? '' : `<button class="btn sm g-hi" ${GR.whyNotHitech(s, t) ? 'disabled' : ''}>申请认定（${fmtMoney(C.hitech.fee)}）</button>${GR.whyNotHitech(s, t) ? `<small class="fn-note neg">${GR.whyNotHitech(s, t)}</small>` : ''}`}
-    ${row('境外红筹架构', GR.redchipDone(s) ? '<b class="pos">搭好了</b>' : `${R.done.length} / ${C.redchip.steps.length}${R.step ? `，办理中 ${fmtDur(R.at - t)}` : ''}`)}<small class="fn-note">上港股、纳斯达克要这个。搭好以后分红：子公司 → 香港（预提 5%）→ 开曼 → 你的境外账户（个税 20%），不占每年 5 万美元换汇额度。</small>
+    ${row('红筹架构', GR.redchipDone(s) ? '<b class="pos">搭好了</b>' : `${C.redchip.steps.filter((x) => R.done.includes(x.key)).length} / ${C.redchip.steps.length}${R.step ? `，办理中 ${fmtDur(R.at - t)}` : ''}`)}<small class="fn-note">搭好以后分红：子公司 → 开曼（预提 5%）→ 你的个人现金（个税 20%）。上港股、纳斯达克不用搭这个。</small>
     ${nx ? `<button class="btn sm g-red" ${GR.whyNotRed(s) ? 'disabled' : ''}>下一步：${nx.name}（${fmtMoney(nx.fee)}）</button>${GR.whyNotRed(s) ? `<small class="fn-note neg">${GR.whyNotRed(s)}</small>` : ''}` : ''}
     ${GR.redchipDone(s) ? '<div class="ind-btns"><button class="btn sm g-div" data-a="10000000">红筹分红 1000 万</button><button class="btn sm g-div" data-a="100000000">红筹分红 1 亿</button></div>' : ''}</div>`;
   el.innerHTML = mode === 'acts' ? tree + acts : rep + '<div class="tr-gain">控股公司、持股平台、高新、红筹这些操作在「财富 → 资本 → 集团架构」。</div>';
   const on = (sel, fn) => el.querySelectorAll(sel).forEach((b) => (b.onclick = () => ok(fn(b), '')));
   on('.g-hold', () => GR.startHolding(s, now())); on('.g-plat', () => GR.startPlatform(s, now())); on('.g-hi', () => GR.applyHitech(s, now())); on('.g-red', () => GR.startRed(s, now()));
-  el.querySelectorAll('.g-div').forEach((b) => (b.onclick = () => { const r = GR.redDividend(s, +b.dataset.a, now()); if (!r.ok) { toast(r.why); return; } toast(`到你境外账户 ${fmtMoney(r.toYou)}（预提 ${fmtMoney(r.wht)}、个税 ${fmtMoney(r.tax)}）`, 3000); game.changed(); game.save(); }));
+  el.querySelectorAll('.g-div').forEach((b) => (b.onclick = () => { const r = GR.redDividend(s, +b.dataset.a, now()); if (!r.ok) { toast(r.why); return; } toast(`到你个人现金 ${fmtMoney(r.toYou)}（预提 ${fmtMoney(r.wht)}、个税 ${fmtMoney(r.tax)}）`, 3000); game.changed(); game.save(); }));
 }
 const fmtDur = (ms) => fmtDuration(Math.max(0, ms / 1000));

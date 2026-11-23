@@ -1,9 +1,10 @@
 // 培养：课程价格 / 时间、培训位、开课、结业（离线也算）
-import { COURSES, COURSE_BY_ID, BASE_SLOTS, PRICE_BASE, PRICE_GROW, TIME_BASE_SEC, TIME_GROW, BEST_DISCOUNT } from '../config/courses.js?v=1236a42d';
-import { SEC_BY_ID } from '../config/secretaries.js?v=1236a42d';
-import { ensureSec } from './secretary.js?v=1236a42d';
-import { bump } from './daily.js?v=1236a42d';
-import { pay, receive, accrue, canPay } from './ledger.js?v=1236a42d';
+import { COURSES, COURSE_BY_ID, BASE_SLOTS, PRICE_BASE, PRICE_GROW, TIME_BASE_SEC, TIME_GROW, BEST_DISCOUNT } from '../config/courses.js?v=b7d8e042';
+import { SEC_BY_ID } from '../config/secretaries.js?v=b7d8e042';
+import { ensureSec } from './secretary.js?v=b7d8e042';
+import { bump } from './daily.js?v=b7d8e042';
+import { isScouting } from './busy.js?v=b7d8e042'; // V2-08 踩点占用（开发2）
+import { pay, receive, accrue, canPay } from './ledger.js?v=b7d8e042';
 
 export const ATTR_MAX = 100;
 export const slotCount = (s) => BASE_SLOTS + s.title;
@@ -35,6 +36,7 @@ export function whyNot(s, secId, courseId) {
   if (!c || s.title < c.unlockTitle) return '课程还没解锁';
   if (!s.secs[secId]) return '还没有这个秘书';
   if (isTraining(s, secId)) return '她正在上课';
+  if (isScouting(s, secId)) return '她在踩点，回来再上课'; // V2-08
   if ((s.training || []).length >= slotCount(s)) return '培训位满了';
   if (Object.values(courseGain(s, secId, courseId)).every((v) => v <= 0)) return '这项已经满了';
   if (!canPay(s, 'company', coursePrice(s, secId, courseId))) return '公司账户不够';

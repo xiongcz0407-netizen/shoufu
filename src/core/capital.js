@@ -1,17 +1,18 @@
 // 阶段三 3-02：投资人融资 + 对赌 + 股东名册 + 董事会 + 施压（设计23 第一、二节）
 // 估值、持股在 core/economy.js（earningsValue / companyEquity / stakeOf），身价 = 公司估值 × 你的持股
-import CAP from '../config/capital.json?v=1236a42d' with { type: 'json' };
-import { companyEquity, stakeOf, profit12, earningsValue, lineNetMonth } from './economy.js?v=1236a42d';
-import { ensureSec } from './secretary.js?v=1236a42d';
-import { isTraining } from './training.js?v=1236a42d';
-import { receive, pay, canPay } from './ledger.js?v=1236a42d';
-import { bank } from './bank.js?v=1236a42d';
-import { addContract } from './contracts.js?v=1236a42d';
-import { addMsg } from './inbox.js?v=1236a42d';
-import { gm, profitMul } from './calib.js?v=1236a42d';
-import { MONTH_MS, YEAR_MS, monthIndex } from './gametime.js?v=1236a42d';
-import { holder, isSec, power, POSTS_CFG as P } from './posts.js?v=1236a42d';
-import { addFavor } from './affection.js?v=1236a42d';
+import { credit } from './credit.js?v=b7d8e042'; // V3-01 亲自拍板攒投入度
+import CAP from '../config/capital.json?v=b7d8e042' with { type: 'json' };
+import { companyEquity, stakeOf, profit12, earningsValue, lineNetMonth } from './economy.js?v=b7d8e042';
+import { ensureSec } from './secretary.js?v=b7d8e042';
+import { isTraining } from './training.js?v=b7d8e042';
+import { receive, pay, canPay } from './ledger.js?v=b7d8e042';
+import { bank } from './bank.js?v=b7d8e042';
+import { addContract } from './contracts.js?v=b7d8e042';
+import { addMsg } from './inbox.js?v=b7d8e042';
+import { gm, profitMul } from './calib.js?v=b7d8e042';
+import { MONTH_MS, YEAR_MS, monthIndex } from './gametime.js?v=b7d8e042';
+import { holder, isSec, power, POSTS_CFG as P } from './posts.js?v=b7d8e042';
+import { addFavor } from './affection.js?v=b7d8e042';
 export { CAP };
 
 const r2 = (x) => Math.round(x * 100) / 100;
@@ -57,14 +58,23 @@ export function tickCapital(s, t) {
 // ---------- 谈判 ----------
 const teamPower = (s, team) => team.reduce((a, id) => { const x = isSec(id) ? ensureSec(s, id).attrs : { social: 30, wit: 30 }; return a + x.social + x.wit; }, 0) / Math.max(1, team.length);
 /** 条款 terms：{ adj 投前估值 −0.2～+0.2, sell 出让比例, vam 对赌增长（0 = 不对赌）, pref 优先清算倍数, board 董事席位, anti 反稀释 } */
+// ---------- V2-07 谈估值（接开发2 的 core/negotiate.js）----------
+export function capNegoOpts(s, roundId, team) {
+  const N = CAP.nego; const base = quoteRound(s, roundId, { adj: 0, _raw: true }).pre;
+  return { key: 'cap_' + roundId, kind: 'sell', base: Math.round(base * N.open), range: N.range, step: Math.pow(10, Math.max(3, Math.floor(Math.log10(Math.max(1, base))) - 2)), persona: N.persona,
+    chips: { intel: !!holder(s, 'ipo'), secId: (team || []).find((id) => isSec(id)) || null, boss: bigBonus(s, 'deal') > 0 } };
+}
+export function setNegoPre(s, roundId, pre) { cap(s).negPre = { round: roundId, pre: Math.round(pre) }; }
+export const negoPre = (s, roundId) => { const n = s.cap && s.cap.negPre; return n && n.round === roundId ? n.pre : null; };
 export function quoteRound(s, roundId, terms) {
   const r = ROUND_BY_ID[roundId]; const D = CAP.ipoDirector; const dirK = holder(s, 'ipo') ? D.valueLo + (D.valueHi - D.valueLo) * Math.min(1, ipoPower(s)) : 0; // 投融资总监多谈 5%～15%
-  const pre = r2(investorValue(s) * (1 + bigBonus(s, 'deal')) * (1 + clamp(terms.adj || 0, -CAP.valueAdj, CAP.valueAdj)) * (1 + dirK));
+  const np = terms._raw ? null : negoPre(s, roundId); /* V2-07 谈下来的投前估值 */
+  const pre = np != null ? np : r2(investorValue(s) * (terms._raw ? 1 : 1 + bigBonus(s, 'deal')) * (1 + clamp(terms.adj || 0, -CAP.valueAdj, CAP.valueAdj)) * (1 + dirK));
   const sell = clamp(terms.sell ?? r.sell[0], r.sell[0], r.sell[1]); const amount = r2(pre * sell / (1 - sell));
   return { round: r, pre, post: r2(pre + amount), sell, amount };
 }
 export function talkRate(s, roundId, team, terms, invited) {
-  const T = CAP.talk; const adj = clamp(terms.adj || 0, -CAP.valueAdj, CAP.valueAdj);
+  const T = CAP.talk; const adj = negoPre(s, roundId) != null ? 0 : clamp(terms.adj || 0, -CAP.valueAdj, CAP.valueAdj); // V2-07 谈好了估值就不算溢价
   const finBonus = ipoPower(s) * CAP.ipoDirector.talkK; // 投融资总监（3-03）
   return clamp(T.base + (invited ? T.invite : T.self) + teamPower(s, team) * T.attrK - Math.max(0, adj) * T.premiumK + Math.max(0, -adj) * 1 + (terms.vam ? T.vam : 0) + ((terms.pref || 1) > 1 ? T.pref : 0) + (terms.board ? T.board : 0) + (terms.anti ? T.anti : 0) + finBonus, 0.05, 0.95);
 }
@@ -80,14 +90,14 @@ export function raise(s, roundId, team, terms, t, rnd = Math.random) {
   const why = whyNotTalk(s, roundId, team, t); if (why) return { ok: false, why };
   const C = cap(s); const invited = !!(C.invite && C.invite.round === roundId && t <= C.invite.until);
   const rate = talkRate(s, roundId, team, terms, invited);
-  if (rnd() >= rate) { C.cool = t + CAP.negotiateMin * 60e3; if (invited) C.invite = null; return { ok: true, success: false, rate }; }
+  if (rnd() >= rate) { C.cool = t + CAP.negotiateMin * 60e3; if (invited) C.invite = null; C.negPre = null; return { ok: true, success: false, rate }; }
   const q = quoteRound(s, roundId, terms); const r = q.round; const investor = invited ? C.invite.investor : r.investors[0];
   const pref = terms.pref || 1;
   // 稀释：所有人 × (1 − 出让比例)；反稀释的老投资人这里只记条款（降价融资时再补，设计23）
   C.stake = stakeOf(s) * (1 - q.sell); for (const h of C.holders) { h.pct *= 1 - q.sell; if (h.pool) { h.free *= 1 - q.sell; h.dil = (h.dil || 1) * (1 - q.sell); } }
   for (const g of Object.values(C.options || {})) { g.pct *= 1 - q.sell; g.done = (g.done || 0) * (1 - q.sell); } // 期权一起被稀释
   const h = { name: investor, round: r.id, roundName: r.name, pct: q.sell, invest: q.amount, pre: q.pre, pref, board: !!terms.board, anti: !!terms.anti, t };
-  C.holders.push(h); C.rounds.push(r.id); C.invite = null;
+  if (C.negPre) credit(s, 'nego', 1, t); /* V3-01：谈好的估值签了才算 */ C.holders.push(h); C.rounds.push(r.id); C.invite = null; C.negPre = null;
   const rows = [['投前估值', q.pre], ['投资金额', q.amount], ['出让比例', `${(q.sell * 100).toFixed(1)}%`], ['优先清算', `${pref} 倍`], ['董事席位', terms.board ? '1 席' : '无'], ['反稀释', terms.anti ? '有（加权平均）' : '无']];
   let vam = null;
   if (terms.vam) {
@@ -212,7 +222,7 @@ export function secWorth(s, id, t = s._now || Date.now()) {
 /** 拿了期权的秘书：职位效率 × 1.1（posts.efficiency 挂这个） */
 export const optionEff = (s, id) => (s.cap && s.cap.options && s.cap.options[id] ? PL.eff : 1);
 const LINES = { 元气: '诶？这是……公司的股份？我会更拼命的！', 高冷: '……谢谢。我不会让它贬值。', 知性: '这是对我的信任。我会让公司值得这个价。', 绿茶: '老板只给我一个人的对吧？我就知道你最懂我～', 傲娇: '哼，给这么点……算了，看在你诚意的份上。' };
-import { SEC_BY_ID } from '../config/secretaries.js?v=1236a42d';
-import { bigBonus, useBig } from './manage.js?v=1236a42d';
+import { SEC_BY_ID } from '../config/secretaries.js?v=b7d8e042';
+import { bigBonus, useBig } from './manage.js?v=b7d8e042';
 const fmtGm = (ms) => `${Math.max(0.1, ms / MONTH_MS).toFixed(1)} 个游戏月`;
 export const optionLine = (s, id) => LINES[(SEC_BY_ID[id] || {}).type] || '谢谢老板。';

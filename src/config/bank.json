@@ -3,7 +3,7 @@
   "banks": {
     "gongshang": { "name": "公商银行", "logo": "bank_gongshang", "loanAdj": 0,      "depAdj": 0,      "note": "网点多，利率中规中矩，经营贷、开发贷都做" },
     "zhaoshang": { "name": "招尚银行", "logo": "bank_zhaoshang", "loanAdj": 0.002,  "depAdj": 0.001,  "note": "零售强，存款利率高一点，贷款贵一点" },
-    "huifeng":   { "name": "汇峰银行", "logo": "bank_huifeng",   "loanAdj": 0.004,  "depAdj": -0.001, "note": "外币和海外业务（境外账户 2-14 用）", "noDev": true },
+    "huifeng":   { "name": "汇峰银行", "logo": "bank_huifeng",   "loanAdj": 0.004,  "depAdj": -0.001, "note": "海外业务", "noDev": true },
     "ruixin":    { "name": "瑞鑫银行", "logo": "bank_ruixin",    "loanAdj": -0.002, "depAdj": 0,      "note": "顶级私人银行，经营贷要身价 1 亿以上", "minNetWorth": 100000000, "noDev": true }
   },
   "deposits": {

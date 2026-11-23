@@ -1,9 +1,10 @@
 // 只有一个存档，自动存；带存档版本号，新版本必须能读旧存档
-import { APP_V } from '../version.js?v=1236a42d';
-import { mkt } from './stocks.js?v=1236a42d';
+import { APP_V } from '../version.js?v=b7d8e042';
+import { mkt } from './stocks.js?v=b7d8e042';
 
 export const SAVE_KEY = 'shoufu_save';
-export const SAVE_VERSION = 1; // 第一次发布（V0.1）从 1 起；开发期的 2～4 档不再认（还没发布，存档随便清）
+export const SAVE_VERSION = 2; // 第一次发布（V0.1）是 1；2：V0.2 取消境外账户（设计30，core/migrate.js v1to2）
+import { v1to2 } from './migrate.js?v=b7d8e042';
 
 /** 局号：每开一局一个 */
 export const newGid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -48,6 +49,7 @@ export function defaultState(t = Date.now()) {
 // 存档升级：MIGRATIONS[n] 把 saveV = n 的档升到 n+1。字段改名、结构变化写在这里
 export const MIGRATIONS = {
   // 发布以后每改一次存档结构：SAVE_VERSION + 1，这里加一条 n: (s) => { …; return s; }
+  1: (s) => v1to2(s),   // V0.1 → V0.2：境外余额转回个人现金（设计30）
 };
 
 function isObj(x) { return x && typeof x === 'object' && !Array.isArray(x); }

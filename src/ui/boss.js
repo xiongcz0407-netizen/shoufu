@@ -1,18 +1,19 @@
-import { avatarKey } from './main-screen.js?v=1236a42d';
-import * as MG from '../core/manage.js?v=1236a42d'; // P-05 精力
-import { asset, hasAsset } from '../platform/assets.js?v=1236a42d';
+import { avatarKey } from './main-screen.js?v=b7d8e042';
+import * as MG from '../core/manage.js?v=b7d8e042'; // P-05 精力
+import { totals as counterTotals } from '../core/counter.js?v=b7d8e042'; // V2-04 站柜台统计
+import { asset, hasAsset } from '../platform/assets.js?v=b7d8e042';
 // 老板页：名字和公司、老板属性、称号进度、穿戴、统计、设置（存档、重新开始在「设置」里，设计22）
-import { TITLES } from '../config/titles.js?v=1236a42d';
-import { RIVALS } from '../config/rivals.js?v=1236a42d';
-import * as E from '../core/economy.js?v=1236a42d';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=1236a42d';
-import { versionText } from '../version.js?v=1236a42d';
-import { now } from '../core/clock.js?v=1236a42d';
-import { game } from '../game.js?v=1236a42d';
-import { h, toast } from './dom.js?v=1236a42d';
-import { openFull } from './shell.js?v=1236a42d';
-import { wearHtml } from './luxury.js?v=1236a42d';
-import { appendCloudSettings } from './cloudset.js?v=1236a42d';
+import { TITLES } from '../config/titles.js?v=b7d8e042';
+import { RIVALS } from '../config/rivals.js?v=b7d8e042';
+import * as E from '../core/economy.js?v=b7d8e042';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=b7d8e042';
+import { versionText } from '../version.js?v=b7d8e042';
+import { now } from '../core/clock.js?v=b7d8e042';
+import { game } from '../game.js?v=b7d8e042';
+import { h, toast } from './dom.js?v=b7d8e042';
+import { openFull } from './shell.js?v=b7d8e042';
+import { wearHtml } from './luxury.js?v=b7d8e042';
+import { appendCloudSettings } from './cloudset.js?v=b7d8e042';
 
 // 老板属性（设计09 第一节）由第 12 项提供：返回 [{ name, value, from }]
 let bossAttrs = () => [];
@@ -40,7 +41,7 @@ export function openBoss() {
       <div class="sd-rec-title">穿戴</div>${wearHtml(s)}
       <div class="sd-rec-title">统计</div>
       <div class="sd-rec"><div>玩了<b>${fmtDuration((t - s.createdAt) / 1000)}</b></div><div>累计赚<b>${fmtMoney(st.earned || 0)}</b></div><div>商战<b>${st.battleWins || 0}/${st.battles || 0}</b></div>
-        <div>约会<b>${st.dates || 0}次</b></div><div>送礼<b>${st.gifts || 0}次</b></div><div>结业<b>${st.coursesDone || 0}门</b></div></div>
+        <div>约会<b>${st.dates || 0}次</b></div><div>送礼<b>${st.gifts || 0}次</b></div><div>结业<b>${st.coursesDone || 0}门</b></div><div>站柜台<b>接待 ${counterTotals(s).n} 位，营业额 ${fmtMoney(counterTotals(s).rev)}，赚 ${fmtMoney(counterTotals(s).earn)}</b></div></div>
       <div class="sd-rec-title">设置</div>
       <div class="tr-course"><div><b>人声</b><div class="tr-gain">秘书说话的配音（没有配音文件时只出气泡）</div></div><button class="btn voice">${s.settings.voice === false ? '关' : '开'}</button></div><div class="boss-cloud"></div>
       <div class="tr-gain" style="text-align:center;margin-top:12px">${versionText()}</div></div>`;

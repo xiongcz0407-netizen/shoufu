@@ -22,10 +22,15 @@ export const CATS = {
   landmark_sale: ['地标出售', 'company'],
   co_stock: ['公司买股票', 'company'], co_stock_sell: ['公司卖股票', 'company'], // 验收阶段三：公司买的才能举牌、要约、控股
   ipo: ['上市募资', 'company'], ipo_fee: ['承销保荐和发行费用', 'company'], reduce: ['减持股票', 'personal'], // 第 3-04 项
+  counter: ['老板站柜台', 'company'], // V2-04 站柜台（设计28 第一节）
+  branch_sell: ['关店转让', 'company'], // V2-08 选址（设计29 第三节）
+  meeting: ['经营会预算', 'company'], buyback: ['回购股票', 'company'], // V2-13 每周经营会（设计29 第五节）
+  charity: ['慈善捐款', 'personal'], trip: ['出差（机票酒店）', 'personal'], // V3-02 日程表、V3-03 出差
+  offshore_back: ['境外账户取消，余额转回', 'personal'], offshore_back_co: ['香港子公司取消，钱转回公司', 'company'], // V0.2 设计30：存档迁移用
   newbie: ['新手奖励', 'personal'], margin_in: ['融资借款（买股票）', 'personal'], margin_repay: ['归还融资', 'personal'], margin_interest: ['融资利息', 'personal'], ipo_pay: ['新股中签缴款', 'personal'], // 第 P-06 项
 };
 export const KEEP_GAME_YEARS = 3;
-import BANKCFG from '../config/bank.json?v=1236a42d' with { type: 'json' };
+import BANKCFG from '../config/bank.json?v=b7d8e042' with { type: 'json' };
 const USE_CATS = BANKCFG.useCats;
 
 const bal = (s, w) => (w === 'company' ? s.company : w === 'offshore' ? (s.offshore || 0) : s.cash);

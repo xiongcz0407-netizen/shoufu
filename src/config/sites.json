@@ -1,0 +1,25 @@
+{
+  "_说明": "V2-08 选址开分店（设计29 第三节）。系数 = norm × 人流 × 适配度 ÷ (1 + 同行 × compPer)，夹在 kRange；租金 = 房租 × rentK × rentNorm。norm / rentNorm 用 node tools/sitesim.mjs --write 重算（随机选的平均系数 = 1，挂机打法不变）",
+  "picks": 3,
+  "scoutMin": 10,
+  "kRange": [0.7, 1.4],
+  "compPer": 0.06,
+  "flowBase": 900,
+  "flowLv": [[1.12, "高"], [0.95, "中"], [0, "低"]],
+  "fitLv": [[1.1, "很合适"], [0.95, "还行"], [0, "不太合适"]],
+  "scoutErr": [0.3, 0.03],
+  "compErr": 3,
+  "rep": { "goodAt": 1.08, "badAt": 0.92, "good": 55, "bad": 45 },
+  "sellBack": 0.3,
+  "types": {
+    "office": { "name": "写字楼底商", "flow": [0.95, 1.2], "comp": [2, 5], "rentK": 1.2, "good": "早餐、午饭、快消", "fit": { "store": 1.1, "food": 1.1, "fashion": 0.85 } },
+    "community": { "name": "社区门口", "flow": [0.85, 1.05], "comp": [1, 4], "rentK": 0.85, "good": "日用、生鲜、早餐", "fit": { "store": 1.15, "food": 1.0, "fashion": 0.8 } },
+    "school": { "name": "学校旁", "flow": [0.95, 1.2], "comp": [2, 6], "rentK": 0.8, "good": "零食、文具、夜宵", "fit": { "store": 1.05, "food": 1.05, "fashion": 0.85 } },
+    "mall": { "name": "商场里", "flow": [1.0, 1.3], "comp": [3, 8], "rentK": 1.5, "good": "服装、正餐、品牌店", "fit": { "store": 0.8, "food": 1.05, "fashion": 1.25 } },
+    "metro": { "name": "地铁口", "flow": [1.1, 1.35], "comp": [2, 6], "rentK": 1.4, "good": "快消、早餐、咖啡", "fit": { "store": 1.1, "food": 1.0, "fashion": 0.9 } },
+    "street": { "name": "老街街边", "flow": [0.7, 0.95], "comp": [0, 3], "rentK": 0.55, "good": "小吃、夜宵", "fit": { "store": 0.95, "food": 1.1, "fashion": 0.9 } },
+    "night": { "name": "夜市口", "flow": [0.9, 1.15], "comp": [3, 7], "rentK": 0.9, "good": "夜宵、小吃、潮牌", "fit": { "store": 0.9, "food": 1.2, "fashion": 1.0 } }
+  },
+  "norm": { "store": 1.1541, "food": 1.0924, "fashion": 1.2548 },
+  "rentNorm": 0.9722
+}

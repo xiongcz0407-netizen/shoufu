@@ -1,7 +1,7 @@
 // 每日：签到（7 天一轮）、每日任务。奖励小额（设计21：打工人几百到几千），跟着称号涨（economy.json rewards）
-import { daily, dayKey } from './affection.js?v=1236a42d';
-import { receive } from './ledger.js?v=1236a42d';
-import ECO from '../config/economy.json?v=1236a42d' with { type: 'json' };
+import { daily, dayKey } from './affection.js?v=b7d8e042';
+import { receive } from './ledger.js?v=b7d8e042';
+import ECO from '../config/economy.json?v=b7d8e042' with { type: 'json' };
 
 const R = ECO.rewards;
 export const rewardK = (title) => R.byTitle[Math.max(0, Math.min(R.byTitle.length - 1, title | 0))];
@@ -16,7 +16,7 @@ export const TASKS = [
 ];
 // 第 2-16a 项：每日任务按称号换内容。下面这些从当天的流水数出来（不用到处加 bump）
 export const MORE_TASKS = [
-  { id: 'open', name: '开摊或升级 1 次', need: 1, minutes: 10, rows: (r) => r.cat === 'expand' && !r.by },
+  { id: 'open', name: '开摊或升级 1 次', need: 1, minutes: 10, rows: (r) => r.cat === 'expand' && !r.by && r.ref !== '开局' }, // 开局那家店（start.js）不算
   { id: 'branch', name: '开 1 家分店', need: 1, minutes: 20, rows: (r) => r.cat === 'expand' && !r.by && /开第 \d+ 家/.test(r.note || '') },
   { id: 'land', name: '拿 1 块地', need: 1, minutes: 30, rows: (r) => r.cat === 'land' },
   { id: 'film', name: '投拍 1 部电影或剧', need: 1, minutes: 30, rows: (r) => r.cat === 'film_cost' && /制作/.test(r.note || '') },

@@ -1,12 +1,12 @@
 // 员工（设计17 第一节）：只是数字。按产业线 → 岗位记在岗人数；编制跟门店样子走
-import PAY from '../config/payroll.json?v=1236a42d' with { type: 'json' };
-import ECO from '../config/economy.json?v=1236a42d' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=1236a42d';
-import { pay, canPay, post } from './ledger.js?v=1236a42d';
-import { YEAR_MS } from './gametime.js?v=1236a42d';
-import { salaryOf, isSec } from './posts.js?v=1236a42d';
-import { lineK } from './cities.js?v=1236a42d';
-import { payerOfSec, satisfaction, turnoverMult } from './fiscal.js?v=1236a42d';
+import PAY from '../config/payroll.json?v=b7d8e042' with { type: 'json' };
+import ECO from '../config/economy.json?v=b7d8e042' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=b7d8e042';
+import { pay, canPay, post } from './ledger.js?v=b7d8e042';
+import { YEAR_MS } from './gametime.js?v=b7d8e042';
+import { salaryOf, isSec } from './posts.js?v=b7d8e042';
+import { lineK } from './cities.js?v=b7d8e042';
+import { payerOfSec, satisfaction, turnoverMult } from './fiscal.js?v=b7d8e042';
 export { PAY };
 
 const look = (ind) => { const c = IND_BY_ID[ind.id]; let i = 0; c.looks.forEach((lv, k) => { if (ind.level >= lv) i = k; }); return i; };
@@ -24,6 +24,9 @@ export function establishment(s, id) {
   return out;
 }
 /** 老板自己看第一家店：开局那条线、小老板为止（economy.json start） */
+/** 招聘面板能选的岗位（编制里有的）；第一家小店老板自己看时是空的（V0.2 修：开局点招聘空白） */
+export const hireRoles = (s, id) => (s.inds[id] ? Object.keys(establishment(s, id)).filter((r) => PAY.roles[r]) : []);
+export const OWNER_RUN_TEXT = '这家店现在你自己看着（开局到小老板为止，不用付自己工资），不缺人。开新的产业线、开分店或升级门店以后再来招人。';
 export const ownerRun = (s, id) => id === ECO.start.firstStore && s.title <= ECO.start.ownerRunMaxTitle && !!s.inds[id] && s.inds[id].branches >= 1;
 export const estTotal = (s, id) => sumv(establishment(s, id));
 export const onDuty = (s, id) => { const x = line(s, id); return sumv(x.staff) + sumv(x.agency); };
@@ -140,13 +143,15 @@ export function monthEnd(s, t, rnd = Math.random, acc = null) {
 /** 月流失：零售 5%、餐饮 7%；店长管理高少流失（第 7 项接）；拖欠工资 ×3 */
 let managerMgmt = () => 0;
 export const setManagerMgmt = (fn) => { managerMgmt = fn; };
+/** V2-13 每周经营会「人才」：员工流失打折（开发2，core/meeting.js 挂进来） */
+let turnHook = () => 1; export const setTurnoverHook = (fn) => { turnHook = fn; };
 /** 店长平均管理（满意度用） */
 export const avgMgmt = (s) => { const ids = Object.keys(s.inds || {}); return ids.length ? ids.reduce((a, id) => a + managerMgmt(s, id), 0) / ids.length : 0; };
 export function turnover(s, rnd = Math.random) {
   const mult = s.payroll && s.payroll.arrears ? PAY.arrearsTurnoverMult : 1;
   let left = 0;
   for (const id of Object.keys(s.inds)) {
-    const x = line(s, id); const rate = PAY.turnover[id] * (1 - managerMgmt(s, id) / 100 * 0.5) * mult * turnoverMult(satisfaction(s, avgMgmt(s))); // 员工满意度（第 2-15 项）
+    const x = line(s, id); const rate = turnHook(s, id) * PAY.turnover[id] * (1 - managerMgmt(s, id) / 100 * 0.5) * mult * turnoverMult(satisfaction(s, avgMgmt(s))); // 员工满意度（第 2-15 项）
     for (const r of Object.keys(x.staff)) {
       const exp = x.staff[r] * rate; let n = Math.floor(exp); if (rnd() < exp - n) n += 1;
       n = Math.min(n, x.staff[r]); x.staff[r] -= n; left += n;

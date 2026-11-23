@@ -1,16 +1,19 @@
 // 消息中心（铃铛）：请示 / 月报 / 邀请拍卖 / 系统；请示直接批准 / 驳回
-import * as I from '../core/inbox.js?v=1236a42d';
-import { SEC_BY_ID } from '../config/secretaries.js?v=1236a42d';
-import { asset } from '../platform/assets.js?v=1236a42d';
-import { now } from '../core/clock.js?v=1236a42d';
-import { game } from '../game.js?v=1236a42d';
-import { h, toast } from './dom.js?v=1236a42d';
-import { openFull } from './shell.js?v=1236a42d';
-import { bump } from '../core/daily.js?v=1236a42d';
-import { openEventMsg } from './event.js?v=1236a42d';
+import * as I from '../core/inbox.js?v=b7d8e042';
+import { SEC_BY_ID } from '../config/secretaries.js?v=b7d8e042';
+import { asset } from '../platform/assets.js?v=b7d8e042';
+import { now } from '../core/clock.js?v=b7d8e042';
+import { game } from '../game.js?v=b7d8e042';
+import { h, toast } from './dom.js?v=b7d8e042';
+import { openFull } from './shell.js?v=b7d8e042';
+import { bump } from '../core/daily.js?v=b7d8e042';
+import { openEventMsg } from './event.js?v=b7d8e042';
 
 /** 页签那一排放不下时，把选中的滑到中间 */
 function showOn(row) { const b = row.querySelector('.seg.on'); if (!b || row.scrollWidth <= row.clientWidth) return; const r = row.getBoundingClientRect(), x = b.getBoundingClientRect(); if (x.left >= r.left && x.right <= r.right) return; row.scrollLeft += x.left - r.left - (r.width - x.width) / 2; }
+/** 挂钩（V2-06 开发2）：某类消息的某个按钮不直接办，先开一个界面（比如「谈」开谈判）；fn(s, m, action, rerender) 返回 true = 接管了 */
+const ACTION_UI = [];
+export const addActionUi = (fn) => { ACTION_UI.push(fn); };
 export function openInbox(kind) {
   const p = openFull('消息');
   let cur = kind || Object.entries(I.counts(game.state)).find(([, v]) => v.open)?.[0] || 'request';
@@ -38,6 +41,7 @@ export function openInbox(kind) {
       card.onclick = (e) => {
         const a = e.target.dataset && e.target.dataset.a;
         if (a === 'open' && m.type === 'event') { I.markRead(s, m.id); openEventMsg(m, render); } // 事件：播剧情 + 选择（选完才算处理）
+        else if (a && ACTION_UI.some((fn) => fn(s, m, a, render))) { /* 交给挂钩（谈判等）*/ }
         else if (a) { const lab = (m.actions.find((x) => x.key === a) || {}).label || ''; if (I.act(s, m.id, a, now())) toast(m.type === 'biz_event' ? `已处理：${lab}${m.result ? `\n${m.result}` : ''}` : a === 'reject' ? '已驳回' : '已批准', m.type === 'biz_event' ? 3200 : undefined); else toast('办不了（钱不够或已经过期）'); }
         else { if (m.kind === 'report' && !m.read) bump(s, now(), 'report'); I.markRead(s, m.id); }
         game.changed(); game.save(); render();

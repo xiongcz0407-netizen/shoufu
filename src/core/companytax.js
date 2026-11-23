@@ -1,12 +1,16 @@
 // 公司交税（设计15 第二节 1）：增值税 + 附加每游戏月；企业所得税每游戏季度预缴；分红代扣 20% 个税
-import TAX from '../config/tax.json?v=1236a42d' with { type: 'json' };
-import { pay, receive, canPay } from './ledger.js?v=1236a42d';
-import { MONTH_MS } from './gametime.js?v=1236a42d';
+import TAX from '../config/tax.json?v=b7d8e042' with { type: 'json' };
+import { pay, receive, canPay } from './ledger.js?v=b7d8e042';
+import { MONTH_MS } from './gametime.js?v=b7d8e042';
+import { addContract } from './contracts.js?v=b7d8e042';
 export { TAX };
 
 const sum = (o) => Object.values(o || {}).reduce((a, b) => a + b, 0);
 /** 每秒记进本月、本季、本年的累计（营收按产业、进货） */
+/** V2-13 每周经营会：按周统计各线营收（开发2，core/meeting.js 挂进来） */
+let trackHook = null; export const setTrackHook = (fn) => { trackHook = fn; };
 export function track(s, id, rev, cogs) {
+  if (trackHook) trackHook(s, id, rev, cogs);
   for (const k of ['period', 'qtr', 'yearAcc']) {
     const p = (s[k] = s[k] || {}); p.rev = p.rev || {}; p.cogs = p.cogs || {};
     p.rev[id] = (p.rev[id] || 0) + rev; p.cogs[id] = (p.cogs[id] || 0) + cogs;
@@ -102,6 +106,26 @@ export function quarterTax(s, q, t) {
 export const settleItem = (s, item, t) => settle(s, item, t);
 export function yearEnd(s) { s.lastYear = s.yearAcc; s.yearAcc = {}; s.citYtd = 0; }
 
+/** 实收资本：老档没有 s.paidIn 的，按开局注资（第一家店的开店费）算 */
+export function paidIn(s) {
+  if (typeof s.paidIn === 'number') return s.paidIn;
+  const st = (s.ledger || []).filter((e) => e.wallet === 'company' && e.cat === 'capital').reduce((a, e) => a + (e.amount || 0), 0);
+  return st;
+}
+/** 个人能动的现金（扣掉冻结中的） */
+export const freeCash = (s) => Math.max(0, Math.floor((s.cash || 0) - (s.freezes || []).reduce((a, f) => a + f.amount, 0)));
+/** 注资到公司（设计28 第零节）：个人现金 → 公司账户，不交税，记实收资本，出《增资确认书》 */
+export function inject(s, amount, t) {
+  amount = Math.floor(amount);
+  if (!(amount > 0)) return { ok: false, why: '金额不对' };
+  if (!canPay(s, 'personal', amount)) return { ok: false, why: '个人现金不够（冻结中的钱不能用）' };
+  const before = paidIn(s);
+  pay(s, { wallet: 'personal', cat: 'capital_out', amount, party: s.companyName || '公司', note: '注资到公司' }, t);
+  receive(s, { wallet: 'company', cat: 'capital', amount, party: s.bossName || '老板', note: '老板注资' }, t);
+  s.paidIn = before + amount;
+  const ct = addContract(s, { prefix: 'ZZ', kind: 'capital', title: '增资确认书', parties: [['股东', s.bossName || '老板'], ['公司', s.companyName || '公司']], subject: `股东以货币增资，持股 100% 不变`, rows: [['本次增资', amount, '货币出资，已到公司账户'], ['增资前实收资本', before, ''], ['增资后实收资本', s.paidIn, '']], total: amount, wallet: 'personal' }, t);
+  return { ok: true, paidIn: s.paidIn, no: ct.no };
+}
 /** 分红到个人：公司账户出 amount，代扣 20% 个税，到手 80% */
 export function dividend(s, amount, t) {
   amount = Math.floor(amount);

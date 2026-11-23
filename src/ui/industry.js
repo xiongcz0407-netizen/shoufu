@@ -1,13 +1,14 @@
 // 产业面板：升级、开分店、派驻秘书；产业图按等级换样子
-import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=1236a42d';
-import { TITLES } from '../config/titles.js?v=1236a42d';
-import { SEC_BY_ID } from '../config/secretaries.js?v=1236a42d';
-import * as E from '../core/economy.js?v=1236a42d';
-import { fmtMoney } from '../core/format.js?v=1236a42d';
-import { asset, hasAsset } from '../platform/assets.js?v=1236a42d';
-import { game } from '../game.js?v=1236a42d';
-import { now } from '../core/clock.js?v=1236a42d';
-import { h, openPanel, toast } from './dom.js?v=1236a42d';
+import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=b7d8e042';
+import { TITLES } from '../config/titles.js?v=b7d8e042';
+import * as PQ from '../core/prereq.js?v=b7d8e042'; // V2-12 前置条件
+import { SEC_BY_ID } from '../config/secretaries.js?v=b7d8e042';
+import * as E from '../core/economy.js?v=b7d8e042';
+import { fmtMoney } from '../core/format.js?v=b7d8e042';
+import { asset, hasAsset } from '../platform/assets.js?v=b7d8e042';
+import { game } from '../game.js?v=b7d8e042';
+import { now } from '../core/clock.js?v=b7d8e042';
+import { h, openPanel, toast } from './dom.js?v=b7d8e042';
 
 export function openIndustry(host) {
   const p = host || openPanel('我的产业');
@@ -23,7 +24,7 @@ export function openIndustry(host) {
       const ind = s.inds[cfg.id];
       if (!ind) {
         const lk = `assets/ind/${cfg.img[0]}.webp`;
-        list.appendChild(h('div', 'ind-card locked', `${hasAsset(lk) ? `<img class="ind-img gray" src="${asset(lk)}" alt="">` : `<div class="ind-img ph">${cfg.name}</div>`}<div class="ind-info"><div class="ind-name">${cfg.name}</div><div class="ind-lock">升到「${TITLES[cfg.unlockTitle].name}」解锁</div></div>`));
+        list.appendChild(h('div', 'ind-card locked', `${hasAsset(lk) ? `<img class="ind-img gray" src="${asset(lk)}" alt="">` : `<div class="ind-img ph">${cfg.name}</div>`}<div class="ind-info"><div class="ind-name">${cfg.name}</div><div class="ind-lock">${PQ.lockInfo(s, cfg.id).map((x) => `${x.ok ? '✓' : '○'} ${x.text}`).join('　')}<br><small>或者收购同行提前解锁</small></div></div>`));
         continue;
       }
       const look = E.lookIndex(cfg, ind.level);

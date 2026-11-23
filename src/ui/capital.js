@@ -1,16 +1,17 @@
 // 财富 → 资本（3-02，设计23 第一、二、十节）：公司估值、股东名册、融资（主动约 / 自己找 → 谈判）、对赌
-import * as E from '../core/economy.js?v=1236a42d';
-import * as CP from '../core/capital.js?v=1236a42d';
-import { SEC_BY_ID } from '../config/secretaries.js?v=1236a42d';
-import { fmtMoney } from '../core/format.js?v=1236a42d';
-import { asset } from '../platform/assets.js?v=1236a42d';
-import { now } from '../core/clock.js?v=1236a42d';
-import { game } from '../game.js?v=1236a42d';
-import { MONTH_MS } from '../core/gametime.js?v=1236a42d';
-import { h, openPanel, toast, liveRender } from './dom.js?v=1236a42d';
-import { hintLater } from './guide2.js?v=1236a42d';
-import { bump } from '../core/daily.js?v=1236a42d';
-import * as DL from '../core/daily.js?v=1236a42d';
+import { openNegotiate } from './negotiate.js?v=b7d8e042'; // V2-07 谈估值（开发2 的谈判）
+import * as E from '../core/economy.js?v=b7d8e042';
+import * as CP from '../core/capital.js?v=b7d8e042';
+import { SEC_BY_ID } from '../config/secretaries.js?v=b7d8e042';
+import { fmtMoney } from '../core/format.js?v=b7d8e042';
+import { asset } from '../platform/assets.js?v=b7d8e042';
+import { now } from '../core/clock.js?v=b7d8e042';
+import { game } from '../game.js?v=b7d8e042';
+import { MONTH_MS } from '../core/gametime.js?v=b7d8e042';
+import { h, openPanel, toast, liveRender } from './dom.js?v=b7d8e042';
+import { hintLater } from './guide2.js?v=b7d8e042';
+import { bump } from '../core/daily.js?v=b7d8e042';
+import * as DL from '../core/daily.js?v=b7d8e042';
 
 const pct = (x) => `${(x * 100).toFixed(1)}%`;
 /** 别的项挂进资本页的小节（上市 3-04 等，开发2）：fn(el) */
@@ -69,7 +70,7 @@ function openTalk(roundId) {
   const render = () => {
     const q = CP.quoteRound(s, roundId, o); const inv = CP.cap(s).invite && CP.cap(s).invite.round === roundId && now() <= CP.cap(s).invite.until;
     const why = CP.whyNotTalk(s, roundId, team, now()); const rate = CP.talkRate(s, roundId, team, o, inv);
-    p.body.innerHTML = `<div class="sd-rec-title">投前估值（能谈 ±20%）</div>${tabs('adj', [[-0.1, '−10%'], [0, '按估值'], [0.1, '+10%'], [0.2, '+20%']])}
+    p.body.innerHTML = `<div class="sd-rec-title">投前估值</div>${CP.negoPre(s, roundId) != null ? `<div class="tr-gain pos">估值谈好了：投前 ${fmtMoney(CP.negoPre(s, roundId))}（这一轮按这个签，不另算溢价）</div>` : `<button class="btn cp-nego" style="width:100%">跟投资人谈估值（一来一回，谈成按谈下来的签）</button><small class="fn-note">不谈也行，直接选 ±20%（溢价越高越难谈成）</small>${tabs('adj', [[-0.1, '−10%'], [0, '按估值'], [0.1, '+10%'], [0.2, '+20%']])}`}
       <div class="sd-rec-title">出让比例</div>${tabs('sell', [[r.sell[0], pct(r.sell[0])], [(r.sell[0] + r.sell[1]) / 2, pct((r.sell[0] + r.sell[1]) / 2)], [r.sell[1], pct(r.sell[1])]])}
       <div class="sd-rec-title">对赌（${(CP.CAP.vam.realMonths / 10).toFixed(1)} 个游戏月净利增长）</div>${tabs('vam', [[0, '不对赌'], ...CP.CAP.vam.growth.map((g) => [g, `+${Math.round(g * 100)}%`])])}
       <div class="sd-rec-title">优先清算 · 董事席位 · 反稀释</div>${tabs('pref', [[1, '1 倍'], [1.5, '1.5 倍']])}${tabs('board', [[false, '不给席位'], [true, '给 1 个董事席位']])}${tabs('anti', [[false, '不反稀释'], [true, '给反稀释']])}
@@ -78,6 +79,7 @@ function openTalk(roundId) {
       <div class="rate">${why ? `<span class="sc-cond">${why}</span>` : `谈成概率 <b>${Math.round(rate * 100)}%</b>${inv ? '（对方主动约的）' : '（自己找上门，难一点）'}`}</div><button class="btn gold big go" ${why ? 'disabled' : ''}>谈 → 签投资协议</button>`;
     p.body.querySelectorAll('[data-k]').forEach((b) => (b.onclick = () => { const k = b.dataset.k; const v = b.dataset.v; o[k] = v === 'true' ? true : v === 'false' ? false : +v; render(); }));
     p.body.querySelectorAll('.tm-pick').forEach((b) => (b.onclick = () => { const id = b.dataset.id; team = team.includes(id) ? team.filter((x) => x !== id) : [...team, id].slice(-2); render(); }));
+    const ng = p.body.querySelector('.cp-nego'); if (ng) ng.onclick = () => openNegotiate({ title: `跟投资人谈${r.name}估值`, who: r.investors[0], fmt: (v) => `投前 ${fmtMoney(v)}`, secs: Object.keys(s.secs), opts: CP.capNegoOpts(s, roundId, team), onDone: (res) => { if (res.deal != null) { CP.setNegoPre(s, roundId, res.deal); toast(`估值谈下来了：投前 ${fmtMoney(res.deal)}`, 2800); game.changed(); game.save(); } render(); } }); // V2-07
     p.body.querySelector('.go').onclick = () => {
       const res = CP.raise(s, roundId, team, o, now()); if (!res.ok) { toast(res.why); return; }
       if (!res.success) toast(`没谈拢（成功率 ${Math.round(res.rate * 100)}%），对方要再想想`, 3000);

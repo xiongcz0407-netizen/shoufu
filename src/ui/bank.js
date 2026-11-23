@@ -1,21 +1,21 @@
 // 财富 → 银行：征信、存款、贷款（经营贷、开发贷、股票质押、艺术品质押）、私人银行；申请和存款在底部抽屉
-import ECO from '../config/economy.json?v=1236a42d' with { type: 'json' };
+import ECO from '../config/economy.json?v=b7d8e042' with { type: 'json' };
 const PM = ECO.profitMul;
 /** 利率后面的小字：游戏年利率 = 现实 × 赚钱倍数（验收 2-16b） */
 const rn = (r) => `<small class="rate-note">（游戏年利率；现实 ${(r / PM * 100).toFixed(2).replace(/\.?0+$/, '')}% × 赚钱倍数 ${PM}）</small>`;
-import * as BK from '../core/bank.js?v=1236a42d';
-import * as RE from '../core/realestate.js?v=1236a42d';
-import * as PL from '../core/pledge.js?v=1236a42d';
-import * as SK from '../core/stocks.js?v=1236a42d';
-import * as AQ from '../core/antique.js?v=1236a42d';
-import * as LS from '../core/listing.js?v=1236a42d';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=1236a42d';
-import { asset, hasAsset } from '../platform/assets.js?v=1236a42d';
-import { now } from '../core/clock.js?v=1236a42d';
-import { game } from '../game.js?v=1236a42d';
-import { h, openPanel, toast, liveRender } from './dom.js?v=1236a42d';
-import { hint } from './guide.js?v=1236a42d';
-import { hintLater } from './guide2.js?v=1236a42d';
+import * as BK from '../core/bank.js?v=b7d8e042';
+import * as RE from '../core/realestate.js?v=b7d8e042';
+import * as PL from '../core/pledge.js?v=b7d8e042';
+import * as SK from '../core/stocks.js?v=b7d8e042';
+import * as AQ from '../core/antique.js?v=b7d8e042';
+import * as LS from '../core/listing.js?v=b7d8e042';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=b7d8e042';
+import { asset, hasAsset } from '../platform/assets.js?v=b7d8e042';
+import { now } from '../core/clock.js?v=b7d8e042';
+import { game } from '../game.js?v=b7d8e042';
+import { h, openPanel, toast, liveRender } from './dom.js?v=b7d8e042';
+import { hint } from './guide.js?v=b7d8e042';
+import { hintLater } from './guide2.js?v=b7d8e042';
 
 const C = BK.BANK_CFG;
 const logo = (k) => (hasAsset(`assets/org/${C.banks[k].logo}.webp`) ? `<img class="bk-logo" src="${asset(`assets/org/${C.banks[k].logo}.webp`)}" alt="">` : `<div class="bk-logo ph">${C.banks[k].name.slice(0, 2)}</div>`);

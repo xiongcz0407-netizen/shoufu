@@ -1,27 +1,27 @@
 // 「资产」页签（第 12 项，设计18 第四节 4、设计19）：横滑标签 车库 / 房产 / 机库 / 码头 / 穿戴 / 收藏；
 // 上展示（场景背景 + 最贵的那件）下列表；点一件 → 详情抽屉（参数、编号、买入价 / 卖回价、持有成本、出租、卖回、合同）；
 // 「去买」→ 商店（车：现货 / 订单 / 邀请 / 拍卖 / 定制；房子：上海 / 广州 / 北京 / 深圳 / 香港 / 海外；飞机：现货）
-import { TIER_NAMES } from '../config/vehicles.js?v=1236a42d';
-import { CHANNEL_NAME } from '../config/carmeta.js?v=1236a42d';
-import * as AS from '../core/assets.js?v=1236a42d';
-import * as PW from '../core/postwork.js?v=1236a42d';
-import { bossAttrs } from '../core/boss.js?v=1236a42d';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=1236a42d';
-import { asset, hasAsset } from '../platform/assets.js?v=1236a42d';
-import { game } from '../game.js?v=1236a42d';
-import { now } from '../core/clock.js?v=1236a42d';
-import { h, openPanel, toast, liveRender } from './dom.js?v=1236a42d';
-import { openFull } from './shell.js?v=1236a42d';
-import { openContract } from './contract.js?v=1236a42d';
-import { nextContractNo } from '../core/contracts.js?v=1236a42d';
-import { renderYachtTab } from './yacht.js?v=1236a42d';
-import { renderWearTab } from './luxury.js?v=1236a42d';
-import { renderCollectTab } from './antique.js?v=1236a42d';
-import { abroadCard } from './offshore.js?v=1236a42d';
-import { renderAuctionHouse } from './auction.js?v=1236a42d';
-import * as OFS from '../core/offshore.js?v=1236a42d';
-import { renderLandmarkGroup } from './landmark.js?v=1236a42d';
-import * as CF from '../core/carfilter.js?v=1236a42d';
+import { TIER_NAMES } from '../config/vehicles.js?v=b7d8e042';
+import { CHANNEL_NAME } from '../config/carmeta.js?v=b7d8e042';
+import * as AS from '../core/assets.js?v=b7d8e042';
+import * as PW from '../core/postwork.js?v=b7d8e042';
+import { bossAttrs } from '../core/boss.js?v=b7d8e042';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=b7d8e042';
+import { asset, hasAsset } from '../platform/assets.js?v=b7d8e042';
+import { game } from '../game.js?v=b7d8e042';
+import { now } from '../core/clock.js?v=b7d8e042';
+import { h, openPanel, toast, liveRender } from './dom.js?v=b7d8e042';
+import { openFull } from './shell.js?v=b7d8e042';
+import { openContract } from './contract.js?v=b7d8e042';
+import { nextContractNo } from '../core/contracts.js?v=b7d8e042';
+import { renderYachtTab } from './yacht.js?v=b7d8e042';
+import { renderWearTab } from './luxury.js?v=b7d8e042';
+import { renderCollectTab } from './antique.js?v=b7d8e042';
+import { abroadCard } from './offshore.js?v=b7d8e042';
+import { renderAuctionHouse } from './auction.js?v=b7d8e042';
+import * as OFS from '../core/offshore.js?v=b7d8e042';
+import { renderLandmarkGroup } from './landmark.js?v=b7d8e042';
+import * as CF from '../core/carfilter.js?v=b7d8e042';
 
 const imgPath = (it) => `assets/${it.kind}/${it.id}.webp`;
 function pic(it, cls = 'as-img') {
@@ -117,7 +117,7 @@ function openItem(id, done) {
 
 /** 商店（全屏）：按渠道 / 城市分段，卡片显示价格、税费合计和条件（不够的灰掉写差什么） */
 export function openShop(kind, done) {
-  setTimeout(() => import('./guide.js?v=1236a42d').then((g) => g.hint('contract')), 400);
+  setTimeout(() => import('./guide.js?v=b7d8e042').then((g) => g.hint('contract')), 400);
   const p = openFull(kind === 'house' ? '买房' : kind === 'car' ? '车行' : '飞机');
   const segBar = h('div', 'seg-bar'); const body = h('div', 'page-body');
   p.body.append(segBar, body);
@@ -139,7 +139,7 @@ export function openShop(kind, done) {
     const LIST = items();
     if (kind === 'car' && !LIST.length) body.appendChild(h('div', 'empty', '没有符合的车，换个条件看看'));
     for (const it of LIST) {
-      if (OFS.isAbroad(it)) { grid.appendChild(abroadCard(it, draw, pic, badges, frameCls)); continue; } // 香港 / 海外：境外账户付（第 2-14 项）
+      if (OFS.isAbroad(it)) { grid.appendChild(abroadCard(it, draw, pic, badges, frameCls)); continue; } // 香港 / 海外：个人现金付、到「老板」（第 2-14 项、设计30）
       const own = AS.owns(s, it.id); const why = own ? null : AS.whyNotBuy(s, it.id, t, { forOrder: AS.channelOf(it) === 'order' }); const q = AS.quote(s, it.id);
       const f = AS.freezeOf(s, it.id); const o = AS.orderOf(s, it.id); const ch = AS.channelOf(it);
       let act = '';

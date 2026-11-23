@@ -10,6 +10,8 @@
   "bg_finance": "bg_finance_财务室",
   "bg_garage": "bg_garage_车库",
   "bg_hangar": "bg_hangar_机库",
+  "bg_hotel_morning": "bg_hotel_morning_酒店套房早晨",
+  "bg_hotel_night": "bg_hotel_night_酒店套房夜",
   "bg_ipo": "bg_ipo_上市敲钟",
   "bg_mall": "bg_mall_商场",
   "bg_marina": "bg_marina_码头",
@@ -55,6 +57,7 @@
   "ind_tech_3": "ind_tech_3_科技集团"
  },
  "ui": {
+  "icon_agenda": "icon_agenda",
   "icon_affection": "icon_affection_好感",
   "icon_archive": "icon_archive_档案柜",
   "icon_assets": "icon_assets_资产",
@@ -73,6 +76,7 @@
   "icon_checkin": "icon_checkin_签到",
   "icon_collection": "icon_collection_收藏",
   "icon_contract": "icon_contract_合同夹",
+  "icon_counter": "icon_counter",
   "icon_course_dinner": "icon_course_dinner_商务饭局",
   "icon_course_etiquette": "icon_course_etiquette_形象礼仪",
   "icon_course_gala": "icon_course_gala_高端酒会",

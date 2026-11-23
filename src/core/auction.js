@@ -2,11 +2,11 @@
 // 每 30 分钟一场，每场 2～4 件（停产限量车、拍卖古董）；人脉够才收到图录；起拍价 车 = 原价 × 1.5～3、古董 = 估价 × 0.8；
 // NPC 跟你抢（最高出到多少每场固定）；你设最高出价举牌，一场一件只能举一次；拍到了 5 分钟内付款（签成交确认书），付不出 = 违约，人脉 −5
 // 古董可以交给收藏顾问代拍（她的交际让 NPC 少抬价）
-import CFG from '../config/auction.json?v=1236a42d' with { type: 'json' };
-import * as AS from './assets.js?v=1236a42d';
-import * as AQ from './antique.js?v=1236a42d';
-import { addAttrHook, bossAttrs } from './boss.js?v=1236a42d';
-import { attrs as secAttrs } from './posts.js?v=1236a42d';
+import CFG from '../config/auction.json?v=b7d8e042' with { type: 'json' };
+import * as AS from './assets.js?v=b7d8e042';
+import * as AQ from './antique.js?v=b7d8e042';
+import { addAttrHook, bossAttrs } from './boss.js?v=b7d8e042';
+import { attrs as secAttrs } from './posts.js?v=b7d8e042';
 
 export const AUCFG = CFG;
 const r2 = (v) => Math.round(v * 100) / 100;
@@ -73,3 +73,25 @@ export function tick(s, t) {
   return out;
 }
 addAttrHook((s) => ({ network: -((s.auc && s.auc.penalty) || 0) }));
+
+// ---------- 拍卖私洽（V2-06，设计29 第二节）：开拍前直接找卖家谈 ----------
+// 卖家开价 = NPC 最高出价 × askX；底线 = 开价 × range（藏家性格偏高）；谈成就不上拍，按谈成的价当落槌价（照样付佣金、税，5 分钟内付）；
+// 谈崩了这件 30 分钟内不能再私洽，但拍卖会照样能举牌。筹码：有收藏顾问 = 有情报；带的秘书交际够 = 耐心 +1；准备了「亲自谈」= 看底线在哪个三分之一
+import * as NG from './negotiate.js?v=b7d8e042';
+import { bigBonus } from './manage.js?v=b7d8e042';
+export function privateOpts(s, lotId, t, secId = null) {
+  const l = catalog(s, t).lots.find((x) => x.lot === lotId); if (!l) return null; const P = NG.NEGO_CFG.auction;
+  return { key: 'auc_' + l.id, kind: 'buy', base: Math.round(l.npcMax * P.askX / P.step) * P.step, range: P.range, step: P.step, persona: P.persona, chips: { intel: !!AQ.advisor(s), secId, boss: bigBonus(s, 'deal') > 0 }, lot: l };
+}
+export function privateStart(s, lotId, t, secId = null, rnd = Math.random) {
+  const o = privateOpts(s, lotId, t, secId); if (!o) return { ok: false, why: '这件没在这一场的图录里（或者已经举过牌）' };
+  const r = NG.start(s, o, t, rnd); if (r.ok) r.sess.coolMin = NG.NEGO_CFG.auction.cooldownMin; return r.ok ? { ...r, lot: o.lot } : r;
+}
+/** 私洽谈成：这件不上拍了，按谈成的价记成拍到的（5 分钟内签成交确认书付款） */
+export function privateDeal(s, lotId, price, t) {
+  const l = catalog(s, t).lots.find((x) => x.lot === lotId); if (!l) return { ok: false, why: '这件已经不在图录里了' };
+  au(s).done[l.lot] = true;
+  const w = { lot: l.lot, kind: l.kind, id: l.id, name: l.name, hammer: price, deadline: t + CFG.payMin * 60e3, who: '', private: true };
+  au(s).won.push(w);
+  return { ok: true, w, total: wonTotal(s, w) };
+}

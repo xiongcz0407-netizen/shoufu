@@ -1,31 +1,38 @@
 // 商战：对手列表 → 选项目、带人 → 开战结果；赢满 3 次发起收购
-import * as RG from '../core/rivalgrow.js?v=1236a42d'; // P-00 对手也在长大
-import * as EQ from '../core/equity.js?v=1236a42d';
-import * as BK from '../core/bank.js?v=1236a42d';
-import { gameDate, dateText } from '../core/gametime.js?v=1236a42d';
-import { turfText } from '../core/rivalry.js?v=1236a42d';
-import { RIVALS, RIVAL_BY_ID, PROJECTS, TEAM_MAX, WINS_TO_ACQUIRE, BATTLES_PER_DAY, ACQUIRE_COOLDOWN_SEC } from '../config/rivals.js?v=1236a42d';
-import { SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=1236a42d';
-import { LINES } from '../config/lines.js?v=1236a42d';
-import { BOSS_LINES } from '../config/battle-lines.js?v=1236a42d';
-import * as B from '../core/battle.js?v=1236a42d';
-import { isTraining } from '../core/training.js?v=1236a42d';
-import { fmtMoney } from '../core/format.js?v=1236a42d';
-import { now } from '../core/clock.js?v=1236a42d';
-import { asset, hasAsset } from '../platform/assets.js?v=1236a42d';
-import { game } from '../game.js?v=1236a42d';
-import { h, openPanel, toast } from './dom.js?v=1236a42d';
-import { say } from './main-screen.js?v=1236a42d';
-import { playStory } from './story.js?v=1236a42d';
-import { openContract } from './contract.js?v=1236a42d';
-import { openTab } from './shell.js?v=1236a42d';
-import { nextContractNo } from '../core/contracts.js?v=1236a42d';
-import { TAX } from '../core/companytax.js?v=1236a42d';
-import { IND_BY_ID } from '../config/industries.js?v=1236a42d';
-import { auraBattle, networkAcquire } from '../core/boss.js?v=1236a42d';
-import { hintLater } from './guide2.js?v=1236a42d';
-import * as TKO from '../core/takeover.js?v=1236a42d';
-import { listed as listedNow } from '../core/listing.js?v=1236a42d';
+import * as RG from '../core/rivalgrow.js?v=b7d8e042'; // P-00 对手也在长大
+import * as EQ from '../core/equity.js?v=b7d8e042';
+import * as BK from '../core/bank.js?v=b7d8e042';
+import { gameDate, dateText } from '../core/gametime.js?v=b7d8e042';
+import { turfText } from '../core/rivalry.js?v=b7d8e042';
+import { RIVALS, RIVAL_BY_ID, PROJECTS, TEAM_MAX, WINS_TO_ACQUIRE, BATTLES_PER_DAY, ACQUIRE_COOLDOWN_SEC } from '../config/rivals.js?v=b7d8e042';
+import { SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=b7d8e042';
+import { LINES } from '../config/lines.js?v=b7d8e042';
+import { lineOf } from '../core/storylib.js?v=b7d8e042'; // V3-04 台词扩充（开发2）
+import { BOSS_LINES } from '../config/battle-lines.js?v=b7d8e042';
+import * as B from '../core/battle.js?v=b7d8e042';
+import * as W from '../core/war.js?v=b7d8e042'; // V2-05 商战三回合
+import { openNegotiate } from './negotiate.js?v=b7d8e042'; // V2-07 谈判（开发2）
+import * as LT from '../core/late.js?v=b7d8e042'; // V3-01 对手进攻
+import * as INB from './inbox.js?v=b7d8e042';
+import { isTraining as isTraining0 } from '../core/training.js?v=b7d8e042';
+import { isScouting } from '../core/busy.js?v=b7d8e042';
+const isTraining = (s, id) => isTraining0(s, id) || isScouting(s, id); // V2-08：踩点的也不能带（开发2）
+import { fmtMoney } from '../core/format.js?v=b7d8e042';
+import { now } from '../core/clock.js?v=b7d8e042';
+import { asset, hasAsset } from '../platform/assets.js?v=b7d8e042';
+import { game } from '../game.js?v=b7d8e042';
+import { h, openPanel, toast } from './dom.js?v=b7d8e042';
+import { say } from './main-screen.js?v=b7d8e042';
+import { playStory } from './story.js?v=b7d8e042';
+import { openContract } from './contract.js?v=b7d8e042';
+import { openTab } from './shell.js?v=b7d8e042';
+import { nextContractNo } from '../core/contracts.js?v=b7d8e042';
+import { TAX } from '../core/companytax.js?v=b7d8e042';
+import { IND_BY_ID } from '../config/industries.js?v=b7d8e042';
+import { auraBattle, networkAcquire } from '../core/boss.js?v=b7d8e042';
+import { hintLater } from './guide2.js?v=b7d8e042';
+import * as TKO from '../core/takeover.js?v=b7d8e042';
+import { listed as listedNow } from '../core/listing.js?v=b7d8e042';
 
 const AN = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 const mergeText = (r) => { const e = r.effect || {}; return [...Object.entries(r.merge || {}).map(([k, n]) => `${IND_BY_ID[k].name} ${n} 家（连员工）`), e.fleetUnits && `货车 ${Math.ceil(e.fleetUnits / 3)} 辆`, (e.reProjects || []).map((x) => (x.stage === 'build' ? '在建项目 1 个' : '储备地 1 块')).join('、'), e.techProduct && '上线产品 1 个', e.levelUp && Object.entries(e.levelUp).map(([k, n]) => `${IND_BY_ID[k].name}团队（+${n} 级）`).join('、'), e.rights && `片库版权（授权费 ${fmtMoney(e.rights)}）`, e.boost && Object.entries(e.boost).map(([k, v]) => `${IND_BY_ID[k].name}收入 +${v * 100}%`).join('、'), e.early && e.early.map((k) => `提前开${IND_BY_ID[k].name}`).join('、')].filter(Boolean).join('、') || '—'; };
@@ -38,6 +45,7 @@ export function openBattle(host) {
     const s = game.state; const t = now();
     const mb = hasAsset('assets/bg/bg_meeting.webp') ? ` style="background-image:linear-gradient(90deg,rgba(10,14,24,.92) 40%,rgba(10,14,24,.35)),url('${asset('assets/bg/bg_meeting.webp')}')"` : '';
     p.body.innerHTML = `<div class="bt-head"${mb}>还能打 <b>${B.battlesLeft(s, t)}/${BATTLES_PER_DAY}</b> 次${B.nextBattleIn(s, t) ? `（${Math.ceil(B.nextBattleIn(s, t) / 60e3)} 分钟后 +1，每 30 分钟恢复 1 次）` : ''}<br><small>赢满 ${WINS_TO_ACQUIRE} 次可以去「收购」${auraBattle(s) ? `　气场 +${(auraBattle(s) * 100).toFixed(1)}%` : ''}</small></div>`;
+    if (s.war && s.war.open) { const cb = h('button', 'btn gold big', `继续跟${RIVAL_BY_ID[s.war.rivalId].name}的商战（第 ${s.war.round + 1} 回合）`); cb.onclick = () => openWar(render); p.body.appendChild(cb); } /* V2-05 没打完的 */
     for (const r0 of RIVALS.filter((x) => x.stage <= s.title)) { // 只列到了这个阶段的对手
       const r = RG.live(s, r0.id); const st = B.rivalState(s, r.id);
       const card = h('div', 'rival' + (st.acquired ? ' done' : ''), `<div class="rival-boss">${bossImg(r)}</div>
@@ -60,7 +68,7 @@ function teamPicker(box, team, onChange) {
   box.innerHTML = '';
   for (const id of Object.keys(s.secs)) {
     const busy = isTraining(s, id); const on = team.includes(id);
-    const b = h('button', 'tm' + (on ? ' on' : ''), `<img src="${asset(`assets/sec/${id}/c1.webp`)}" alt=""><span>${SEC_BY_ID[id].name}</span>${busy ? '<em>上课中</em>' : ''}`);
+    const b = h('button', 'tm' + (on ? ' on' : ''), `<img src="${asset(`assets/sec/${id}/c1.webp`)}" alt=""><span>${SEC_BY_ID[id].name}</span>${busy ? `<em>${isScouting(s, id) ? '踩点中' : '上课中'}</em>` : ''}`);
     b.disabled = busy;
     b.onclick = () => {
       if (on) team.splice(team.indexOf(id), 1);
@@ -71,43 +79,70 @@ function teamPicker(box, team, onChange) {
   }
 }
 
+/** V2-05 开战前：对手卡片（规模、这个月涨了多少、爱用的打法、情报）+ 带谁去 → 三回合 / 交给秘书打 */
 function openFight(rivalId, done) {
   const s = game.state; const r = RG.live(s, rivalId);
-  const team = [s.current].filter((id) => !isTraining(s, id));
-  let proj = 'price';
+  const team = [s.current].filter((id) => id && s.secs[id] && !isTraining(s, id));
   const p = openPanel(`对 ${r.name}`);
-  const projBox = h('div', 'tabs'); const teamTitle = h('div', 'sd-rec-title'); const teamBox = h('div', 'tm-grid');
-  const rateBox = h('div', 'rate'); const go = h('button', 'btn big', '开战');
-  p.body.append(h('div', 'sd-rec-title', '比什么'), projBox, teamTitle, teamBox, rateBox, go);
+  const card = h('div', 'wr-card'); const teamTitle = h('div', 'sd-rec-title', `带谁去（最多 ${TEAM_MAX} 人；每人带一张专长牌）`); const teamBox = h('div', 'tm-grid');
+  const rateBox = h('div', 'rate'); const go = h('button', 'btn gold big', '开战（三回合）'); const auto = h('button', 'btn big', '交给秘书打');
+  p.body.append(card, teamTitle, teamBox, rateBox, go, auto);
+  const autoProj = () => PROJECTS.slice().sort((a, b) => avg(b.attr) - avg(a.attr))[0].id;
+  const avg = (k) => (team.length ? team.reduce((x, id) => x + (s.secs[id].attrs ? s.secs[id].attrs[k] : 0), 0) / team.length : 0);
   const render = () => {
-    projBox.innerHTML = '';
-    for (const pj of PROJECTS) {
-      const b = h('button', 'tab' + (pj.id === proj ? ' on' : ''), `${pj.name}（${AN[pj.attr]}）`);
-      b.onclick = () => { proj = pj.id; render(); };
-      projBox.appendChild(b);
-    }
-    teamTitle.textContent = `带谁去（最多 ${TEAM_MAX} 人，看「${AN[PROJECTS.find((x) => x.id === proj).attr]}」）`;
+    const c = W.rivalCard(s, rivalId); const st = B.rivalState(s, rivalId);
+    card.innerHTML = `<div class="wr-top">${bossImg(r)}<div><b>${r.name}</b><small>${r.boss} · ${r.desc || ''}</small>
+      <div>规模：年利润 ${fmtMoney(c.profit)}　这个月 ${c.growth >= 0 ? '+' : ''}${(c.growth * 100).toFixed(1)}%</div>
+      <div>爱用：${c.favorites.map((k) => W.WAR.plays[k].name).join('、')}</div>
+      <div>${c.intelEnough ? '<span class="pos">情报够了：开战后能看到它这一战最可能出的两张</span>' : `情报 ${c.intel} / ${W.WAR.intelShow}（输一次攒一点，够了能看到它最可能出的牌）`}</div>
+      <div>战绩 ${st.wins} 胜 ${st.losses} 负（赢满 ${WINS_TO_ACQUIRE} 次能收购）</div></div></div>
+      <div class="tr-gain">三回合，每回合双方各出一张打法同时亮牌：价格战克广告、广告克渠道、渠道克供应链、供应链克价格战、公关克挖人；不相克比带去的人对应属性。赢两回合算赢；每赢一回合，你的${r.line && IND_BY_ID[r.line] ? IND_BY_ID[r.line].name : ''}这个月营收 +2%、对手利润 −3%。出牌要花钱（按对手规模）。</div>`;
     teamPicker(teamBox, team, render);
     const why = B.whyNotBattle(s, rivalId, team, now());
-    rateBox.innerHTML = why ? `<span class="sc-cond">${why}</span>` : `胜率 <b>${pct(B.winRate(s, rivalId, proj, team))}</b>　赢了得 ${fmtMoney(r.reward)}${B.intelBonus(s, rivalId) ? `<br><small>知己知彼：输过的摸清了底牌 +${Math.round(B.intelBonus(s, rivalId) * 100)}%</small>` : ''}`;
-    go.disabled = !!why;
+    rateBox.innerHTML = why ? `<span class="sc-cond">${why}</span>` : `交给秘书打：胜率 <b>${pct(B.winRate(s, rivalId, autoProj(), team))}</b>（不花钱，赢了按 2 回合算份额）　赢了得 ${fmtMoney(r.reward)}`;
+    go.disabled = auto.disabled = !!why;
   };
-  go.onclick = () => {
-    const res = B.fight(s, rivalId, proj, [...team], now());
+  auto.onclick = () => {
+    const res = B.fight(s, rivalId, autoProj(), [...team], now());
     if (!res.ok) { toast(res.why); return; }
-    p.close();
-    showResult(r, [...team], res.win, res.win ? `得 ${fmtMoney(res.reward)}` : `这次摸清了对方的底牌：下次对${r.name}胜率 +${Math.round(res.intel * 100)}%`, () => {
-      if (res.win) say(team[0], LINES[team[0]].happy, 3600, 'happy');
-      if (res.canAcquire) toast(`赢满 ${WINS_TO_ACQUIRE} 次了，可以收购${r.name}！`, 2600);
-      done();
-    }, res.win ? BOSS_LINES[rivalId].lose : BOSS_LINES[rivalId].taunt);
-    game.changed(); game.save();
+    p.close(); afterFight(r, [...team], res, done); game.changed(); game.save();
+  };
+  go.onclick = () => { const x = W.start(s, rivalId, [...team], now()); if (!x.ok) { toast(x.why); return; } p.close(); game.changed(); game.save(); openWar(done); };
+  render();
+}
+function afterFight(r, team, res, done) {
+  showResult(r, team, res.win, res.win ? `得 ${fmtMoney(res.reward)}${res.rounds ? `，抢下 ${res.rounds} 回合份额` : ''}` : `这次摸清了对方的底牌：下次对${r.name}胜率 +${Math.round(res.intel * 100)}%`, () => {
+    if (res.win) say(team[0], lineOf(team[0], 'battle_win', Math.random, LINES[team[0]].happy), 3600, 'happy'); else { const l = lineOf(team[0], 'battle_lose', Math.random, ''); if (l) say(team[0], l, 3600); } // V3-04 台词扩充（开发2）
+    if (res.canAcquire) toast(`赢满 ${WINS_TO_ACQUIRE} 次了，可以收购${r.name}！`, 2600);
+    done && done();
+  }, res.win ? BOSS_LINES[r.id].lose : BOSS_LINES[r.id].taunt);
+}
+/** 三回合：选牌（花多少、看谁的属性）、专长、对手情报；亮牌出结果 */
+export function openWar(done) {
+  const s = game.state; const w0 = s.war; if (!w0 || !w0.open) return; const r = RG.live(s, w0.rivalId);
+  const p = openPanel(`商战 · ${r.name}`); let spec = false; let last = null;
+  const close0 = p.close; p.close = () => { if (s.war && s.war.open) { if (!confirm('现在走就算输（没打的回合都算输），确定？')) return; const res = W.abandon(s, now()); game.changed(); game.save(); close0(); afterFight(r, s.war.team, res, done); return; } close0(); };
+  const render = () => {
+    const w = s.war; const P = W.WAR.plays;
+    const specs = w.team.filter((id) => !w.usedSpec.includes(id)).map((id) => `${SEC_BY_ID[id].name}：${P[W.specOf(s, id)].name}`);
+    p.body.innerHTML = `<div class="wr-score"><b>第 ${Math.min(w.round + 1, 3)} / 3 回合</b>　你 <b class="pos">${w.me}</b> : <b class="neg">${w.op}</b> ${r.name}</div>
+      ${w.log.map((x) => `<div class="wr-log ${x.win ? 'pos' : 'neg'}">第 ${x.round} 回合：你出「${P[x.me].name}」${x.spec ? '（专长）' : ''}，对方出「${P[x.op].name}」→ ${x.win ? '赢' : '输'}（${x.how === 'beat' ? '克住了' : x.how === 'beaten' ? '被克了' : `比属性，把握 ${pct(x.rate)}`}）</div>`).join('')}
+      ${last && !w.open ? '' : `<div class="tr-gain">${w.round === 0 && w.peek ? `🕵️ 你亲自带队，看到它第一张是「${P[w.peek].name}」。` : w.likely ? `🔍 情报：它这一战最可能出「${w.likely.map((k) => P[k].name).join('」「')}」。` : '没有情报，只知道它爱用：' + W.favorites(w.rivalId).slice(0, 2).map((k) => P[k].name).join('、')}${w.hurtMe ? '<br><span class="neg">对方挖了你的人：这回合你的效果 −30%</span>' : ''}${w.hurtOp ? '<br><span class="pos">你挖了对方的人：这回合对方效果 −30%</span>' : ''}</div>
+      <div class="tabs pk-row"><button class="tab wr-spec ${spec ? 'on' : ''}" ${specs.length ? '' : 'disabled'}>用专长（×1.5）${specs.length ? `<small>${specs.join(' · ')}</small>` : '<small>用完了</small>'}</button></div>
+      <div class="ind-btns pa-grid">${W.PLAY_IDS.map((k) => { const why = W.whyNotPlay(s, k, spec, now()); return `<button class="btn wr-play" data-k="${k}" ${why ? 'disabled' : ''}>${P[k].name}<br><small>${fmtMoney(W.costOf(s, w.rivalId, k))} · ${P[k].beats.length ? `克${P[k].beats.map((b) => P[b].name).join('')}` : P[k].desc}</small></button>`; }).join('')}</div>`}`;
+    const sp = p.body.querySelector('.wr-spec'); if (sp) sp.onclick = () => { spec = !spec; render(); };
+    p.body.querySelectorAll('.wr-play').forEach((b) => (b.onclick = () => {
+      const x = W.play(s, b.dataset.k, spec, now()); if (!x.ok) { toast(x.why); return; } spec = false; last = x; game.changed(); game.save();
+      toast(`对方出了「${P[x.op].name}」→ ${x.win ? '这回合你赢了' : '这回合你输了'}`, 1800);
+      if (x.done) { close0(); afterFight(r, s.war.team, x.result, done); return; }
+      render();
+    }));
   };
   render();
 }
 
 function openAcquire(rivalId, done) {
-  const s = game.state; const r = RG.live(s, rivalId);
+  const s = game.state; let r = B.liveDeal(s, rivalId, now()); const val0 = RG.live(s, rivalId).value; // V2-07 谈下来的价
   const team = [s.current].filter((id) => !isTraining(s, id));
   const p = openPanel(`收购 ${r.name}`); hintLater('installment', 600);
   const teamBox = h('div', 'tm-grid'); const rateBox = h('div', 'rate'); const go = h('button', 'btn gold big', `出 ${fmtMoney(r.value)} 收购 → 签协议`);
@@ -158,6 +193,12 @@ function openAcquire(rivalId, done) {
         game.changed(); game.save();
       } });
   };
+  // V2-07 先谈价（通用谈判）：谈成 60 分钟内按这个价收购；谈崩冷却 30 分钟
+  const nb = h('button', 'btn big', ''); go.before(nb);
+  const drawNb = () => { const dp = B.dealPrice(s, rivalId, now()); nb.innerHTML = dp ? `已谈下 ${fmtMoney(dp)}（估值 ${fmtMoney(val0)}，${dp < val0 ? `省 ${fmtMoney(val0 - dp)}` : '没比估值便宜，按估值收购'}）` : `先跟${r.boss}谈价（对方开价 ${fmtMoney(B.acqNegoOpts(s, rivalId, team, now()).base)}，估值 ${fmtMoney(val0)}）`; nb.disabled = !!dp; };
+  nb.onclick = () => openNegotiate({ title: `跟${r.boss}谈收购价`, who: r.boss, secs: Object.keys(s.secs).filter((id) => !isTraining(s, id)), opts: B.acqNegoOpts(s, rivalId, team, now()),
+    onDone: (res) => { if (res.deal != null) { B.setAcqPrice(s, rivalId, res.deal, now()); r = B.liveDeal(s, rivalId, now()); toast(`谈下来了：${fmtMoney(res.deal)}，60 分钟内收购按这个价`, 2800); game.changed(); game.save(); } drawNb(); render(); } });
+  drawNb();
   render();
 }
 
@@ -204,3 +245,10 @@ export function renderBattleLog(body) {
     body.appendChild(h('div', 'tr-course', `<div style="flex:1"><b class="${x.win ? 'pos' : 'neg'}">${x.win ? '赢' : '输'}</b> 对 ${r ? r.name : x.rival} · ${pj ? pj.name : ''}<div class="tr-gain">胜率 ${pct(x.rate)}${x.win ? `　得 ${fmtMoney(x.reward)}` : '　这次摸清了对方的底牌（下次胜率 +5%）'}　${new Date(x.t).toLocaleString('zh-CN', { hour12: false })}</div></div>`));
   }
 }
+
+// V3-01 对手进攻：消息里点「商战应对」→ 直接开三回合
+INB.addActionUi((s, m, a, rerender) => {
+  if (m.type !== 'late_atk' || a !== 'war') return false;
+  const r = LT.respond(s, m.data.atk, 'war', now()); if (!r.ok) { toast(r.why, 2600); return true; }
+  game.changed(); game.save(); rerender && rerender(); openWar(() => {}); return true;
+});

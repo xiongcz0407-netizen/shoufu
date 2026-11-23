@@ -114,5 +114,375 @@
   "店交给他们，你去谈大事",
   "大事才需要你出面",
   "运筹帷幄"
- ]
+ ],
+ "pick": {
+  "_说明": "设计28 第二节 进货挑品：每个游戏天（30 天一个月、12 个月一年）定季节、天气、节日；每家店（门店线）每天选一次主推，不花精力。good / bad 是合适的条件（季节 spring/summer/autumn/winter、天气 sunny/rain/hot/cold、节日 id、holiday 任何节日、weekend / workday）。对路：营业额 +goodBase，每多对上一条 +goodStep，最多 goodMax；不对路：营业额 bad.rev、进货 bad.cogs；按家数摊（÷ 家数），第三档样子再 × bigK。店长替选 mgrGoodP 对路、其余一般；没店长按昨天的",
+  "seasons": {
+   "spring": [
+    3,
+    4,
+    5
+   ],
+   "summer": [
+    6,
+    7,
+    8
+   ],
+   "autumn": [
+    9,
+    10,
+    11
+   ],
+   "winter": [
+    12,
+    1,
+    2
+   ]
+  },
+  "seasonName": {
+   "spring": "春",
+   "summer": "夏",
+   "autumn": "秋",
+   "winter": "冬"
+  },
+  "weather": {
+   "spring": {
+    "sunny": 0.5,
+    "rain": 0.4,
+    "hot": 0.05,
+    "cold": 0.05
+   },
+   "summer": {
+    "sunny": 0.35,
+    "rain": 0.2,
+    "hot": 0.45,
+    "cold": 0
+   },
+   "autumn": {
+    "sunny": 0.5,
+    "rain": 0.35,
+    "hot": 0.05,
+    "cold": 0.1
+   },
+   "winter": {
+    "sunny": 0.35,
+    "rain": 0.15,
+    "hot": 0,
+    "cold": 0.5
+   }
+  },
+  "weatherName": {
+   "sunny": "晴",
+   "rain": "雨",
+   "hot": "炎热",
+   "cold": "寒冷"
+  },
+  "weatherIcon": {
+   "sunny": "☀️",
+   "rain": "🌧️",
+   "hot": "🔥",
+   "cold": "❄️"
+  },
+  "holidays": [
+   {
+    "id": "new_year",
+    "name": "元旦",
+    "m": 1,
+    "d": 1,
+    "len": 1
+   },
+   {
+    "id": "spring_festival",
+    "name": "春节",
+    "m": 2,
+    "d": 1,
+    "len": 7
+   },
+   {
+    "id": "lantern",
+    "name": "元宵",
+    "m": 2,
+    "d": 15,
+    "len": 1
+   },
+   {
+    "id": "qingming",
+    "name": "清明",
+    "m": 4,
+    "d": 4,
+    "len": 3
+   },
+   {
+    "id": "labor",
+    "name": "五一",
+    "m": 5,
+    "d": 1,
+    "len": 5
+   },
+   {
+    "id": "dragon_boat",
+    "name": "端午",
+    "m": 6,
+    "d": 10,
+    "len": 1
+   },
+   {
+    "id": "school",
+    "name": "开学季",
+    "m": 9,
+    "d": 1,
+    "len": 7
+   },
+   {
+    "id": "mid_autumn",
+    "name": "中秋",
+    "m": 9,
+    "d": 17,
+    "len": 1
+   },
+   {
+    "id": "national",
+    "name": "国庆",
+    "m": 10,
+    "d": 1,
+    "len": 7
+   },
+   {
+    "id": "double11",
+    "name": "双十一",
+    "m": 11,
+    "d": 11,
+    "len": 1
+   },
+   {
+    "id": "christmas",
+    "name": "圣诞",
+    "m": 12,
+    "d": 24,
+    "len": 2
+   }
+  ],
+  "weekend": [
+   5,
+   6
+  ],
+  "options": {
+   "store": [
+    {
+     "key": "cold_drink",
+     "name": "冷饮饮料",
+     "good": [
+      "hot",
+      "summer"
+     ],
+     "bad": [
+      "cold",
+      "winter"
+     ],
+     "goodText": "今天冷饮卖断货了！",
+     "badText": "冷饮没人要，冰柜里压了一箱货。"
+    },
+    {
+     "key": "snack",
+     "name": "零食糖果",
+     "good": [
+      "weekend",
+      "spring_festival",
+      "national",
+      "school"
+     ],
+     "bad": [],
+     "goodText": "零食货架下午就空了。",
+     "badText": "零食压了几箱。"
+    },
+    {
+     "key": "daily",
+     "name": "日用百货",
+     "good": [
+      "workday",
+      "school"
+     ],
+     "bad": [
+      "holiday"
+     ],
+     "goodText": "纸巾洗衣液走得特别快。",
+     "badText": "过节没人买日用品，压了一批货。"
+    },
+    {
+     "key": "tobacco",
+     "name": "烟酒",
+     "good": [
+      "spring_festival",
+      "mid_autumn",
+      "national",
+      "new_year",
+      "lantern"
+     ],
+     "bad": [
+      "school"
+     ],
+     "goodText": "过节走亲戚，烟酒卖疯了！",
+     "badText": "烟酒今天没什么人问。"
+    },
+    {
+     "key": "bento",
+     "name": "鲜食便当",
+     "good": [
+      "workday"
+     ],
+     "bad": [
+      "holiday",
+      "weekend"
+     ],
+     "goodText": "中午便当一抢而空。",
+     "badText": "便当没卖完，晚上全扔了。"
+    },
+    {
+     "key": "rain_warm",
+     "name": "雨具暖宝",
+     "good": [
+      "rain",
+      "cold"
+     ],
+     "bad": [
+      "hot",
+      "sunny"
+     ],
+     "goodText": "下雨天雨伞卖光了！",
+     "badText": "雨具暖宝没人要，压了一箱货。"
+    }
+   ],
+   "food": [
+    {
+     "key": "signature",
+     "name": "招牌主食",
+     "good": [
+      "workday"
+     ],
+     "bad": [],
+     "goodText": "招牌面今天卖了两百多碗。",
+     "badText": "招牌主食卖得冷清。"
+    },
+    {
+     "key": "cold_dish",
+     "name": "冷饮凉菜",
+     "good": [
+      "hot",
+      "summer"
+     ],
+     "bad": [
+      "cold",
+      "winter"
+     ],
+     "goodText": "大热天凉菜冰饮卖断货了！",
+     "badText": "天冷没人点凉菜，备的菜倒掉了。"
+    },
+    {
+     "key": "breakfast",
+     "name": "早点",
+     "good": [
+      "workday",
+      "school"
+     ],
+     "bad": [
+      "weekend",
+      "holiday"
+     ],
+     "goodText": "早上排了长队，包子豆浆一早卖完。",
+     "badText": "放假没人吃早点，蒸笼剩了大半。"
+    },
+    {
+     "key": "bbq",
+     "name": "夜宵烧烤",
+     "good": [
+      "weekend",
+      "summer",
+      "labor"
+     ],
+     "bad": [
+      "rain",
+      "cold"
+     ],
+     "goodText": "夜宵摊坐满了，串都烤不过来！",
+     "badText": "下雨天没人出来撸串，肉串压了一冰柜。"
+    },
+    {
+     "key": "festival_set",
+     "name": "节日套餐",
+     "good": [
+      "holiday"
+     ],
+     "bad": [
+      "workday"
+     ],
+     "goodText": "节日套餐提前订满了！",
+     "badText": "不过节推套餐，没几个人点。"
+    }
+   ],
+   "fashion": [
+    {
+     "key": "new_season",
+     "name": "当季新款",
+     "good": [
+      "weekend",
+      "school",
+      "labor"
+     ],
+     "bad": [
+      "rain"
+     ],
+     "goodText": "新款一上架就被试穿抢光了。",
+     "badText": "下雨天没人逛街，新款挂着没人看。"
+    },
+    {
+     "key": "clearance",
+     "name": "打折清仓",
+     "good": [
+      "double11",
+      "workday"
+     ],
+     "bad": [
+      "spring_festival"
+     ],
+     "goodText": "清仓区挤满了人！",
+     "badText": "过年大家买新衣服，清仓没人看。"
+    },
+    {
+     "key": "accessories",
+     "name": "配饰鞋包",
+     "good": [
+      "weekend",
+      "christmas"
+     ],
+     "bad": [
+      "rain"
+     ],
+     "goodText": "配饰鞋包卖得特别好。",
+     "badText": "配饰今天没人问。"
+    },
+    {
+     "key": "gift_box",
+     "name": "节日礼盒",
+     "good": [
+      "holiday"
+     ],
+     "bad": [
+      "workday"
+     ],
+     "goodText": "节日礼盒卖空了！",
+     "badText": "不过节，礼盒堆在门口。"
+    }
+   ]
+  },
+  "goodBase": 0.08,
+  "goodStep": 0.035,
+  "goodMax": 0.15,
+  "bad": {
+   "rev": -0.03,
+   "cogs": 0.02
+  },
+  "bigK": 0.5,
+  "mgrGoodP": 0.5,
+  "normalText": "{name}卖得一般。"
+ }
 }

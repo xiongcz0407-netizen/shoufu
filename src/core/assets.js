@@ -1,16 +1,16 @@
 // 资产（第 12 项）：车库 / 房产 / 机库。只能个人现金全款，不能贷款、不能抵押
 // 渠道（设计09 第三节）：现货 / 订单（排队）/ 邀请（品牌来电）/ 拍卖 / 定制委托；房子按设计19（验资冻结、四合院拍卖、境外锁）
 // 税费（设计14、设计19）：车辆购置税 + 超豪华车附加 + 上牌；房子契税；飞机关税 + 进口增值税；每年维护 / 物业 / 房产税按秒扣
-import { CARS, PLANES } from '../config/vehicles.js?v=1236a42d';
-import EST from '../config/estates.json?v=1236a42d' with { type: 'json' };
-import { CAR_META, TIER_SPEC } from '../config/carmeta.js?v=1236a42d';
-import { TAX } from './companytax.js?v=1236a42d';
-import { pay, receive, accrue } from './ledger.js?v=1236a42d';
-import { YEAR_MS } from './gametime.js?v=1236a42d';
-import { addContract } from './contracts.js?v=1236a42d';
-import { stewardSellRate, stewardUpkeepMult, stewardQueueMult } from './posts.js?v=1236a42d';
-import { bossAttrs } from './boss.js?v=1236a42d';
-import { taxRec } from './fiscal.js?v=1236a42d';
+import { CARS, PLANES } from '../config/vehicles.js?v=b7d8e042';
+import EST from '../config/estates.json?v=b7d8e042' with { type: 'json' };
+import { CAR_META, TIER_SPEC } from '../config/carmeta.js?v=b7d8e042';
+import { TAX } from './companytax.js?v=b7d8e042';
+import { pay, receive, accrue } from './ledger.js?v=b7d8e042';
+import { YEAR_MS } from './gametime.js?v=b7d8e042';
+import { addContract } from './contracts.js?v=b7d8e042';
+import { stewardSellRate, stewardUpkeepMult, stewardQueueMult } from './posts.js?v=b7d8e042';
+import { bossAttrs } from './boss.js?v=b7d8e042';
+import { taxRec } from './fiscal.js?v=b7d8e042';
 
 export const HOUSES = EST.houses;
 const ALL = {};
@@ -46,7 +46,7 @@ export function whyNotBuy(s, id, t = Date.now(), { forOrder = false } = {}) {
   if (owns(s, id)) return '已经有了';
   const net = bossAttrs(s).network;
   if (it.kind === 'house') {
-    if (it.region !== 'china') return '要先开境外账户（阶段二）';
+    if (it.region !== 'china') return '香港 / 海外房产在「去买房 → 海外」里买（到「老板」，个人现金付）';   // 设计30：没有境外账户了，走 core/offshore.js
     if (it.check === 'auction' && net < EST.verify.auctionNetwork) return `人脉 ≥ ${EST.verify.auctionNetwork} 才收到拍卖通知（现在 ${net}）`;
     if (it.check === 'proof' && E_netWorth(s) < it.price * EST.verify.proofNetWorthX) return `资产证明：身价要 ≥ 房价 3 倍（${fmt(it.price * 3)}）`;
   }
@@ -131,7 +131,7 @@ export function sell(s, id, t = Date.now()) {
   if (s.rented && s.rented[id]) return { ok: false, why: '出租中，先收回' };
   const amt = sellPrice(s, id); const m = g(s).meta[id] || {};
   g(s)[KEY[it.kind]] = g(s)[KEY[it.kind]].filter((x) => x !== id); delete g(s).meta[id];
-  receive(s, { wallet: it.region && it.region !== 'china' ? 'offshore' : 'personal', cat: 'sell', amount: amt, ref: m.contract || '', note: `卖回 ${label(it)}（不交税）` }, t); // 海外房子卖了钱回境外账户（第 2-14 项）
+  receive(s, { wallet: 'personal', cat: 'sell', amount: amt, ref: m.contract || '', note: `卖回 ${label(it)}（不交税）` }, t); // 设计30：海外房子卖了钱也回个人现金
   let black = false;
   if (it.kind === 'car' && (m.channel === 'invite' || m.channel === 'custom')) { s.blacklist = s.blacklist || {}; s.blacklist[it.brandKey] = true; black = true; }
   recalc(s);

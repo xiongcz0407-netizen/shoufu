@@ -1,8 +1,9 @@
 // 衣服：买（算送礼）、好感到了自动换上、衣柜、约会穿哪套
-import { OUTFITS, OUTFIT_BY_ID, GIFT_CLOTH_FAVOR, DATE_OUTFIT } from '../config/outfits.js?v=1236a42d';
-import { ensureSec, FAVOR_STAGES } from './secretary.js?v=1236a42d';
-import { addFavor } from './affection.js?v=1236a42d';
-import { pay, receive, accrue, canPay } from './ledger.js?v=1236a42d';
+import { OUTFITS, OUTFIT_BY_ID, GIFT_CLOTH_FAVOR, DATE_OUTFIT } from '../config/outfits.js?v=b7d8e042';
+import { ensureSec, FAVOR_STAGES } from './secretary.js?v=b7d8e042';
+import { addFavor } from './affection.js?v=b7d8e042';
+import { pay, receive, accrue, canPay } from './ledger.js?v=b7d8e042';
+import * as STY from './styles.js?v=b7d8e042'; // V3-05 按款式挑
 
 function rec(s, id) {
   const r = ensureSec(s, id);
@@ -54,8 +55,9 @@ export function grantDateOutfit(s, id) {
 }
 /** 约会穿哪套：高档地点（formal）穿肯穿的里最贵的；休闲（casual）穿最贵的第 2～5 套里那套，没有就穿身上那套
  *  每套是晚装还是休闲等设计给风格表再细分 */
-export function outfitForDate(s, id, dress) {
+export function outfitForDate(s, id, dress, placeId) {
   const r = rec(s, id);
+  if (STY.OUTFIT_STYLES[id]) return STY.pick(s, id, (placeId ? ['beach', 'yacht'].includes(placeId) : dress === 'casual') ? 'dateResort' : 'dateFormal').o; // V3-05：西餐厅 / 楼顶晚装、海边 / 游艇度假，没有退休闲；扮装不穿出去
   const ok = OUTFITS.filter((x) => canWear(s, id, x.id)).map((x) => x.id);
   if (ok.length <= 1) return r.outfit;
   if (dress === 'formal') return ok[ok.length - 1];

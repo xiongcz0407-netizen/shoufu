@@ -1,17 +1,17 @@
 // 「资产 → 房产」里的「地标」一组（第 3-07 项）：公司持有的地标 + 「地标（公司买）」→ 委托经纪、尽调、报价 / 竞标、审批、签约
-import * as LMK from '../core/landmark.js?v=1236a42d';
-import BCFG from '../config/bank.json?v=1236a42d' with { type: 'json' };
-import { whyNotMa } from '../core/bank.js?v=1236a42d';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=1236a42d';
-import { asset, hasAsset } from '../platform/assets.js?v=1236a42d';
-import { game } from '../game.js?v=1236a42d';
-import { now } from '../core/clock.js?v=1236a42d';
-import { h, toast, liveRender } from './dom.js?v=1236a42d';
-import { openFull } from './shell.js?v=1236a42d';
-import { openContract } from './contract.js?v=1236a42d';
-import { nextContractNo } from '../core/contracts.js?v=1236a42d';
-import { hintLater } from './guide2.js?v=1236a42d';
-import { HINTS } from './guide.js?v=1236a42d';
+import * as LMK from '../core/landmark.js?v=b7d8e042';
+import BCFG from '../config/bank.json?v=b7d8e042' with { type: 'json' };
+import { whyNotMa } from '../core/bank.js?v=b7d8e042';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=b7d8e042';
+import { asset, hasAsset } from '../platform/assets.js?v=b7d8e042';
+import { game } from '../game.js?v=b7d8e042';
+import { now } from '../core/clock.js?v=b7d8e042';
+import { h, toast, liveRender } from './dom.js?v=b7d8e042';
+import { openFull } from './shell.js?v=b7d8e042';
+import { openContract } from './contract.js?v=b7d8e042';
+import { nextContractNo } from '../core/contracts.js?v=b7d8e042';
+import { hintLater } from './guide2.js?v=b7d8e042';
+import { HINTS } from './guide.js?v=b7d8e042';
 
 HINTS.landmark = '地标是公司买的（公司账户 + 并购贷款）：经纪牵线 → 尽调 15 分钟 → 报价或竞标 → 付 10% 定金 → 海外的要过境外投资核准和当地审查（可能被否，被否定金退回）→ 签合同。买下以后每月收租，人脉、眼光大涨。';
 const KIND = { office: '写字楼', hotel: '酒店' };
@@ -56,7 +56,7 @@ export function openLandmarks(done) {
     const grid = h('div', 'lm-list');
     for (const x of LMK.LANDMARKS.filter((y) => y.kind === kindTab).sort((a, b) => a.value - b.value)) {
       const d = LMK.lm(s).deals[x.id]; const own = LMK.owns(s, x.id); const y = LMK.yearly(x);
-      const appr = x.approvals.length ? x.approvals.map((k) => LMK.LCFG.approvals[k].name.replace(/（.*）/, '')).join(' + ') : x.needAccount ? '不用审批（要先开境外账户）' : '不用审批';
+      const appr = x.approvals.length ? x.approvals.map((k) => LMK.LCFG.approvals[k].name.replace(/（.*）/, '')).join(' + ') : '不用审批';
       const c = h('div', 'lm-card' + (own ? ' own' : ''), `${pic(x, 'lm-img')}<div class="lm-info"><b>${x.name}</b><small>${x.country} · ${x.city} · ${KIND[x.kind]} · ${x.deal === 'tender' ? '竞标' : '谈判'}</small>
         <small>估值 <b>${fmtMoney(x.value)}</b>　年租金约 ${fmtMoney(y.rent)}（净 ${fmtMoney(y.net)}）</small><small>审批：${appr}</small><div class="lm-act"></div></div>`);
       const act = c.querySelector('.lm-act'); const btn = (txt, cls, fn, dis) => { const b = h('button', 'btn ' + cls, txt); b.disabled = !!dis; b.onclick = fn; act.appendChild(b); return b; };

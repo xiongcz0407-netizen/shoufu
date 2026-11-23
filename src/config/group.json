@@ -7,7 +7,6 @@
   "steps": [
    { "key": "safe37", "name": "个人境外投资外汇登记（37 号文）", "fee": 50000 },
    { "key": "cayman", "name": "开曼控股公司", "fee": 300000 },
-   { "key": "hk", "name": "香港中间控股公司", "fee": 100000 },
    { "key": "wfoe", "name": "境内外商独资企业（WFOE）+ 重组", "fee": 500000 }
   ],
   "months": 1,

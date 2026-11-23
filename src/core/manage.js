@@ -1,18 +1,19 @@
 // P-05 前期核心玩法·经营（设计25 第一、三节）：老板精力、每家店四个亲自经营动作（可带秘书）、口碑、店长 / 秘书自动经营、大盘行情、老板以后的大事
 // 「店」= 一条门店线（便利店 / 餐饮 / 服装）；营业额、进货的加成通过 economy.setManageHooks 挂进去
-import M from '../config/manage.json?v=1236a42d' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=1236a42d';
-import { SEC_BY_ID } from '../config/secretaries.js?v=1236a42d';
-import { YEAR_MS, MONTH_MS } from './gametime.js?v=1236a42d';
-import { industryRevenue, setManageHooks } from './economy.js?v=1236a42d';
-import { setRateAdjFn } from './bank.js?v=1236a42d';
-import { pay, receive, canPay } from './ledger.js?v=1236a42d';
-import { holder, isSec, attrs } from './posts.js?v=1236a42d';
-import { bossAttrs } from './boss.js?v=1236a42d';
-import { addFavor } from './affection.js?v=1236a42d';
-import { isTraining } from './training.js?v=1236a42d';
-import { mark, energyBonus, onReward } from './goals.js?v=1236a42d'; // P-06 目标链（开发2）：做到了打勾、精力上限、奖励
-import { wage } from './staff.js?v=1236a42d';
+import { credit } from './credit.js?v=b7d8e042'; // V3-01 亲自拍板攒投入度
+import M from '../config/manage.json?v=b7d8e042' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=b7d8e042';
+import { SEC_BY_ID } from '../config/secretaries.js?v=b7d8e042';
+import { YEAR_MS, MONTH_MS } from './gametime.js?v=b7d8e042';
+import { industryRevenue, setManageHooks } from './economy.js?v=b7d8e042';
+import { setRateAdjFn } from './bank.js?v=b7d8e042';
+import { pay, receive, canPay } from './ledger.js?v=b7d8e042';
+import { holder, isSec, attrs } from './posts.js?v=b7d8e042';
+import { bossAttrs } from './boss.js?v=b7d8e042';
+import { addFavor } from './affection.js?v=b7d8e042';
+import { isTraining } from './training.js?v=b7d8e042';
+import { mark, energyBonus, onReward } from './goals.js?v=b7d8e042'; // P-06 目标链（开发2）：做到了打勾、精力上限、奖励
+import { wage } from './staff.js?v=b7d8e042';
 
 export { M as MANAGE_CFG };
 export const DAY_MS = YEAR_MS / M.daysPerYear;
@@ -105,7 +106,7 @@ export function doAct(s, id, act, t, secId = null, rnd = Math.random) {
     const amt = r2(dr * A.prepaid * h); if (amt > 0) prepaidIn(s, id, amt, t, '会员卡');
     text = `${who}${name}拉了个熟客群、发了会员卡，口碑 +${+(A.rep / nb).toFixed(2)}，预收 ${Math.round(amt)} 元（之后 ${A.prepaidDays} 天消费冲掉）。`;
   }
-  mark(s, 'act'); return { ok: true, text, act, line: id };
+  mark(s, 'act'); credit(s, 'act', 1, t); return { ok: true, text, act, line: id };
 }
 /** 预收账款：现在收钱，之后 N 天按消费冲掉（那几天这部分营业额没有现金进来） */
 export function prepaidIn(s, id, amt, t, what) {
@@ -113,6 +114,12 @@ export function prepaidIn(s, id, amt, t, what) {
   mg(s).prepaid.push({ id, left: amt, per: r2(amt / M.actions.member.prepaidDays), day: dayIndex(s, t) });
 }
 
+/** 提前备货（经营事件「多订一批」「备货」）：现在付货款，之后 N 天这批货卖掉，那几天少进同样多的货（进货成本冲回） */
+export function stockIn(s, id, amt, t, days = 3) {
+  if (!id || !(amt > 0)) return; (mg(s).stock = mg(s).stock || []).push({ id, left: r2(amt), per: r2(amt / days), day: dayIndex(s, t) });
+}
+/** 每个游戏天开始时要做的（进货挑品 core/pick.js 挂进来）：fn(s, 第几天, 那天开始的时间) → 结果句子 */
+const DAY_HOOKS = []; export const onDay = (fn) => DAY_HOOKS.push(fn);
 // ---------- 老板以后：精力花在大事上 ----------
 export function whyNotBig(s, key, t, id = null) {
   const B = M.big[key]; if (!B) return '没有这件事';
@@ -155,6 +162,9 @@ export function tickManage(s, t) {
     }
     for (const p of g.prepaid) { if (p.left <= 0.01 || p.day >= g.day) continue; const a = Math.min(p.left, p.per); p.left = r2(p.left - a); pay(s, { wallet: 'company', cat: 'prepaid_used', amount: a, force: true, party: '顾客', note: `${IND_BY_ID[p.id].name}会员卡 / 储值卡消费冲预收（这部分营业额已经预收过）` }, at); }
     g.prepaid = g.prepaid.filter((p) => p.left > 0.01);
+    for (const p of g.stock || []) { if (p.left <= 0.01 || p.day >= g.day) continue; const a = Math.min(p.left, p.per); p.left = r2(p.left - a); receive(s, { wallet: 'company', cat: 'cogs', amount: a, party: '库存', note: `${IND_BY_ID[p.id].name}提前备的货卖掉了，少进货（冲回进货成本）` }, at); }
+    if (g.stock) g.stock = g.stock.filter((p) => p.left > 0.01);
+    for (const fn of DAY_HOOKS) { const r = fn(s, g.day, at) || []; if (g.day === d) out.push(...r); } /* 离线补算的天不出提示，只出最后一天的 */
   }
   g.t = t;
   // 大盘降息 / 加息新闻 → 1 个游戏月贷款利率 ∓0.25 点

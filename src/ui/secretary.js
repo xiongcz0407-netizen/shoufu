@@ -1,30 +1,31 @@
 // 「秘书」页签（设计18 第四节 2）：上面一条培训位、两列卡片（没来的剪影 + 条件）；
 // 秘书详情全屏：上半立绘、下半面板（资料 | 培养 | 衣柜 | 职位工资），底部动作条（互动 · 送礼 · 约会 · 陪着我）
-import * as CP from '../core/capital.js?v=1236a42d';
-import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=1236a42d';
-import { COURSE_BY_ID } from '../config/courses.js?v=1236a42d';
-import { OUTFITS } from '../config/outfits.js?v=1236a42d';
-import { IND_BY_ID } from '../config/industries.js?v=1236a42d';
-import * as S from '../core/secretary.js?v=1236a42d';
-import * as T from '../core/training.js?v=1236a42d';
-import * as O from '../core/outfits.js?v=1236a42d';
-import * as A from '../core/affection.js?v=1236a42d';
-import { query } from '../core/ledger.js?v=1236a42d';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=1236a42d';
-import { asset } from '../platform/assets.js?v=1236a42d';
-import { now } from '../core/clock.js?v=1236a42d';
-import { game } from '../game.js?v=1236a42d';
-import { h, toast, liveRender } from './dom.js?v=1236a42d';
-import { openFull, closeTab, goHome } from './shell.js?v=1236a42d';
-import { switchSecretary, dressUp } from './main-screen.js?v=1236a42d';
-import { pickSec, renderCourses } from './training.js?v=1236a42d';
-import { openMall } from './mall.js?v=1236a42d';
-import { openDate } from './date.js?v=1236a42d';
-import { createPortrait } from './portrait.js?v=1236a42d';
-import { bgKeyFor } from './main-screen.js?v=1236a42d';
-import * as PO from '../core/posts.js?v=1236a42d';
-import { openTab } from './shell.js?v=1236a42d';
-import { addFavor } from '../core/affection.js?v=1236a42d';
+import * as CP from '../core/capital.js?v=b7d8e042';
+import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=b7d8e042';
+import { COURSE_BY_ID } from '../config/courses.js?v=b7d8e042';
+import { OUTFITS } from '../config/outfits.js?v=b7d8e042';
+import { IND_BY_ID } from '../config/industries.js?v=b7d8e042';
+import * as S from '../core/secretary.js?v=b7d8e042';
+import * as T from '../core/training.js?v=b7d8e042';
+import { isScouting } from '../core/busy.js?v=b7d8e042'; // V2-08
+import * as O from '../core/outfits.js?v=b7d8e042';
+import * as A from '../core/affection.js?v=b7d8e042';
+import { query } from '../core/ledger.js?v=b7d8e042';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=b7d8e042';
+import { asset } from '../platform/assets.js?v=b7d8e042';
+import { now } from '../core/clock.js?v=b7d8e042';
+import { game } from '../game.js?v=b7d8e042';
+import { h, toast, liveRender } from './dom.js?v=b7d8e042';
+import { openFull, closeTab, goHome } from './shell.js?v=b7d8e042';
+import { switchSecretary, dressUp } from './main-screen.js?v=b7d8e042';
+import { pickSec, renderCourses } from './training.js?v=b7d8e042';
+import { openMall } from './mall.js?v=b7d8e042';
+import { openDate } from './date.js?v=b7d8e042';
+import { createPortrait } from './portrait.js?v=b7d8e042';
+import { bgKeyFor } from './main-screen.js?v=b7d8e042';
+import * as PO from '../core/posts.js?v=b7d8e042';
+import { openTab } from './shell.js?v=b7d8e042';
+import { addFavor } from '../core/affection.js?v=b7d8e042';
 
 const BEST_NAME = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 /** 她现在的职位名：没有返回 '' */
@@ -74,7 +75,7 @@ export function renderSecretaryList(body, ctx) {
         S.ensureSec(s, c.id);
         const post = postOf(s, c.id);
         card.innerHTML = `<div class="sc2-img"><img src="${asset(`assets/sec/${c.id}/${r.outfit}.webp`)}" alt="">
-            ${T.isTraining(s, c.id) ? '<em class="corner l">上课中</em>' : ''}${requesting(s, c.id) ? '<em class="corner r">请示中</em>' : ''}${s.current === c.id ? '<em class="corner b">陪着你</em>' : ''}</div>
+            ${T.isTraining(s, c.id) ? '<em class="corner l">上课中</em>' : isScouting(s, c.id) ? '<em class="corner l">踩点中</em>' : ''}${requesting(s, c.id) ? '<em class="corner r">请示中</em>' : ''}${s.current === c.id ? '<em class="corner b">陪着你</em>' : ''}</div>
           <div class="sc2-name">${c.name}<small>${c.type}</small></div>
           <div class="sc2-hearts"><span class="fav" title="好感">${hearts(S.favorStage(r.favor) + 1)}</span><span class="heart">♥${r.love}</span></div>
           <div class="sc2-post${post ? '' : ' none'}">${post || '没有职位'}</div>`;
@@ -152,7 +153,7 @@ function drawInfo(el, id) {
       <div>认识<b>${S.daysKnown(s, id)} 天</b></div><div>互动<b>${r.rec.talks} 次</b></div><div>约会<b>${r.rec.dates} 次</b></div>
       <div>送她东西<b>${g.n} 件</b></div><div>花了<b>${fmtMoney(g.amount)}</b></div><div>买衣服<b>${r.rec.clothes} 件</b></div>
       <div>职位<b>${post || '没有'}</b></div><div>月薪<b>${fmtMoney(PO.salaryOf(s, id))}</b></div><div>累计工资<b>${fmtMoney(salaryPaid(s, id))}</b></div>${(() => { const w = CP.secWorth(s, id); return w.pct ? `<div>她的身家<b>${fmtMoney(w.total)}</b></div><div>持股 / 期权<b>${(w.pct * 100).toFixed(2)}%</b></div>` : ''; })()}
-      ${r.dateTitle ? '<div>称号<b>心上人</b></div>' : ''}<div>最近约会<b>${r.rec.lastDate ? new Date(r.rec.lastDate).toLocaleDateString('zh-CN') : '还没有'}</b></div>
+      ${r.dateTitle ? '<div>称号<b>心上人</b></div>' : ''}${(() => { const x = s.trip && s.trip.rec && s.trip.rec[id]; return x ? `<div>一起出差<b>${x.n} 次</b></div><div>去过<b>${x.cities.join('、')}</b></div>` : ''; })()}<div>最近约会<b>${r.rec.lastDate ? new Date(r.rec.lastDate).toLocaleDateString('zh-CN') : '还没有'}</b></div>
     </div>
     <div class="sd-places">去过：${places.length ? places.join('、') : '还没一起出去过'}</div>`;
 }
@@ -197,7 +198,7 @@ function drawPost(el, id) {
   const eff = key ? Math.round(PO.efficiency(s, id, key, now()) * 100) : null;
   el.innerHTML = `
     <div class="sum-card">
-      <div><small>职位</small><b>${key ? PO.postName(key) : '总裁秘书'}</b></div>
+      <div><small>职位</small><b>${key ? PO.postName(key) : (game.state.current === id ? '日程秘书' : '总裁秘书')}</b></div>
       <div><small>月薪（另付社保 30%）</small><b>${fmtMoney(sal)}</b></div>
       <div><small>本月为你赚 / 省</small><b class="pos">${gain}</b></div>
       <div><small>累计工资</small><b>${fmtMoney(salaryPaid(s, id))}</b></div>

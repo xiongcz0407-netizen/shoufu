@@ -1,14 +1,17 @@
 // 第 3-09 项：离线补算里的资本部分（股市、基金、上市、要约、集团费用、地标收租和估值）
 // main.js 的 settleAway 按游戏日一段段叫这些（跟在线 ticker 叫的是同一批函数，所以结果一样）；前后各拍一张快照，离开期间对账单里列出来
-import * as SK from './stocks.js?v=1236a42d';
-import * as FD from './funds.js?v=1236a42d';
-import * as LS from './listing.js?v=1236a42d';
-import * as TKO from './takeover.js?v=1236a42d';
-import * as GR from './group.js?v=1236a42d';
-import * as LMK from './landmark.js?v=1236a42d';
-import { recalc } from './assets.js?v=1236a42d';
-import { addMsg } from './inbox.js?v=1236a42d';
-import * as TR from './trade.js?v=1236a42d';
+import * as SK from './stocks.js?v=b7d8e042';
+import * as FD from './funds.js?v=b7d8e042';
+import * as LS from './listing.js?v=b7d8e042';
+import * as TKO from './takeover.js?v=b7d8e042';
+import * as GR from './group.js?v=b7d8e042';
+import * as LMK from './landmark.js?v=b7d8e042';
+import { recalc } from './assets.js?v=b7d8e042';
+import { addMsg } from './inbox.js?v=b7d8e042';
+import * as TR from './trade.js?v=b7d8e042';
+import * as MT from './meeting.js?v=b7d8e042'; // V2-13 每周经营会
+import * as RL from './richlist.js?v=b7d8e042'; // V2-14 财富榜：跨年发榜（只发最近一年的）
+import * as AGD from './agenda.js?v=b7d8e042'; // V3-02 日程表：离线时秘书替你推掉，不扣
 
 const TICK_MS = SK.SCFG.tickSec * 1000;
 const r2 = (v) => Math.round(v * 100) / 100;
@@ -32,6 +35,9 @@ export function capitalTicks(to, ctx = { news: [] }) {
     (s, t) => { if (s.takeover) TKO.tick(s, t); },
     (s, t) => { if (s.group) GR.tick(s, t); },
     (s, t) => { if (s.landmark) LMK.tick(s, t, ctx.rnd); },
+    (s, t) => { MT.tick(s, t, ctx.rnd); },
+    (s, t) => { RL.tick(s, t); },   // V2-14：跨年发榜、首次上榜奖励
+    (s, t) => { AGD.tick(s, t, { offline: true }, ctx.rnd); },   // V3-02   // V2-13：结上周、约这周的会；到点没开按平均分（七折）
   ];
 }
 /** 补算结束：股市大新闻汇总成一条消息 */

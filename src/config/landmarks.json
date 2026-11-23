@@ -40,15 +40,6 @@
   "npcSpan": 0.2
  },
  "approvals": {
-  "odi": {
-   "name": "境外投资核准（发改委 + 商务部 + 外汇登记）",
-   "min": 15,
-   "base": 0.45,
-   "perNetwork": 0.001,
-   "networkMax": 0.3,
-   "rich": 0.15,
-   "_": "房地产、酒店属于限制类，要核准；身价 ≥ 价格 3 倍 +15%，人脉每点 +0.1%（最多 +30%）"
-  },
   "cfius": {
    "name": "美国外资投资委员会审查（CFIUS）",
    "min": 30,
@@ -203,9 +194,7 @@
     "rate": 0.05,
     "name": "差饷（租值 5%）"
    },
-   "approvals": [
-    "odi"
-   ],
+   "approvals": [],
    "deal": "tender"
   },
   {
@@ -224,9 +213,7 @@
     ]
    ],
    "holdTax": null,
-   "approvals": [
-    "odi"
-   ],
+   "approvals": [],
    "deal": "negotiate"
   },
   {
@@ -254,7 +241,6 @@
     "name": "纽约商业物业税"
    },
    "approvals": [
-    "odi",
     "cfius"
    ],
    "deal": "negotiate"
@@ -280,7 +266,6 @@
     "name": "营业房产税（Business Rates）"
    },
    "approvals": [
-    "odi",
     "nsi"
    ],
    "deal": "negotiate"
@@ -310,7 +295,6 @@
     "name": "固定资产税 + 都市计划税"
    },
    "approvals": [
-    "odi",
     "fefta"
    ],
    "deal": "negotiate"
@@ -340,7 +324,6 @@
     "name": "纽约商业物业税"
    },
    "approvals": [
-    "odi",
     "cfius"
    ],
    "deal": "tender"
@@ -447,8 +430,7 @@
     "name": "差饷（租值 5%）"
    },
    "approvals": [],
-   "deal": "tender",
-   "needAccount": true
+   "deal": "tender"
   },
   {
    "id": "landmark_mo",
@@ -471,8 +453,7 @@
     "name": "房屋税（租值 10%）"
    },
    "approvals": [],
-   "deal": "tender",
-   "needAccount": true
+   "deal": "tender"
   },
   {
    "id": "landmark_sg",
@@ -494,9 +475,7 @@
     "rate": 0.1,
     "name": "房产税（年值 10%）"
    },
-   "approvals": [
-    "odi"
-   ],
+   "approvals": [],
    "deal": "tender"
   },
   {
@@ -519,9 +498,7 @@
     "rate": 0.1,
     "name": "房产税（年值 10%）"
    },
-   "approvals": [
-    "odi"
-   ],
+   "approvals": [],
    "deal": "negotiate"
   },
   {
@@ -545,7 +522,6 @@
     "name": "营业房产税（Business Rates）"
    },
    "approvals": [
-    "odi",
     "nsi"
    ],
    "deal": "negotiate"
@@ -570,9 +546,7 @@
     "rate": 0.005,
     "name": "地产税（taxe foncière）"
    },
-   "approvals": [
-    "odi"
-   ],
+   "approvals": [],
    "deal": "negotiate"
   },
   {
@@ -596,7 +570,6 @@
     "name": "纽约商业物业税"
    },
    "approvals": [
-    "odi",
     "cfius"
    ],
    "deal": "negotiate"
@@ -622,7 +595,6 @@
     "name": "内华达物业税"
    },
    "approvals": [
-    "odi",
     "cfius"
    ],
    "deal": "tender"
@@ -643,9 +615,7 @@
     ]
    ],
    "holdTax": null,
-   "approvals": [
-    "odi"
-   ],
+   "approvals": [],
    "deal": "negotiate"
   },
   {
@@ -664,9 +634,7 @@
     ]
    ],
    "holdTax": null,
-   "approvals": [
-    "odi"
-   ],
+   "approvals": [],
    "deal": "negotiate"
   }
  ],
@@ -674,5 +642,5 @@
  "sellRate": 0.95,
  "sellMin": 15,
  "_卖出": "验收阶段三：估值每游戏年按现实 3% × profitMul 涨（按月复利）；卖出 = 估值 × 95%（经纪牵线 15 分钟），钱回公司账户；增值（卖价 − 买价）进企业所得税；有并购贷款的先还清",
- "_p07": "第 P-07 项（设计19 第四节 2）：加 13 家酒店（kind = hotel）。国内的持有按从价（原值 70% × 1.2% ≈ 估值 0.84% / 年）；needAccount = 港澳要先开境外账户（同香港房产）；新葡晶、金纱、贝拉焦只当酒店收租，不做赌场"
+ "_p07": "第 P-07 项（设计19 第四节 2）：加 13 家酒店（kind = hotel）。国内的持有按从价（原值 70% × 1.2% ≈ 估值 0.84% / 年）；港澳原来要先开境外账户（needAccount），设计30 去掉了；新葡晶、金纱、贝拉焦只当酒店收租，不做赌场"
 }

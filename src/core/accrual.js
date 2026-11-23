@@ -1,17 +1,19 @@
 // 权责发生制（验收第六节第 2 次 #1）：工资社保、房租每秒按天数计提成「应付」（流水只记备忘，不动余额），月底再实际付；
 // 增值税 + 附加按本月营收、企业所得税按本季利润估着记应付。公司账户「可用」= 余额 − 应付；身价减掉应付
-import { IND_BY_ID } from '../config/industries.js?v=1236a42d';
-import { monthlyLabor, lookOf, estTotal } from './staff.js?v=1236a42d';
-import { lineK } from './cities.js?v=1236a42d';
-import { vatOf, TAX } from './companytax.js?v=1236a42d';
-import { MONTH_MS, monthIndex } from './gametime.js?v=1236a42d';
-import { post } from './ledger.js?v=1236a42d';
-import { storeOther } from './calib.js?v=1236a42d';
-import * as CT from './companytax.js?v=1236a42d';
+import { IND_BY_ID } from '../config/industries.js?v=b7d8e042';
+import { monthlyLabor, lookOf, estTotal } from './staff.js?v=b7d8e042';
+import { lineK } from './cities.js?v=b7d8e042';
+import { vatOf, TAX } from './companytax.js?v=b7d8e042';
+import { MONTH_MS, monthIndex } from './gametime.js?v=b7d8e042';
+import { post } from './ledger.js?v=b7d8e042';
+import { storeOther } from './calib.js?v=b7d8e042';
+import * as CT from './companytax.js?v=b7d8e042';
 
 const sum = (o) => Object.values(o || {}).reduce((a, b) => a + b, 0);
 export const DAY_MS = MONTH_MS / 30; // 游戏一天
-export function monthlyRent(s) { let r = 0; for (const id of Object.keys(s.inds)) r += (IND_BY_ID[id].rentPerHead ? IND_BY_ID[id].rentPerHead * estTotal(s, id) : IND_BY_ID[id].rent[lookOf(s, id)] * s.inds[id].branches) * lineK(s, id); return r; } // 物流按人头算场地；都乘城市系数 // 物流按人头算场地
+/** V2-08 选址（开发2，core/sites.js 挂进来）：门店房租按铺位的租金系数 */
+let rentHook = () => 1; export const setRentHook = (f) => { rentHook = f; };
+export function monthlyRent(s) { let r = 0; for (const id of Object.keys(s.inds)) r += (IND_BY_ID[id].rentPerHead ? IND_BY_ID[id].rentPerHead * estTotal(s, id) : IND_BY_ID[id].rent[lookOf(s, id)] * s.inds[id].branches * rentHook(s, id)) * lineK(s, id); return r; } // 物流按人头算场地；都乘城市系数 // 物流按人头算场地
 /** 门店其他经营费用（水电物业、营销、杂费；设计21）：每家店按样子 × 城市系数 */
 export function monthlyOpex(s) { let r = 0; for (const id of Object.keys(s.inds)) { const c = IND_BY_ID[id]; if (c.retail) r += storeOther(c, s.inds[id].level) * s.inds[id].branches * lineK(s, id); } return r; }
 const acc = (s) => { const a = (s.accr = s.accr || { labor: 0, rent: 0, other: 0, t: null, posted: 0, day: null }); if (a.other == null) a.other = 0; return a; };
@@ -70,3 +72,5 @@ export function payDividend(s, amount, t) {
   if (amount > Math.floor(available(s)) + 0.5) return { ok: false, why: '超过可用的钱（要留着发工资、交房租和税）' };
   return CT.dividend(s, amount, t);
 }
+/** 注资到公司（个人 → 公司，不交税） */
+export const injectCapital = (s, amount, t) => CT.inject(s, amount, t);

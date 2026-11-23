@@ -28,6 +28,16 @@ INDUSTRIES.push({ id: 'tech', name: '科技', kind: 'product', unlockTitle: 3, i
 // 娱乐传媒（设计20 第二节 4）：kind 'media'：直播按主播人头、投拍是项目（core/media.js）；不开分店；进货成本 50% = 主播分成
 INDUSTRIES.push({ id: 'media', name: '娱乐传媒', kind: 'media', unlockTitle: 3, income: 0, cogs: 0.5, rent: [20000, 200000, 1200000], upCost: 1.5e6, upGrow: 1.15, branchCost: 0, branchGrow: 1, maxBranch: 1,
   looks: [1, 15, 40], img: ['ind_media_1', 'ind_media_2', 'ind_media_3'], lookNames: ['MCN 直播工作室', '影视公司', '传媒集团'] });
+/** V2-12 前置条件（设计31）：needFirst 开第一家 / 解锁要，needBranch 开第 2 家起要。{ line, n }：那条线分店 ≥ n；{ retailTotal }：三种门店合计 ≥ n。称号要求照旧 */
+const NEED = {
+  food: { needBranch: { line: 'store', n: 3 } },
+  fashion: { needFirst: { line: 'store', n: 3 }, needBranch: { line: 'food', n: 3 } },
+  logistics: { needFirst: { retailTotal: 20 } },
+  realestate: { needFirst: { retailTotal: 30 } },
+  tech: { needFirst: { line: 'logistics', n: 5 } },
+  media: { needFirst: { line: 'fashion', n: 10 } },
+};
+for (const x of INDUSTRIES) Object.assign(x, NEED[x.id] || {});
 export const IND_BY_ID = Object.fromEntries(INDUSTRIES.map((x) => [x.id, x]));
 // 分店上限按称号（验收阶段二·节奏）：打工人 5、小老板 12、老板 40、企业家 120（开到几十家要更大的管理体系和资金）
 export const BRANCH_CAP = [5, 12, 40, 120, 120, 120, 120, 120];

@@ -2,10 +2,10 @@
 // 估值、实力跟着变（早动手便宜，拖着贵）；赢它一次 −8%、输一次 +3%；利润每翻一倍多抢一个城市、反击概率 +10%；收购了就不长
 // 状态：s.rivals[id].g = { born, k（现在利润 ÷ 配置利润）, m（算到第几个游戏月）, prev（上个月的 k）, born0（出现时的 k）}
 // 不 import economy / battle（battle、rivalry、equity 都用这里）
-import { RIVALS, RIVAL_BY_ID, RIVAL_GROW as G } from '../config/rivals.js?v=1236a42d';
-import { monthIndex } from './gametime.js?v=1236a42d';
-import { profitMul } from './calib.js?v=1236a42d';
-import { CITY_IDS, cityName } from './cities.js?v=1236a42d';
+import { RIVALS, RIVAL_BY_ID, RIVAL_GROW as G } from '../config/rivals.js?v=b7d8e042';
+import { monthIndex } from './gametime.js?v=b7d8e042';
+import { profitMul } from './calib.js?v=b7d8e042';
+import { CITY_IDS, cityName } from './cities.js?v=b7d8e042';
 
 const rs = (s, id) => { s.rivals = s.rivals || {}; return (s.rivals[id] = s.rivals[id] || { wins: 0, losses: 0, acquired: false, cooldownUntil: 0 }); };
 const gOf = (s, id) => (s.rivals && s.rivals[id] && s.rivals[id].g) || null;
@@ -39,9 +39,10 @@ export const turfLines = (s, r) => turfCities(s, r).map((c) => `${r.name}在${ci
 /** 反击概率加多少（每翻一倍 +10%，最多 +30%） */
 export const counterBonus = (s, id) => Math.min(G.counterMax, doublings(s, id) * G.counterPer);
 /** 商战结果：赢一次它利润 × 0.92，输一次 × 1.03 */
-export function onBattle(s, id, win, t) {
+export function onBattle(s, id, win, t, rounds = null) {
   const r = RIVAL_BY_ID[id]; if (!r || r.noAcquire) return; tickRivalGrow(s, t); const g = gOf(s, id); if (!g) return;
-  g.k *= win ? G.win : G.loss;
+  if (rounds == null) { g.k *= win ? G.win : G.loss; return; }
+  g.k *= (win ? 1 : G.loss) * Math.max(0, 1 - (G.perRound || 0.03) * rounds); // V2-05：每赢一回合 −3%（替代原来赢一次 −8%）；输了照旧 +3%
 }
 /** 每秒 / 离线（core/rivalry.tickRivalry 里叫）：出现的对手每过一个游戏月长一次；翻倍了多开一个城市 → 返回提示 */
 export function tickRivalGrow(s, t) {
