@@ -1,10 +1,10 @@
 // 离开期间账单（第 2-16a 项）：跟合同、交割单一样的纸张样式；公司 / 个人两段；下面是秘书替你做了什么
-import { secWork } from '../core/awaybill.js?v=77f12d68';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=77f12d68';
-import { asset, hasAsset } from '../platform/assets.js?v=77f12d68';
-import { game } from '../game.js?v=77f12d68';
-import { h } from './dom.js?v=77f12d68';
-import { openFull } from './shell.js?v=77f12d68';
+import { secWork } from '../core/awaybill.js?v=b3791cdb';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=b3791cdb';
+import { asset, hasAsset } from '../platform/assets.js?v=b3791cdb';
+import { game } from '../game.js?v=b3791cdb';
+import { h } from './dom.js?v=b3791cdb';
+import { openFull } from './shell.js?v=b3791cdb';
 
 const days = (d) => (d >= 30 ? `${Math.floor(d / 30)} 个月 ${Math.round(d % 30)} 天` : `${Math.max(1, Math.round(d))} 天`);
 const dt = (t) => new Date(t).toLocaleString('zh-CN', { hour12: false, month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -40,6 +40,7 @@ export function showAwayBill(b) {
     ${work.length ? work.map((x) => `<div class="ab-sec">${hasAsset(`assets/sec/${x.id}/${(s.secs[x.id] || {}).outfit}.webp`) ? `<img src="${asset(`assets/sec/${x.id}/${s.secs[x.id].outfit}.webp`)}" alt="">` : ''}<div><b>${x.name}${x.post ? `<small>${x.post}</small>` : ''}</b>
       ${x.cats.filter((c) => c.amount >= 1).map((c) => `<div class="ab-line"><span>${c.dir === 'in' ? '收' : '付'} ${c.name}${c.n > 1 ? ` ×${c.n}` : ''}</span><em class="${c.dir === 'in' ? 'pos' : 'neg'}">${fmtMoney(c.amount)}</em></div>`).join('')}
       ${x.msgs.length ? `<div class="ab-line"><span>交来 ${x.msgs.length} 份：${[...new Set(x.msgs.map((m) => m.title.replace(/[：:].*$/, '')))].slice(0, 3).join('、')}${x.msgs.some((m) => m.open) ? '（有等你批的）' : ''}</span></div>` : ''}</div></div>`).join('') : '<div class="ct-text">这段时间没有秘书替你办事（「公司 → 职位」可以任命店长、财务总监、资产管家）。</div>'}
+    ${b.ups ? `<div class="ct-sec">托管帮你升了</div><div class="ct-text ab-ups">${b.ups.what.replace(/^你不在的时候，/, '')}${(b.ups.fx || []).map((x) => `<br>${x}`).join('')}</div>` : ''}
     <div class="ct-sign"><div>财务章</div><div class="ct-seals">${hasAsset('assets/contract/seal.webp') ? `<img class="ct-seal still" src="${asset('assets/contract/seal.webp')}" alt="">` : '<i class="ct-seal ph still">章</i>'}</div></div>`;
   const scroll = h('div', 'ct-scroll'); scroll.appendChild(box);
   const bar = h('div', 'sd-acts', '<button class="btn gold go">知道了</button>');

@@ -1,41 +1,53 @@
 // 「秘书」页签（设计18 第四节 2）：上面一条培训位、两列卡片（没来的剪影 + 条件）；
 // 秘书详情全屏：上半立绘、下半面板（资料 | 培养 | 衣柜 | 职位工资），底部动作条（互动 · 送礼 · 约会 · 陪着我）
-import * as CP from '../core/capital.js?v=77f12d68';
-import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=77f12d68';
-import { COURSE_BY_ID } from '../config/courses.js?v=77f12d68';
-import { OUTFITS, priceOf } from '../config/outfits.js?v=77f12d68';
-import { IND_BY_ID } from '../config/industries.js?v=77f12d68';
-import * as S from '../core/secretary.js?v=77f12d68';
-import * as T from '../core/training.js?v=77f12d68';
-import { isScouting } from '../core/busy.js?v=77f12d68'; // V2-08
-import * as STY from '../core/styles.js?v=77f12d68'; // 设计36 第 4 条：衣柜写衣服名字 + 款式
-import * as O from '../core/outfits.js?v=77f12d68';
-import * as A from '../core/affection.js?v=77f12d68';
-import { query } from '../core/ledger.js?v=77f12d68';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=77f12d68';
-import { asset } from '../platform/assets.js?v=77f12d68';
-import { now } from '../core/clock.js?v=77f12d68';
-import { game } from '../game.js?v=77f12d68';
-import { h, toast, liveRender } from './dom.js?v=77f12d68';
-import { openFull, closeTab, goHome } from './shell.js?v=77f12d68';
-import { switchSecretary, dressUp } from './main-screen.js?v=77f12d68';
-import { pickSec, renderCourses } from './training.js?v=77f12d68';
-import { openMall } from './mall.js?v=77f12d68';
-import { openDate } from './date.js?v=77f12d68';
-import { createPortrait } from './portrait.js?v=77f12d68';
-import { bgKeyFor } from './main-screen.js?v=77f12d68';
-import * as PO from '../core/posts.js?v=77f12d68';
-import { openTab } from './shell.js?v=77f12d68';
-import { addFavor } from '../core/affection.js?v=77f12d68';
+import * as CP from '../core/capital.js?v=b3791cdb';
+import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=b3791cdb';
+import { COURSE_BY_ID } from '../config/courses.js?v=b3791cdb';
+import { OUTFITS, priceOf } from '../config/outfits.js?v=b3791cdb';
+import { IND_BY_ID } from '../config/industries.js?v=b3791cdb';
+import * as S from '../core/secretary.js?v=b3791cdb';
+import * as T from '../core/training.js?v=b3791cdb';
+import { isScouting } from '../core/busy.js?v=b3791cdb'; // V2-08
+import * as STY from '../core/styles.js?v=b3791cdb'; // 设计36 第 4 条：衣柜写衣服名字 + 款式
+import * as O from '../core/outfits.js?v=b3791cdb';
+import * as A from '../core/affection.js?v=b3791cdb';
+import { query } from '../core/ledger.js?v=b3791cdb';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=b3791cdb';
+import { asset } from '../platform/assets.js?v=b3791cdb';
+import { now } from '../core/clock.js?v=b3791cdb';
+import { game } from '../game.js?v=b3791cdb';
+import { h, toast, liveRender } from './dom.js?v=b3791cdb';
+import { openFull, closeTab, goHome } from './shell.js?v=b3791cdb';
+import { switchSecretary, dressUp } from './main-screen.js?v=b3791cdb';
+import { pickSec, renderCourses } from './training.js?v=b3791cdb';
+import { openMall } from './mall.js?v=b3791cdb';
+import { openDate } from './date.js?v=b3791cdb';
+import { createPortrait } from './portrait.js?v=b3791cdb';
+import { bgKeyFor } from './main-screen.js?v=b3791cdb';
+import * as PO from '../core/posts.js?v=b3791cdb';
+import { openTab } from './shell.js?v=b3791cdb';
+import { addFavor } from '../core/affection.js?v=b3791cdb';
+import { gameDate, dateText } from '../core/gametime.js?v=b3791cdb'; // 送礼明细的日期
+import * as COUP from '../core/coupon.js?v=b3791cdb'; // 设计39 再聊 5 次（开发2）
+import { openWallet } from './coupon.js?v=b3791cdb'; // 设计39 去卡包买互动券（开发2）
 
 const BEST_NAME = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 /** 她现在的职位名：没有返回 '' */
 export function postOf(s, id) { const k = PO.postOfSec(s, id); return k ? PO.postName(k) : ''; }
 const requesting = (s, id) => (s.inbox || []).some((m) => m.kind === 'request' && m.status === 'open' && m.from === id);
-/** 送她东西：礼物 + 衣服（件数、金额，走个人现金的流水） */
-export function giftsTo(s, id) {
+/** 给她花的钱：礼物 + 衣服（财富页「送给秘书的」用，件数、金额） */
+export function spentOn(s, id) {
   const rows = (s.ledger || []).filter((r) => (r.cat === 'gift' || r.cat === 'clothes') && r.dir === 'out' && (r.party === id || (r.note || '').includes(id)));
   return { n: rows.length, amount: rows.reduce((a, r) => a + r.amount, 0) };
+}
+/** 送她的礼物（只算礼物，衣服在衣柜里看）：流水 cat 'gift'、收的人是她，note「送XX」。
+ *  返回 { n 件数, amount 花了, list: [{ name, n }] 按礼物合并、最近送的在前, log: [{ t, name, amount, favor }] 每一次、新的在前 } */
+export function giftsTo(s, id) {
+  const rows = (s.ledger || []).filter((r) => r.cat === 'gift' && r.dir === 'out' && r.party === id).sort((a, b) => b.t - a.t || b.id - a.id);
+  const glog = ((s.secs[id] && s.secs[id].rec && s.secs[id].rec.giftLog) || []).slice();
+  const log = rows.map((r) => { const name = (r.note || '').replace(/^送/, ''); const i = glog.findIndex((x) => x.t === r.t && x.name === name); const g = i >= 0 ? glog.splice(i, 1)[0] : null; return { t: r.t, name, amount: r.amount, favor: g ? g.favor : null, love: g ? g.love : 0 }; });
+  const by = new Map(); for (const x of log) by.set(x.name, (by.get(x.name) || 0) + 1); // Map 按第一次出现排 = 最近送的在前
+  return { n: rows.length, amount: rows.reduce((a, r) => a + r.amount, 0), list: [...by].map(([name, n]) => ({ name, n })), log };
 }
 /** 她领过的工资（第 7 项记「秘书工资」，经手人 / 收款人是她） */
 export const salaryPaid = (s, id) => query(s, { cat: 'sec_salary' }).filter((r) => r.by === id || r.party === id).reduce((a, r) => a + r.amount, 0);
@@ -113,10 +125,17 @@ export function openDetail(id, seg = 'info') {
   const stay = acts.querySelector('.stay');
   const stayText = () => { stay.textContent = game.state.current === id ? '正陪着你' : '陪着我'; stay.disabled = game.state.current === id; };
   stayText();
-  acts.querySelector('.talk').onclick = () => {
+  const talkBtn = acts.querySelector('.talk');
+  // 设计39：10 次用完，按钮变成「用互动券 +5 次（还有 N 张）」/ 没券「去卡包买互动券」（每人每天最多用 3 张）；用满写「今天聊够了 / 明天再来」
+  const talkText = () => { const s = game.state; const t = now(); const n = A.talksLeft(s, id, t); const why = n ? null : COUP.whyTalks(s, id, t); const IT = COUP.ITEMS.talk; const buy = !n && why === '没有互动券'; const use = !n && !why;
+    talkBtn.innerHTML = n ? `互动<small>今天还能 ${n} 次</small>` : use ? `再聊 ${IT.n} 次<small>用 1 张互动券（还有 ${COUP.have(s, 'talk')} 张）</small>` : buy ? `再聊 ${IT.n} 次<small>去卡包买互动券</small>` : '今天聊够了<small>明天再来</small>';
+    talkBtn.disabled = !n && !use && !buy; talkBtn.classList.add('two'); talkBtn.classList.toggle('gold', use || buy); };
+  talkText(); const offTalk = game.onChange(() => { if (!document.body.contains(talkBtn)) { offTalk && offTalk(); return; } talkText(); });
+  talkBtn.onclick = () => {
+    if (!A.talksLeft(game.state, id, now())) { if (!COUP.have(game.state, 'talk')) { openWallet({ focus: 'talk', back: talkText }); return; } const r = COUP.useTalk(game.state, id, now()); toast(r.ok ? `今天能跟${SEC_BY_ID[id].name}再聊 ${r.n} 次` : r.why); game.changed(); game.save(); talkText(); return; }
     const res = A.tapSec(game.state, id, now());
     portrait.bounce(); bubble(res.line);
-    floatUp(hero, res.favor && res.favor.to > res.favor.from ? `好感 +${res.favor.to - res.favor.from}` : '今天涨好感的次数用完了');
+    floatUp(hero, res.favor && res.favor.to > res.favor.from ? `好感 +${res.favor.to - res.favor.from}` : '今天聊够了，明天再来');
     if (res.favor && res.favor.stageUp) game.emit('favorUp', id, res.favor);
     game.changed(); game.save();
   };
@@ -138,11 +157,16 @@ function drawInfo(el, id) {
     <div class="sd-rec-title">她的记录</div>
     <div class="sd-rec">
       <div>认识<b>${S.daysKnown(s, id)} 天</b></div><div>互动<b>${r.rec.talks} 次</b></div><div>约会<b>${r.rec.dates} 次</b></div>
-      <div>送她东西<b>${g.n} 件</b></div><div>花了<b>${fmtMoney(g.amount)}</b></div><div>买衣服<b>${r.rec.clothes} 件</b></div>
+      <div class="sd-gift-n ${g.n ? 'tap' : ''}">送她礼物<b>${g.n} 件${g.n ? ' ›' : ''}</b></div><div>花了<b>${fmtMoney(g.amount)}</b></div><div>买衣服<b>${r.rec.clothes} 件</b></div>
       <div>职位<b>${post || '没有'}</b></div><div>月薪<b>${fmtMoney(PO.salaryOf(s, id))}</b></div><div>累计工资<b>${fmtMoney(salaryPaid(s, id))}</b></div>${(() => { const w = CP.secWorth(s, id); return w.pct ? `<div>她的身家<b>${fmtMoney(w.total)}</b></div><div>持股 / 期权<b>${(w.pct * 100).toFixed(2)}%</b></div>` : ''; })()}
       ${r.dateTitle ? '<div>称号<b>心上人</b></div>' : ''}${(() => { const x = s.trip && s.trip.rec && s.trip.rec[id]; return x ? `<div>一起出差<b>${x.n} 次</b></div><div>去过<b>${x.cities.join('、')}</b></div>` : ''; })()}<div>最近约会<b>${r.rec.lastDate ? new Date(r.rec.lastDate).toLocaleDateString('zh-CN') : '还没有'}</b></div>
     </div>
+    <div class="sd-rec-title">送过的礼物</div>
+    <div class="sd-gifts">${g.list.length ? g.list.map((x) => `<span>${x.name}${x.n > 1 ? ` ×${x.n}` : ''}</span>`).join('') : '<em>还没送过礼物</em>'}</div>
+    <div class="sd-gift-log" hidden>${g.log.map((x) => `<div><span>${x.name}</span><small>${dateText(gameDate(s, x.t))}</small><b>${x.favor != null ? `好感 +${x.favor}${x.love ? `　♥ +${x.love}` : ''}` : '—'}</b></div>`).join('')}</div>
     <div class="sd-places">去过：${places.length ? places.join('、') : '还没一起出去过'}</div>`;
+  const tap = el.querySelector('.sd-gift-n.tap'); const lg = el.querySelector('.sd-gift-log');
+  if (tap) tap.onclick = () => { lg.hidden = !lg.hidden; tap.classList.toggle('on', !lg.hidden); };
 }
 
 function drawTrain(el, id) {

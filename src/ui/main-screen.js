@@ -1,18 +1,18 @@
 // 主界面：背景（跟称号换）、顶部条、立绘、台词气泡、底部 5 个按钮
-import { asset, hasAsset } from '../platform/assets.js?v=77f12d68';
-import { onTap } from '../platform/input.js?v=77f12d68';
-import { TITLES } from '../config/titles.js?v=77f12d68';
-import { SEC_BY_ID } from '../config/secretaries.js?v=77f12d68';
-import { fmtMoney, fmtNum } from '../core/format.js?v=77f12d68';
-import { gameDate, dateText } from '../core/gametime.js?v=77f12d68';
-import * as PK from '../core/pick.js?v=77f12d68'; // V2-03 进货挑品
-import { bell as bellOf } from '../core/inbox.js?v=77f12d68';
-import { now as nowFn } from '../core/clock.js?v=77f12d68';
-import { game } from '../game.js?v=77f12d68';
-import { h, openPanel, toast } from './dom.js?v=77f12d68';
-import { createPortrait } from './portrait.js?v=77f12d68';
-import { audio } from '../platform/audio.js?v=77f12d68';
-import { voiceFile } from '../config/lines.js?v=77f12d68';
+import { asset, hasAsset } from '../platform/assets.js?v=b3791cdb';
+import { onTap } from '../platform/input.js?v=b3791cdb';
+import { TITLES } from '../config/titles.js?v=b3791cdb';
+import { SEC_BY_ID } from '../config/secretaries.js?v=b3791cdb';
+import { fmtMoney, fmtNum } from '../core/format.js?v=b3791cdb';
+import { gameDate, dateText } from '../core/gametime.js?v=b3791cdb';
+import * as PK from '../core/pick.js?v=b3791cdb'; // V2-03 进货挑品
+import { bell as bellOf } from '../core/inbox.js?v=b3791cdb';
+import { now as nowFn } from '../core/clock.js?v=b3791cdb';
+import { game } from '../game.js?v=b3791cdb';
+import { h, openPanel, toast } from './dom.js?v=b3791cdb';
+import { createPortrait } from './portrait.js?v=b3791cdb';
+import { audio } from '../platform/audio.js?v=b3791cdb';
+import { voiceFile } from '../config/lines.js?v=b3791cdb';
 
 export const NAV = [
   { key: 'industry', name: '产业', icon: 'icon_industry' },
@@ -52,6 +52,8 @@ export const setTodoProvider = (fn) => { todoProvider = fn; };
 // 首页浮动按钮：左边签到、限时；右边商场、约会、衣柜（设计18 第三节）
 const FLOATS = [
   { key: 'daily', side: 'l', name: '签到', icon: 'icon_checkin' },
+  { key: 'routine', side: 'l', name: '今日日常', icon: 'icon_routine' }, // 设计39 第六节（开发2，ui/routine.js）
+  { key: 'wallet', side: 'l', name: '卡包', icon: 'icon_wallet' }, // 设计39 第五之二节 卡包（开发2，ui/coupon.js openWallet）
   { key: 'limited', side: 'l', name: '限时', icon: 'icon_invite' },
   { key: 'agenda', side: 'l', name: '日程', icon: 'icon_agenda' }, // V3-02 日程表（开发2，ui/agenda.js）：小老板起显示，红点 = 待定或现在能去的 // V2-04：只在打工人、小老板显示（main.js 的 floatState）
   { key: 'mall', side: 'r', name: '商场', icon: 'icon_mall' },

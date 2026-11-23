@@ -1,6 +1,6 @@
 // 新手引导：开场几句 + 每个功能第一次打开时的一句提示（只出一次，记在存档 flags.hints）
-import { game } from '../game.js?v=77f12d68';
-import { h, openPanel } from './dom.js?v=77f12d68';
+import { game } from '../game.js?v=b3791cdb';
+import { h, openPanel } from './dom.js?v=b3791cdb';
 
 export const HINTS = {
   start: '点底部「公司」，升级便利店多赚钱。',

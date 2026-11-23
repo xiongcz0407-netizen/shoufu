@@ -2,20 +2,20 @@
 // 穿戴：上展示戴着的表、穿着的西装；下两格「表柜 / 衣帽间」，点一件 → 详情（戴上 / 穿上、卖回、发票）
 // 表行 / 定制店：按品牌分段，顶上写这个品牌的累计消费、配货额度（变差 / 拉黑的可以让商务总监去求情）
 // 名包：在商场按秘书分页，买了直接送她（喜欢的牌子 ♥），走个人现金、出发票
-import * as LX from '../core/luxury.js?v=77f12d68';
-import * as INB from '../core/inbox.js?v=77f12d68';
-import { SEC_BY_ID } from '../config/secretaries.js?v=77f12d68';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=77f12d68';
-import { asset, hasAsset } from '../platform/assets.js?v=77f12d68';
-import { game } from '../game.js?v=77f12d68';
-import { now } from '../core/clock.js?v=77f12d68';
-import { h, openPanel, toast, liveRender } from './dom.js?v=77f12d68';
-import { openFull } from './shell.js?v=77f12d68';
-import { openContract } from './contract.js?v=77f12d68';
-import { nextContractNo } from '../core/contracts.js?v=77f12d68';
-import { say } from './main-screen.js?v=77f12d68';
-import * as A from '../core/affection.js?v=77f12d68';
-import * as BI from './brandinv.js?v=77f12d68'; // 设计35 第九节 品牌邀请不过期
+import * as LX from '../core/luxury.js?v=b3791cdb';
+import * as INB from '../core/inbox.js?v=b3791cdb';
+import { SEC_BY_ID } from '../config/secretaries.js?v=b3791cdb';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=b3791cdb';
+import { asset, hasAsset } from '../platform/assets.js?v=b3791cdb';
+import { game } from '../game.js?v=b3791cdb';
+import { now } from '../core/clock.js?v=b3791cdb';
+import { h, openPanel, toast, liveRender } from './dom.js?v=b3791cdb';
+import { openFull } from './shell.js?v=b3791cdb';
+import { openContract } from './contract.js?v=b3791cdb';
+import { nextContractNo } from '../core/contracts.js?v=b3791cdb';
+import { say } from './main-screen.js?v=b3791cdb';
+import * as A from '../core/affection.js?v=b3791cdb';
+import * as BI from './brandinv.js?v=b3791cdb'; // 设计35 第九节 品牌邀请不过期
 
 const imgOf = (x) => `assets/${x.kind}/${x.img || x.id}.webp`;
 const pic = (x, cls = 'as-img') => (hasAsset(imgOf(x)) ? `<img class="${cls}" src="${asset(imgOf(x))}" alt="">` : `<div class="${cls} as-ph">${x.brand}<small>${x.model}</small></div>`);
@@ -158,7 +158,7 @@ function giveFlow(x, secId, queued, done) {
   const r = queued ? LX.buyQueued(s, x.id, now(), secId) : LX.giveBag(s, x.id, secId, now());
   if (!r.ok) { toast(r.why); return; }
   say(secId, r.liked ? `${x.brand}……你怎么知道我喜欢这个？` : `${x.model}？……谢谢老板。`, 3600, 'happy');
-  toast(`${c.name} 好感 +${r.favor.to - r.favor.from}${r.love.to > r.love.from ? `　♥ +${r.love.to - r.love.from}` : ''}　（${r.invoice.no} 已收进档案柜）`, 2600, { top: true });
+  toast(`${c.name} 好感 +${r.favor.to - r.favor.from}${r.love.to > r.love.from ? `　♥ +${r.love.to - r.love.from}` : ''}`, 2600, { top: true });
   if (r.favor.stageUp) game.emit('favorUp', secId, r.favor);
   if (r.love.stageUp) game.emit('loveUp', secId, r.love);
   game.changed(); game.save(); done && done();

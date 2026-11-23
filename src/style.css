@@ -361,6 +361,7 @@ body.story-open .portrait, body.story-open .bubble { visibility: hidden; }
 .floats.l { left: 8px; } .floats.r { right: 8px; }
 .float { position: relative; width: 52px; display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; color: var(--paper); font-size: 11px; text-shadow: 0 1px 3px #000; }
 .float img, .fl-ph { width: 46px; height: 46px; border-radius: 23px; }
+.float span { white-space: nowrap; }  /* 「今日日常」四个字不折行 */
 .fl-ph { display: flex; align-items: center; justify-content: center; background: rgba(20,28,44,.75); border: 1px solid rgba(232,194,122,.6); color: var(--gold); font-style: normal; font-size: 12px; }
 .swipe-hint { position: absolute; left: 0; right: 0; bottom: calc(var(--safe-b) + 116px); z-index: 3; text-align: center; font-size: 11px; opacity: .45; pointer-events: none; }
 .bubble { bottom: calc(var(--safe-b) + 128px); }
@@ -872,3 +873,109 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 .ng-chips .btn.on:disabled { opacity: 1; color: var(--paper); }
 .cloth.on::after, .sw-card.on::after, .tm.on::after, .tm-pick.on::after, .pick.on::after, .tr-course.ch.on::after, .tr-course.ad-ch.on::after, .tp-sec.on::after, .ng-chips .btn.on::after { content: '✓'; position: absolute; top: 4px; right: 5px; width: 18px; height: 18px; border-radius: 9px; background: #e8c27a; color: #2a1d08; font-size: 12px; font-weight: 900; line-height: 18px; text-align: center; z-index: 2; pointer-events: none; }
 .cloth-st { white-space: nowrap; display: inline-block; line-height: 1.5; } /* 设计36 第 4 条：款式标签不折行 */
+/* 设计37 第一节：游戏样式的确认框 / 输入框（ui/confirm.js） */
+.cf-mask { position: absolute; inset: 0; z-index: 95; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0, 0, 0, 0); transition: background .15s; }
+.cf-mask.open { background: rgba(0, 0, 0, .6); }
+.cf-box { width: 100%; max-width: 330px; background: linear-gradient(180deg, #1c2538, #121a28); border: 1.5px solid var(--gold); border-radius: 14px; padding: 16px 16px 14px; color: var(--paper); box-shadow: 0 10px 30px rgba(0, 0, 0, .55); transform: scale(.94); opacity: 0; transition: transform .15s, opacity .15s; }
+.cf-mask.open .cf-box { transform: none; opacity: 1; }
+.cf-title { color: var(--gold); font-weight: 800; font-size: 16px; margin-bottom: 8px; text-align: center; }
+.cf-text { font-size: 14px; line-height: 1.6; }
+.cf-btns { display: flex; gap: 10px; margin-top: 14px; }
+.cf-btns .btn { flex: 1; padding: 9px 0; }
+.cf-danger { background: linear-gradient(180deg, #d9534f, #a8322e); color: #fff; border-color: transparent; font-weight: 800; }
+.cf-field { display: block; margin-top: 8px; font-size: 13px; } .cf-field span { display: block; margin-bottom: 4px; opacity: .8; }
+.cf-field input { width: 100%; box-sizing: border-box; padding: 8px 10px; border-radius: 8px; border: 1px solid #34425c; background: #0e1420; color: var(--paper); font-size: 15px; }
+/* 设计37 第三节：升级框（ui/upgradebox.js） */
+.ub-mask { position: absolute; inset: 0; z-index: 96; display: flex; align-items: center; justify-content: center; padding: 22px; background: rgba(0, 0, 0, 0); transition: background .16s; }
+.ub-mask.open { background: rgba(0, 0, 0, .62); }
+.ub-box { position: relative; width: 100%; max-width: 340px; max-height: 80%; overflow-y: auto; background: linear-gradient(180deg, #1f2a40, #121a28); border: 1.5px solid var(--gold); border-radius: 14px; padding: 26px 16px 14px; color: var(--paper); box-shadow: 0 0 24px rgba(240, 201, 106, .35), 0 10px 30px rgba(0, 0, 0, .55); transform: scale(.9); opacity: 0; transition: transform .18s, opacity .18s; }
+.ub-mask.open .ub-box { transform: none; opacity: 1; }
+.ub-box.big { max-width: 370px; } /* V0.2.5 换样子大一号（开发1） */
+.ub-glow { position: absolute; left: 50%; top: -40px; width: 220px; height: 90px; margin-left: -110px; background: radial-gradient(ellipse at center, rgba(255, 220, 130, .75), rgba(255, 200, 90, .15) 55%, transparent 70%); pointer-events: none; animation: ubGlow 1.6s ease-in-out infinite alternate; }
+@keyframes ubGlow { from { opacity: .6; transform: scaleX(.9); } to { opacity: 1; transform: scaleX(1.1); } }
+.ub-title { position: relative; text-align: center; font-size: 22px; font-weight: 900; letter-spacing: 4px; color: #ffe08a; text-shadow: 0 0 10px rgba(255, 210, 110, .8); margin-bottom: 8px; }
+.ub-what { text-align: center; font-size: 15px; font-weight: 800; color: var(--gold); margin-bottom: 8px; line-height: 1.5; }
+.ub-sub { font-size: 12px; opacity: .7; margin: 6px 0 4px; }
+.ub-gains { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+.ub-gains li { display: flex; justify-content: space-between; gap: 8px; padding: 5px 0; border-bottom: 1px solid rgba(255, 255, 255, .07); line-height: 1.4; }
+.ub-gains li b { white-space: nowrap; color: #9fe3a6; font-weight: 700; } .ub-gains li b i { font-style: normal; color: var(--gold); }
+.ub-gains li.ub-off { opacity: .6; } .ub-gains li.ub-off em { font-style: normal; color: var(--gold); }
+.ub-line { margin-top: 10px; font-size: 13px; line-height: 1.5; background: rgba(255, 255, 255, .05); border-radius: 8px; padding: 6px 8px; } .ub-line b { color: var(--gold); margin-right: 4px; }
+.ub-next { margin-top: 10px; font-size: 13px; color: #f6d67a; }
+.ub-ok { display: block; width: 100%; margin-top: 14px; padding: 10px 0; font-size: 16px; }
+/* 培养页属性旁的「?」表 */
+.tr-attrs .tr-q { display: inline-block; width: 18px; height: 18px; line-height: 16px; margin-left: 3px; border-radius: 9px; border: 1px solid var(--gold); color: var(--gold); background: none; font-size: 11px; padding: 0; text-align: center; vertical-align: 1px; }
+.tr-attrs .tr-q.on { background: var(--gold); color: #2a1d08; }
+.tr-fx { margin: 6px 0 8px; background: #121a28; border: 1px solid #2c3a56; border-radius: 10px; padding: 6px 10px; font-size: 12px; }
+.tr-fx .tr-fx-t { color: var(--gold); font-weight: 800; margin-bottom: 4px; }
+.tr-fx div.r { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px solid rgba(255, 255, 255, .05); } .tr-fx div.r b { white-space: nowrap; color: #9fe3a6; } .tr-fx div.r.off { opacity: .6; } .tr-fx div.r.off em { font-style: normal; color: var(--gold); }
+/* 秘书详情「送过的礼物」 */
+.sd-gifts { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; font-size: 13px; }
+.sd-gifts span { padding: 3px 9px; border-radius: 12px; background: #1a2438; border: 1px solid #2c3a56; }
+.sd-gifts em { font-style: normal; opacity: .6; }
+.sd-gift-n.tap { cursor: pointer; } .sd-gift-n.tap b { color: var(--gold); } .sd-gift-n.on { border-color: var(--gold); }
+.sd-gift-log { margin: 0 0 8px; background: #121a28; border: 1px solid #2c3a56; border-radius: 10px; padding: 4px 10px; font-size: 12px; max-height: 220px; overflow-y: auto; }
+.sd-gift-log div { display: flex; gap: 8px; align-items: baseline; padding: 4px 0; border-bottom: 1px solid rgba(255, 255, 255, .05); }
+.sd-gift-log span { flex: 1; } .sd-gift-log small { opacity: .6; } .sd-gift-log b { color: #9fe3a6; font-weight: 700; white-space: nowrap; }
+/* 设计39 金券（开发2） */
+.tb-coupon { border: 1px solid rgba(232, 194, 122, .5); background: rgba(0, 0, 0, .25); color: var(--paper); border-radius: 10px; padding: 1px 8px; font-size: 12px; } .tb-coupon b { color: #f6d67a; }
+.cp-page { padding: 10px 12px 20px; }
+.cp-top { display: flex; gap: 8px; margin-bottom: 8px; } .cp-top > div { flex: 1; background: #1a2438; border: 1px solid #2c3a56; border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; }
+.cp-top span { font-size: 12px; opacity: .8; } .cp-top b { font-size: 22px; color: #f6d67a; } .cp-top .btn { margin-top: 2px; }
+.cp-list > div, .cp-shop > div, .cp-log > div { display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 7px 10px; background: #1a2438; border: 1px solid #2c3a56; border-radius: 10px; margin-bottom: 6px; font-size: 13px; }
+.cp-list b { color: #f6d67a; font-weight: 700; text-align: right; } .cp-list em { font-style: normal; font-size: 11px; color: #ff9b8a; margin-left: 6px; white-space: nowrap; }
+.cp-list .cp-now { border-color: var(--gold); }
+.cp-shop span { flex: 1; } .cp-shop span small { display: block; opacity: .7; font-size: 11px; } .cp-shop .btn { flex: none; min-width: 84px; } .cp-shop .btn small { display: block; font-size: 10px; opacity: .8; }
+.cp-shop .tabs { margin-top: 4px; flex-wrap: wrap; } .cp-2 { display: flex; flex-direction: column; gap: 4px; }
+.cp-log > div { font-size: 12px; } .cp-log span { flex: 1; } .cp-log small { opacity: .6; } .cp-log b { min-width: 34px; text-align: right; } .cp-log b.pos { color: #8fe08f; } .cp-log b.neg { color: #ff8a7a; }
+.cp-pot small { display: block; font-size: 10px; opacity: .8; }
+.biz-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; margin-bottom: 8px; background: #1a2438; border: 1px solid #2c3a56; border-radius: 10px; font-size: 13px; }
+.biz-head b { color: #f6d67a; } .biz-head .btn small { display: block; font-size: 10px; opacity: .8; }
+/* 设计39 今日日常 */
+.rt-list { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.rt-row { display: flex; align-items: center; gap: 8px; text-align: left; background: #1a2438; border: 1px solid #2c3a56; border-radius: 10px; padding: 9px 10px; color: var(--paper); font-size: 14px; }
+.rt-row span { flex: none; min-width: 72px; font-weight: 700; } .rt-row b { flex: 1; font-weight: 400; font-size: 12px; color: #f6d67a; } .rt-row i { font-style: normal; opacity: .6; }
+.rt-row.done { opacity: .5; } .rt-row.done b { color: inherit; text-decoration: line-through; }
+.cp-auto-box { display: flex; align-items: center; gap: 6px; margin: 6px 0; padding: 7px 10px; background: #1a2438; border: 1px solid #2c3a56; border-radius: 10px; font-size: 13px; }
+.cp-auto-box span { flex: 1; } .cp-auto-box span small { display: block; font-size: 11px; opacity: .7; } .cp-auto-box b { color: #f6d67a; }
+.cp-auto-box .btn small, .cp-buy-tk small, .sd-acts .talk small { display: block; font-size: 10px; opacity: .85; }
+.cp-top small { font-size: 11px; opacity: .7; }
+.bt-tk { float: right; margin-left: 8px; }
+/* 设计39 券：买 1 / 10 / 50 张、我的券、约会券（开发2） */
+.cp-packs { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; justify-content: flex-end; } .cp-packs em { font-style: normal; font-size: 11px; opacity: .8; margin-right: 2px; width: 100%; text-align: right; }
+.cp-packs .btn { min-width: 0; padding: 4px 8px; } .cp-packs .btn small { display: block; font-size: 10px; opacity: .85; }
+.cp-shop > div { flex-wrap: wrap; } .cp-shop .cp-packs .btn { min-width: 58px; }
+.cp-mine { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px; } .cp-mine > div { background: #1a2438; border: 1px solid #2c3a56; border-radius: 10px; padding: 6px 8px; display: flex; justify-content: space-between; font-size: 12px; } .cp-mine b { color: #f6d67a; }
+.cp-date { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 7px 10px; margin: 6px 0; background: #2a2236; border: 1px solid var(--gold); border-radius: 10px; font-size: 13px; } .cp-date small { display: block; width: 100%; font-size: 11px; opacity: .75; } .cp-date.off { border-color: #3a3a4a; opacity: .8; } .cp-date .cp-packs { width: 100%; }
+.biz-head .cp-packs { max-width: 62%; } .bt-tk .cp-packs { max-width: 200px; }
+.cp-list > div > span { flex: none; white-space: nowrap; }
+/* 金券页券商店：名字一行，1 / 5 / 10 三个按钮下面一行平铺（Arvin 定，不要上下格子） */
+.cp-flat > div { flex-direction: column; align-items: stretch; gap: 6px; } .cp-flat > div > span { flex: none; }
+.cp-flat .cp-packs { display: flex; flex-wrap: nowrap; gap: 6px; width: 100%; } .cp-flat .cp-packs .btn { flex: 1; min-width: 0; padding: 6px 4px; }
+.cp-packs { flex-wrap: nowrap; } .cp-packs em { width: auto; }
+.cp-packs .btn { white-space: nowrap; }
+.cp-auto-box, .biz-head { flex-wrap: wrap; } .cp-auto-box .cp-packs, .biz-head .cp-packs { width: 100%; max-width: none; } .cp-auto-box .cp-packs .btn, .biz-head .cp-packs .btn, .cp-date .cp-packs .btn { flex: 1; }
+.bt-tk .cp-packs { flex-wrap: wrap; max-width: 190px; } .bt-tk .cp-packs em { width: 100%; }
+.cp-auto-box .cp-packs { flex: 1 1 100%; } .cp-auto-box .cp-packs em { margin-right: auto; }
+/* 设计39 第五之二节 卡包（开发2）：全屏放在抽屉上面；每格 1 / 10 / 50 张 + 去用一行平铺 */
+.full.wallet { z-index: 75; } .full.wallet ~ .panel-mask { z-index: 78; }
+.wallet .page-head span .btn { padding: 4px 12px; }
+.cp-top { align-items: center; } .cp-top > .btn { flex: none; } .cp-top > .btn em { font-style: normal; color: #ff9b8a; font-size: 11px; }
+.cp-cards { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+.cp-card { background: #1a2438; border: 1px solid #2c3a56; border-radius: 12px; padding: 8px 10px; transition: border-color .3s, box-shadow .3s; } .cp-card > small { display: block; font-size: 11px; opacity: .7; margin: 2px 0 6px; }
+.cp-card-h { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; } .cp-card-h b { font-size: 20px; color: #f6d67a; } .cp-card-h b small { font-size: 12px; opacity: .7; }
+.cp-card-b { display: flex; gap: 6px; } .cp-card-b .btn { flex: 1; min-width: 0; padding: 5px 2px; white-space: nowrap; } .cp-card-b .btn small { display: block; font-size: 10px; opacity: .85; } .cp-card-b .cp-use { flex: 0.85; }
+.cp-card.cp-flash { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold), 0 0 16px rgba(246, 214, 122, .55); }
+.cp-go small { display: block; font-size: 10px; opacity: .75; } .cp-date .cp-go { margin-left: auto; }
+.cp-line { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 10px; margin-bottom: 6px; background: #1a2438; border: 1px solid #2c3a56; border-radius: 10px; } .cp-line small { display: block; font-size: 11px; opacity: .7; }
+/* 设计39 第七节 图标（开发2） */
+.tb-cp-ic { width: 16px; height: 16px; object-fit: contain; vertical-align: -3px; }
+.cp-bal { flex-direction: row !important; align-items: center; gap: 8px !important; } .cp-bal-ic { width: 34px; height: 34px; object-fit: contain; } .cp-bal span { flex: 1; }
+.cp-card-ic { width: 28px; height: 28px; object-fit: contain; vertical-align: middle; margin-right: 6px; } .cp-card-h span { display: inline-flex; align-items: center; }
+.cp-mini { width: 11px; height: 11px; object-fit: contain; vertical-align: -1px; margin-right: 2px; }
+.rt-ic { width: 20px; height: 20px; object-fit: contain; vertical-align: middle; margin-right: 6px; } .rt-head-ic { width: 22px; height: 22px; object-fit: contain; vertical-align: -5px; margin-right: 6px; }
+.rt-coupon { display: flex; flex-direction: column; align-items: stretch; gap: 4px; } .rt-cp-list { display: flex; justify-content: space-between; } .rt-cp-list i { font-style: normal; display: inline-flex; align-items: center; } .rt-cp-list .rt-ic { width: 18px; height: 18px; margin-right: 2px; }
+.cp-auto-box.cp-flash, .cp-line.cp-flash { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold), 0 0 16px rgba(246, 214, 122, .55); transition: border-color .3s, box-shadow .3s; }
+.rt-cp-list i { flex-direction: column; gap: 2px; flex: 1; } .rt-cp-list .rt-ic { width: 24px; height: 24px; margin: 0; } .rt-cp-list em { font-style: normal; font-size: 11px; white-space: nowrap; opacity: .9; }
+/* 设计39：精力不够时的药水条（设计接手开发1） */
+.cp-pot-wrap { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 0; padding: 8px 10px; border: 1px solid rgba(232, 194, 122, .35); border-radius: 10px; background: rgba(232, 194, 122, .08); font-size: 13px; color: var(--paper); }

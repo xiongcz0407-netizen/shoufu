@@ -1,13 +1,13 @@
 // 送礼（商场「礼物」分段、秘书详情「送礼」直达）：36 件按 4 档分，她最喜欢的 3 样排前面带 ♥；走个人现金、出发票
-import { GIFTS, GIFT_TIERS } from '../config/gifts.js?v=77f12d68';
-import { SEC_BY_ID } from '../config/secretaries.js?v=77f12d68';
-import * as A from '../core/affection.js?v=77f12d68';
-import { fmtMoney } from '../core/format.js?v=77f12d68';
-import { asset, hasAsset } from '../platform/assets.js?v=77f12d68';
-import { now } from '../core/clock.js?v=77f12d68';
-import { game } from '../game.js?v=77f12d68';
-import { h, openPanel, toast } from './dom.js?v=77f12d68';
-import { say } from './main-screen.js?v=77f12d68';
+import { GIFTS, GIFT_TIERS } from '../config/gifts.js?v=b3791cdb';
+import { SEC_BY_ID } from '../config/secretaries.js?v=b3791cdb';
+import * as A from '../core/affection.js?v=b3791cdb';
+import { fmtMoney } from '../core/format.js?v=b3791cdb';
+import { asset, hasAsset } from '../platform/assets.js?v=b3791cdb';
+import { now } from '../core/clock.js?v=b3791cdb';
+import { game } from '../game.js?v=b3791cdb';
+import { h, openPanel, toast } from './dom.js?v=b3791cdb';
+import { say } from './main-screen.js?v=b3791cdb';
 
 let lastTier = 0; // 0 = 她喜欢的
 export function openGift(secId, host) {
@@ -31,7 +31,7 @@ export function openGift(secId, host) {
         if (!r.ok) { toast(r.why); return; }
         if (!host) p.close();
         say(secId, r.line, 3600, 'happy');
-        toast(`${c.name} 好感 +${r.favor.to - r.favor.from}${r.love.to > r.love.from ? `　♥ +${r.love.to - r.love.from}` : ''}　（${r.invoice.no} 已收进档案柜）`, 2600, { top: true });
+        toast(`${c.name} 好感 +${r.favor.to - r.favor.from}${r.love.to > r.love.from ? `　♥ +${r.love.to - r.love.from}` : ''}`, 2600, { top: true });
         if (r.favor.stageUp) game.emit('favorUp', secId, r.favor);
         if (r.love.stageUp) game.emit('loveUp', secId, r.love);
         game.changed(); game.save(); render();

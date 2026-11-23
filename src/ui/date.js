@@ -1,16 +1,18 @@
 // 约会：选地点 → 开车去 → 约会画面（背景、她的台词、加了多少）→ 次数解锁
-import { SEC_BY_ID } from '../config/secretaries.js?v=77f12d68';
-import { DATE_PLACES, DATES_PER_DAY, DATE5_LINES, DATE50_TITLE, RARE_NARR, RARE_REACT, ROOFTOP_LINES } from '../config/dates.js?v=77f12d68';
-import * as LMK from '../core/landmark.js?v=77f12d68';
-import { FIRST_DATE_LINES, DATE50_LINES } from '../config/love-stories.js?v=77f12d68';
-import { LINES } from '../config/lines.js?v=77f12d68';
-import * as D from '../core/dates.js?v=77f12d68';
-import { fmtMoney } from '../core/format.js?v=77f12d68';
-import { now } from '../core/clock.js?v=77f12d68';
-import { asset, hasAsset } from '../platform/assets.js?v=77f12d68';
-import { game } from '../game.js?v=77f12d68';
-import { h, openPanel, toast } from './dom.js?v=77f12d68';
-import { playStory } from './story.js?v=77f12d68';
+import * as MG from '../core/manage.js?v=b3791cdb'; // 设计39 约会花精力
+import { SEC_BY_ID } from '../config/secretaries.js?v=b3791cdb';
+import { DATE_PLACES, DATES_PER_DAY, DATE5_LINES, DATE50_TITLE, RARE_NARR, RARE_REACT, ROOFTOP_LINES } from '../config/dates.js?v=b3791cdb';
+import * as LMK from '../core/landmark.js?v=b3791cdb';
+import { FIRST_DATE_LINES, DATE50_LINES } from '../config/love-stories.js?v=b3791cdb';
+import { LINES } from '../config/lines.js?v=b3791cdb';
+import * as D from '../core/dates.js?v=b3791cdb';
+import { fmtMoney } from '../core/format.js?v=b3791cdb';
+import { now } from '../core/clock.js?v=b3791cdb';
+import { asset, hasAsset } from '../platform/assets.js?v=b3791cdb';
+import { game } from '../game.js?v=b3791cdb';
+import { h, openPanel, toast } from './dom.js?v=b3791cdb';
+import { playStory } from './story.js?v=b3791cdb';
+import { dateTicketHtml, bindDateTicket, potionHtml, bindPotion } from './coupon.js?v=b3791cdb'; // 设计39 约会券、精力药水（开发2）
 
 // 车：返回 { tier, name, rarity: 'normal'|'limited'|'unique', count }；没车就打车
 let carFor = () => ({ tier: 0, name: '' });
@@ -23,7 +25,9 @@ export function openDate(secId) {
   const s = game.state; const c = SEC_BY_ID[secId]; const t = now();
   const p = openPanel(`和 ${c.name} 去哪？`);
   const car = carFor(s);
-  p.body.appendChild(h('div', 'date-top', `今天约了 ${D.datesToday(s, t)}/${DATES_PER_DAY} 次　${car.tier ? `开 ${car.name} 去（爱慕多加）` : '还没有车，打车去'}　跟她约过 ${s.secs[secId].rec.dates} 次`));
+  p.body.appendChild(h('div', 'date-top', `${D.dateBtnText(s, secId, t)}　精力还剩 ${Math.floor(MG.energy(s, t))}　${car.tier ? `开 ${car.name} 去（爱慕多加）` : '还没有车，打车去'}　跟她约过 ${s.secs[secId].rec.dates} 次`));
+  if (MG.energy(s, t) < 10) { const el = h('div', 'cp-pot-wrap', `精力不够了　${potionHtml(s)}`); p.body.appendChild(el); bindPotion(el, () => { p.close(); openDate(secId); }); } // 设计39（设计接手开发1）
+  { const tk = dateTicketHtml(s, secId); if (tk) { const el = h('div', 'cp-date-wrap', tk); p.body.appendChild(el); bindDateTicket(el, () => { p.close(); openDate(secId); }); } } // 设计39 约会券（开发2）
   const adj = (pl) => D.placeAdj(s, pl.id); // 自己的游艇（第 2-11 项）
   for (const pl of DATE_PLACES) {
     if (D.placeGate(s, pl.id)) continue;   // 地标楼顶：有地标才显示

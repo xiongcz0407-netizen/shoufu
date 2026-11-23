@@ -1,18 +1,19 @@
-import { avatarKey } from './main-screen.js?v=77f12d68';
-import * as MG from '../core/manage.js?v=77f12d68'; // P-05 精力
-import { asset, hasAsset } from '../platform/assets.js?v=77f12d68';
+import { avatarKey } from './main-screen.js?v=b3791cdb';
+import * as MG from '../core/manage.js?v=b3791cdb'; // P-05 精力
+import { asset, hasAsset } from '../platform/assets.js?v=b3791cdb';
 // 老板页：名字和公司、老板属性、称号进度、穿戴、统计、设置（存档、重新开始在「设置」里，设计22）
-import { TITLES } from '../config/titles.js?v=77f12d68';
-import { RIVALS } from '../config/rivals.js?v=77f12d68';
-import * as E from '../core/economy.js?v=77f12d68';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=77f12d68';
-import { versionText } from '../version.js?v=77f12d68';
-import { now } from '../core/clock.js?v=77f12d68';
-import { game } from '../game.js?v=77f12d68';
-import { h, toast } from './dom.js?v=77f12d68';
-import { openFull } from './shell.js?v=77f12d68';
-import { wearHtml } from './luxury.js?v=77f12d68';
-import { appendCloudSettings } from './cloudset.js?v=77f12d68';
+import { TITLES } from '../config/titles.js?v=b3791cdb';
+import { RIVALS } from '../config/rivals.js?v=b3791cdb';
+import * as E from '../core/economy.js?v=b3791cdb';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=b3791cdb';
+import { versionText } from '../version.js?v=b3791cdb';
+import { now } from '../core/clock.js?v=b3791cdb';
+import { game } from '../game.js?v=b3791cdb';
+import { h, toast } from './dom.js?v=b3791cdb';
+import { openFull } from './shell.js?v=b3791cdb';
+import { wearHtml } from './luxury.js?v=b3791cdb';
+import { appendCloudSettings } from './cloudset.js?v=b3791cdb';
+import { inputBox } from './confirm.js?v=b3791cdb'; // 设计37 第一节：游戏样式输入框
 
 // 老板属性（设计09 第一节）由第 12 项提供：返回 [{ name, value, from }]
 let bossAttrs = () => [];
@@ -30,7 +31,7 @@ export function openBoss() {
         <div><div class="ind-name">${s.bossName || '老板'} <small>${TITLES[s.title].name}</small></div><div class="tr-gain">${s.companyName || ''}</div></div>
         <button class="btn rename">改名</button></div>
       <div class="sd-rec-title">精力</div>
-      <div class="tr-course"><div style="flex:1"><b>${Math.floor(MG.energy(s, t))} / ${MG.energyMax(s)}</b><div class="bar" style="margin-top:6px"><i style="width:${MG.energy(s, t) / MG.energyMax(s) * 100}%"></i></div><div class="tr-gain">每 20 秒回 1 点，离线照回。${MG.tip(s)}。门店详情里「亲自上阵」花精力；${(s.title || 0) >= 2 ? '老板以后亲自经营效果减半，精力多花在大事上：' : `精力够哪条线都能去。`}</div>
+      <div class="tr-course"><div style="flex:1"><b>${Math.floor(MG.energy(s, t))} / ${MG.energyMax(s)}</b><div class="bar" style="margin-top:6px"><i style="width:${MG.energy(s, t) / MG.energyMax(s) * 100}%"></i></div><div class="tr-gain">每天 0 点回满（打工人 150、小老板 200、老板起 250），中间不回复；门店动作、大事、事件选项、商战各 5，约会 10。${MG.tip(s)}。门店详情里「亲自上阵」花精力；${(s.title || 0) >= 2 ? '老板以后亲自经营效果减半，精力多花在大事上：' : `精力够哪条线都能去。`}</div>
         ${(s.title || 0) >= 2 ? `<div class="ind-btns">${['battle', 'deal'].map((k) => `<button class="btn big-act" data-k="${k}" ${MG.whyNotBig(s, k, t) ? 'disabled' : ''}>${MG.MANAGE_CFG.big[k].name}（${MG.MANAGE_CFG.big[k].energy}）${MG.bigBonus(s, k) ? '<br><small>已准备好</small>' : ''}</button>`).join('')}</div>` : ''}</div></div>
       <div class="sd-rec-title">老板属性</div>
       <div class="boss-attrs">${bossAttrs(s).map((a) => `<div><b>${a.value}</b><span>${a.name}</span><small>${a.from}</small></div>`).join('') || '<div class="empty">第 12 项接上（气场、人脉）</div>'}</div>
@@ -45,9 +46,8 @@ export function openBoss() {
       <div class="tr-course"><div><b>人声</b><div class="tr-gain">秘书说话的配音（没有配音文件时只出气泡）</div></div><button class="btn voice">${s.settings.voice === false ? '关' : '开'}</button></div><div class="boss-cloud"></div>
       <div class="tr-gain" style="text-align:center;margin-top:12px">${versionText()}</div></div>`;
     p.body.querySelectorAll('.big-act').forEach((b) => (b.onclick = () => { const r = MG.doBig(game.state, b.dataset.k, now()); toast(r.ok ? r.text : r.why, 2600); game.changed(); game.save(); }));
-    p.body.querySelector('.rename').onclick = () => {
-      const n = prompt('你的名字', s.bossName || ''); if (n == null) return;
-      const c = prompt('公司名字', s.companyName || ''); if (c == null) return;
+    p.body.querySelector('.rename').onclick = async () => {
+      const v = await inputBox('改名字', [{ label: '你的名字', value: s.bossName || '', max: 12 }, { label: '公司名字', value: s.companyName || '', max: 16 }]); if (!v) return; const [n, c] = v;
       s.bossName = n.trim() || s.bossName; s.companyName = c.trim() || s.companyName; game.save(); game.changed(); render();
     };
     appendCloudSettings(p.body.querySelector('.boss-cloud')); // 登录名、换名字、重新开始、手机里的素材（设计22）

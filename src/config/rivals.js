@@ -7,9 +7,9 @@ export const RIVALS = [
   { id: 'xinxin', name: '鑫鑫便利', ind: '便利店', boss: '钱有财', bossImg: 'boss_qian', bossAge: 50, desc: '精明的小店主，爱占小便宜',
     growReal: 0.05, stage: 0, level: 1, profit: 2e5, pe: 1.5, power: 2e5, skill: 15, reward: 1000, effect: { boost: { store: 0.2 } }, merge: { store: 2 } },
   { id: 'weidao', name: '味道工坊', ind: '餐饮', boss: '周嘉豪', bossImg: 'boss_zhou', bossAge: 35, desc: '网红餐厅老板，爱面子、爱炫富',
-    growReal: 0.05, stage: 0, level: 2, profit: 6e5, pe: 2, power: 1.2e6, /* V0.2 调数值：起始估值 75 万 → 120 万（A 到小老板不早于 0.3 年） */ skill: 22, reward: 3000, final: true, effect: { early: ['food'] }, merge: { food: 1 } },
+    growReal: 0.05, stage: 0, level: 2, profit: 5e5, pe: 2, power: 1e6, /* 设计38：120 万 → 100 万（门槛 100%） */ /* V0.2 调数值：起始估值 75 万 → 120 万（A 到小老板不早于 0.3 年） */ skill: 22, reward: 3000, final: true, effect: { early: ['food'] }, merge: { food: 1 } },
   { id: 'hengyuan', name: '恒远集团', ind: '零售 / 服装', boss: '赵恒远', bossImg: 'boss_zhao', bossAge: 58, desc: '本地老牌董事长，老谋深算、看不起年轻人',
-    growReal: 0.05, stage: 1, level: 3, profit: 3.1e6, pe: 2, power: 6.2e6, skill: 34, reward: 2e4, final: true, effect: { early: ['fashion'] }, merge: { store: 3, fashion: 1 } },
+    growReal: 0.05, stage: 1, level: 3, profit: 6e6, pe: 2, power: 1.2e7, /* 设计38：620 万 → 1200 万（门槛 120%） */ skill: 34, reward: 2e4, final: true, effect: { early: ['fashion'] }, merge: { store: 3, fashion: 1 } },
   // 每个称号收购不同的最终对手（设计21 第九节 2）：估值按门槛配（下一档门槛 × 70%），利润 = 估值 ÷ 市盈率
   // 打工人：鑫鑫（练手，30 万，不卡称号）、味道工坊（最终，70 万，林知夏）；小老板：恒远集团（最终，500 万 = 老板门槛 50%，沈清妍）；老板：华荣 3.5 亿；企业家：天穹 50 亿（3-08 Arvin 定：企业家 5 亿、大亨 100 亿，华荣、天穹跟着抬，实力 power 同比例抬）
   // 第二批（老板阶段，设计20 第三节）。估值 = 年利润 × 行业市盈率（地产 6、物流 15、科技 30、传媒 20）
@@ -19,14 +19,14 @@ export const RIVALS = [
   { id: 'jincheng', name: '锦城置业', ind: '地产', boss: '何美琪', bossImg: 'boss_he', bossAge: 42, desc: '地产女强人，精明、算账快、会谈判',
     growReal: 0.04, stage: 2, level: 2, profit: 4.7e6, pe: 6, power: 2.4e7, skill: 46, reward: 5e4, effect: { reProjects: [{ stage: 'build' }, { stage: 'ready' }] } },
   { id: 'huarong', name: '华荣控股', ind: '地产 + 物流', boss: '韩振邦', bossImg: 'boss_han', bossAge: 63, desc: '老牌董事长，稳、深藏不露，有靠山',
-    growReal: 0.06, stage: 2, level: 3, profit: 1.2e7, pe: 10, power: 1.2e8, /* V3-01 调数值：2.3 亿 → 1.2 亿 */ skill: 55, reward: 8e4, final: true, turf: { city: 'shanghai', ind: 'logistics' }, merge: { logistics: 3 }, effect: { fleetUnits: 18, reProjects: [{ stage: 'build' }] } },
+    growReal: 0.06, stage: 2, level: 3, profit: 6e7, pe: 10, power: 6e8, /* 设计38：1.2 亿 → 6 亿（门槛 120%） */ /* V3-01 调数值：2.3 亿 → 1.2 亿 */ skill: 55, reward: 8e4, final: true, turf: { city: 'shanghai', ind: 'logistics' }, merge: { logistics: 3 }, effect: { fleetUnits: 18, reProjects: [{ stage: 'build' }] } },
   // 第三批（企业家阶段）
   { id: 'xingmang', name: '星芒娱乐', ind: '娱乐传媒', boss: '白子轩', bossImg: 'boss_bai', bossAge: 32, desc: '明星转型老板，张扬、爱炒作、玻璃心',
     growReal: 0.1, stage: 3, level: 1, profit: 2.5e6, pe: 20, power: 5e7, skill: 52, reward: 2e5, effect: { boost: { media: 0.3 }, rights: 1.5e7 } },
   { id: 'yunzhan', name: '云栈科技', ind: '科技', boss: '陈一舟', bossImg: 'boss_chen', bossAge: 37, desc: '技术天才创始人，傲、不懂人情、只认技术',
     growReal: 0.15, stage: 3, level: 2, profit: 3.8e6, pe: 30, power: 1e8, skill: 60, reward: 3e5, effect: { techProduct: { dir: 'cloud', q: 0.9 }, levelUp: { tech: 3 } } },
   { id: 'tianqiong', name: '天穹集团', ind: '科技 + 传媒', boss: '秦啸天', bossImg: 'boss_qin', bossAge: 56, desc: '帝国掌门人，霸道、手段狠、会反击',
-    growReal: 0.125, stage: 3, level: 3, profit: 1.12e8, pe: 25, power: 2.8e+09, /* V3-01 调数值：28 亿 → 18 亿；V0.2.3 手续立刻、商战 10 分钟回、收购不冷却以后 B / C 快了，起始估值回到 28 亿（设计35 第十一节） */ skill: 70, reward: 5e5, final: true, effect: { techProduct: { dir: 'ai', q: 0.8 }, levelUp: { tech: 3, media: 3 }, boost: { media: 0.2 } } },
+    growReal: 0.125, stage: 3, level: 3, profit: 1.2e8, pe: 25, power: 3e9, /* 设计38：120 亿 → 30 亿（门槛 30%，对手会长到最多 2 倍，收购时约 60 亿）；V0.2.5 广告改成永久升级（满了营业额 2.4 倍）以后 B / C 到大亨 3.8 / 3.2 年，天穹 42 亿 → 120 亿（设计37 第二节 ⑪）；V3-01 调数值：28 亿 → 18 亿；V0.2.5 托管广告每天按 10% 效果、交际打折以后 B 快了，再到 42 亿；V0.2.3 手续立刻、商战 10 分钟回、收购不冷却以后 B / C 快了，起始估值回到 28 亿（设计35 第十一节） */ skill: 70, reward: 5e5, final: true, effect: { techProduct: { dir: 'ai', q: 0.8 }, levelUp: { tech: 3, media: 3 }, boost: { media: 0.2 } } },
 ];
 for (const r of RIVALS) if (r.profit && r.pe) r.value = r.profit * r.pe;
 // 瑞霖资本（投行，不能收购）：企业家阶段「融资谈判」，赢一次 → 苏曼琳加入 + 一笔过桥融资（利率按谈的结果）

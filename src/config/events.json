@@ -1,11 +1,5 @@
 {
  "_说明": "设计25 第二节 经营事件（第一批 18 件）。在线每 3～5 分钟来一件，最多挂 1 件，2 分钟不理按 default。when：weather 只在这些天气来（V2-03）/ holiday 只在节日来 / retail 有门店 / food 有餐饮 / staffMin 员工 / repMin 口碑 / branchesMin 家数 / titleMin 称号 / rival 对手出现 / random 随时。效果作用在挑中的那条线上：cash 固定金额 × 规模（这条线日营业额 ÷ refDay，至少 1）、cashDay 几天营业额（第一批都按这条线的日营业额换算：罚款、赔偿、设备费照现实跟小店营业额的比例）、rev / cogs / margin + days 临时加成、rep 口碑、energy 花精力、chance / then / else 看运气、quit 辞职、bank 打开银行。best：最优解（秘书按属性给建议、A 打法照着选）",
- "everySec": [
-  180,
-  300
- ],
- "timeoutSec": 120,
- "cooldownMonths": 1,
  "refDay": 3000,
  "_V0.2.2": "设计34 第六节：bad 里是要掏钱的坏事件，开局头 noPayDays 个游戏天不来；打工人阶段每件最多花公司可用资金的 capRate，永远不扣成负数；选项上写实际要花的钱",
  "bad": [
@@ -17,7 +11,14 @@
   "rent_up",
   "power_bill",
   "platform_fee",
-  "poach"
+  "poach",
+  "expired_goods",
+  "tax_check",
+  "staff_raise",
+  "system_down",
+  "cashier_mistake",
+  "health_check",
+  "neighbor_noise"
  ],
  "noPayDays": 3,
  "capRate": 0.2,
@@ -55,7 +56,8 @@
      "msg": "没订，照常进货。"
     }
    ],
-   "default": "no"
+   "default": "no",
+   "tier": 0
   },
   {
    "id": "price_war",
@@ -90,11 +92,11 @@
     },
     {
      "key": "member",
-     "label": "搞会员活动（20 精力）",
+     "label": "搞会员活动（5 精力）",
      "best": true,
      "fx": [
       {
-       "energy": 20
+       "energy": 5
       },
       {
        "rev": -0.05,
@@ -107,7 +109,8 @@
      "msg": "办了会员活动，老顾客留住了，口碑 +2。"
     }
    ],
-   "default": "ignore"
+   "default": "ignore",
+   "tier": 0
   },
   {
    "id": "leave",
@@ -157,7 +160,8 @@
      "msg": "请了临时工，店里照常。"
     }
    ],
-   "default": "ok"
+   "default": "ok",
+   "tier": 1
   },
   {
    "id": "food_complaint",
@@ -200,7 +204,8 @@
      "msg": "没理会。"
     }
    ],
-   "default": "ignore"
+   "default": "ignore",
+   "tier": 1
   },
   {
    "id": "inspection",
@@ -232,63 +237,17 @@
     },
     {
      "key": "fix",
-     "label": "花 10 精力当场整改",
+     "label": "花 5 精力当场整改",
      "fx": [
       {
-       "energy": 10
+       "energy": 5
       }
      ],
      "msg": "当场整改，执法的人点了点头走了。"
     }
    ],
-   "default": "show"
-  },
-  {
-   "id": "influencer",
-   "title": "网红想来探店",
-   "when": {
-    "retail": true
-   },
-   "attr": "charm",
-   "text": "一个本地美食博主私信：想来探店，希望免单。",
-   "options": [
-    {
-     "key": "yes",
-     "label": "免单接待",
-     "best": true,
-     "fx": [
-      {
-       "cashDay": -0.15,
-       "cat": "opex"
-      },
-      {
-       "chance": 0.6,
-       "then": [
-        {
-         "rep": 5
-        },
-        {
-         "rev": 0.4,
-         "days": 1
-        }
-       ],
-       "else": [
-        {
-         "rep": -3
-        }
-       ]
-      }
-     ],
-     "msg": "博主来过了。"
-    },
-    {
-     "key": "no",
-     "label": "婉拒",
-     "fx": [],
-     "msg": "婉拒了。"
-    }
-   ],
-   "default": "no"
+   "default": "show",
+   "tier": 0
   },
   {
    "id": "rent_up",
@@ -345,7 +304,8 @@
      "msg": "续签三年，租金锁住了。"
     }
    ],
-   "default": "accept"
+   "default": "accept",
+   "tier": 0
   },
   {
    "id": "group_order",
@@ -388,7 +348,8 @@
      "msg": "没接。"
     }
    ],
-   "default": "no"
+   "default": "no",
+   "tier": 0
   },
   {
    "id": "storm",
@@ -426,7 +387,8 @@
      "msg": "关门半天，今天营业额掉一半。"
     }
    ],
-   "default": "close"
+   "default": "close",
+   "tier": 1
   },
   {
    "id": "power_bill",
@@ -460,7 +422,8 @@
      "msg": "先不管。"
     }
    ],
-   "default": "later"
+   "default": "later",
+   "tier": 0
   },
   {
    "id": "stored_card",
@@ -490,7 +453,8 @@
      "msg": "婉拒了。"
     }
    ],
-   "default": "no"
+   "default": "no",
+   "tier": 1
   },
   {
    "id": "platform_fee",
@@ -540,7 +504,8 @@
      "msg": "小程序在做，20 天以后就不用给平台抽成了。"
     }
    ],
-   "default": "accept"
+   "default": "accept",
+   "tier": 1
   },
   {
    "id": "theft",
@@ -595,7 +560,8 @@
      "msg": "装了监控，以后没再少过货。"
     }
    ],
-   "default": "warn"
+   "default": "warn",
+   "tier": 1
   },
   {
    "id": "festival",
@@ -632,7 +598,8 @@
      "msg": "没备货。"
     }
    ],
-   "default": "no"
+   "default": "no",
+   "tier": 1
   },
   {
    "id": "franchise",
@@ -667,7 +634,8 @@
      "msg": "不开放加盟。"
     }
    ],
-   "default": "no"
+   "default": "no",
+   "tier": 1
   },
   {
    "id": "poach",
@@ -706,7 +674,8 @@
      "msg": "人走了，三天营业额 −10%。"
     }
    ],
-   "default": "let"
+   "default": "let",
+   "tier": 1
   },
   {
    "id": "bank_loan",
@@ -735,7 +704,8 @@
      "msg": "暂时不用。"
     }
    ],
-   "default": "no"
+   "default": "no",
+   "tier": 1
   },
   {
    "id": "fire_check",
@@ -777,7 +747,1002 @@
      "msg": "提前整改好了，查得很顺利。"
     }
    ],
-   "default": "show"
+   "default": "show",
+   "tier": 0
+  },
+  {
+   "id": "lost_wallet",
+   "tier": 0,
+   "title": "顾客落下了钱包",
+   "when": {
+    "retail": true
+   },
+   "attr": "social",
+   "text": "打烊盘点时，收银台下面捡到一个钱包，里面有身份证和两千多块现金。",
+   "options": [
+    {
+     "key": "return",
+     "label": "打电话还给失主",
+     "best": true,
+     "fx": [
+      {
+       "rep": 3
+      }
+     ],
+     "msg": "失主连夜来取，第二天在点评上写了一大段感谢，口碑 +3。"
+    },
+    {
+     "key": "police",
+     "label": "交到派出所",
+     "fx": [
+      {
+       "rep": 1
+      }
+     ],
+     "msg": "交给了派出所，民警顺口夸了一句。"
+    }
+   ],
+   "default": "police"
+  },
+  {
+   "id": "neighbor_buy",
+   "tier": 0,
+   "title": "隔壁老板想一起拼单进货",
+   "when": {
+    "retail": true
+   },
+   "attr": "social",
+   "text": "隔壁水果店老板：咱俩一起跟批发市场拼单，量大能便宜不少。",
+   "options": [
+    {
+     "key": "yes",
+     "label": "一起拼",
+     "best": true,
+     "fx": [
+      {
+       "cogs": -0.03,
+       "days": 5
+      }
+     ],
+     "msg": "拼单成了，之后五天进货便宜 3%。"
+    },
+    {
+     "key": "no",
+     "label": "各进各的",
+     "fx": [],
+     "msg": "还是各进各的，省得麻烦。"
+    }
+   ],
+   "default": "no"
+  },
+  {
+   "id": "expired_goods",
+   "tier": 0,
+   "title": "一批货快过期了",
+   "when": {
+    "retail": true
+   },
+   "attr": "wit",
+   "text": "盘点发现一批牛奶和面包还有三天就过期。",
+   "options": [
+    {
+     "key": "sale",
+     "label": "打折清掉",
+     "best": true,
+     "fx": [
+      {
+       "rev": 0.15,
+       "days": 1
+      },
+      {
+       "margin": -0.02,
+       "days": 1
+      }
+     ],
+     "msg": "临期货打五折，一上午清空，顺便带了一波客流。"
+    },
+    {
+     "key": "return",
+     "label": "找供应商退（看智慧）",
+     "fx": [
+      {
+       "attrCheck": "wit",
+       "then": [],
+       "else": [
+        {
+         "cashDay": -0.1,
+         "cat": "cogs"
+        }
+       ]
+      }
+     ],
+     "msg": "找供应商谈了退货。"
+    },
+    {
+     "key": "throw",
+     "label": "直接扔掉",
+     "fx": [
+      {
+       "cashDay": -0.1,
+       "cat": "cogs"
+      }
+     ],
+     "msg": "扔掉了，亏了点货钱。"
+    }
+   ],
+   "default": "throw"
+  },
+  {
+   "id": "media_interview",
+   "tier": 1,
+   "title": "本地媒体想来采访",
+   "when": {
+    "titleMin": 1
+   },
+   "attr": "charm",
+   "text": "本地生活号想拍一期「小老板创业故事」，要占用半天店面。",
+   "options": [
+    {
+     "key": "yes",
+     "label": "接受采访（5 精力）",
+     "best": true,
+     "fx": [
+      {
+       "energy": 5
+      },
+      {
+       "rep": 4
+      },
+      {
+       "rev": 0.2,
+       "days": 2
+      }
+     ],
+     "msg": "节目播出后不少人慕名而来，口碑 +4，两天营业额 +20%。"
+    },
+    {
+     "key": "no",
+     "label": "婉拒",
+     "fx": [],
+     "msg": "婉拒了，低调做生意。"
+    }
+   ],
+   "default": "no"
+  },
+  {
+   "id": "new_supplier",
+   "tier": 1,
+   "title": "新供应商报价低 8%",
+   "when": {
+    "titleMin": 1
+   },
+   "attr": "wit",
+   "text": "一家新供应商上门，同样的货报价比老王低 8%，但没合作过。",
+   "options": [
+    {
+     "key": "switch",
+     "label": "全部换过去",
+     "fx": [
+      {
+       "chance": 0.7,
+       "then": [
+        {
+         "cogs": -0.08,
+         "days": 10
+        }
+       ],
+       "else": [
+        {
+         "cogs": -0.08,
+         "days": 3
+        },
+        {
+         "rep": -3
+        }
+       ]
+      }
+     ],
+     "msg": "换了供应商。"
+    },
+    {
+     "key": "half",
+     "label": "先换一半试试",
+     "best": true,
+     "fx": [
+      {
+       "cogs": -0.04,
+       "days": 10
+      }
+     ],
+     "msg": "先换一半，十天进货便宜 4%，质量也稳。"
+    },
+    {
+     "key": "no",
+     "label": "不换",
+     "fx": [],
+     "msg": "还是用老王的。"
+    }
+   ],
+   "default": "no"
+  },
+  {
+   "id": "school_sponsor",
+   "tier": 1,
+   "title": "附近小学请你赞助运动会",
+   "when": {
+    "titleMin": 1
+   },
+   "attr": "social",
+   "text": "校长亲自上门：运动会想请你赞助矿泉水和奖品，会在横幅上写你的店名。",
+   "options": [
+    {
+     "key": "yes",
+     "label": "赞助",
+     "best": true,
+     "fx": [
+      {
+       "cashDay": -0.3,
+       "cat": "opex"
+      },
+      {
+       "rep": 4
+      }
+     ],
+     "msg": "横幅挂了一整天，家长们都记住了你的店，口碑 +4。"
+    },
+    {
+     "key": "small",
+     "label": "只送矿泉水",
+     "fx": [
+      {
+       "cashDay": -0.1,
+       "cat": "opex"
+      },
+      {
+       "rep": 1
+      }
+     ],
+     "msg": "送了几箱水，学校发了感谢信。"
+    },
+    {
+     "key": "no",
+     "label": "婉拒",
+     "fx": [],
+     "msg": "婉拒了。"
+    }
+   ],
+   "default": "no"
+  },
+  {
+   "id": "pos_upgrade",
+   "tier": 1,
+   "title": "收银系统可以升级了",
+   "when": {
+    "titleMin": 1
+   },
+   "attr": "wit",
+   "text": "服务商推荐新的收银系统：扫码更快、会员积分自动记。",
+   "options": [
+    {
+     "key": "yes",
+     "label": "升级",
+     "best": true,
+     "fx": [
+      {
+       "cashDay": -0.4,
+       "cat": "opex"
+      },
+      {
+       "rev": 0.05,
+       "days": 30
+      }
+     ],
+     "msg": "换了新系统，结账快了，之后一个月营业额 +5%。"
+    },
+    {
+     "key": "no",
+     "label": "先不换",
+     "fx": [],
+     "msg": "老系统还能用。"
+    }
+   ],
+   "default": "no"
+  },
+  {
+   "id": "rival_close",
+   "tier": 1,
+   "title": "对面那家店关门转让了",
+   "when": {
+    "titleMin": 1
+   },
+   "attr": "wit",
+   "text": "对面同行贴出了转让告示，他的老顾客正在找地方买东西。",
+   "options": [
+    {
+     "key": "flyer",
+     "label": "去对面门口发优惠券",
+     "best": true,
+     "fx": [
+      {
+       "cashDay": -0.1,
+       "cat": "opex"
+      },
+      {
+       "rev": 0.15,
+       "days": 7
+      }
+     ],
+     "msg": "老顾客都被你接过来了，一周营业额 +15%。"
+    },
+    {
+     "key": "wait",
+     "label": "等他们自己来",
+     "fx": [
+      {
+       "rev": 0.05,
+       "days": 7
+      }
+     ],
+     "msg": "陆续来了一些新面孔。"
+    }
+   ],
+   "default": "wait"
+  },
+  {
+   "id": "tax_check",
+   "tier": 1,
+   "title": "税务局例行抽查",
+   "when": {
+    "titleMin": 1
+   },
+   "attr": "wit",
+   "text": "税务专管员来电：抽到你们公司，要看一下这季度的账。",
+   "options": [
+    {
+     "key": "cfo",
+     "label": "交给财务整理好再送（看智慧）",
+     "best": true,
+     "fx": [
+      {
+       "attrCheck": "wit",
+       "then": [],
+       "else": [
+        {
+         "cashDay": -0.3,
+         "cat": "tax"
+        }
+       ]
+      }
+     ],
+     "msg": "账送过去了。"
+    },
+    {
+     "key": "agent",
+     "label": "请代账公司处理",
+     "fx": [
+      {
+       "cashDay": -0.2,
+       "cat": "opex"
+      }
+     ],
+     "msg": "代账公司处理得干干净净，就是要收服务费。"
+    }
+   ],
+   "default": "agent"
+  },
+  {
+   "id": "takeout_invite",
+   "tier": 1,
+   "title": "外卖平台邀请入驻",
+   "when": {
+    "titleMin": 1
+   },
+   "attr": "social",
+   "text": "外卖平台业务员：首月免抽成，入驻送流量。",
+   "options": [
+    {
+     "key": "yes",
+     "label": "入驻",
+     "best": true,
+     "fx": [
+      {
+       "rev": 0.12,
+       "days": 14
+      },
+      {
+       "margin": -0.01,
+       "days": 14
+      }
+     ],
+     "msg": "上了平台，两周营业额 +12%，抽成吃掉一点毛利。"
+    },
+    {
+     "key": "no",
+     "label": "不上平台",
+     "fx": [],
+     "msg": "只做到店生意。"
+    }
+   ],
+   "default": "no"
+  },
+  {
+   "id": "trade_fair",
+   "tier": 1,
+   "title": "行业展会邀请",
+   "when": {
+    "titleMin": 1
+   },
+   "attr": "social",
+   "text": "省里的零售行业展会给你发了邀请函，能见到不少厂家。",
+   "options": [
+    {
+     "key": "go",
+     "label": "去看看（5 精力）",
+     "best": true,
+     "fx": [
+      {
+       "energy": 5
+      },
+      {
+       "cogs": -0.05,
+       "days": 15
+      }
+     ],
+     "msg": "跟两家厂家直接签了供货，之后半个月进货便宜 5%。"
+    },
+    {
+     "key": "no",
+     "label": "没空",
+     "fx": [],
+     "msg": "这次没去。"
+    }
+   ],
+   "default": "no"
+  },
+  {
+   "id": "live_seller",
+   "tier": 1,
+   "title": "带货主播想来店里直播",
+   "when": {
+    "titleMin": 1
+   },
+   "attr": "charm",
+   "text": "一个十几万粉的本地主播想来店里直播一场，要你给直播间专属折扣。",
+   "options": [
+    {
+     "key": "yes",
+     "label": "合作",
+     "best": true,
+     "fx": [
+      {
+       "margin": -0.02,
+       "days": 2
+      },
+      {
+       "chance": 0.7,
+       "then": [
+        {
+         "rev": 0.35,
+         "days": 2
+        },
+        {
+         "rep": 2
+        }
+       ],
+       "else": [
+        {
+         "rev": 0.1,
+         "days": 2
+        }
+       ]
+      }
+     ],
+     "msg": "直播开起来了。"
+    },
+    {
+     "key": "no",
+     "label": "不合作",
+     "fx": [],
+     "msg": "没合作。"
+    }
+   ],
+   "default": "no"
+  },
+  {
+   "id": "system_down",
+   "tier": 1,
+   "title": "店里网络断了",
+   "when": {
+    "titleMin": 1
+   },
+   "attr": "manage",
+   "text": "光纤被施工队挖断了，扫码付款用不了，门口已经排起队。",
+   "options": [
+    {
+     "key": "hotspot",
+     "label": "马上开手机热点顶上",
+     "best": true,
+     "fx": [],
+     "msg": "手机热点顶了一下午，一单没丢。"
+    },
+    {
+     "key": "cash",
+     "label": "只收现金",
+     "fx": [
+      {
+       "rev": -0.15,
+       "days": 1
+      }
+     ],
+     "msg": "只收现金，走了不少客人，今天营业额 −15%。"
+    }
+   ],
+   "default": "cash"
+  },
+  {
+   "id": "staff_raise",
+   "tier": 1,
+   "title": "员工集体要求涨工资",
+   "when": {
+    "titleMin": 1,
+    "staffMin": 3
+   },
+   "attr": "manage",
+   "text": "几个老员工一起来找你：隔壁店开得比我们高，想涨 10%。",
+   "options": [
+    {
+     "key": "yes",
+     "label": "涨 10%",
+     "fx": [
+      {
+       "margin": -0.005,
+       "days": 90
+      },
+      {
+       "rep": 1
+      }
+     ],
+     "msg": "涨了工资，大家干劲十足。"
+    },
+    {
+     "key": "bonus",
+     "label": "改发季度奖金（看管理）",
+     "best": true,
+     "fx": [
+      {
+       "attrCheck": "manage",
+       "then": [
+        {
+         "cashDay": -0.3,
+         "cat": "payroll"
+        }
+       ],
+       "else": [
+        {
+         "quit": 1
+        }
+       ]
+      }
+     ],
+     "msg": "谈了奖金方案。"
+    },
+    {
+     "key": "no",
+     "label": "不涨",
+     "fx": [
+      {
+       "chance": 0.5,
+       "then": [
+        {
+         "quit": 1
+        }
+       ]
+      }
+     ],
+     "msg": "没涨。"
+    }
+   ],
+   "default": "no"
+  },
+  {
+   "id": "parking_fee",
+   "tier": 1,
+   "title": "门口停车位要收费了",
+   "when": {
+    "titleMin": 1
+   },
+   "attr": "social",
+   "text": "物业通知：店门口的临时停车位下个月开始收费，顾客停车不方便了。",
+   "options": [
+    {
+     "key": "pay",
+     "label": "店里替顾客出停车费",
+     "best": true,
+     "fx": [
+      {
+       "margin": -0.005,
+       "days": 30
+      },
+      {
+       "rev": 0.04,
+       "days": 30
+      }
+     ],
+     "msg": "挂了块「本店买单停车费」，生意反而好了一点。"
+    },
+    {
+     "key": "no",
+     "label": "不管",
+     "fx": [
+      {
+       "rev": -0.03,
+       "days": 7
+      }
+     ],
+     "msg": "开车来的老顾客少了一些。"
+    }
+   ],
+   "default": "no"
+  },
+  {
+   "id": "wedding_order",
+   "tier": 1,
+   "title": "有人订婚宴伴手礼",
+   "when": {
+    "titleMin": 1
+   },
+   "attr": "charm",
+   "text": "一对新人想订 300 份伴手礼，要包装得漂亮，下周取。",
+   "options": [
+    {
+     "key": "yes",
+     "label": "接单（5 精力亲自盯包装）",
+     "best": true,
+     "fx": [
+      {
+       "energy": 5
+      },
+      {
+       "rev": 0.5,
+       "days": 1
+      },
+      {
+       "rep": 2
+      }
+     ],
+     "msg": "包装得体，新人很满意，口碑 +2。"
+    },
+    {
+     "key": "plain",
+     "label": "接单，按普通包装",
+     "fx": [
+      {
+       "rev": 0.4,
+       "days": 1
+      }
+     ],
+     "msg": "按时交货了。"
+    },
+    {
+     "key": "no",
+     "label": "不接",
+     "fx": [],
+     "msg": "没接。"
+    }
+   ],
+   "default": "no"
+  },
+  {
+   "id": "health_check",
+   "tier": 1,
+   "title": "员工体检到期",
+   "when": {
+    "titleMin": 1
+   },
+   "attr": "manage",
+   "text": "几个店员的健康证快到期了，按规定要去复检。",
+   "options": [
+    {
+     "key": "now",
+     "label": "安排统一去体检",
+     "best": true,
+     "fx": [
+      {
+       "cashDay": -0.05,
+       "cat": "opex"
+      }
+     ],
+     "msg": "统一体检，证都续上了。"
+    },
+    {
+     "key": "later",
+     "label": "先拖一拖",
+     "fx": [
+      {
+       "chance": 0.3,
+       "then": [
+        {
+         "cashDay": -0.3,
+         "cat": "opex"
+        },
+        {
+         "rep": -2
+        }
+       ]
+      }
+     ],
+     "msg": "先拖着。"
+    }
+   ],
+   "default": "later"
+  },
+  {
+   "id": "price_tag",
+   "tier": 1,
+   "title": "顾客说价签和收银价不一样",
+   "when": {
+    "titleMin": 1
+   },
+   "attr": "social",
+   "text": "一位阿姨拿着小票过来：货架上写 9.9，结账算了 12.9。",
+   "options": [
+    {
+     "key": "refund",
+     "label": "当场退差价再送一瓶水",
+     "best": true,
+     "fx": [
+      {
+       "rep": 2
+      }
+     ],
+     "msg": "阿姨笑着走了，还说下次带邻居来。"
+    },
+    {
+     "key": "explain",
+     "label": "解释是价签没换",
+     "fx": [
+      {
+       "rep": -1
+      }
+     ],
+     "msg": "阿姨不太高兴。"
+    }
+   ],
+   "default": "explain"
+  },
+  {
+   "id": "rain_coat",
+   "tier": 1,
+   "title": "写字楼白领下班碰上降温",
+   "when": {
+    "titleMin": 1
+   },
+   "attr": "wit",
+   "text": "天气预报说今晚突然降温，附近写字楼的人下班都没带外套。",
+   "options": [
+    {
+     "key": "stock",
+     "label": "临时进一批热饮和暖宝宝",
+     "best": true,
+     "fx": [
+      {
+       "cashDay": -0.1,
+       "cat": "cogs"
+      },
+      {
+       "rev": 0.2,
+       "days": 1
+      }
+     ],
+     "msg": "热饮卖断货，今天营业额 +20%。"
+    },
+    {
+     "key": "no",
+     "label": "照常",
+     "fx": [],
+     "msg": "照常营业。"
+    }
+   ],
+   "default": "no"
+  },
+  {
+   "id": "member_app",
+   "tier": 1,
+   "title": "有公司推销会员小程序",
+   "when": {
+    "titleMin": 1
+   },
+   "attr": "wit",
+   "text": "软件公司上门：做个会员小程序，积分、优惠券、生日提醒全有。",
+   "options": [
+    {
+     "key": "yes",
+     "label": "做一个",
+     "best": true,
+     "fx": [
+      {
+       "cashDay": -0.5,
+       "cat": "opex"
+      },
+      {
+       "rev": 0.04,
+       "days": 45
+      },
+      {
+       "rep": 1
+      }
+     ],
+     "msg": "小程序上线，老顾客回头率高了。"
+    },
+    {
+     "key": "no",
+     "label": "不做",
+     "fx": [],
+     "msg": "先不做。"
+    }
+   ],
+   "default": "no"
+  },
+  {
+   "id": "neighbor_noise",
+   "tier": 1,
+   "title": "楼上居民投诉噪音",
+   "when": {
+    "titleMin": 1
+   },
+   "attr": "social",
+   "text": "楼上住户来说：早上卸货太吵，再吵就打 12345。",
+   "options": [
+    {
+     "key": "time",
+     "label": "改到 8 点后卸货，送他一箱水果",
+     "best": true,
+     "fx": [
+      {
+       "cashDay": -0.03,
+       "cat": "opex"
+      }
+     ],
+     "msg": "住户很满意，还成了熟客。"
+    },
+    {
+     "key": "ignore",
+     "label": "不理",
+     "fx": [
+      {
+       "chance": 0.5,
+       "then": [
+        {
+         "cashDay": -0.2,
+         "cat": "opex"
+        },
+        {
+         "rep": -2
+        }
+       ]
+      }
+     ],
+     "msg": "没理他。"
+    }
+   ],
+   "default": "ignore"
+  },
+  {
+   "id": "cashier_mistake",
+   "tier": 1,
+   "title": "收银员找错了钱",
+   "when": {
+    "titleMin": 1,
+    "staffMin": 1
+   },
+   "attr": "manage",
+   "text": "晚上对账少了 500 块，查监控是收银员找零找错了。",
+   "options": [
+    {
+     "key": "train",
+     "label": "不扣钱，组织一次收银培训",
+     "best": true,
+     "fx": [
+      {
+       "cashDay": -0.03,
+       "cat": "opex"
+      }
+     ],
+     "msg": "培训以后再没出过错。"
+    },
+    {
+     "key": "deduct",
+     "label": "从工资里扣",
+     "fx": [
+      {
+       "chance": 0.3,
+       "then": [
+        {
+         "quit": 1
+        }
+       ]
+      }
+     ],
+     "msg": "扣了工资。"
+    }
+   ],
+   "default": "deduct"
+  },
+  {
+   "id": "street_fair",
+   "tier": 1,
+   "title": "街道办周末办集市",
+   "when": {
+    "titleMin": 1
+   },
+   "attr": "charm",
+   "text": "街道办周末在广场办便民集市，邀请你摆个摊位。",
+   "options": [
+    {
+     "key": "go",
+     "label": "去摆摊（5 精力）",
+     "best": true,
+     "fx": [
+      {
+       "energy": 5
+      },
+      {
+       "rev": 0.15,
+       "days": 2
+      },
+      {
+       "rep": 2
+      }
+     ],
+     "msg": "摊位人气很旺，两天营业额 +15%，口碑 +2。"
+    },
+    {
+     "key": "no",
+     "label": "不去",
+     "fx": [],
+     "msg": "这次不去。"
+    }
+   ],
+   "default": "no"
+  },
+  {
+   "id": "bulk_coupon",
+   "tier": 1,
+   "title": "银行想跟你搞满减活动",
+   "when": {
+    "titleMin": 1
+   },
+   "attr": "wit",
+   "text": "银行信用卡中心：持卡满 50 减 10，银行出一半补贴。",
+   "options": [
+    {
+     "key": "yes",
+     "label": "合作",
+     "best": true,
+     "fx": [
+      {
+       "margin": -0.01,
+       "days": 7
+      },
+      {
+       "rev": 0.12,
+       "days": 7
+      }
+     ],
+     "msg": "一周营业额 +12%，补贴吃掉一点毛利。"
+    },
+    {
+     "key": "no",
+     "label": "不合作",
+     "fx": [],
+     "msg": "没合作。"
+    }
+   ],
+   "default": "no"
   }
- ]
+ ],
+ "perDay": 10,
+ "moreTitle": 1,
+ "_V0.2.5": "设计39 第三节：每天 0 点（手机本地时间）整批来 perDay 件，当天同一种只出一次，没做的 0 点清掉（不按默认、没有影响）；tier 0 = 打工人组（正好 10 种），tier 1 = 小老板起；小老板起用事件券「再来 10 件」一天最多 moreMax 次；选项里花精力的一律 5",
+ "moreMax": 2
 }

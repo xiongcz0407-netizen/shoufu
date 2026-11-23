@@ -1,34 +1,35 @@
 // 商战和收购：胜率、开战、赢满 3 次收购、收购效果、升称号
-import { whyCushion } from './cashflow.js?v=77f12d68'; // V0.2.3 留够两个月工资
-import { credit } from './credit.js?v=77f12d68'; // V3-01 亲自拍板攒投入度
-import { MONTH_MS, gameDate, dateText } from './gametime.js?v=77f12d68';
-import { downRate, downOf, schedule, openDeal } from './equity.js?v=77f12d68';
-import { gm } from './calib.js?v=77f12d68';
-import { whyNotMa, maLoan } from './bank.js?v=77f12d68';
-import { needsBoard, boardApprove } from './capital.js?v=77f12d68';
-import { live, onBattle } from './rivalgrow.js?v=77f12d68'; // P-00 对手也在长大
-import { bigBonus, useBig } from './manage.js?v=77f12d68'; // P-05 老板亲自带队 / 亲自谈判
-import { ACQ_NEGO, RIVAL_BY_ID, RIVALS, PROJECTS, BATTLES_PER_DAY, BATTLE_REGEN_MIN, WINS_TO_ACQUIRE, TEAM_MAX, ACQUIRE_REFUND, ACQUIRE_COOLDOWN_SEC, ACQUIRE_EXTRA_WIN, INTEL_PER_LOSS, INTEL_MAX } from '../config/rivals.js?v=77f12d68';
-import { TITLES } from '../config/titles.js?v=77f12d68';
-import { netWorth, unlockIfReady, earningsValue } from './economy.js?v=77f12d68';
-import { ensureSec } from './secretary.js?v=77f12d68';
-import { addFavor, daily } from './affection.js?v=77f12d68';
-import { isTraining } from './training.js?v=77f12d68';
-import { isScouting } from './busy.js?v=77f12d68'; // V2-08 踩点占用（开发2）
-import { auraBattle, networkAcquire, visionBattle } from './boss.js?v=77f12d68';
-import { bump } from './daily.js?v=77f12d68';
-import { pay, receive, accrue, canPay } from './ledger.js?v=77f12d68';
-import { TAX } from './companytax.js?v=77f12d68';
-import { addContract } from './contracts.js?v=77f12d68';
-import { IND_BY_ID } from '../config/industries.js?v=77f12d68';
-import { establishment, staffUp } from './staff.js?v=77f12d68';
-import { bizBattle, bizAcquire, grantBridge } from './rivalry.js?v=77f12d68';
-import { logi, LOGI_CFG } from './logistics.js?v=77f12d68';
-import { addAcquiredProject } from './realestate.js?v=77f12d68';
-import { tech, TECH_CFG } from './tech.js?v=77f12d68';
-import { lookOf } from './staff.js?v=77f12d68';
-import { reValue } from './realestate.js?v=77f12d68';
-import { fleetValue } from './logistics.js?v=77f12d68';
+import { whyCushion } from './cashflow.js?v=b3791cdb'; // V0.2.3 留够两个月工资
+import { credit } from './credit.js?v=b3791cdb'; // V3-01 亲自拍板攒投入度
+import { MONTH_MS, gameDate, dateText } from './gametime.js?v=b3791cdb';
+import { downRate, downOf, schedule, openDeal } from './equity.js?v=b3791cdb';
+import { gm } from './calib.js?v=b3791cdb';
+import { whyNotMa, maLoan } from './bank.js?v=b3791cdb';
+import { needsBoard, boardApprove } from './capital.js?v=b3791cdb';
+import { live, onBattle } from './rivalgrow.js?v=b3791cdb'; // P-00 对手也在长大
+import { bigBonus, useBig, whyEnergy, doEnergy, energy, E_COST } from './manage.js?v=b3791cdb'; // P-05 老板亲自带队 / 亲自谈判
+import { ACQ_NEGO, RIVAL_BY_ID, RIVALS, PROJECTS, WINS_TO_ACQUIRE, TEAM_MAX, ACQUIRE_REFUND, ACQUIRE_COOLDOWN_SEC, ACQUIRE_EXTRA_WIN, INTEL_PER_LOSS, INTEL_MAX } from '../config/rivals.js?v=b3791cdb';
+import { TITLES } from '../config/titles.js?v=b3791cdb';
+import { fmtMoney } from './format.js?v=b3791cdb';
+import { netWorth, unlockIfReady, earningsValue } from './economy.js?v=b3791cdb';
+import { ensureSec } from './secretary.js?v=b3791cdb';
+import { addFavor, daily } from './affection.js?v=b3791cdb';
+import { isTraining } from './training.js?v=b3791cdb';
+import { isScouting } from './busy.js?v=b3791cdb'; // V2-08 踩点占用（开发2）
+import { auraBattle, networkAcquire, visionBattle } from './boss.js?v=b3791cdb';
+import { bump } from './daily.js?v=b3791cdb';
+import { pay, receive, accrue, canPay } from './ledger.js?v=b3791cdb';
+import { TAX } from './companytax.js?v=b3791cdb';
+import { addContract } from './contracts.js?v=b3791cdb';
+import { IND_BY_ID } from '../config/industries.js?v=b3791cdb';
+import { establishment, staffUp } from './staff.js?v=b3791cdb';
+import { bizBattle, bizAcquire, grantBridge } from './rivalry.js?v=b3791cdb';
+import { logi, LOGI_CFG } from './logistics.js?v=b3791cdb';
+import { addAcquiredProject } from './realestate.js?v=b3791cdb';
+import { tech, TECH_CFG } from './tech.js?v=b3791cdb';
+import { lookOf } from './staff.js?v=b3791cdb';
+import { reValue } from './realestate.js?v=b3791cdb';
+import { fleetValue } from './logistics.js?v=b3791cdb';
 
 const PROJ = Object.fromEntries(PROJECTS.map((p) => [p.id, p]));
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -38,18 +39,15 @@ function rv(s, id) {
   return (s.rivals[id] = s.rivals[id] || { wins: 0, losses: 0, acquired: false, cooldownUntil: 0 });
 }
 export const rivalState = rv;
-const REGEN = BATTLE_REGEN_MIN * 60e3;
-/** 商战次数：攒着用，最多 20 次，每 10 分钟恢复 1 次（V0.2.3） */
-export function battleEnergy(s, t) {
-  const e = (s.battleEnergy = s.battleEnergy || { n: BATTLES_PER_DAY, t });
-  const k = Math.floor((t - e.t) / REGEN);
-  if (k > 0) { e.n = Math.min(BATTLES_PER_DAY, e.n + k); e.t += k * REGEN; }
-  if (e.n >= BATTLES_PER_DAY) e.t = t; // 满了不攒
-  return e;
-}
-export const battlesLeft = (s, t) => battleEnergy(s, t).n;
-/** 下一次恢复还要多久（毫秒）；满了是 0 */
-export const nextBattleIn = (s, t) => { const e = battleEnergy(s, t); return e.n >= BATTLES_PER_DAY ? 0 : e.t + REGEN - t; };
+/** 设计39 第一、五节：商战没有单独的次数了——有商战券（开发2 的道具，存在 s.items.battle）先用券，不花精力；没券花 5 精力 */
+export const tickets = (s) => (s.items && s.items.battle) || 0;
+export const addTickets = (s, n) => { s.items = s.items || {}; s.items.battle = Math.max(0, (s.items.battle || 0) + n); };
+export const battleCostText = (s) => (tickets(s) > 0 ? `用商战券（还有 ${tickets(s)} 张）` : `${E_COST.battle} 精力`);
+export const whyNoBattlePay = (s, t) => (tickets(s) > 0 ? null : whyEnergy(s, E_COST.battle, t));
+/** 扣一次：'ticket' / 'energy'；都没有 null */
+export function payBattle(s, t) { if (tickets(s) > 0) { s.items.battle -= 1; return 'ticket'; } return doEnergy(s, E_COST.battle, t) ? 'energy' : null; }
+/** 还能打几次（券 + 精力够几次），给 autoplay / 界面看 */
+export const battlesLeft = (s, t) => tickets(s) + Math.floor(energy(s, t) / E_COST.battle + 1e-9);
 /** 现在能打的对手：当前阶段、没收购过的 */
 export const activeRivals = (s) => RIVALS.filter((r) => r.stage === s.title || (r.stage < s.title && !rv(s, r.id).acquired));
 
@@ -73,7 +71,7 @@ export function intelBonus(s, rivalId) {
 export function whyNotBattle(s, rivalId, team, t) {
   const r = RIVAL_BY_ID[rivalId];
   if (!r || rv(s, rivalId).acquired) return '已经收购了';
-  if (battlesLeft(s, t) <= 0) return `商战次数用完了，${Math.ceil(nextBattleIn(s, t) / 60e3)} 分钟后恢复 1 次`;
+  { const w = whyNoBattlePay(s, t); if (w) return w; }
   if (!team.length) return '至少带一个人';
   if (team.length > TEAM_MAX) return `最多带 ${TEAM_MAX} 个人`;
   if (team.some((id) => !s.secs[id])) return '没有这个秘书';
@@ -85,7 +83,7 @@ export function whyNotBattle(s, rivalId, team, t) {
 export function fight(s, rivalId, projectId, team, t, rnd = Math.random) {
   const why = whyNotBattle(s, rivalId, team, t);
   if (why) return { ok: false, why };
-  battleEnergy(s, t).n -= 1;
+  payBattle(s, t);
   const rate = winRate(s, rivalId, projectId, team);
   const win = rnd() < rate;
   const rounds = win ? 2 : (rnd() < rate ? 1 : 0); // 交给秘书打：赢了按赢 2 回合、输了 0～1 回合算份额
@@ -123,10 +121,13 @@ export function acquireRate(s, rivalId, team) {
 /** V2-13 董事会「并购」：这一周收购成功率 +（开发2，core/meeting.js 挂进来） */
 let acqHook = () => 0; export const setAcquireHook = (fn) => { acqHook = fn; };
 let SWAP = null; export const setSwapHook = (x) => { SWAP = x; };
+/** 设计38 第四节：收购每档最终对手，身价要先到那一档门槛的 80% */
+export const FINAL_NW_K = 0.8;
 export function whyNotAcquire(s, rivalId, team, t, plan = 'full', loan = null, swap = 0) {
   const r = liveDeal(s, rivalId, t); const st = rv(s, rivalId);
   if (r.noAcquire) return '投行不能收购';
   if (st.acquired) return '已经收购了';
+  { const ti = TITLES.findIndex((x) => x.rival === rivalId); if (ti > 0 && netWorth(s) < FINAL_NW_K * TITLES[ti].need) return `身价到 ${fmtMoney(FINAL_NW_K * TITLES[ti].need)} 才能谈`; } /* 设计38 第四节：最终对手要身价先到这一档门槛的 80% */
   if (st.wins < WINS_TO_ACQUIRE) return `商战赢满 ${WINS_TO_ACQUIRE} 次才能收购`;
   if (t < st.cooldownUntil) return `对方还在气头上，${Math.ceil((st.cooldownUntil - t) / 60000)} 分钟后再谈（再赢一次商战能提高成功率）`;
   if (team.some((id) => isTraining(s, id))) return '上课的人不能带';

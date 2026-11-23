@@ -8,7 +8,7 @@
   "step": 10,
   "autoK": 0.7,
   "dirs": {
-    "ad": { "name": "广告", "max": 0.25, "fx": "全部门店、物流、传媒营业额", "attr": "charm" },
+    "ad": { "name": "广告", "max": 0.25, "fx": "门店这周广告升级打八折；物流、传媒营业额", "attr": "charm" },
     "exp": { "name": "扩张", "max": 0.3, "fx": "开分店的钱", "attr": "manage" },
     "res": { "name": "研发", "max": 0.4, "fx": "科技线营业额", "attr": "wit" },
     "tal": { "name": "人才", "max": 0.5, "fx": "员工流失", "attr": "social" }

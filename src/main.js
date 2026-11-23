@@ -1,89 +1,99 @@
-import { APP_V, versionText } from './version.js?v=77f12d68';
-import { fitPhone, onVisibility } from './platform/screen.js?v=77f12d68';
-import { preloadAll } from './platform/assets.js?v=77f12d68';
-import { game, start, stop } from './game.js?v=77f12d68';
-import { initDebug, addDebug } from './debug.js?v=77f12d68';
-import { buildMain, setNetWorth } from './ui/main-screen.js?v=77f12d68';
-import { buildNav, flashTab } from './ui/shell.js?v=77f12d68';
-import { registerPages, setSegment } from './ui/pages.js?v=77f12d68';
-import { renderIndustry, renderHR } from './ui/company.js?v=77f12d68';
-import { renderPosts } from './ui/posts.js?v=77f12d68';
-import { renderFinance } from './ui/wealth.js?v=77f12d68';
-import { renderBank } from './ui/bank.js?v=77f12d68';
-import { openNaming } from './ui/naming.js?v=77f12d68';
-import * as INB from './core/inbox.js?v=77f12d68';
-import { hookCompany } from './core/company.js?v=77f12d68';
-import * as BO from './core/boss.js?v=77f12d68';
-import { setBossAttrs } from './ui/boss.js?v=77f12d68';
-import { accruePayables } from './core/accrual.js?v=77f12d68';
-import { tickPosts } from './core/postwork.js?v=77f12d68';
-import * as ST from './core/staff.js?v=77f12d68';
-import { openIndustry } from './ui/industry.js?v=77f12d68';
-import { openSecretaryList } from './ui/secretary.js?v=77f12d68';
-import { playStory } from './ui/story.js?v=77f12d68';
-import * as SC from './core/secretary.js?v=77f12d68';
-import * as TR from './core/training.js?v=77f12d68';
-import { COURSE_BY_ID } from './config/courses.js?v=77f12d68';
-import { say, setTapLine, setSwitchHandler, setHomeAction, setTodoProvider, setFloatState } from './ui/main-screen.js?v=77f12d68';
-import { openInbox } from './ui/inbox.js?v=77f12d68';
-import * as BI from './ui/brandinv.js?v=77f12d68'; // 设计35 第九、十节 品牌邀请不过期（开发2）
-import { openBoss } from './ui/boss.js?v=77f12d68';
-import { openMall } from './ui/mall.js?v=77f12d68';
-import { openDetail } from './ui/secretary.js?v=77f12d68';
-import { openWardrobe } from './ui/outfit.js?v=77f12d68';
-import { openTab } from './ui/shell.js?v=77f12d68';
-import * as LG from './core/ledger.js?v=77f12d68';
-import { MONTH_MS, monthIndex } from './core/gametime.js?v=77f12d68';
-import * as A from './core/affection.js?v=77f12d68';
-import { openGift } from './ui/gift.js?v=77f12d68';
-import { openDate } from './ui/date.js?v=77f12d68';
-import { LOVE_STAGE_STORIES } from './config/love-stories.js?v=77f12d68';
-import { setDateOutfit } from './ui/date.js?v=77f12d68';
-import { openShop, wearShow } from './ui/outfit.js?v=77f12d68';
-import * as OF from './core/outfits.js?v=77f12d68';
-import { PLACE_BY_ID } from './config/dates.js?v=77f12d68';
-import { openBattle } from './ui/battle.js?v=77f12d68';
-import * as AS from './core/assets.js?v=77f12d68';
-import { setDateCar } from './ui/date.js?v=77f12d68';
-import { openDaily, openSettings, hasDailyTodo } from './ui/daily.js?v=77f12d68';
-import './ui/negotiate.js?v=77f12d68'; // V2-06 谈判：注册房东涨租的「谈」
-import './ui/meeting.js?v=77f12d68'; // V2-13 每周经营会：消息「开经营会」、每秒结周 / 约会
-import { openAgenda } from './ui/agenda.js?v=77f12d68'; // V3-02 日程表
-import * as AGD from './core/agenda.js?v=77f12d68';
-import { hint, withHint, HINTS } from './ui/guide.js?v=77f12d68';
-import * as BT from './core/battle.js?v=77f12d68';
-import { PROMOTE_STORIES } from './config/battle-lines.js?v=77f12d68';
-import { toast } from './ui/dom.js?v=77f12d68';
-import { now } from './core/clock.js?v=77f12d68';
-import { JOIN_STORIES } from './config/stories.js?v=77f12d68';
-import { openPanel, h } from './ui/dom.js?v=77f12d68';
-import * as E from './core/economy.js?v=77f12d68';
-import { fmtMoney, fmtDuration } from './core/format.js?v=77f12d68';
-import { SECRETARIES, SEC_BY_ID } from './config/secretaries.js?v=77f12d68';
-import { TITLES } from './config/titles.js?v=77f12d68';
-import * as EV from './core/events.js?v=77f12d68';
-import * as RE from './core/realestate.js?v=77f12d68';
-import { startFunds, needsStart } from './core/start.js?v=77f12d68';
-import * as CP from './core/capital.js?v=77f12d68';
-import * as PL from './core/pledge.js?v=77f12d68';
-import { settleAway } from './core/away.js?v=77f12d68';
-import ECO from './config/economy.json?v=77f12d68' with { type: 'json' };
-import * as LGI from './core/logistics.js?v=77f12d68';
-import * as TC from './core/tech.js?v=77f12d68';
-import * as MD from './core/media.js?v=77f12d68';
-import * as RV from './core/rivalry.js?v=77f12d68';
-import * as BK from './core/bank.js?v=77f12d68';
-import { COURSES } from './config/courses.js?v=77f12d68';
-import POSTS_CFG from './config/posts.json?v=77f12d68' with { type: 'json' };
-import { showAwayBill as showAwayPaper } from './ui/awaybill.js?v=77f12d68';
-import * as OC from './core/offcap.js?v=77f12d68';
-import * as RG from './core/rivalgrow.js?v=77f12d68';
-import { mountGoals } from './ui/goals.js?v=77f12d68'; // 第 P-06 项：新手目标链
-import './core/trade.js?v=77f12d68'; // 第 P-06 项：条件单、打新、两融、周报（挂在股市每跳上）
-import * as MG from './core/manage.js?v=77f12d68';
-import * as BE from './core/bizevents.js?v=77f12d68';
-import * as CF from './core/cashflow.js?v=77f12d68';
-import { mountFundBar } from './ui/fund.js?v=77f12d68';
+import { APP_V, versionText } from './version.js?v=b3791cdb';
+import { fitPhone, onVisibility } from './platform/screen.js?v=b3791cdb';
+import { preloadAll } from './platform/assets.js?v=b3791cdb';
+import { game, start, stop } from './game.js?v=b3791cdb';
+import { initDebug, addDebug } from './debug.js?v=b3791cdb';
+import { buildMain, setNetWorth } from './ui/main-screen.js?v=b3791cdb';
+import { buildNav, flashTab } from './ui/shell.js?v=b3791cdb';
+import { registerPages, setSegment } from './ui/pages.js?v=b3791cdb';
+import { renderIndustry, renderHR } from './ui/company.js?v=b3791cdb';
+import { renderPosts } from './ui/posts.js?v=b3791cdb';
+import { renderFinance } from './ui/wealth.js?v=b3791cdb';
+import { renderBank } from './ui/bank.js?v=b3791cdb';
+import { openNaming } from './ui/naming.js?v=b3791cdb';
+import * as INB from './core/inbox.js?v=b3791cdb';
+import { hookCompany } from './core/company.js?v=b3791cdb';
+import * as BO from './core/boss.js?v=b3791cdb';
+import { setBossAttrs } from './ui/boss.js?v=b3791cdb';
+import { accruePayables } from './core/accrual.js?v=b3791cdb';
+import { tickPosts } from './core/postwork.js?v=b3791cdb';
+import * as ST from './core/staff.js?v=b3791cdb';
+import { openIndustry } from './ui/industry.js?v=b3791cdb';
+import { openSecretaryList } from './ui/secretary.js?v=b3791cdb';
+import { playStory } from './ui/story.js?v=b3791cdb';
+import * as SC from './core/secretary.js?v=b3791cdb';
+import * as TR from './core/training.js?v=b3791cdb';
+import { COURSE_BY_ID } from './config/courses.js?v=b3791cdb';
+import { say, setTapLine, setSwitchHandler, setHomeAction, setTodoProvider, setFloatState } from './ui/main-screen.js?v=b3791cdb';
+import { openInbox } from './ui/inbox.js?v=b3791cdb';
+import * as BI from './ui/brandinv.js?v=b3791cdb';
+import * as COUP from './core/coupon.js?v=b3791cdb'; // 设计39 金券（开发2）
+import { mountCouponChip, openWallet } from './ui/coupon.js?v=b3791cdb';
+import { openRoutine, routineTodo } from './ui/routine.js?v=b3791cdb';
+let couponT = 0; // 设计35 第九、十节 品牌邀请不过期（开发2）
+import './ui/upgradebox.js?v=b3791cdb'; // 设计37 第三节：升级框 + 好感升阶 / 老板属性看守（开发2）
+import { openBoss } from './ui/boss.js?v=b3791cdb';
+import { openMall } from './ui/mall.js?v=b3791cdb';
+import { openDetail } from './ui/secretary.js?v=b3791cdb';
+import { openWardrobe } from './ui/outfit.js?v=b3791cdb';
+import { openTab } from './ui/shell.js?v=b3791cdb';
+import * as LG from './core/ledger.js?v=b3791cdb';
+import { MONTH_MS, monthIndex } from './core/gametime.js?v=b3791cdb';
+import * as A from './core/affection.js?v=b3791cdb';
+import { openGift } from './ui/gift.js?v=b3791cdb';
+import { openDate } from './ui/date.js?v=b3791cdb';
+import { LOVE_STAGE_STORIES } from './config/love-stories.js?v=b3791cdb';
+import { setDateOutfit } from './ui/date.js?v=b3791cdb';
+import { openShop, wearShow } from './ui/outfit.js?v=b3791cdb';
+import * as OF from './core/outfits.js?v=b3791cdb';
+import { PLACE_BY_ID } from './config/dates.js?v=b3791cdb';
+import { openBattle } from './ui/battle.js?v=b3791cdb';
+import * as AS from './core/assets.js?v=b3791cdb';
+import { setDateCar } from './ui/date.js?v=b3791cdb';
+import { openDaily, openSettings, hasDailyTodo } from './ui/daily.js?v=b3791cdb';
+import './ui/negotiate.js?v=b3791cdb'; // V2-06 谈判：注册房东涨租的「谈」
+import './ui/meeting.js?v=b3791cdb'; // V2-13 每周经营会：消息「开经营会」、每秒结周 / 约会
+import { openAgenda } from './ui/agenda.js?v=b3791cdb'; // V3-02 日程表
+import * as AGD from './core/agenda.js?v=b3791cdb';
+import { hint, withHint, HINTS } from './ui/guide.js?v=b3791cdb';
+import * as BT from './core/battle.js?v=b3791cdb';
+import { PROMOTE_STORIES } from './config/battle-lines.js?v=b3791cdb';
+import { toast } from './ui/dom.js?v=b3791cdb';
+import { now } from './core/clock.js?v=b3791cdb';
+import { JOIN_STORIES } from './config/stories.js?v=b3791cdb';
+import { openPanel, h } from './ui/dom.js?v=b3791cdb';
+import * as E from './core/economy.js?v=b3791cdb';
+import { fmtMoney, fmtDuration } from './core/format.js?v=b3791cdb';
+import { SECRETARIES, SEC_BY_ID } from './config/secretaries.js?v=b3791cdb';
+import { TITLES } from './config/titles.js?v=b3791cdb';
+import * as EV from './core/events.js?v=b3791cdb';
+import * as RE from './core/realestate.js?v=b3791cdb';
+import { startFunds, needsStart } from './core/start.js?v=b3791cdb';
+import * as CP from './core/capital.js?v=b3791cdb';
+import * as PL from './core/pledge.js?v=b3791cdb';
+import { settleAway } from './core/away.js?v=b3791cdb';
+import ECO from './config/economy.json?v=b3791cdb' with { type: 'json' };
+import * as LGI from './core/logistics.js?v=b3791cdb';
+import * as TC from './core/tech.js?v=b3791cdb';
+import * as MD from './core/media.js?v=b3791cdb';
+import * as RV from './core/rivalry.js?v=b3791cdb';
+import * as BK from './core/bank.js?v=b3791cdb';
+import { COURSES } from './config/courses.js?v=b3791cdb';
+import POSTS_CFG from './config/posts.json?v=b3791cdb' with { type: 'json' };
+import { IND_BY_ID } from './config/industries.js?v=b3791cdb'; // 设计39 自动上阵提醒
+import { setRoutineHooks } from './ui/routine.js?v=b3791cdb';
+import * as UPS from './ui/upshow.js?v=b3791cdb';
+import * as UPN from './core/upnote.js?v=b3791cdb';
+import { titleOpened } from './core/upbuild.js?v=b3791cdb';
+import { showAwayBill as showAwayPaper } from './ui/awaybill.js?v=b3791cdb';
+import * as OC from './core/offcap.js?v=b3791cdb';
+import * as RG from './core/rivalgrow.js?v=b3791cdb';
+import { mountGoals } from './ui/goals.js?v=b3791cdb'; // 第 P-06 项：新手目标链
+import './core/trade.js?v=b3791cdb'; // 第 P-06 项：条件单、打新、两融、周报（挂在股市每跳上）
+import * as MG from './core/manage.js?v=b3791cdb';
+import * as BE from './core/bizevents.js?v=b3791cdb';
+import * as CF from './core/cashflow.js?v=b3791cdb';
+import { mountFundBar } from './ui/fund.js?v=b3791cdb';
 
 const $ = (s) => document.querySelector(s);
 const phone = $('#phone');
@@ -93,6 +103,9 @@ $('.load-ver').textContent = versionText(APP_V);
 // 公司月结（发工资、交税、月报）挂在游戏时钟上
 hookCompany();
 // 产钱：在线每秒、离线结算
+game.addTicker((s) => UPS.pump(s, now()));
+setRoutineHooks({ actions: (s, t) => MG.actionsText(s, t) }); // 设计39 今日日常：亲自上阵状态
+MG.setAutoActWarn((s, id, until, t) => { INB.addMsg(s, { kind: 'system', type: 'auto_act', title: `${IND_BY_ID[id] ? IND_BY_ID[id].name : id}自动上阵明天到期`, body: `到期以后 4 个动作不再自动续，要续在金券里买（1 天 20、1 周 100）。` }, t); toast(`${IND_BY_ID[id] ? IND_BY_ID[id].name : ''}自动上阵明天到期`, 3000); }); // 设计39 第二节 // V0.2.5 升级框排队（设计37 第三节）
 game.addTicker((s) => { const m = CF.tickFund(s, now()); if (m) toast(m.title, 3000); const n = CF.autoFill(s, now()); if (n) toast(`人事自动补了 ${n} 个人`, 2000); }); // V0.2.3 资金链急报；V0.2.4 自动补员
 game.addTicker((s, dt) => { E.unlockIfReady(s); E.tickIncome(s, dt, SEC_BY_ID); accruePayables(s, now()); tickPosts(s, now()); AS.tickUpkeep(s, dt); assetNotices(s); for (const hh of ST.processHires(s, now())) toast(`${hh.n} 个${ST.PAY.roles[hh.role].name}到岗了`); checkJoins(s); checkEvents(s); reTick(s); for (const x of LGI.tickLogi(s, now())) toast(x, 2600); for (const x of RV.tickRivalry(s, now())) toast(x, 2600); for (const x of BK.tickBank(s, now())) toast(x, 2600); for (const x of CP.tickCapital(s, now())) toast(x, 2600); for (const x of PL.tickPledge(s, now())) toast(x, 2600); for (const x of MG.tickManage(s, now())) toast(x, 2600); for (const x of BE.tickEvents(s, now())) toast(x, 2600); /* P-05 经营、事件（事件只在线来） */ for (const x of MD.tickMedia(s, now())) { toast(x, 2600); INB.addMsg(s, { kind: 'system', type: 'media', title: x, body: '公司 → 产业 → 娱乐传媒' }, now()); } for (const x of TC.tickTech(s, now())) { toast(x, 2600); INB.addMsg(s, { kind: 'system', type: 'tech', title: x, body: '公司 → 产业 → 科技' }, now()); } newIndustries(s); finishCourses(s); A.dailyDecay(s, now()); promote(s); if (s.cash >= 1e5) s.flags.cash100k = true; });
 
@@ -111,7 +124,8 @@ function promote(s) {
   // 每升一档：新课程、秘书市场月薪按规模系数涨（她们会来谈加薪）、办公室和头像换档（设计20 第一节）
   const nc = COURSES.filter((c) => c.unlockTitle === t).map((c) => `「${c.name}」`).join('');
   const k = (POSTS_CFG.scaleByTitle[t] ?? 1) / (POSTS_CFG.scaleByTitle[t - 1] ?? 1);
-  INB.addMsg(s, { kind: 'system', type: 'promote', title: `升为「${TITLES[t].name}」`, body: [nc && `新课程${nc}`, k > 1 && `公司规模上来了，秘书市场月薪 ×${+k.toFixed(2)}（她们会陆续来谈加薪）`].filter(Boolean).join('；') }, now());
+  const opened = titleOpened(t); if (nc) opened.push(`新课程${nc}`); UPN.noteUp(s, { title: '升称号', what: `升为「${TITLES[t].name}」`, fx: [], opened, next: t + 1 < TITLES.length ? `下一个称号：${TITLES[t + 1].name}` : '' }, now()); /* V0.2.5 升称号加「开放了」 */
+  INB.addMsg(s, { kind: 'system', type: 'promote', title: `升为「${TITLES[t].name}」`, body: [opened.length && `开放了：${opened.join('；')}`, k > 1 && `公司规模上来了，秘书市场月薪 ×${+k.toFixed(2)}（她们会陆续来谈加薪）`].filter(Boolean).join('；') }, now());
   game.save();
 }
 // 地产项目到点往下走：要你拍板的（开工、卖还是持有）进消息中心，其余出提示
@@ -157,6 +171,7 @@ game.addOffline((s, away, t) => {
   const ticks = [...OC.capitalTicks(t, capCtx), (x, tt) => CP.tickCapital(x, tt), (x, tt) => PL.tickPledge(x, tt), (x, tt) => MG.tickManage(x, tt), (x, tt) => RE.tickRE(x, tt), (x, tt) => LGI.tickLogi(x, tt), (x, tt) => TC.tickTech(x, tt), (x, tt) => MD.tickMedia(x, tt), (x, tt) => RV.tickRivalry(x, tt), (x, tt) => BK.tickBank(x, tt)];
   const bill = settleAway(s, t - away * 1000, t, { secById: SEC_BY_ID, ticks });
   BE.resetTimer(s, t); OC.finishNews(s, capCtx, t); bill.capital = OC.diff(cap0, OC.snap(s)); bill.rivals = RG.diffRivals(s, rv0);
+  bill.ups = UPN.flushAuto(s, t, true); /* V0.2.5 托管离线自动升的：首页弹汇总 + 账单列一段 */
   if (away >= ECO.offline.billMinSec) showAwayBill(bill);
 });
 /** 「离开期间」账单：纸张样式，公司 / 个人两段 + 秘书替你做了什么（第 2-16a 项，ui/awaybill.js） */
@@ -174,7 +189,7 @@ function debugButtons() {
   addDebug('好感', '当前秘书好感 +100', (s) => { const r = A.addFavor(s, s.current, 100); if (r.stageUp) game.emit('favorUp', s.current, r); });
   addDebug('好感', '当前秘书爱慕 +20', (s) => { const r = A.addLove(s, s.current, 20); if (r.stageUp) game.emit('loveUp', s.current, r); });
   addDebug('商战', '当前阶段对手都赢 3 次', (s) => { for (const r of BT.activeRivals(s)) BT.rivalState(s, r.id).wins = Math.max(3, BT.rivalState(s, r.id).wins); });
-  addDebug('商战', '次数加满', (s) => { s.battleEnergy = null; });
+  addDebug('商战', '商战券 +10', (s) => { BT.addTickets(s, 10); }); addDebug('全部', '精力 +100', (s) => { MG.addEnergy(s, 100, now()); });
   addDebug('事件', '升到老板（身价够、恒远算收购）', (s) => { s.flags.acquired = { ...(s.flags.acquired || {}), hengyuan: true }; s.title = Math.max(s.title, 1); LG.receive(s, { wallet: 'company', cat: 'refund', amount: Math.max(0, 1.1e7 - E.netWorth(s)), note: '调试' }, now()); });
   addDebug('事件', '下一件事件马上来（不等间隔和条件里的时间）', (s) => { s.eventLastAt = 0; s.flags.titleAt = s.flags.titleAt || {}; for (const k of Object.keys(s.flags.titleAt)) s.flags.titleAt[k] -= 3600e3; for (const st of Object.values(s.events || {})) st.snoozeUntil = 0; });
   addDebug('事件', '事件全部重置', (s) => { s.events = {}; s.eventLastAt = 0; for (const f of ['teamBuild1', 'financeCrisis1', 'jobFair1']) delete s.flags[f]; for (const id of ['s07_tang', 's08_xu', 's04_gu']) delete s.secs[id]; });
@@ -202,6 +217,8 @@ async function boot() {
   setSegment('wealth.finance', renderFinance);
   setSegment('wealth.bank', renderBank);
   buildNav(main);
+  mountCouponChip(); // 设计39：顶栏「🎫 N」（开发2）
+  game.addTicker((s) => { const t = now(); if (t - (couponT || 0) < 1000) return; couponT = t; for (const x of COUP.tick(s, t)) toast(`${x.n ? `🎫 金券 +${x.n}（${x.why}）` : x.why}${x.gifts ? `，送${x.gifts}` : ''}`, 2600); });
   setTapLine((s, id) => {
     const r = A.tapSec(s, id, now());
     if (r.favor && r.favor.stageUp) game.emit('favorUp', id, r.favor);
@@ -209,7 +226,9 @@ async function boot() {
   });
   // 首页：左浮动（签到、限时）、右浮动（商场、约会、衣柜）、头像 → 老板页、铃铛 → 消息、长按立绘 → 详情
   setHomeAction('daily', openDaily);
-  setHomeAction('limited', () => openInbox('invite'));
+  setHomeAction('limited', () => openInbox()); // 设计39：品牌邀请这些在「重要」
+  setHomeAction('routine', () => openRoutine()); // 设计39 今日日常（开发2）
+  setHomeAction('wallet', () => openWallet()); // 设计39 卡包（开发2）
   setHomeAction('mall', withHint('gift', (id) => openMall(id)));
   setHomeAction('date', withHint('date', openDate));
   setHomeAction('wardrobe', (id) => openWardrobe(id));
@@ -219,17 +238,17 @@ async function boot() {
   setHomeAction('agenda', () => openAgenda()); // V3-02
   setFloatState((s) => {
     const inv = (s.inbox || []).some((m) => m.kind === 'invite' && m.status === 'open');
-    return { daily: { red: hasDailyTodo(s, now()) }, limited: { show: inv, red: inv }, agenda: { show: AGD.unlocked(s), red: AGD.unlocked(s) && AGD.pendingCount(s, now()) > 0 } };
+    return { daily: { red: hasDailyTodo(s, now()) }, limited: { show: inv, red: inv }, routine: { show: true, red: routineTodo(s, now()) }, wallet: { show: true }, agenda: { show: AGD.unlocked(s), red: AGD.unlocked(s) && AGD.pendingCount(s, now()) > 0 } };
   });
   // 待办条：请示 · 结业 · 月报；没事时显示本月公司收入
   setTodoProvider((s) => {
-    const c = INB.counts(s);
-    // 设计35 第十节：待批数量（所有没办的，不限时）+ 月报；点了进「待处理」
-    const pend = INB.pending(s).length;
+    // 设计39：重要 N 件（永久挂着）· 经营还没做的 · 月报；点了先进「重要」
+    const c = INB.tabCounts(s); const imp = c.important.n;
     const parts = [];
-    if (pend) parts.push(`待处理 <b class="todo-n">${pend}</b>`);
+    if (imp) parts.push(`重要 <b class="todo-n">${imp}</b> 件`);
+    if (c.biz.n) parts.push(`经营 ${c.biz.n}`);
     if (c.report.unread) parts.push(`月报 ${c.report.unread}`);
-    if (parts.length) return { text: '📋 ' + parts.join(' · '), onClick: () => openInbox(pend ? 'pending' : 'report') };
+    if (parts.length) return { text: '📋 ' + parts.join(' · '), onClick: () => openInbox(imp ? 'important' : c.biz.n ? 'biz' : 'report') };
     const t = now(); const from = s.createdAt + monthIndex(s, t) * MONTH_MS;
     const rev = LG.query(s, { wallet: 'company', cat: 'revenue', from }).reduce((a, r) => a + r.amount, 0) + Object.values(s.accruals || {}).reduce((a, x) => a + (x.cat === 'revenue' ? x.amount : 0), 0);
     return { text: `本月公司营收 <span class="g">+${fmtMoney(rev)}</span>`, onClick: () => openTab('company') };

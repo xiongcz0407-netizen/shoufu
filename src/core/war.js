@@ -1,17 +1,17 @@
 // V2-05 商战三回合（设计29 第一节）：开战前看对手卡片；三回合每回合双方各出一张打法同时亮牌；克制的赢，同打法 / 不相克比带去的秘书对应属性
 // 三回合赢两回合算赢（提前分出胜负就结束）；每赢一回合你这条线当月营收 +2%、对手利润 −3%；结果落地走 battle.settleBattle
-import { WAR, RIVAL_BY_ID } from '../config/rivals.js?v=77f12d68';
-import * as B from './battle.js?v=77f12d68';
-import { live, monthGrowth } from './rivalgrow.js?v=77f12d68';
-import { ensureSec } from './secretary.js?v=77f12d68';
-import { netWorth } from './economy.js?v=77f12d68';
-import * as E from './economy.js?v=77f12d68';
-import { auraBattle, visionBattle } from './boss.js?v=77f12d68';
-import { bizBattle } from './rivalry.js?v=77f12d68';
-import { bigBonus } from './manage.js?v=77f12d68';
-import { pay, canPay } from './ledger.js?v=77f12d68';
-import { wage } from './staff.js?v=77f12d68';
-import { DAY_MS, dayIndex } from './manage.js?v=77f12d68';
+import { WAR, RIVAL_BY_ID } from '../config/rivals.js?v=b3791cdb';
+import * as B from './battle.js?v=b3791cdb';
+import { live, monthGrowth } from './rivalgrow.js?v=b3791cdb';
+import { ensureSec } from './secretary.js?v=b3791cdb';
+import { netWorth } from './economy.js?v=b3791cdb';
+import * as E from './economy.js?v=b3791cdb';
+import { auraBattle, visionBattle } from './boss.js?v=b3791cdb';
+import { bizBattle } from './rivalry.js?v=b3791cdb';
+import { bigBonus } from './manage.js?v=b3791cdb';
+import { pay, canPay } from './ledger.js?v=b3791cdb';
+import { wage } from './staff.js?v=b3791cdb';
+import { DAY_MS, dayIndex } from './manage.js?v=b3791cdb';
 
 const P = WAR.plays; export const PLAY_IDS = Object.keys(P); export { WAR };
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -37,7 +37,7 @@ export function rivalCard(s, rivalId) {
 export function start(s, rivalId, team, t, rnd = Math.random) {
   const why = B.whyNotBattle(s, rivalId, team, t); if (why) return { ok: false, why };
   if (s.war && s.war.open) return { ok: false, why: '还有一场没打完' };
-  B.battleEnergy(s, t).n -= 1;
+  B.payBattle(s, t); /* 设计39：有券用券，没券 5 精力 */
   const r = RIVAL_BY_ID[rivalId]; const plan = Array.from({ length: WAR.rounds }, () => draw(r, rnd));
   const st = B.rivalState(s, rivalId); const enough = (st.intel || 0) >= WAR.intelShow;
   const cnt = {}; for (const c of plan) cnt[c] = (cnt[c] || 0) + 1;

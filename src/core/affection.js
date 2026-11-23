@@ -1,10 +1,10 @@
 // 好感、爱慕、每天互动、送礼、台词触发规则（设计03 第五节）、吃醋 / 冷落
-import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=77f12d68';
-import { GIFT_BY_ID } from '../config/gifts.js?v=77f12d68';
-import { LINES } from '../config/lines.js?v=77f12d68';
-import { ensureSec, favorStage, loveStage, FAVOR_MAX, LOVE_STAGES } from './secretary.js?v=77f12d68';
-import { bump } from './daily.js?v=77f12d68';
-import { pay, receive, accrue, canPay } from './ledger.js?v=77f12d68';
+import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=b3791cdb';
+import { GIFT_BY_ID } from '../config/gifts.js?v=b3791cdb';
+import { LINES } from '../config/lines.js?v=b3791cdb';
+import { ensureSec, favorStage, loveStage, FAVOR_MAX, LOVE_STAGES } from './secretary.js?v=b3791cdb';
+import { bump } from './daily.js?v=b3791cdb';
+import { pay, receive, accrue, canPay } from './ledger.js?v=b3791cdb';
 
 export const DAILY_TALKS = 10;      // 每人每天点她涨好感的次数
 export const TALK_FAVOR = 2;
@@ -51,13 +51,18 @@ export const neglectedDays = (s, id, t) => {
   return Math.floor((t - last) / DAY);
 };
 
+/** 今天还能涨好感的互动次数 */
+const extraOf = (s, id, t) => (s.daily && s.daily.day === dayKey(t) && s.daily.talkExtra ? s.daily.talkExtra[id] || 0 : 0);
+export const talksLeft = (s, id, t) => Math.max(0, DAILY_TALKS + extraOf(s, id, t) - (s.daily && s.daily.day === dayKey(t) ? s.daily.talks[id] || 0 : 0)); // 只看不改（不翻天）
+/** 金券买的「互动 +5 次」（设计39，core/coupon.js 调） */
+export const talkExtra = (s, id, n, t) => { const d = daily(s, t); d.talkExtra = d.talkExtra || {}; d.talkExtra[id] = (d.talkExtra[id] || 0) + n; };
 /** 点她：返回 { scene, line, favor } */
 export function tapSec(s, id, t, rnd = Math.random) {
   const r = ensureSec(s, id); const d = daily(s, t);
   markWith(s, id, t);
-  r.rec.talks += 1; s.stats.talks = (s.stats.talks || 0) + 1; bump(s, t, 'talk');
   let favor = null;
-  if ((d.talks[id] || 0) < DAILY_TALKS) { d.talks[id] = (d.talks[id] || 0) + 1; favor = addFavor(s, id, TALK_FAVOR); }
+  // 每天前 10 次涨好感，也只有这 10 次算互动记录、每日任务；用完以后点她照样说话，不涨不记
+  if ((d.talks[id] || 0) < DAILY_TALKS + ((d.talkExtra || {})[id] || 0)) { d.talks[id] = (d.talks[id] || 0) + 1; favor = addFavor(s, id, TALK_FAVOR); r.rec.talks += 1; s.stats.talks = (s.stats.talks || 0) + 1; bump(s, t, 'talk'); }
   let scene = 'tap';
   if (r.favor >= FLIRT_FROM_FAVOR && rnd() < 0.5) {
     scene = 'flirt';
@@ -88,6 +93,7 @@ export function giveGift(s, id, giftId, t) {
   const liked = (c.gifts || []).includes(g.name);
   const favor = addFavor(s, id, liked ? g.favor * 2 : g.favor);
   const love = addLove(s, id, liked ? 1 : 0);
+  r.rec.giftLog = r.rec.giftLog || []; r.rec.giftLog.push({ t, name: g.name, favor: favor.to - favor.from, love: love.to - love.from }); if (r.rec.giftLog.length > 300) r.rec.giftLog.shift(); // 秘书详情「送过的礼物」明细
   markWith(s, id, t);
   return { ok: true, liked, favor, love, invoice: inv, line: LINES[id] && LINES[id].happy };
 }

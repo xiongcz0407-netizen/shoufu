@@ -1,16 +1,16 @@
 // 产业面板：升级、开分店、派驻秘书；产业图按等级换样子
-import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=77f12d68';
-import { TITLES } from '../config/titles.js?v=77f12d68';
-import * as PQ from '../core/prereq.js?v=77f12d68'; // V2-12 前置条件
-import { shortText, moneyGap, doUpgrade } from './company.js?v=77f12d68';
-import { askFill } from './fill.js?v=77f12d68'; // V0.2.2 // V0.2.1 灰按钮写原因
-import { SEC_BY_ID } from '../config/secretaries.js?v=77f12d68';
-import * as E from '../core/economy.js?v=77f12d68';
-import { fmtMoney } from '../core/format.js?v=77f12d68';
-import { asset, hasAsset } from '../platform/assets.js?v=77f12d68';
-import { game } from '../game.js?v=77f12d68';
-import { now } from '../core/clock.js?v=77f12d68';
-import { h, openPanel, toast } from './dom.js?v=77f12d68';
+import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=b3791cdb';
+import { TITLES } from '../config/titles.js?v=b3791cdb';
+import * as PQ from '../core/prereq.js?v=b3791cdb'; // V2-12 前置条件
+import { shortText, moneyGap, doUpgrade } from './company.js?v=b3791cdb';
+import { askFill } from './fill.js?v=b3791cdb'; // V0.2.2 // V0.2.1 灰按钮写原因
+import { SEC_BY_ID } from '../config/secretaries.js?v=b3791cdb';
+import * as E from '../core/economy.js?v=b3791cdb';
+import { fmtMoney } from '../core/format.js?v=b3791cdb';
+import { asset, hasAsset } from '../platform/assets.js?v=b3791cdb';
+import { game } from '../game.js?v=b3791cdb';
+import { now } from '../core/clock.js?v=b3791cdb';
+import { h, openPanel, toast } from './dom.js?v=b3791cdb';
 
 export function openIndustry(host) {
   const p = host || openPanel('我的产业');

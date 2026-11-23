@@ -1,13 +1,13 @@
 // 权责发生制（验收第六节第 2 次 #1）：工资社保、房租每秒按天数计提成「应付」（流水只记备忘，不动余额），月底再实际付；
 // 增值税 + 附加按本月营收、企业所得税按本季利润估着记应付。公司账户「可用」= 余额 − 应付；身价减掉应付
-import { IND_BY_ID } from '../config/industries.js?v=77f12d68';
-import { monthlyLabor, lookOf, estTotal } from './staff.js?v=77f12d68';
-import { lineK } from './cities.js?v=77f12d68';
-import { vatOf, TAX } from './companytax.js?v=77f12d68';
-import { MONTH_MS, monthIndex } from './gametime.js?v=77f12d68';
-import { post } from './ledger.js?v=77f12d68';
-import { storeOther } from './calib.js?v=77f12d68';
-import * as CT from './companytax.js?v=77f12d68';
+import { IND_BY_ID } from '../config/industries.js?v=b3791cdb';
+import { monthlyLabor, lookOf, estTotal } from './staff.js?v=b3791cdb';
+import { lineK } from './cities.js?v=b3791cdb';
+import { vatOf, TAX } from './companytax.js?v=b3791cdb';
+import { MONTH_MS, monthIndex } from './gametime.js?v=b3791cdb';
+import { post } from './ledger.js?v=b3791cdb';
+import { storeOther } from './calib.js?v=b3791cdb';
+import * as CT from './companytax.js?v=b3791cdb';
 
 const sum = (o) => Object.values(o || {}).reduce((a, b) => a + b, 0);
 export const DAY_MS = MONTH_MS / 30; // 游戏一天
@@ -47,14 +47,17 @@ function citEstimate(s, surcharge) {
   const small = CT.citSmall(s, profit);
   return Math.max(0, profit) * (small ? TAX.cit.smallRate : TAX.cit.rate);
 }
+/** V0.2.5 广告费应付（core/ads.js 挂进来） */
+let adsPayHook = () => 0; export const setAdsPayHook = (fn) => { adsPayHook = fn; };
 /** 应付明细：{ labor, rent, vat, surcharge, cit, owed（拖欠工资）, total } */
 export function payables(s) {
   const a = acc(s); const v = vatOf(s);
   const cit = citEstimate(s, v.surcharge);
   const owed = (s.payroll && s.payroll.owed) || 0;
   const due = CT.dueTotal(s); // 没申报的税
-  const total = a.labor + a.rent + a.other + v.vat + v.surcharge + cit + owed + due;
-  return { labor: a.labor, rent: a.rent, other: a.other, vat: v.vat, surcharge: v.surcharge, cit, owed, due, total };
+  const ads = adsPayHook(s); /* V0.2.5 已记账没结算的广告费（core/ads.js） */
+  const total = a.labor + a.rent + a.other + v.vat + v.surcharge + cit + owed + due + ads;
+  return { labor: a.labor, rent: a.rent, other: a.other, vat: v.vat, surcharge: v.surcharge, cit, owed, due, ads, total };
 }
 /** 公司账户可用 = 余额 − 应付 */
 export const available = (s) => (s.company || 0) - payables(s).total;

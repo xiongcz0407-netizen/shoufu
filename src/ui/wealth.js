@@ -1,24 +1,24 @@
 // 「财富 → 财务」（第 13 项，设计15 第三节 + 设计17 第三节、设计18 第四节 5）
 // 横滑标签：总览 | 利润表 | 个人收支 | 资产清单 | 纳税 | 流水 | 档案柜；右上角切 今天 / 本月 / 本年 / 全部
-import * as EQ from '../core/equity.js?v=77f12d68';
-import * as F from '../core/finance.js?v=77f12d68';
-import * as E from '../core/economy.js?v=77f12d68';
-import * as ST from '../core/staff.js?v=77f12d68';
-import * as AC from '../core/accrual.js?v=77f12d68';
-import * as AS from '../core/assets.js?v=77f12d68';
-import * as PO from '../core/posts.js?v=77f12d68';
-import { cityPL } from '../core/citypl.js?v=77f12d68';
-import { cityName } from '../core/cities.js?v=77f12d68';
-import { IND_BY_ID } from '../config/industries.js?v=77f12d68';
-import { CATS, WALLET_NAME } from '../core/ledger.js?v=77f12d68';
-import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=77f12d68';
-import { fmtMoney } from '../core/format.js?v=77f12d68';
-import { asset, hasAsset } from '../platform/assets.js?v=77f12d68';
-import { now } from '../core/clock.js?v=77f12d68';
-import { game } from '../game.js?v=77f12d68';
-import { h, openPanel, liveRender } from './dom.js?v=77f12d68';
-import { giftsTo } from './secretary.js?v=77f12d68';
-import { extendFinance } from './wealth2.js?v=77f12d68';
+import * as EQ from '../core/equity.js?v=b3791cdb';
+import * as F from '../core/finance.js?v=b3791cdb';
+import * as E from '../core/economy.js?v=b3791cdb';
+import * as ST from '../core/staff.js?v=b3791cdb';
+import * as AC from '../core/accrual.js?v=b3791cdb';
+import * as AS from '../core/assets.js?v=b3791cdb';
+import * as PO from '../core/posts.js?v=b3791cdb';
+import { cityPL } from '../core/citypl.js?v=b3791cdb';
+import { cityName } from '../core/cities.js?v=b3791cdb';
+import { IND_BY_ID } from '../config/industries.js?v=b3791cdb';
+import { CATS, WALLET_NAME } from '../core/ledger.js?v=b3791cdb';
+import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=b3791cdb';
+import { fmtMoney } from '../core/format.js?v=b3791cdb';
+import { asset, hasAsset } from '../platform/assets.js?v=b3791cdb';
+import { now } from '../core/clock.js?v=b3791cdb';
+import { game } from '../game.js?v=b3791cdb';
+import { h, openPanel, liveRender } from './dom.js?v=b3791cdb';
+import { giftsTo, spentOn } from './secretary.js?v=b3791cdb';
+import { extendFinance } from './wealth2.js?v=b3791cdb';
 
 const TABS = [['overview', '总览'], ['pl', '利润表'], ['personal', '个人收支'], ['assets', '资产清单'], ['tax', '纳税'], ['ledger', '流水'], ['archive', '档案柜']];
 let tab = 'overview', period = 'month', lf = { wallet: '', cat: '', by: '' };
@@ -57,8 +57,8 @@ const DRAW = {
       <div class="fn-pie"><i style="background:${pie}"></i><div>${parts.map((x, i) => `<div><em style="background:${colors[i]}"></em>${x[0]} ${pct(x[1] / tot)}</div>`).join('')}</div></div>
       ${cfoComment(s, pl, last && last.profit)}
       <div class="ind-btns"><button class="btn sm fn-inject">注资到公司</button><button class="btn sm gold fn-div">分红到个人</button></div>`;
-    el.querySelector('.fn-inject').onclick = () => import('./company.js?v=77f12d68').then((m) => m.openInject());
-    el.querySelector('.fn-div').onclick = () => import('./company.js?v=77f12d68').then((m) => m.openDividend());
+    el.querySelector('.fn-inject').onclick = () => import('./company.js?v=b3791cdb').then((m) => m.openInject());
+    el.querySelector('.fn-div').onclick = () => import('./company.js?v=b3791cdb').then((m) => m.openDividend());
   },
   pl(el, s, from, t) {
     const pl = F.companyPL(s, from, t);
@@ -78,7 +78,7 @@ const DRAW = {
     const kinds = { car: '车', house: '房', plane: '飞机' };
     el.innerHTML = `<div class="fn-card">${ids.map((id) => { const it = AS.ITEM[id]; const m = (g.meta || {})[id] || {}; const now2 = AS.sellPrice(s, id); const buy = m.price || it.price;
       return `<div class="fn-asset"><b>${kinds[it.kind]} · ${AS.label(it)}${m.no ? ` <small>No.${m.no}/${it.limit}</small>` : ''}</b><small>买入 ${fmtMoney(buy)} · 现价 ${fmtMoney(now2)} · 盈亏 <span class="neg">${fmtMoney(now2 - buy)}</span> · 每年 ${fmtMoney(AS.upkeepYear(s, id))}${s.rented && s.rented[id] ? ' · 出租中' : ''}${m.at ? ` · ${new Date(m.at).toLocaleDateString('zh-CN')}` : ''}${m.contract ? ` · ${m.contract}` : ''}</small></div>`; }).join('') || '<div class="empty">还没有车房飞机</div>'}</div>
-      <div class="sd-rec-title">送给秘书的</div><div class="fn-card">${SECRETARIES.filter((c) => s.secs[c.id]).map((c) => { const x = giftsTo(s, c.id); return row(c.name, `${x.n} 件 · ${fmtMoney(x.amount)}`); }).join('')}</div>`;
+      <div class="sd-rec-title">送给秘书的</div><div class="fn-card">${SECRETARIES.filter((c) => s.secs[c.id]).map((c) => { const x = spentOn(s, c.id); return row(c.name, `${x.n} 件 · ${fmtMoney(x.amount)}`); }).join('')}</div>`;
   },
   tax(el, s, from, t) {
     const x = F.taxes(s, from, t);

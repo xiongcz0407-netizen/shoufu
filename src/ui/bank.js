@@ -1,21 +1,22 @@
 // 财富 → 银行：征信、存款、贷款（经营贷、开发贷、股票质押、艺术品质押）、私人银行；申请和存款在底部抽屉
-import ECO from '../config/economy.json?v=77f12d68' with { type: 'json' };
+import ECO from '../config/economy.json?v=b3791cdb' with { type: 'json' };
 const PM = ECO.profitMul;
 /** 利率后面的小字：游戏年利率 = 现实 × 赚钱倍数（验收 2-16b） */
 const rn = (r) => `<small class="rate-note">（游戏年利率；现实 ${(r / PM * 100).toFixed(2).replace(/\.?0+$/, '')}% × 赚钱倍数 ${PM}）</small>`;
-import * as BK from '../core/bank.js?v=77f12d68';
-import * as RE from '../core/realestate.js?v=77f12d68';
-import * as PL from '../core/pledge.js?v=77f12d68';
-import * as SK from '../core/stocks.js?v=77f12d68';
-import * as AQ from '../core/antique.js?v=77f12d68';
-import * as LS from '../core/listing.js?v=77f12d68';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=77f12d68';
-import { asset, hasAsset } from '../platform/assets.js?v=77f12d68';
-import { now } from '../core/clock.js?v=77f12d68';
-import { game } from '../game.js?v=77f12d68';
-import { h, openPanel, toast, liveRender } from './dom.js?v=77f12d68';
-import { hint } from './guide.js?v=77f12d68';
-import { hintLater } from './guide2.js?v=77f12d68';
+import * as BK from '../core/bank.js?v=b3791cdb';
+import * as RE from '../core/realestate.js?v=b3791cdb';
+import * as PL from '../core/pledge.js?v=b3791cdb';
+import * as SK from '../core/stocks.js?v=b3791cdb';
+import * as AQ from '../core/antique.js?v=b3791cdb';
+import * as LS from '../core/listing.js?v=b3791cdb';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=b3791cdb';
+import { asset, hasAsset } from '../platform/assets.js?v=b3791cdb';
+import { now } from '../core/clock.js?v=b3791cdb';
+import { game } from '../game.js?v=b3791cdb';
+import { h, openPanel, toast, liveRender } from './dom.js?v=b3791cdb';
+import { hint } from './guide.js?v=b3791cdb';
+import { hintLater } from './guide2.js?v=b3791cdb';
+import { confirmBox } from './confirm.js?v=b3791cdb'; // 设计37 第一节：游戏样式确认框
 
 const C = BK.BANK_CFG;
 const logo = (k) => (hasAsset(`assets/org/${C.banks[k].logo}.webp`) ? `<img class="bk-logo" src="${asset(`assets/org/${C.banks[k].logo}.webp`)}" alt="">` : `<div class="bk-logo ph">${C.banks[k].name.slice(0, 2)}</div>`);
@@ -38,7 +39,7 @@ function draw(el) {
   for (const a of X.apps.filter((x) => x.status !== 'done')) el.appendChild(h('div', 'tr-course', `<div><b>${C.banks[a.bank].name} · ${a.type === 'dev' ? '开发贷' : '经营贷'} ${fmtMoney(a.amount)}</b><div class="tr-gain">${a.status === 'pending' ? `审批中，还要 ${fmtDuration(Math.max(0, (a.at - t) / 1000))}` : '批了，去消息中心「请示」签合同'}</div></div>`));
   for (const l of X.loans) {
     const c = h('div', 'tr-course', `${logo(l.bank)}<div style="flex:1"><b>${C.banks[l.bank].name} · ${BK.LOAN_NAME[l.type] || '贷款'}</b><div class="tr-gain">本金余额 ${fmtMoney(l.principal)} / ${fmtMoney(l.amount)} · 年利率 ${pct(l.rate)}${rn(l.rate)} · ${loanTail(s, l, t)}${l.overdue ? `<br><span class="neg">逾期 ${l.overdue} 期</span>` : ''}</div></div><button class="btn rp">提前还清</button>`);
-    c.querySelector('.rp').onclick = () => { if (!confirm(`从公司账户还 ${fmtMoney(l.principal)}？`)) return; const r = BK.repay(s, l.id, now()); toast(r.ok ? '还清了' : r.why); game.changed(); game.save(); };
+    c.querySelector('.rp').onclick = async () => { if (!(await confirmBox({ body: `从公司账户还 ${fmtMoney(l.principal)}？`, title: '提前还贷', ok: '还清' }))) return; const r = BK.repay(s, l.id, now()); toast(r.ok ? '还清了' : r.why); game.changed(); game.save(); };
     el.appendChild(c);
   }
   if (!X.loans.length && !X.apps.some((x) => x.status !== 'done')) el.appendChild(h('div', 'tr-gain', '没有贷款'));

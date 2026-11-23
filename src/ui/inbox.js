@@ -1,13 +1,16 @@
 // 消息中心（铃铛）：请示 / 月报 / 邀请拍卖 / 系统；请示直接批准 / 驳回
-import * as I from '../core/inbox.js?v=77f12d68';
-import { SEC_BY_ID } from '../config/secretaries.js?v=77f12d68';
-import { asset } from '../platform/assets.js?v=77f12d68';
-import { now } from '../core/clock.js?v=77f12d68';
-import { game } from '../game.js?v=77f12d68';
-import { h, toast } from './dom.js?v=77f12d68';
-import { openFull } from './shell.js?v=77f12d68';
-import { bump } from '../core/daily.js?v=77f12d68';
-import { openEventMsg } from './event.js?v=77f12d68';
+import * as I from '../core/inbox.js?v=b3791cdb';
+import { SEC_BY_ID } from '../config/secretaries.js?v=b3791cdb';
+import { asset } from '../platform/assets.js?v=b3791cdb';
+import { now } from '../core/clock.js?v=b3791cdb';
+import { game } from '../game.js?v=b3791cdb';
+import { h, toast } from './dom.js?v=b3791cdb';
+import { openFull } from './shell.js?v=b3791cdb';
+import { bump } from '../core/daily.js?v=b3791cdb';
+import { openEventMsg } from './event.js?v=b3791cdb';
+import * as CP from '../core/coupon.js?v=b3791cdb'; // 设计39 再来 10 件
+import { refillHtml, bindRefill } from './coupon.js?v=b3791cdb'; // 设计39 事件券（开发2）
+import { todayCount } from '../core/bizevents.js?v=b3791cdb';
 
 /** 页签那一排放不下时，把选中的滑到中间 */
 function showOn(row) { const b = row.querySelector('.seg.on'); if (!b || row.scrollWidth <= row.clientWidth) return; const r = row.getBoundingClientRect(), x = b.getBoundingClientRect(); if (x.left >= r.left && x.right <= r.right) return; row.scrollLeft += x.left - r.left - (r.width - x.width) / 2; }
@@ -20,27 +23,29 @@ export function actOn(s, m, a, render = () => {}) {
   if (ACTION_UI.some((fn) => fn(s, m, a, render))) return true;
   const lab = (m.actions.find((x) => x.key === a) || {}).label || '';
   if (I.act(s, m.id, a, now())) { toast(m.type === 'biz_event' ? `已处理：${lab}${m.result ? `\n${m.result}` : ''}` : a === 'reject' ? '已驳回' : '已批准', m.type === 'biz_event' ? 3200 : undefined); return true; }
-  toast('办不了（钱不够或已经过期）'); return false;
+  toast(m.why || '办不了（钱不够或已经过期）'); return false;
 }
 export function openInbox(kind) {
   const p = openFull('消息');
-  let cur = kind || (I.pending(game.state).length ? 'pending' : 'request'); // 设计35 第十节：有没办的先看「待处理」
+  // 设计39：有重要的先看「重要」，没有就看「经营」；老的页签名照样能传进来
+  const ALIAS = { pending: 'important', request: 'important', event: 'biz' };
+  let cur = ALIAS[kind] || (I.TABS[kind] ? kind : null) || (I.important(game.state).length ? 'important' : 'biz');
   const bar = h('div', 'seg-bar'); const list = h('div', 'page-body');
   p.body.append(bar, list);
   const render = () => {
-    const s = game.state; const c = I.counts(s);
+    const s = game.state; const c = I.tabCounts(s);
     bar.innerHTML = '';
-    { const n = I.pending(s).length; const b = h('button', 'seg' + (cur === 'pending' ? ' on' : ''), `待处理${n ? ` <i class="segn red">${n}</i>` : ''}`); b.onclick = () => { cur = 'pending'; render(); }; bar.appendChild(b); }
-    for (const [k, name] of Object.entries(I.KINDS)) {
-      const n = I.NEEDS_ACTION[k] ? c[k].open : c[k].unread;
-      const b = h('button', 'seg' + (k === cur ? ' on' : ''), `${name}${n ? ` <i class="segn ${I.NEEDS_ACTION[k] ? 'red' : ''}">${n}</i>` : ''}`);
+    for (const [k, name] of Object.entries(I.TABS)) {
+      const n = c[k].n; const red = k === 'important' || k === 'biz';
+      const b = h('button', 'seg' + (k === cur ? ' on' : ''), `${name}${n ? ` <i class="segn ${red ? 'red' : ''}">${n}</i>` : ''}`);
       b.onclick = () => { cur = k; render(); };
       bar.appendChild(b);
     }
     requestAnimationFrame(() => showOn(bar)); // 选中的页签滑到中间（照车行筛选）
     list.innerHTML = '';
-    const items = cur === 'pending' ? I.pending(s) : (s.inbox || []).filter((m) => m.kind === cur);
-    if (!items.length) list.appendChild(h('div', 'empty', cur === 'pending' ? '没有要你处理的事' : '没有消息'));
+    const items = I.inTab(s, cur);
+    if (cur === 'biz') list.appendChild(bizHead(s, render));
+    if (!items.length) list.appendChild(h('div', 'empty', cur === 'important' ? '没有要你签字拍板的事' : cur === 'biz' ? '今天的经营事件都处理完了' : '没有消息'));
     for (const m of items) {
       const from = SEC_BY_ID[m.from];
       const card = h('div', 'msg' + (m.read ? '' : ' unread'), `${from ? `<img src="${asset(`assets/sec/${m.from}/c1.webp`)}" alt="">` : '<i class="msg-ico">📄</i>'}
@@ -51,7 +56,7 @@ export function openInbox(kind) {
         const a = e.target.dataset && e.target.dataset.a;
         if (a === 'open' && m.type === 'event') { I.markRead(s, m.id); openEventMsg(m, render); } // 事件：播剧情 + 选择（选完才算处理）
         else if (a && ACTION_UI.some((fn) => fn(s, m, a, render))) { /* 交给挂钩（谈判等）*/ }
-        else if (a) { const lab = (m.actions.find((x) => x.key === a) || {}).label || ''; if (I.act(s, m.id, a, now())) toast(m.type === 'biz_event' ? `已处理：${lab}${m.result ? `\n${m.result}` : ''}` : a === 'reject' ? '已驳回' : '已批准', m.type === 'biz_event' ? 3200 : undefined); else toast('办不了（钱不够或已经过期）'); }
+        else if (a) { const lab = (m.actions.find((x) => x.key === a) || {}).label || ''; if (I.act(s, m.id, a, now())) toast(m.type === 'biz_event' ? `已处理：${lab}${m.result ? `\n${m.result}` : ''}` : a === 'reject' ? '已驳回' : '已批准', m.type === 'biz_event' ? 3200 : undefined); else toast(m.why || '办不了（钱不够或已经过期）'); }
         else { if (m.kind === 'report' && !m.read) bump(s, now(), 'report'); I.markRead(s, m.id); }
         game.changed(); game.save(); render();
       };
@@ -59,4 +64,12 @@ export function openInbox(kind) {
     }
   };
   render();
+}
+
+/** 「经营」页顶：今天 6/10 · 0 点换新一批 +「再来 10 件」（设计39 第三节；批次、清掉是开发1 的，这里只数今天的经营事件） */
+function bizHead(s, render) {
+  const t = now(); const c = todayCount(s, t); // 开发1 的批次：今天 done/total
+  const el = h('div', 'biz-head', `<span>今天 <b>${c.done}/${c.total}</b> · 0 点换新一批</span>${refillHtml(s)}`); // 设计39：用事件券（开发2 ui/coupon.js）
+  bindRefill(el, render);
+  return el;
 }

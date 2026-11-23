@@ -1,0 +1,33 @@
+{
+ "_说明": "金券和券（设计39 第五节，开发2）。金券不能用游戏币买、不能换成游戏币；一律「金券买券、在用的地方用券」。earn 怎么得金券；items 六种券（price 单张价；存在 s.items[key]，key 跟开发1 一样：potion / battle / date / auto / event / talk）；packs 1 / 10 / 50 张三种包和折扣（10 张九折、50 张八折）；只在卡包里买；gift 送券",
+ "earn": {
+  "sign": 5,
+  "sign7": 20,
+  "tasksAll": 10,
+  "goal": 5,
+  "title": 50,
+  "finalAcquire": 30,
+  "favorStage": 10
+ },
+ "items": {
+  "potion": { "img": "icon_potion", "name": "精力药水", "unit": "瓶", "icon": "🧪", "price": 10, "energy": 25, "what": "精力 +25，能超过当天上限" },
+  "battle": { "img": "icon_ticket_battle", "name": "商战券", "unit": "张", "icon": "⚔️", "price": 4, "what": "打一次商战不花精力" },
+  "date": { "img": "icon_ticket_date", "name": "约会券", "unit": "张", "icon": "💐", "price": 15, "perSecDay": 3, "what": "同一个秘书当天再约一次（照样花精力），每人每天最多 3 张" },
+  "auto": { "img": "icon_ticket_auto", "name": "自动券", "unit": "张", "icon": "🤖", "price": 20, "days": 1, "what": "一条门店线自动上阵 1 天，生效中再用接在后面" },
+  "event": { "img": "icon_ticket_event", "name": "事件券", "unit": "张", "icon": "📋", "price": 20, "what": "经营事件「再来 10 件」，小老板起一天最多 2 张" },
+  "talk": { "img": "icon_ticket_talk", "name": "互动券", "unit": "张", "icon": "💬", "price": 5, "n": 5, "perSecDay": 3, "what": "某个秘书今天互动 +5 次，每人每天最多 3 张" }
+ },
+ "order": ["potion", "battle", "date", "auto", "event", "talk"],
+ "packs": [[1, 1], [10, 0.9], [50, 0.8]],
+ "gift": {
+  "sign3": { "potion": 1 },
+  "sign5": { "battle": 3 },
+  "sign7": { "date": 1 },
+  "tasksAllP": 0.3,
+  "tasksAll": { "potion": 1 },
+  "title": { "potion": 3, "auto": 2, "event": 1 },
+  "firstWin": { "battle": 3 },
+  "favorStage": { "date": 1 }
+ },
+ "logKeep": 50
+}

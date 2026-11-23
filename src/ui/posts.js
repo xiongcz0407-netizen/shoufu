@@ -1,21 +1,33 @@
 // 「公司 → 职位」（设计16 第六节、设计18 第四节 1）：组织架构图（你在最上，下面一排职位卡：头像 / 空缺 / 外包），
 // 点职位卡 → 底部抽屉：选人（最适合的打星）、外包、撤职、授权额度、店长托管（月预算 + 回本期）、资产管家出租、看她的月报
-import * as ADS from '../core/ads.js?v=77f12d68'; // V0.2.3 自动投广告
-import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=77f12d68';
-import { IND_BY_ID } from '../config/industries.js?v=77f12d68';
-import * as PO from '../core/posts.js?v=77f12d68';
-import * as PW from '../core/postwork.js?v=77f12d68';
-import * as T from '../core/training.js?v=77f12d68';
-import { fmtMoney } from '../core/format.js?v=77f12d68';
-import { asset, hasAsset } from '../platform/assets.js?v=77f12d68';
-import { now } from '../core/clock.js?v=77f12d68';
-import { game } from '../game.js?v=77f12d68';
-import { h, openPanel, toast, liveRender } from './dom.js?v=77f12d68';
-import { avatarKey } from './main-screen.js?v=77f12d68';
+import * as ADS from '../core/ads.js?v=b3791cdb'; // V0.2.5 自动升级广告
+import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=b3791cdb';
+import { IND_BY_ID } from '../config/industries.js?v=b3791cdb';
+import * as PO from '../core/posts.js?v=b3791cdb';
+import * as MG from '../core/manage.js?v=b3791cdb';
+import { noteUp } from '../core/upnote.js?v=b3791cdb'; // V0.2.5 升级框
+import * as PW from '../core/postwork.js?v=b3791cdb';
+import * as T from '../core/training.js?v=b3791cdb';
+import { fmtMoney } from '../core/format.js?v=b3791cdb';
+import { asset, hasAsset } from '../platform/assets.js?v=b3791cdb';
+import { now } from '../core/clock.js?v=b3791cdb';
+import { game } from '../game.js?v=b3791cdb';
+import { h, openPanel, toast, liveRender } from './dom.js?v=b3791cdb';
+import { avatarKey } from './main-screen.js?v=b3791cdb';
 
 const AN = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 const icon = (k, cls = 'pc-ic') => (hasAsset(`assets/ui/${k}.webp`) ? `<img class="${cls}" src="${asset(`assets/ui/${k}.webp`)}" alt="">` : '');
 const attrText = (kind) => PO.POSTS_CFG.posts[kind].attrs.map((a) => AN[a]).join(' + ');
+/** V0.2.5（设计37 第三节）上任 / 换人：职位效率前 → 后（交接期过了以后的） */
+const effAt = (s, key) => PO.power(s, key, now() + (PO.POSTS_CFG.handoverMin || 0) * 60e3 + 1);
+const effSnap = (s, key) => { const id = PO.indOf(key); return { p: effAt(s, key), rev: id ? PO.managerRevMult(s, id) : 0, auto: id && s.inds[id] ? MG.autoEff(s, id) : 0 }; };
+function effNote(s, key, who, a) {
+  const id = PO.indOf(key); const kind = PO.kindOf(key); const pct = (x) => `${Math.round(x * 100)}%`; const fx = [];
+  const nm = who === PO.OUT ? '外包' : `${SEC_BY_ID[who].name}（${attrText(kind)} ${Math.round(PO.mainAttr(s, who, kind))}）`;
+  if (id && s.inds[id]) { fx.push(`${IND_BY_ID[id].name}营业额 +${pct(a.rev - 1)} → +${pct(PO.managerRevMult(s, id) - 1)}`); fx.push(`这条线自动经营效率 ${pct(a.auto)} → ${pct(MG.autoEff(s, id))}`); }
+  else fx.push(`职位效率 ${pct(a.p)} → ${pct(effAt(s, key))}`);
+  return { title: '上任', what: `${PO.postName(key)}：${nm}`, fx, next: who === PO.OUT ? '换成秘书能做得更好' : '她上课练属性，效率还能涨' };
+}
 const lastReport = (s, key) => (s.inbox || []).find((m) => m.type === 'post_report' && m.data && m.data.key === key);
 
 function card(s, key) {
@@ -65,12 +77,12 @@ export function openPost(key) {
       if (!s.secs[c.id]) continue;
       const cur = PO.postOfSec(s, c.id); const on = who === c.id;
       const b = h('button', 'pick' + (on ? ' on' : ''), `<img src="${asset(`assets/sec/${c.id}/${s.secs[c.id].outfit}.webp`)}" alt=""><div><b>${c.name}${PO.bestFor(c.id, kind) ? ' <span class="star">★</span>' : ''}</b><small>${attrText(kind)} ${Math.round(PO.mainAttr(s, c.id, kind))}${T.isTraining(s, c.id) ? ' · 上课中' : ''}</small><small>${on ? '现在是她' : cur ? '在当' + PO.postName(cur) : '没职位'} · 月薪约 ${fmtMoney(salaryIf(s, c.id, key))}</small></div>`);
-      b.onclick = () => { if (on) return; PO.assign(s, key, c.id, now()); toast(`${c.name}当${PO.postName(key)}了`); game.changed(); game.save(); render(); };
+      b.onclick = () => { if (on) return; const b0 = effSnap(s, key); PO.assign(s, key, c.id, now()); noteUp(s, effNote(s, key, c.id, b0), now()); toast(`${c.name}当${PO.postName(key)}了`); game.changed(); game.save(); render(); };
       list.appendChild(b);
     }
     const out = PO.POSTS_CFG.outsource[kind];
     const ob = h('button', 'pick' + (who === PO.OUT ? ' on' : ''), `${icon('icon_outsource', 'ic')}<div><b>外包：${out.name}</b><small>${kind === 'cfo' ? `每月 ${fmtMoney(out.fee)}，只报税不节税` : kind === 'biz' || kind === 'ipo' ? `每月 ${fmtMoney(out.fee)}，按本事 30 算` : kind === 'manager' ? '按管理 50 算，每月拿这条线利润的 10%' : kind === 'collector' ? `每月 ${fmtMoney(out.fee)}，掌眼按 50 算，不代拍` : kind === 'invest' ? `每月 ${fmtMoney(out.fee)}，按智慧 50 算，不看盘提醒` : '维护费不打折、不帮你出租'}</small></div>`);
-    ob.onclick = () => { PO.assign(s, key, PO.OUT, now()); game.changed(); game.save(); render(); };
+    ob.onclick = () => { const b0 = effSnap(s, key); PO.assign(s, key, PO.OUT, now()); noteUp(s, effNote(s, key, PO.OUT, b0), now()); game.changed(); game.save(); render(); };
     list.appendChild(ob);
     p.body.appendChild(list);
     if (who) { const x = h('button', 'btn', '撤职（空着）'); x.onclick = () => { PO.assign(s, key, null, now()); game.changed(); game.save(); render(); }; p.body.appendChild(x); }
@@ -91,13 +103,11 @@ export function openPost(key) {
       const pt = h('div', 'tabs'); for (const v of [1, 3, 8, 24]) { const b = h('button', 'tab' + (m.host.paybackH === v ? ' on' : ''), `回本 ≤ ${v} 小时`); b.onclick = () => { m.host.paybackH = v; game.save(); render(); }; pt.appendChild(b); }
       p.body.append(bt, pt, h('div', 'tr-gain', `本月已花预算 ${fmtMoney(m.host.spent || 0)}；只花公司「可用」的钱`));
     }
-    // V0.2.3 自动投广告（设计35 第七节 2）：每月预算，金额或营业额 %；默认 0 不投
+    // V0.2.5 自动升级广告（设计37 第二节 6）：默认开，跟托管放一起
     if (kind === 'manager' && who && ADS.isAdLine(s, PO.indOf(key))) {
-      const id = PO.indOf(key); const a = ADS.autoOf(s, id);
-      p.body.appendChild(h('div', 'sd-rec-title', '自动投广告（每月预算）'));
-      const opts = [['pct', 0, '不投'], ['pct', 0.01, '营业额 1%'], ['pct', 0.03, '营业额 3%（推荐）'], ['pct', 0.05, '营业额 5%'], ['pct', 0.1, '营业额 10%（最多）']]; /* V0.2.4：上限 10%，默认 3% */
-      const tb = h('div', 'tabs'); for (const [mode, v, n] of opts) { const b = h('button', 'tab' + ((a.v === v && (v === 0 || a.mode === mode)) ? ' on' : ''), n); b.onclick = () => { ADS.setAuto(s, id, { mode, v }); game.save(); render(); }; tb.appendChild(b); }
-      p.body.append(tb, h('div', 'tr-gain', who === PO.OUT ? '职业经理人只会投发传单和团购，效果打七折。' : '她按上个月各渠道的回报分钱，回报 < 1 的自动停；魅力管短视频拍得好不好，智慧低偶尔投错，管理低偶尔超支 10%。钱只够留两个月工资就停投，月报里写花了多少、多卖多少。'));
+      const id = PO.indOf(key); const on = ADS.autoOn(s, id);
+      const sw = h('button', 'btn ' + (on ? 'gold' : ''), on ? '自动升级广告：开（点一下关掉）' : '自动升级广告：关（点一下打开）'); sw.onclick = () => { ADS.setAuto(s, id, !on); game.save(); render(); };
+      p.body.append(sw, h('div', 'tr-gain', PO.isSec(who) ? '钱够（留够两个月工资）就自动升人流、口碑，先升便宜的；升了写进月报。' : '职业经理人只会发传单、点评运营：人流升到 +25%、口碑升到 60 为止。'));
     }
     // 资产管家出租
     if (kind === 'steward') {

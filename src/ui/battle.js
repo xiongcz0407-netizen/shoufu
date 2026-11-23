@@ -1,38 +1,41 @@
 // 商战：对手列表 → 选项目、带人 → 开战结果；赢满 3 次发起收购
-import * as RG from '../core/rivalgrow.js?v=77f12d68'; // P-00 对手也在长大
-import * as EQ from '../core/equity.js?v=77f12d68';
-import * as BK from '../core/bank.js?v=77f12d68';
-import { gameDate, dateText } from '../core/gametime.js?v=77f12d68';
-import { turfText } from '../core/rivalry.js?v=77f12d68';
-import { RIVALS, RIVAL_BY_ID, PROJECTS, TEAM_MAX, WINS_TO_ACQUIRE, BATTLES_PER_DAY } from '../config/rivals.js?v=77f12d68';
-import { SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=77f12d68';
-import { LINES } from '../config/lines.js?v=77f12d68';
-import { lineOf } from '../core/storylib.js?v=77f12d68'; // V3-04 台词扩充（开发2）
-import { BOSS_LINES } from '../config/battle-lines.js?v=77f12d68';
-import * as B from '../core/battle.js?v=77f12d68';
-import * as W from '../core/war.js?v=77f12d68'; // V2-05 商战三回合
-import { openNegotiate } from './negotiate.js?v=77f12d68'; // V2-07 谈判（开发2）
-import * as LT from '../core/late.js?v=77f12d68'; // V3-01 对手进攻
-import * as INB from './inbox.js?v=77f12d68';
-import { isTraining as isTraining0 } from '../core/training.js?v=77f12d68';
-import { isScouting } from '../core/busy.js?v=77f12d68';
+import * as RG from '../core/rivalgrow.js?v=b3791cdb'; // P-00 对手也在长大
+import * as EQ from '../core/equity.js?v=b3791cdb';
+import * as BK from '../core/bank.js?v=b3791cdb';
+import { gameDate, dateText } from '../core/gametime.js?v=b3791cdb';
+import { turfText } from '../core/rivalry.js?v=b3791cdb';
+import { RIVALS, RIVAL_BY_ID, PROJECTS, TEAM_MAX, WINS_TO_ACQUIRE } from '../config/rivals.js?v=b3791cdb';
+import * as MG from '../core/manage.js?v=b3791cdb'; // 设计39 精力
+import { SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=b3791cdb';
+import { LINES } from '../config/lines.js?v=b3791cdb';
+import { lineOf } from '../core/storylib.js?v=b3791cdb'; // V3-04 台词扩充（开发2）
+import { BOSS_LINES } from '../config/battle-lines.js?v=b3791cdb';
+import * as B from '../core/battle.js?v=b3791cdb';
+import * as W from '../core/war.js?v=b3791cdb'; // V2-05 商战三回合
+import { openNegotiate } from './negotiate.js?v=b3791cdb'; // V2-07 谈判（开发2）
+import * as LT from '../core/late.js?v=b3791cdb'; // V3-01 对手进攻
+import * as INB from './inbox.js?v=b3791cdb';
+import { isTraining as isTraining0 } from '../core/training.js?v=b3791cdb';
+import { isScouting } from '../core/busy.js?v=b3791cdb';
 const isTraining = (s, id) => isTraining0(s, id) || isScouting(s, id); // V2-08：踩点的也不能带（开发2）
-import { fmtMoney } from '../core/format.js?v=77f12d68';
-import { now } from '../core/clock.js?v=77f12d68';
-import { asset, hasAsset } from '../platform/assets.js?v=77f12d68';
-import { game } from '../game.js?v=77f12d68';
-import { h, openPanel, toast } from './dom.js?v=77f12d68';
-import { say } from './main-screen.js?v=77f12d68';
-import { playStory } from './story.js?v=77f12d68';
-import { openContract } from './contract.js?v=77f12d68';
-import { openTab } from './shell.js?v=77f12d68';
-import { nextContractNo } from '../core/contracts.js?v=77f12d68';
-import { TAX } from '../core/companytax.js?v=77f12d68';
-import { IND_BY_ID } from '../config/industries.js?v=77f12d68';
-import { auraBattle, networkAcquire } from '../core/boss.js?v=77f12d68';
-import { hintLater } from './guide2.js?v=77f12d68';
-import * as TKO from '../core/takeover.js?v=77f12d68';
-import { listed as listedNow } from '../core/listing.js?v=77f12d68';
+import { fmtMoney } from '../core/format.js?v=b3791cdb';
+import { now } from '../core/clock.js?v=b3791cdb';
+import { asset, hasAsset } from '../platform/assets.js?v=b3791cdb';
+import { game } from '../game.js?v=b3791cdb';
+import { h, openPanel, toast } from './dom.js?v=b3791cdb';
+import { say } from './main-screen.js?v=b3791cdb';
+import { playStory } from './story.js?v=b3791cdb';
+import { openContract } from './contract.js?v=b3791cdb';
+import { openTab } from './shell.js?v=b3791cdb';
+import { nextContractNo } from '../core/contracts.js?v=b3791cdb';
+import { TAX } from '../core/companytax.js?v=b3791cdb';
+import { IND_BY_ID } from '../config/industries.js?v=b3791cdb';
+import { auraBattle, networkAcquire } from '../core/boss.js?v=b3791cdb';
+import { hintLater } from './guide2.js?v=b3791cdb';
+import * as TKO from '../core/takeover.js?v=b3791cdb';
+import { listed as listedNow } from '../core/listing.js?v=b3791cdb';
+import { confirmBox } from './confirm.js?v=b3791cdb'; // 设计37 第一节：游戏样式确认框
+import { ticketHtml, bindTicket, potionHtml, bindPotion } from './coupon.js?v=b3791cdb'; // 设计39 商战券、精力药水（开发2）
 
 const AN = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 const mergeText = (r) => { const e = r.effect || {}; return [...Object.entries(r.merge || {}).map(([k, n]) => `${IND_BY_ID[k].name} ${n} 家（连员工）`), e.fleetUnits && `货车 ${Math.ceil(e.fleetUnits / 3)} 辆`, (e.reProjects || []).map((x) => (x.stage === 'build' ? '在建项目 1 个' : '储备地 1 块')).join('、'), e.techProduct && '上线产品 1 个', e.levelUp && Object.entries(e.levelUp).map(([k, n]) => `${IND_BY_ID[k].name}团队（+${n} 级）`).join('、'), e.rights && `片库版权（授权费 ${fmtMoney(e.rights)}）`, e.boost && Object.entries(e.boost).map(([k, v]) => `${IND_BY_ID[k].name}收入 +${v * 100}%`).join('、'), e.early && e.early.map((k) => `提前开${IND_BY_ID[k].name}`).join('、')].filter(Boolean).join('、') || '—'; };
@@ -44,7 +47,9 @@ export function openBattle(host) {
   const render = () => {
     const s = game.state; const t = now();
     const mb = hasAsset('assets/bg/bg_meeting.webp') ? ` style="background-image:linear-gradient(90deg,rgba(10,14,24,.92) 40%,rgba(10,14,24,.35)),url('${asset('assets/bg/bg_meeting.webp')}')"` : '';
-    p.body.innerHTML = `<div class="bt-head"${mb}>还能打 <b>${B.battlesLeft(s, t)}/${BATTLES_PER_DAY}</b> 次${B.nextBattleIn(s, t) ? `（${Math.ceil(B.nextBattleIn(s, t) / 60e3)} 分钟后 +1，每 30 分钟恢复 1 次）` : ''}<br><small>赢满 ${WINS_TO_ACQUIRE} 次可以去「收购」${auraBattle(s) ? `　气场 +${(auraBattle(s) * 100).toFixed(1)}%` : ''}</small></div>`;
+    p.body.innerHTML = `<div class="bt-head"${mb}><span class="bt-tk">${ticketHtml(s)}</span>商战券 <b>${B.tickets(s)}</b> 张 · 精力 <b>${Math.floor(MG.energy(s, t))}</b><br><small>每打一次：${B.battleCostText(s)}</small><br><small>赢满 ${WINS_TO_ACQUIRE} 次可以去「收购」${auraBattle(s) ? `　气场 +${(auraBattle(s) * 100).toFixed(1)}%` : ''}</small></div>`;
+    bindTicket(p.body, render); // 设计39：商战券在这里买（开发2）
+    if (!B.tickets(s) && MG.energy(s, t) < 5) { const el = h('div', 'cp-pot-wrap', `精力不够了　${potionHtml(s)}`); p.body.insertBefore(el, p.body.children[1] || null); bindPotion(el, render); } // 设计39（设计接手开发1）
     if (s.war && s.war.open) { const cb = h('button', 'btn gold big', `继续跟${RIVAL_BY_ID[s.war.rivalId].name}的商战（第 ${s.war.round + 1} 回合）`); cb.onclick = () => openWar(render); p.body.appendChild(cb); } /* V2-05 没打完的 */
     for (const r0 of RIVALS.filter((x) => x.stage <= s.title)) { // 只列到了这个阶段的对手
       const r = RG.live(s, r0.id); const st = B.rivalState(s, r.id);
@@ -121,7 +126,7 @@ function afterFight(r, team, res, done) {
 export function openWar(done) {
   const s = game.state; const w0 = s.war; if (!w0 || !w0.open) return; const r = RG.live(s, w0.rivalId);
   const p = openPanel(`商战 · ${r.name}`); let spec = false; let last = null;
-  const close0 = p.close; p.close = () => { if (s.war && s.war.open) { if (!confirm('现在走就算输（没打的回合都算输），确定？')) return; const res = W.abandon(s, now()); game.changed(); game.save(); close0(); afterFight(r, s.war.team, res, done); return; } close0(); };
+  const close0 = p.close; p.close = () => { if (s.war && s.war.open) { confirmBox({ body: '现在走就算输（没打的回合都算输），确定？', title: '中途离开', ok: '认输离开', cancel: '接着打', danger: true }).then((y) => { if (!y || !(s.war && s.war.open)) return; const res = W.abandon(s, now()); game.changed(); game.save(); close0(); afterFight(r, s.war.team, res, done); }); return; } close0(); };
   const render = () => {
     const w = s.war; const P = W.WAR.plays;
     const specs = w.team.filter((id) => !w.usedSpec.includes(id)).map((id) => `${SEC_BY_ID[id].name}：${P[W.specOf(s, id)].name}`);

@@ -1,12 +1,12 @@
 // 员工（设计17 第一节）：只是数字。按产业线 → 岗位记在岗人数；编制跟门店样子走
-import PAY from '../config/payroll.json?v=77f12d68' with { type: 'json' };
-import ECO from '../config/economy.json?v=77f12d68' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=77f12d68';
-import { pay, canPay, post } from './ledger.js?v=77f12d68';
-import { YEAR_MS } from './gametime.js?v=77f12d68';
-import { salaryOf, isSec } from './posts.js?v=77f12d68';
-import { lineK } from './cities.js?v=77f12d68';
-import { payerOfSec, satisfaction, turnoverMult } from './fiscal.js?v=77f12d68';
+import PAY from '../config/payroll.json?v=b3791cdb' with { type: 'json' };
+import ECO from '../config/economy.json?v=b3791cdb' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=b3791cdb';
+import { pay, canPay, post } from './ledger.js?v=b3791cdb';
+import { YEAR_MS } from './gametime.js?v=b3791cdb';
+import { salaryOf, isSec } from './posts.js?v=b3791cdb';
+import { lineK } from './cities.js?v=b3791cdb';
+import { payerOfSec, satisfaction, turnoverMult } from './fiscal.js?v=b3791cdb';
 export { PAY };
 
 const look = (ind) => { const c = IND_BY_ID[ind.id]; let i = 0; c.looks.forEach((lv, k) => { if (ind.level >= lv) i = k; }); return i; };
@@ -39,6 +39,7 @@ export const closedByArrears = (s) => (s.payroll && s.payroll.arrears >= 2);
 /** 收入系数：在岗 / 编制（最多 1）；缺编超过一半停业 */
 export function staffFactor(s, id) {
   if (closedByArrears(s)) return 0;
+  if (s._fullStaff) return 1; /* V0.2.5 升级框算「升完人招满以后」的营业额 */
   const e = estTotal(s, id); if (!e) return 1;
   const r = Math.min(1, onDuty(s, id) / e);
   return r < PAY.understaffClose ? 0 : r;
@@ -69,7 +70,6 @@ export function hire(s, id, role, n, channel, t, rnd = Math.random, by = '') {
   if (channel === 'agency') { line(s, id).agency[role] = (line(s, id).agency[role] || 0) + n; return { ok: true, at: t }; }
   { line(s, id).staff[role] = (line(s, id).staff[role] || 0) + n; return { ok: true, at: t }; } /* V0.2.3（设计35 第十一节）：任何渠道都立刻到岗，钱照各渠道收 */
   let mins = c.minMin + rnd() * (c.maxMin - c.minMin);
-  if (by && s.secs[by] && s.secs[by].attrs) mins *= 1 - s.secs[by].attrs.social / 100 * 0.4; // 秘书交际高到岗快
   const at = t + mins * 60e3;
   s.hireSeq = (s.hireSeq || 0) + 1; (s.hires = s.hires || []).push({ id: s.hireSeq, ind: id, role, n, at, channel, t0: t });
   return { ok: true, at };

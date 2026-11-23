@@ -1,10 +1,10 @@
 // 事件系统（设计20 第四节）：配置驱动。条件 → 消息中心（kind 'event'）→ 剧情 + 选择 → 花钱 / 好感 / 剧情标记
-import { EVENTS, EVENT_BY_ID, EVENT_GAP_MIN } from '../config/events.js?v=77f12d68';
-import { addMsg } from './inbox.js?v=77f12d68';
-import { pay, receive, canPay } from './ledger.js?v=77f12d68';
-import { netWorth } from './economy.js?v=77f12d68';
-import { totalStaff } from './staff.js?v=77f12d68';
-import { addFavor } from './affection.js?v=77f12d68';
+import { EVENTS, EVENT_BY_ID, EVENT_GAP_MIN } from '../config/events.js?v=b3791cdb';
+import { addMsg } from './inbox.js?v=b3791cdb';
+import { pay, receive, canPay } from './ledger.js?v=b3791cdb';
+import { netWorth } from './economy.js?v=b3791cdb';
+import { totalStaff } from './staff.js?v=b3791cdb';
+import { addFavor } from './affection.js?v=b3791cdb';
 
 const MIN = 60e3;
 const ev = (s, id) => { s.events = s.events || {}; return (s.events[id] = s.events[id] || { done: false, msg: 0, snoozeUntil: 0, times: 0 }); };

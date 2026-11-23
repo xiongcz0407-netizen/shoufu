@@ -756,6 +756,15 @@
 "assets/antique/an_15.webp",
 "assets/antique/an_16.webp",
 "assets/antique/an_17.webp",
-"assets/antique/an_18.webp"
+"assets/antique/an_18.webp",
+"assets/ui/icon_coupon.webp",
+"assets/ui/icon_potion.webp",
+"assets/ui/icon_routine.webp",
+"assets/ui/icon_ticket_auto.webp",
+"assets/ui/icon_ticket_battle.webp",
+"assets/ui/icon_ticket_date.webp",
+"assets/ui/icon_ticket_event.webp",
+"assets/ui/icon_ticket_talk.webp",
+"assets/ui/icon_wallet.webp"
 ]
 }

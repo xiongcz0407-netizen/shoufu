@@ -1,23 +1,23 @@
 // 经济：产钱、升级、分店、派驻、身价、离线收益（纯函数，node 测试能跑）
-import { whyCushion } from './cashflow.js?v=77f12d68'; // V0.2.3 留够两个月工资（设计35）
-import { INDUSTRIES, IND_BY_ID, SEC_BONUS_PER_POINT, BRANCH_CAP, LOOK3_TITLE } from '../config/industries.js?v=77f12d68';
-import * as CB from './calib.js?v=77f12d68';
-import CAP from '../config/capital.json?v=77f12d68' with { type: 'json' };
-import { TITLES } from '../config/titles.js?v=77f12d68';
-import { pay, receive, accrue, canPay } from './ledger.js?v=77f12d68';
-import { staffFactor, staffUp, PAY, estTotal } from './staff.js?v=77f12d68';
-import { track } from './companytax.js?v=77f12d68';
-import { payables } from './accrual.js?v=77f12d68';
-import { visionIncome } from './boss.js?v=77f12d68';
-import { managerRevMult, managerCostMult, stat } from './posts.js?v=77f12d68';
-import { reValue } from './realestate.js?v=77f12d68';
-import { logiRevPerSec, linkCogsMult, fleetValue } from './logistics.js?v=77f12d68';
-import { techRevPerSec, techLink } from './tech.js?v=77f12d68';
-import { liveRevPerSec, mediaLink } from './media.js?v=77f12d68';
-import { lineK, lineCities, cityOpen, cityK, cityName, CITY_CFG } from './cities.js?v=77f12d68';
-import { revK, debt } from './rivalry.js?v=77f12d68';
-import { depositTotal, loanDebt, setNW } from './bank.js?v=77f12d68';
-import { equityOwed } from './equity.js?v=77f12d68';
+import { whyCushion } from './cashflow.js?v=b3791cdb'; // V0.2.3 留够两个月工资（设计35）
+import { INDUSTRIES, IND_BY_ID, SEC_BONUS_PER_POINT, BRANCH_CAP, LOOK3_TITLE } from '../config/industries.js?v=b3791cdb';
+import * as CB from './calib.js?v=b3791cdb';
+import CAP from '../config/capital.json?v=b3791cdb' with { type: 'json' };
+import { TITLES } from '../config/titles.js?v=b3791cdb';
+import { pay, receive, accrue, canPay } from './ledger.js?v=b3791cdb';
+import { staffFactor, staffUp, PAY, estTotal } from './staff.js?v=b3791cdb';
+import { track } from './companytax.js?v=b3791cdb';
+import { payables } from './accrual.js?v=b3791cdb';
+import { visionIncome } from './boss.js?v=b3791cdb';
+import { managerRevMult, managerCostMult, stat } from './posts.js?v=b3791cdb';
+import { reValue } from './realestate.js?v=b3791cdb';
+import { logiRevPerSec, linkCogsMult, fleetValue } from './logistics.js?v=b3791cdb';
+import { techRevPerSec, techLink } from './tech.js?v=b3791cdb';
+import { liveRevPerSec, mediaLink } from './media.js?v=b3791cdb';
+import { lineK, lineCities, cityOpen, cityK, cityName, CITY_CFG } from './cities.js?v=b3791cdb';
+import { revK, debt } from './rivalry.js?v=b3791cdb';
+import { depositTotal, loanDebt, setNW } from './bank.js?v=b3791cdb';
+import { equityOwed } from './equity.js?v=b3791cdb';
 
 /** 存档里的产业：{ store: { level, branches, spent, sec, staff, agency, openedAt } } */
 export function newIndustry(t = Date.now()) { return { level: 1, branches: 1, spent: 0, sec: null, staff: {}, agency: {}, openedAt: t }; }
@@ -85,6 +85,9 @@ export function totalIncome(s, secCfgById) {
   return t;
 }
 /** 这条线一个月的净利（按满编估：营收 − 进货 − 增值税 − 满编工资社保 − 房租 − 水电杂费），给产业估值用 */
+/** V0.2.5 广告价格用：这条线现在每秒营业额的底子（不算当天临时加成，估值口径） */
+export function steadyRevenue(s, id) { VALUE_MODE = true; try { return industryRevenue(s, id); } finally { VALUE_MODE = false; } }
+export function steadyCogs(s, id) { VALUE_MODE = true; try { return cogsRate(s, id); } finally { VALUE_MODE = false; } }
 export function lineNetMonth(s, id) { VALUE_MODE = true; try { return lineNetMonth0(s, id); } finally { VALUE_MODE = false; } }
 function lineNetMonth0(s, id) {
   const ind = s.inds[id]; const cfg = IND_BY_ID[id]; if (!ind || cfg.kind === 'project' || !ind.branches) return 0;
@@ -179,12 +182,14 @@ export function whyNotUpgrade(s, id) {
 }
 export function whyNotBranch(s, id) { const ind = s.inds[id]; if (!ind || ['project', 'product', 'media'].includes(IND_BY_ID[id].kind)) return '这条线不开分店'; if (ind.branches >= maxBranches(s, id)) return ind.branches >= IND_BY_ID[id].maxBranch ? '分店满了' : `现在最多 ${maxBranches(s, id)} 家（升称号能多开）`; return whyNeed(s, id, ind.branches ? 'needBranch' : 'needFirst'); }
 /** V0.2.3 升级带口碑（core/manage.js 挂进来） */
+/** V0.2.5 升级框（core/upbuild.js 挂进来）：升之前拍一张快照，升完按快照写「前 → 后」 */
+let upSnap = () => null, upDone = () => {}; export const setUpNoteHooks = (snap, done) => { upSnap = snap; upDone = done; };
 let upHook = () => {}; export const setUpgradeHook = (fn) => { upHook = fn; };
 export function upgrade(s, id, t = Date.now(), by = '') {
   const ind = s.inds[id]; if (!ind || whyNotUpgrade(s, id)) return false; // 项目制另有玩法；第 3 个样子要老板
   if (whyCushion(s, upCostOf(s, id))) return false; /* V0.2.3 留够两个月工资（设计35） */
-  if (!payInd(s, ind, upCostOf(s, id), id, `升到 ${ind.level + 1} 级`, t, by)) return false;
-  ind.level += 1; upHook(s, id); return true;
+  const snap = upSnap(s, id); if (!payInd(s, ind, upCostOf(s, id), id, `升到 ${ind.level + 1} 级`, t, by)) return false;
+  ind.level += 1; upHook(s, id); upDone(s, id, 'lv', snap, by, t); return true; /* V0.2.5 升级框（设计37 第三节） */
 }
 export function openBranch(s, id, t = Date.now(), by = '', city = CITY_CFG.hq) {
   const ind = s.inds[id]; const cfg = IND_BY_ID[id];
@@ -192,9 +197,10 @@ export function openBranch(s, id, t = Date.now(), by = '', city = CITY_CFG.hq) {
   const cs = lineCities(s, id);
   const cost = Math.ceil(branchCost(cfg, ind.branches, city, ind.level) * meetBr(s, id)); // V2-13 扩张打折；V2-08：开店费记进铺位（关店转让拿回 30%）
   if (whyCushion(s, cost)) return false; /* V0.2.3 留够两个月工资 */
-  if (!payInd(s, ind, cost, id, `开第 ${ind.branches + 1} 家店（${cityName(city)}）`, t, by)) return false;
+  const snap = upSnap(s, id); if (!payInd(s, ind, cost, id, `开第 ${ind.branches + 1} 家店（${cityName(city)}）`, t, by)) return false;
   ind.branches += 1; cs[city] = (cs[city] || 0) + 1; s.stats.maxStoreBranches = Math.max(s.stats.maxStoreBranches || 0, s.inds.store ? s.inds.store.branches : 0);
   if (siteOpen) siteOpen(s, id, city, t, cost); // V2-08 记铺位（core/sites.js）
+  upDone(s, id, 'br', snap && { ...snap, city: cityName(city), cityCode: city }, by, t); /* V0.2.5 升级框 */
   return true;
 }
 /** 第一轮的派驻：现在就是任命店长 */
@@ -244,5 +250,5 @@ export function canPromote(s) {
 }
 
 // 资产的验资要看身价（避免互相 import）
-import { setNetWorthFn } from './assets.js?v=77f12d68';
+import { setNetWorthFn } from './assets.js?v=b3791cdb';
 setNetWorthFn(netWorth); setNW(netWorth);
