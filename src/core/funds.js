@@ -3,13 +3,13 @@
 // 私募对冲：合格投资者（身价 ≥ 1000 万）、起投 100 万，签认购协议 + 风险揭示书 + 合格投资者确认书；管理费 2% + 赚的部分 20%
 // 天使 / 风投：合格投资者 + 企业家、起投 500 万；锁定期按游戏时间；到期随机：40% 亏一半、40% 拿回 1～2 倍、20% 翻 5～20 倍；赚的部分 20%
 // 申购费、赎回费（按持有时间）；赎回下一跳（30 秒）到账；交给投资经理：她按风格配这些基金
-import CFG from '../config/funds.json?v=6f6c00ef' with { type: 'json' };
-import * as SK from './stocks.js?v=6f6c00ef';
-import { pay, receive } from './ledger.js?v=6f6c00ef';
-import { addContract } from './contracts.js?v=6f6c00ef';
-import { addAssetHook } from './assets.js?v=6f6c00ef';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=6f6c00ef';
-import { profitMul } from './calib.js?v=6f6c00ef';
+import CFG from '../config/funds.json?v=daaa7f91' with { type: 'json' };
+import * as SK from './stocks.js?v=daaa7f91';
+import { pay, receive } from './ledger.js?v=daaa7f91';
+import { addContract } from './contracts.js?v=daaa7f91';
+import { addAssetHook } from './assets.js?v=daaa7f91';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=daaa7f91';
+import { profitMul } from './calib.js?v=daaa7f91';
 
 export const FCFG = CFG;
 export const FUNDS = CFG.funds;

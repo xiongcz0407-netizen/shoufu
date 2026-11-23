@@ -1,22 +1,22 @@
 // 首页「今日日常」（设计39 第六节，开发2）：今天还剩什么，做完划掉，点一项直接跳过去
 // 开发1 挂钩：setRoutineHooks({ actions(s, t) → '便利店 4 个生效中、餐饮 2 个已到期' })
-import * as DL from '../core/daily.js?v=6f6c00ef';
-import * as MG from '../core/manage.js?v=6f6c00ef';
-import * as CP from '../core/coupon.js?v=6f6c00ef';
-import * as A2 from '../core/affection.js?v=6f6c00ef';
-import * as I from '../core/inbox.js?v=6f6c00ef';
-import { todayCount } from '../core/bizevents.js?v=6f6c00ef';
-import { talksLeft, dayKey, DAILY_TALKS } from '../core/affection.js?v=6f6c00ef';
-import { SEC_BY_ID } from '../config/secretaries.js?v=6f6c00ef';
-import { now } from '../core/clock.js?v=6f6c00ef';
-import { game } from '../game.js?v=6f6c00ef';
-import { h, openPanel } from './dom.js?v=6f6c00ef';
-import { openDaily } from './daily.js?v=6f6c00ef';
-import { openInbox } from './inbox.js?v=6f6c00ef';
-import { asset, hasAsset } from '../platform/assets.js?v=6f6c00ef';
-import { openWallet, couponIcon, itemIcon, walletIcon } from './coupon.js?v=6f6c00ef';
-import { openDetail } from './secretary.js?v=6f6c00ef';
-import { openTab } from './shell.js?v=6f6c00ef';
+import * as DL from '../core/daily.js?v=daaa7f91';
+import * as MG from '../core/manage.js?v=daaa7f91';
+import * as CP from '../core/coupon.js?v=daaa7f91';
+import * as A2 from '../core/affection.js?v=daaa7f91';
+import * as I from '../core/inbox.js?v=daaa7f91';
+import { todayCount } from '../core/bizevents.js?v=daaa7f91';
+import { talksLeft, dayKey, DAILY_TALKS } from '../core/affection.js?v=daaa7f91';
+import { SEC_BY_ID } from '../config/secretaries.js?v=daaa7f91';
+import { now } from '../core/clock.js?v=daaa7f91';
+import { game } from '../game.js?v=daaa7f91';
+import { h, openPanel } from './dom.js?v=daaa7f91';
+import { openDaily } from './daily.js?v=daaa7f91';
+import { openInbox } from './inbox.js?v=daaa7f91';
+import { asset, hasAsset } from '../platform/assets.js?v=daaa7f91';
+import { openWallet, couponIcon, itemIcon, walletIcon } from './coupon.js?v=daaa7f91';
+import { openDetail } from './secretary.js?v=daaa7f91';
+import { openTab } from './shell.js?v=daaa7f91';
 
 const H = { actions: null };
 export const setRoutineHooks = (o) => Object.assign(H, o);

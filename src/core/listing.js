@@ -1,17 +1,17 @@
 // 上市（第 3-04 项，设计23 第四节）：四个板块条件 → 选券商 → 股改 → 辅导 → 申报审核（可能问询）→ 发行定价 → 路演 → 敲钟
 // 上市后：你的公司进股票列表（自己一只，跟大盘和利润走）；身价 = 市值 × 你的持股；锁定期后每 3 个游戏月最多减持 1%（限售股 20% 个税）；每年年报 + 分红
-import CFG from '../config/listing.json?v=6f6c00ef' with { type: 'json' };
-import { pay, receive, canPay } from './ledger.js?v=6f6c00ef';
-import { addContract } from './contracts.js?v=6f6c00ef';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=6f6c00ef';
-import { taxRec } from './fiscal.js?v=6f6c00ef';
-import { gm } from './calib.js?v=6f6c00ef';
-import { addMsg } from './inbox.js?v=6f6c00ef';
-import { holder, isSec } from './posts.js?v=6f6c00ef';
-import { companyEquity, earningsValue, stakeOf, addNetWorthHook } from './economy.js?v=6f6c00ef';
-import { cap, ipoPower } from './capital.js?v=6f6c00ef';
-import { room } from './cashflow.js?v=6f6c00ef'; // V0.2.3
-import * as SK from './stocks.js?v=6f6c00ef';
+import CFG from '../config/listing.json?v=daaa7f91' with { type: 'json' };
+import { pay, receive, canPay, canPayMust } from './ledger.js?v=daaa7f91';
+import { addContract } from './contracts.js?v=daaa7f91';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=daaa7f91';
+import { taxRec } from './fiscal.js?v=daaa7f91';
+import { gm } from './calib.js?v=daaa7f91';
+import { addMsg } from './inbox.js?v=daaa7f91';
+import { holder, isSec } from './posts.js?v=daaa7f91';
+import { companyEquity, earningsValue, stakeOf, addNetWorthHook } from './economy.js?v=daaa7f91';
+import { cap, ipoPower } from './capital.js?v=daaa7f91';
+import { room } from './cashflow.js?v=daaa7f91'; // V0.2.3
+import * as SK from './stocks.js?v=daaa7f91';
 
 export const LCFG = CFG;
 export const BOARDS = CFG.boards;
@@ -171,7 +171,7 @@ function annual(s, t, out) {
     X.divYear += 1; const at = s.createdAt + X.divYear * YEAR_MS; const p = monthsBack(s, 12);
     const D0 = r2(Math.max(0, p) * CFG.dividendRatio); const D = r2(Math.min(D0, room(s))); /* V0.2.3（设计35）：年度分红也要留够两个月工资，不够就少分 */
     let line = `第 ${X.divYear} 年年报：净利 ${fmt(p)}，年末市值 ${fmt(marketCap(s))}`;
-    if (D >= 1 && canPay(s, 'company', D)) {
+    if (D >= 1 && canPayMust(s, 'company', D)) {
       const mine = r2(D * stakeOf(s)); const held = (at - X.at) / MONTH_MS; const rate = CFG.divTax.find(([m]) => held < m)[1]; const tax = r2(mine * rate);
       pay(s, { wallet: 'company', cat: 'dividend_out', amount: D, party: '全体股东', note: `${X.name} 年度分红（净利 ${CFG.dividendRatio * 100}%）` }, at);
       receive(s, { wallet: 'personal', cat: 'stock_div', amount: mine, tax, party: X.name, note: `${X.name} 分红（你持股 ${+(stakeOf(s) * 100).toFixed(2)}%）` }, at);

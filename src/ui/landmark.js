@@ -1,17 +1,17 @@
 // 「资产 → 房产」里的「地标」一组（第 3-07 项）：公司持有的地标 + 「地标（公司买）」→ 委托经纪、尽调、报价 / 竞标、审批、签约
-import * as LMK from '../core/landmark.js?v=6f6c00ef';
-import BCFG from '../config/bank.json?v=6f6c00ef' with { type: 'json' };
-import { whyNotMa } from '../core/bank.js?v=6f6c00ef';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=6f6c00ef';
-import { asset, hasAsset } from '../platform/assets.js?v=6f6c00ef';
-import { game } from '../game.js?v=6f6c00ef';
-import { now } from '../core/clock.js?v=6f6c00ef';
-import { h, toast, liveRender } from './dom.js?v=6f6c00ef';
-import { openFull } from './shell.js?v=6f6c00ef';
-import { openContract } from './contract.js?v=6f6c00ef';
-import { nextContractNo } from '../core/contracts.js?v=6f6c00ef';
-import { hintLater } from './guide2.js?v=6f6c00ef';
-import { HINTS } from './guide.js?v=6f6c00ef';
+import * as LMK from '../core/landmark.js?v=daaa7f91';
+import BCFG from '../config/bank.json?v=daaa7f91' with { type: 'json' };
+import { whyNotMa } from '../core/bank.js?v=daaa7f91';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=daaa7f91';
+import { asset, hasAsset } from '../platform/assets.js?v=daaa7f91';
+import { game } from '../game.js?v=daaa7f91';
+import { now } from '../core/clock.js?v=daaa7f91';
+import { h, toast, liveRender } from './dom.js?v=daaa7f91';
+import { openFull } from './shell.js?v=daaa7f91';
+import { openContract } from './contract.js?v=daaa7f91';
+import { nextContractNo } from '../core/contracts.js?v=daaa7f91';
+import { hintLater } from './guide2.js?v=daaa7f91';
+import { HINTS } from './guide.js?v=daaa7f91';
 
 HINTS.landmark = '地标是公司买的（公司账户 + 并购贷款）：经纪牵线 → 尽调立刻出结果 → 报价或竞标 → 付 10% 定金 → 海外的要过境外投资核准和当地审查（可能被否，被否定金退回）→ 签合同。买下以后每月收租，人脉、眼光大涨。';
 const KIND = { office: '写字楼', hotel: '酒店' };

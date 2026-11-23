@@ -1,16 +1,16 @@
 // 消息中心（铃铛）：请示 / 月报 / 邀请拍卖 / 系统；请示直接批准 / 驳回
-import * as I from '../core/inbox.js?v=6f6c00ef';
-import { SEC_BY_ID } from '../config/secretaries.js?v=6f6c00ef';
-import { asset } from '../platform/assets.js?v=6f6c00ef';
-import { now } from '../core/clock.js?v=6f6c00ef';
-import { game } from '../game.js?v=6f6c00ef';
-import { h, toast } from './dom.js?v=6f6c00ef';
-import { openFull } from './shell.js?v=6f6c00ef';
-import { bump } from '../core/daily.js?v=6f6c00ef';
-import { openEventMsg } from './event.js?v=6f6c00ef';
-import * as CP from '../core/coupon.js?v=6f6c00ef'; // 设计39 再来 10 件
-import { refillHtml, bindRefill } from './coupon.js?v=6f6c00ef'; // 设计39 事件券（开发2）
-import { todayCount } from '../core/bizevents.js?v=6f6c00ef';
+import * as I from '../core/inbox.js?v=daaa7f91';
+import { SEC_BY_ID } from '../config/secretaries.js?v=daaa7f91';
+import { asset } from '../platform/assets.js?v=daaa7f91';
+import { now } from '../core/clock.js?v=daaa7f91';
+import { game } from '../game.js?v=daaa7f91';
+import { h, toast } from './dom.js?v=daaa7f91';
+import { openFull } from './shell.js?v=daaa7f91';
+import { bump } from '../core/daily.js?v=daaa7f91';
+import { openEventMsg } from './event.js?v=daaa7f91';
+import * as CP from '../core/coupon.js?v=daaa7f91'; // 设计39 再来 10 件
+import { refillHtml, bindRefill } from './coupon.js?v=daaa7f91'; // 设计39 事件券（开发2）
+import { todayCount } from '../core/bizevents.js?v=daaa7f91';
 
 /** 页签那一排放不下时，把选中的滑到中间 */
 function showOn(row) { const b = row.querySelector('.seg.on'); if (!b || row.scrollWidth <= row.clientWidth) return; const r = row.getBoundingClientRect(), x = b.getBoundingClientRect(); if (x.left >= r.left && x.right <= r.right) return; row.scrollLeft += x.left - r.left - (r.width - x.width) / 2; }
@@ -22,7 +22,7 @@ export function actOn(s, m, a, render = () => {}) {
   if (a === 'open' && m.type === 'event') { I.markRead(s, m.id); openEventMsg(m, render); return true; }
   if (ACTION_UI.some((fn) => fn(s, m, a, render))) return true;
   const lab = (m.actions.find((x) => x.key === a) || {}).label || '';
-  if (I.act(s, m.id, a, now())) { toast(m.type === 'biz_event' ? `已处理：${lab}${m.result ? `\n${m.result}` : ''}` : a === 'reject' ? '已驳回' : '已批准', m.type === 'biz_event' ? 3200 : undefined); return true; }
+  if (I.act(s, m.id, a, now())) { toast(m.type === 'biz_event' ? `已处理：${lab}${m.result ? `\n${m.result}` : ''}` : a === 'reject' ? '已驳回' : a === 'ok' ? '好的' : '已批准', m.type === 'biz_event' ? 3200 : undefined); return true; }
   toast(m.why || '办不了（钱不够或已经过期）'); return false;
 }
 export function openInbox(kind) {
@@ -45,6 +45,7 @@ export function openInbox(kind) {
     list.innerHTML = '';
     const items = I.inTab(s, cur);
     if (cur === 'biz') list.appendChild(bizHead(s, render));
+    if (cur === 'system' && items.some((m) => !m.read)) { const b = h('button', 'btn sys-allread', '一键全读'); b.onclick = () => { for (const m of items) if (!m.read) I.markRead(s, m.id); game.changed(); game.save(); render(); }; list.appendChild(b); } // V0.2.9（Arvin）
     if (!items.length) list.appendChild(h('div', 'empty', cur === 'important' ? '没有要你签字拍板的事' : cur === 'biz' ? '今天的经营事件都处理完了' : '没有消息'));
     for (const m of items) {
       const from = SEC_BY_ID[m.from];
@@ -56,7 +57,7 @@ export function openInbox(kind) {
         const a = e.target.dataset && e.target.dataset.a;
         if (a === 'open' && m.type === 'event') { I.markRead(s, m.id); openEventMsg(m, render); } // 事件：播剧情 + 选择（选完才算处理）
         else if (a && ACTION_UI.some((fn) => fn(s, m, a, render, p.close))) { /* 交给挂钩（谈判等）*/ }
-        else if (a) { const lab = (m.actions.find((x) => x.key === a) || {}).label || ''; if (I.act(s, m.id, a, now())) toast(m.type === 'biz_event' ? `已处理：${lab}${m.result ? `\n${m.result}` : ''}` : a === 'reject' ? '已驳回' : '已批准', m.type === 'biz_event' ? 3200 : undefined); else toast(m.why || '办不了（钱不够或已经过期）'); }
+        else if (a) { const lab = (m.actions.find((x) => x.key === a) || {}).label || ''; if (I.act(s, m.id, a, now())) toast(m.type === 'biz_event' ? `已处理：${lab}${m.result ? `\n${m.result}` : ''}` : a === 'reject' ? '已驳回' : a === 'ok' ? '好的' : '已批准', m.type === 'biz_event' ? 3200 : undefined); else toast(m.why || '办不了（钱不够或已经过期）'); }
         else { if (m.kind === 'report' && !m.read) bump(s, now(), 'report'); I.markRead(s, m.id); }
         game.changed(); game.save(); render();
       };

@@ -1,21 +1,21 @@
 // 公司月 / 季 / 年结：挂到游戏时钟上（main.js、econsim、autoplay 都用这一份）
-import { onPeriod } from './gametime.js?v=6f6c00ef';
-import { flushAccruals, pay } from './ledger.js?v=6f6c00ef';
-import * as ST from './staff.js?v=6f6c00ef';
-import * as CT from './companytax.js?v=6f6c00ef';
-import { addMsg } from './inbox.js?v=6f6c00ef';
-import { takeMonth } from './accrual.js?v=6f6c00ef';
-import { monthEquity } from './equity.js?v=6f6c00ef';
-import { monthPosts } from './postwork.js?v=6f6c00ef';
-import { power } from './posts.js?v=6f6c00ef';
+import { onPeriod } from './gametime.js?v=daaa7f91';
+import { flushAccruals, pay } from './ledger.js?v=daaa7f91';
+import * as ST from './staff.js?v=daaa7f91';
+import * as CT from './companytax.js?v=daaa7f91';
+import { addMsg } from './inbox.js?v=daaa7f91';
+import { takeMonth } from './accrual.js?v=daaa7f91';
+import { monthEquity } from './equity.js?v=daaa7f91';
+import { monthPosts } from './postwork.js?v=daaa7f91';
+import { power } from './posts.js?v=daaa7f91';
 // 店长管理高，员工流失少（设计17 第一节 4）
 ST.setManagerMgmt((s, id) => power(s, 'manager_' + id) * 100);
-import { fmtMoney } from './format.js?v=6f6c00ef';
-import * as FI from './fiscal.js?v=6f6c00ef';
-import { bank } from './bank.js?v=6f6c00ef';
-import * as CF from './cashflow.js?v=6f6c00ef';
-import * as ADS from './ads.js?v=6f6c00ef';
-import { YEAR_MS } from './gametime.js?v=6f6c00ef';
+import { fmtMoney } from './format.js?v=daaa7f91';
+import * as FI from './fiscal.js?v=daaa7f91';
+import { bank } from './bank.js?v=daaa7f91';
+import * as CF from './cashflow.js?v=daaa7f91';
+import * as ADS from './ads.js?v=daaa7f91';
+import { YEAR_MS } from './gametime.js?v=daaa7f91';
 
 let hooked = false;
 export function hookCompany({ rnd = Math.random, onMonth } = {}) {

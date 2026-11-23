@@ -2,20 +2,20 @@
 // 每条门店线：人流等级 trafLv（每级营业额 +5%，最多 20 级）、口碑等级 repLv（每级口碑底线 +5，50 → 100）；存在 manage 的 line 上，分店共享，永久不掉。
 // 每个称号能升到多高：人流 5 / 10 / 15 / 20 级，口碑 2 / 4 / 7 / 10 级。价格 = 这一级每月多赚的 ×（1 + 0.1 × 第几级），没有折扣。
 // 店长托管「自动升级广告」（默认开）：钱够（留够两个月工资）就升，先升便宜的；外包经理人只升到 5 / 2 级。
-import C from '../config/ads.json?v=6f6c00ef' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=6f6c00ef';
-import { TITLES } from '../config/titles.js?v=6f6c00ef';
-import { YEAR_MS } from './gametime.js?v=6f6c00ef';
-import * as MG from './manage.js?v=6f6c00ef';
-import { steadyRevenue, steadyCogs } from './economy.js?v=6f6c00ef';
-import { pay, canPay } from './ledger.js?v=6f6c00ef';
-import { holder, isSec, OUT } from './posts.js?v=6f6c00ef';
-import { cushionShort } from './cashflow.js?v=6f6c00ef';
-import { setAdsPayHook } from './accrual.js?v=6f6c00ef';
-import { addMsg } from './inbox.js?v=6f6c00ef';
-import { fmtMoney } from './format.js?v=6f6c00ef';
-import { noteUp, noteAuto } from './upnote.js?v=6f6c00ef';
-import { dayRevOf } from './upbuild.js?v=6f6c00ef'; // V0.2.5 店铺升级、开分店的升级框挂进 economy
+import C from '../config/ads.json?v=daaa7f91' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=daaa7f91';
+import { TITLES } from '../config/titles.js?v=daaa7f91';
+import { YEAR_MS } from './gametime.js?v=daaa7f91';
+import * as MG from './manage.js?v=daaa7f91';
+import { steadyRevenue, steadyCogs } from './economy.js?v=daaa7f91';
+import { pay, canPay } from './ledger.js?v=daaa7f91';
+import { holder, isSec, OUT } from './posts.js?v=daaa7f91';
+import { cushionShort } from './cashflow.js?v=daaa7f91';
+import { setAdsPayHook } from './accrual.js?v=daaa7f91';
+import { addMsg } from './inbox.js?v=daaa7f91';
+import { fmtMoney } from './format.js?v=daaa7f91';
+import { noteUp, noteAuto } from './upnote.js?v=daaa7f91';
+import { dayRevOf } from './upbuild.js?v=daaa7f91'; // V0.2.5 店铺升级、开分店的升级框挂进 economy
 
 export { C as ADS_CFG };
 export const CATS = ['traffic', 'rep'];
@@ -61,7 +61,7 @@ export function whyNotUp(s, id, cat, who = null) {
   if (!isAdLine(s, id)) return '这条线还没开店';
   const n = lv(s, id, cat); if (n >= C[cat].max) return '已满';
   if (n >= capOf(s, cat, who)) { if (who === OUT) return '职业经理人只会发传单、点评运营'; const i = nextTitleFor(s, cat); return `到顶了，升到「${TITLES[i].name}」开放${C[cat].names[i]}，能升到 ${valText(cat, C[cat].caps[i])}`; }
-  const p = price(s, id, cat); if (cushionShort(s, p) > 0 || !canPay(s, 'company', p)) return '钱不够';
+  const p = price(s, id, cat); if (!canPay(s, 'company', p)) return '钱不够'; if (cushionShort(s, p) > 0) return '钱不够（要留工资）'; /* V0.2.9 */
   return null;
 }
 /** 按钮上写的：「升级：花 ¥X，营业额 +5%」「升级：花 ¥X，口碑 +5」 */

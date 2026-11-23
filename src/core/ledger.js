@@ -30,21 +30,32 @@ export const CATS = {
   newbie: ['新手奖励', 'personal'], margin_in: ['融资借款（买股票）', 'personal'], margin_repay: ['归还融资', 'personal'], margin_interest: ['融资利息', 'personal'], ipo_pay: ['新股中签缴款', 'personal'], // 第 P-06 项
 };
 export const KEEP_GAME_YEARS = 3;
-import BANKCFG from '../config/bank.json?v=6f6c00ef' with { type: 'json' };
+import BANKCFG from '../config/bank.json?v=daaa7f91' with { type: 'json' };
 const USE_CATS = BANKCFG.useCats;
 
 const bal = (s, w) => (w === 'company' ? s.company : w === 'offshore' ? (s.offshore || 0) : s.cash);
 export const balance = bal;
 /** 个人现金里冻结的（买房验资认筹）不能花 */
 const frozenCash = (s) => (s.freezes || []).reduce((a, f) => a + f.amount, 0);
-export const canPay = (s, wallet, amount) => bal(s, wallet) - (wallet === 'personal' ? frozenCash(s) : 0) >= amount - 1e-9;
+/** 必须付的（工资、房租、税、还贷、分期）：只看余额 */
+export const canPayMust = (s, wallet, amount) => bal(s, wallet) - (wallet === 'personal' ? frozenCash(s) : 0) >= amount - 1e-9;
+/** V0.2.9 工资锁：公司账户自己选着花的钱，一律要留够两个月工资 + 社保 + 房租（cashflow.js 挂上来）；必须付的用 canPayMust */
+let companyFloor = null;
+export const setCompanyFloor = (fn) => { companyFloor = fn; };
+/** 工资锁的状态：strict = 自动的（每秒逻辑、离线结算），一律锁；click = 玩家点的那一下，锁住后界面问「照样花吗」；bypass = 玩家点了「照样花」；last = 最近被锁住的那笔 */
+export const lockState = { strict: false, click: false, bypass: false, last: null };
+export const canPay = (s, wallet, amount) => {
+  if (!canPayMust(s, wallet, amount)) return false;
+  if (wallet !== 'company' || !companyFloor || lockState.bypass || !(lockState.strict || lockState.click)) return true;   // 平时画界面不锁（按钮不灰），点下去才问
+  return !companyFloor(s, amount);
+};
 
 /** 记一笔并改余额。out 时余额不够返回 null（不扣）；force 允许扣成负数（欠工资、欠税） */
 export function post(s, e, t = Date.now()) {
   const amount = Math.round((e.amount || 0) * 100) / 100;
   if (!(amount > 0) && !(e.memo && e.zero)) return null; // V0.2.4：备忘行可以是 0 元（人事贴招聘补员也要留一笔流水）
   const wallet = e.wallet || (CATS[e.cat] ? CATS[e.cat][1] : 'personal');
-  if (e.dir === 'out' && !e.force && !e.memo && !canPay(s, wallet, amount)) return null;
+  if (e.dir === 'out' && !e.force && !e.memo && !canPayMust(s, wallet, amount)) return null;
   const k = e.dir === 'out' ? -1 : 1;
   if (e.memo) { /* 备忘行（代扣个税等）：只记账不动余额 */ } else if (wallet === 'company') s.company = (s.company || 0) + k * amount; else if (wallet === 'offshore') s.offshore = (s.offshore || 0) + k * amount; else s.cash = (s.cash || 0) + k * amount;
   s.ledgerSeq = (s.ledgerSeq || 0) + 1;

@@ -1,15 +1,15 @@
 // 第 P-06 项（设计25 第五节）：前期炒股 —— 条件单、打新股、融资融券、看盘、炒股周报
 // 条件单和两融的平仓线每跳检查（挂在 stocks.js 的 addStepHook 上，离线补算一样走）；打新、利息、周报按时间走 tick()（在线 ticker 和 core/offcap.js 都叫）
-import * as SK from './stocks.js?v=6f6c00ef';
-import { pay, receive } from './ledger.js?v=6f6c00ef';
-import { addContract } from './contracts.js?v=6f6c00ef';
-import { addMsg } from './inbox.js?v=6f6c00ef';
-import { MONTH_MS } from './gametime.js?v=6f6c00ef';
-import { profitMul } from './calib.js?v=6f6c00ef';
-import { isTraining } from './training.js?v=6f6c00ef';
-import { attrs as secAttrs } from './posts.js?v=6f6c00ef';
-import { SEC_BY_ID } from '../config/secretaries.js?v=6f6c00ef';
-import { netWorth } from './economy.js?v=6f6c00ef';
+import * as SK from './stocks.js?v=daaa7f91';
+import { pay, receive } from './ledger.js?v=daaa7f91';
+import { addContract } from './contracts.js?v=daaa7f91';
+import { addMsg } from './inbox.js?v=daaa7f91';
+import { MONTH_MS } from './gametime.js?v=daaa7f91';
+import { profitMul } from './calib.js?v=daaa7f91';
+import { isTraining } from './training.js?v=daaa7f91';
+import { attrs as secAttrs } from './posts.js?v=daaa7f91';
+import { SEC_BY_ID } from '../config/secretaries.js?v=daaa7f91';
+import { netWorth } from './economy.js?v=daaa7f91';
 
 const C = SK.SCFG; const O = C.orders, I = C.ipo, MG = C.margin, W = C.weekly;
 export const DAY = MONTH_MS / 30;

@@ -1,23 +1,24 @@
 // P-05 经营事件（设计25 第二节，config/events.json）。设计39 第三节：每天 0 点（手机本地时间）整批来 10 件，不管在不在线；
 // 当天同一种只出一次；没做的 0 点清掉（不按默认、没有影响）；打工人只抽 tier 0（正好 10 种），小老板起 tier 0 + 1，小老板起「再来 10 件」一天一次（金券开发2 扣）。
 // 按你有的店、行业、称号筛；相关属性最高的秘书出主意（对的概率 50% + 属性 / 2）
-import { credit } from './credit.js?v=6f6c00ef'; // V3-01 亲自拍板攒投入度
-import EV from '../config/events.json?v=6f6c00ef' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=6f6c00ef';
-import { SEC_BY_ID } from '../config/secretaries.js?v=6f6c00ef';
-import { dayKey } from './affection.js?v=6f6c00ef';
-import { addMsg, onAction } from './inbox.js?v=6f6c00ef';
-import { pay, receive } from './ledger.js?v=6f6c00ef';
-import { addContract } from './contracts.js?v=6f6c00ef';
-import { attrs } from './posts.js?v=6f6c00ef';
-import { isTraining } from './training.js?v=6f6c00ef';
-import * as MG from './manage.js?v=6f6c00ef';
-import * as PK from './pick.js?v=6f6c00ef';
-import * as PQ from './prereq.js?v=6f6c00ef';
-import './late.js?v=6f6c00ef'; // V3-01 后期不挂机（挂钩注册） // V2-12 前置条件第一次满足时秘书说一句 // V2-03 进货挑品：暴雨跟着天气、节日事件跟着节日
-import { mark } from './goals.js?v=6f6c00ef';
-import { available } from './accrual.js?v=6f6c00ef'; // V0.2.2 打工人阶段事件花钱封顶
-import { fmtMoney } from './format.js?v=6f6c00ef';
+import { credit } from './credit.js?v=daaa7f91'; // V3-01 亲自拍板攒投入度
+import EV from '../config/events.json?v=daaa7f91' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=daaa7f91';
+import { SEC_BY_ID } from '../config/secretaries.js?v=daaa7f91';
+import { dayKey } from './affection.js?v=daaa7f91';
+import { addMsg, onAction } from './inbox.js?v=daaa7f91';
+import { pay, receive } from './ledger.js?v=daaa7f91';
+import { addContract } from './contracts.js?v=daaa7f91';
+import { attrs } from './posts.js?v=daaa7f91';
+import { isTraining } from './training.js?v=daaa7f91';
+import * as MG from './manage.js?v=daaa7f91';
+import * as PK from './pick.js?v=daaa7f91';
+import * as PQ from './prereq.js?v=daaa7f91';
+import './late.js?v=daaa7f91'; // V3-01 后期不挂机（挂钩注册） // V2-12 前置条件第一次满足时秘书说一句 // V2-03 进货挑品：暴雨跟着天气、节日事件跟着节日
+import { mark } from './goals.js?v=daaa7f91';
+import { available } from './accrual.js?v=daaa7f91'; // V0.2.2 打工人阶段事件花钱封顶
+import { fmtMoney } from './format.js?v=daaa7f91';
+import * as CF from './cashflow.js?v=daaa7f91'; // V0.2.9 工资锁
 
 export { EV as EVENTS_CFG };
 const r2 = (x) => Math.round(x * 100) / 100;
@@ -99,6 +100,7 @@ export function resolve(s, msgId, key, t, rnd = Math.random, opts = {}) {   // o
   const m = (s.inbox || []).find((x) => x.id === msgId); if (!m || !m.data || !m.data.ev) return { ok: false, why: '没有这件事' };
   const e = EV_BY_ID[m.data.ev]; let o = e.options.find((x) => x.key === key) || e.options.find((x) => x.key === e.default);
   if (m.status !== 'open') return { ok: false, why: '已经处理过了' };
+  { const c = optCost(s, m.data.line, o.fx).sure; if (c > 0 && CF.cushionShort(s, c) > 0) return { ok: false, why: CF.LOCK_WHY }; } /* V0.2.9 工资锁：要花钱的选项也要留够两个月工资 */
   const need = (o.fx || []).find((f) => f.energy); if (need) { const w = MG.whyEnergy(s, need.energy, t); if (w) return { ok: false, why: w }; MG.doEnergy(s, need.energy, t); } /* 设计39：精力不够就不能选这个 */
   const out = []; const ctx = { e, o, ad: m.from ? { id: m.from, attr: attrs(s, m.from)[e.attr] || 0 } : null, paid: 0, bank: false, cap: capOf(s), capped: 0 };
   apply(s, m.data.line, opts.fx || o.fx, t, rnd, out, ctx);

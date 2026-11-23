@@ -7,7 +7,10 @@ export function h(tag, cls, html) {
 }
 
 let toastTimer = null;
+/** V0.2.9：返回 true 的挂钩把这条提示接走（工资锁改成弹框问） */
+export const toastHook = { fn: null };
 export function toast(text, ms = 1800, { top = false } = {}) {
+  if (toastHook.fn && toastHook.fn(String(text))) return;
   let t = document.querySelector('.toast');
   if (!t) { t = h('div', 'toast'); document.querySelector('#phone').appendChild(t); }
   t.textContent = text; t.classList.add('show'); t.classList.toggle('top', top);

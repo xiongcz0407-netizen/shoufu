@@ -1,9 +1,9 @@
 // 游戏总控：持有存档、每秒走一次逻辑、自动存档、后台停
-import { storage } from './platform/storage.js?v=6f6c00ef';
-import { loadGame, saveGame } from './core/save.js?v=6f6c00ef';
-import { now } from './core/clock.js?v=6f6c00ef';
-import { processPeriods } from './core/gametime.js?v=6f6c00ef';
-import { flushAccruals } from './core/ledger.js?v=6f6c00ef';
+import { storage } from './platform/storage.js?v=daaa7f91';
+import { loadGame, saveGame } from './core/save.js?v=daaa7f91';
+import { now } from './core/clock.js?v=daaa7f91';
+import { processPeriods } from './core/gametime.js?v=daaa7f91';
+import { flushAccruals, lockState } from './core/ledger.js?v=daaa7f91';
 
 const listeners = new Set();
 const tickers = [];        // 每秒逻辑：fn(state, dtSec, t)
@@ -28,7 +28,7 @@ function tick() {
   const t = now();
   const dt = Math.min(5, Math.max(0, (t - lastTick) / 1000));
   lastTick = t;
-  for (const fn of tickers) fn(game.state, dt, t);
+  lockState.strict = true; try { for (const fn of tickers) fn(game.state, dt, t); } finally { lockState.strict = false; }   // V0.2.9 工资锁：自动的一律锁
   processPeriods(game.state, t); // 游戏月 / 季 / 年到点（发工资、报税、月报）
   game.changed();
   if (++saveCount >= 10) { saveCount = 0; game.save(); } // 10 秒存一次
@@ -39,7 +39,7 @@ function tick() {
 export function settleOffline() {
   const t = now();
   const away = Math.max(0, (t - (game.state.lastSeen || t)) / 1000);
-  for (const fn of offlineHandlers) fn(game.state, away, t);
+  lockState.strict = true; try { for (const fn of offlineHandlers) fn(game.state, away, t); } finally { lockState.strict = false; }
   processPeriods(game.state, t); // 离线期间结束的月份按顺序补算
   flushAccruals(game.state, t);
   game.state.lastSeen = t;

@@ -1,18 +1,18 @@
 // 3-01 私人银行 + 股票质押 + 艺术品质押（设计23 第五节）
 // 私行：金融资产到门槛自动是客户（core/bank.js isPrivateAt / privateTier）：存款高一档、贷款低一档、人脉 +5、客户经理消息
 // 质押：个人的股票 / 古董押给银行，钱借给公司（专款专用）；按月付息、1 个游戏年到期还本；股票 150% 预警、130% 强平；逾期 3 期处置
-import { BANK_CFG as B, bank, loanDebt, rateFor, privateTier, isPrivateAt, setFinAssetsFn, setPledgeHooks, finAssets } from './bank.js?v=6f6c00ef';
-import * as SK from './stocks.js?v=6f6c00ef';
-import * as FD from './funds.js?v=6f6c00ef';
-import * as AQ from './antique.js?v=6f6c00ef';
-import { addAttrHook } from './boss.js?v=6f6c00ef';
-import { receive, pay, canPay } from './ledger.js?v=6f6c00ef';
-import { TAX } from './companytax.js?v=6f6c00ef';
-import { addContract } from './contracts.js?v=6f6c00ef';
-import { addMsg } from './inbox.js?v=6f6c00ef';
-import { YEAR_MS, monthIndex } from './gametime.js?v=6f6c00ef';
-import * as LS from './listing.js?v=6f6c00ef';
-import { stakeOf } from './economy.js?v=6f6c00ef';
+import { BANK_CFG as B, bank, loanDebt, rateFor, privateTier, isPrivateAt, setFinAssetsFn, setPledgeHooks, finAssets } from './bank.js?v=daaa7f91';
+import * as SK from './stocks.js?v=daaa7f91';
+import * as FD from './funds.js?v=daaa7f91';
+import * as AQ from './antique.js?v=daaa7f91';
+import { addAttrHook } from './boss.js?v=daaa7f91';
+import { receive, pay, canPay, canPayMust } from './ledger.js?v=daaa7f91';
+import { TAX } from './companytax.js?v=daaa7f91';
+import { addContract } from './contracts.js?v=daaa7f91';
+import { addMsg } from './inbox.js?v=daaa7f91';
+import { YEAR_MS, monthIndex } from './gametime.js?v=daaa7f91';
+import * as LS from './listing.js?v=daaa7f91';
+import { stakeOf } from './economy.js?v=daaa7f91';
 
 const r2 = (x) => Math.round(x * 100) / 100;
 setFinAssetsFn((s) => (s.mkt ? SK.holdValue(s) : 0) + (s.fund ? FD.value(s) : 0));
@@ -134,7 +134,7 @@ export function tickPledge(s, t) {
       if (cv > SP.warn * 1.05) l.warned = false;
     }
     if (t >= l.end) {
-      if (canPay(s, 'company', l.principal)) { pay(s, { wallet: 'company', cat: 'loan_out', amount: l.principal, party: B.banks[l.bank].name, ref: l.contract, note: `${l.type === 'stock' ? '股票质押' : '艺术品质押'}到期还本` }, l.end); s.bank.loans = s.bank.loans.filter((x) => x !== l); release(s, l); capRestricted(s); ev.push('质押借款到期还清，解押了'); }
+      if (canPayMust(s, 'company', l.principal)) { pay(s, { wallet: 'company', cat: 'loan_out', amount: l.principal, party: B.banks[l.bank].name, ref: l.contract, note: `${l.type === 'stock' ? '股票质押' : '艺术品质押'}到期还本` }, l.end); s.bank.loans = s.bank.loans.filter((x) => x !== l); release(s, l); capRestricted(s); ev.push('质押借款到期还清，解押了'); }
       else { seize(s, l, t, '到期公司还不上，处置质押物'); ev.push('质押借款到期还不上，被处置'); }
     }
   }

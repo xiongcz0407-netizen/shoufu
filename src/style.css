@@ -979,3 +979,14 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 .rt-cp-list i { flex-direction: column; gap: 2px; flex: 1; } .rt-cp-list .rt-ic { width: 24px; height: 24px; margin: 0; } .rt-cp-list em { font-style: normal; font-size: 11px; white-space: nowrap; opacity: .9; }
 /* 设计39：精力不够时的药水条（设计接手开发1） */
 .cp-pot-wrap { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 0; padding: 8px 10px; border: 1px solid rgba(232, 194, 122, .35); border-radius: 10px; background: rgba(232, 194, 122, .08); font-size: 13px; color: var(--paper); }
+
+/* V0.2.9 产业「收益」页 */
+.pf-table { margin-top: 8px; border: 1px solid rgba(232,194,122,.25); border-radius: 10px; overflow: hidden; }
+.pf-row { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 4px; padding: 8px 10px; font-size: 13px; border-top: 1px solid rgba(255,255,255,.06); }
+.pf-row span:not(:first-child) { text-align: right; }
+.pf-head { border-top: none; color: var(--gold); font-size: 12px; background: rgba(232,194,122,.08); }
+.pf-sub { color: #aab; font-size: 12px; }
+.pf-sum { background: rgba(232,194,122,.08); font-weight: bold; }
+.pf-row .neg { color: #ff7a6e; }
+.sys-allread { width: 100%; margin: 6px 0; }
+.wage-lock { opacity: .7; }  /* V0.2.9 留不够工资：能点，点了先问 */

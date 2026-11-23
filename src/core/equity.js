@@ -2,12 +2,12 @@
 // 分期：首付 ≥ 30%（商务总监在任 20%）付完就算收购成功；余款 12 个游戏月每月月底付一期（协议写清每期金额和日期）
 // 没付完的记「应付股权转让款」（负债，身价里减）；逾期按日 0.05% 违约金；连续 3 期付不上 → 对方解除协议：
 // 股权收回、已付的扣 20% 违约金后退回、并进来的店和员工退回去（跳槽的秘书不退）
-import { live } from './rivalgrow.js?v=6f6c00ef';
-import { INSTALL, RIVAL_BY_ID } from '../config/rivals.js?v=6f6c00ef';
-import { IND_BY_ID } from '../config/industries.js?v=6f6c00ef';
-import { pay, receive, canPay } from './ledger.js?v=6f6c00ef';
-import { MONTH_MS, monthIndex } from './gametime.js?v=6f6c00ef';
-import { addMsg } from './inbox.js?v=6f6c00ef';
+import { live } from './rivalgrow.js?v=daaa7f91';
+import { INSTALL, RIVAL_BY_ID } from '../config/rivals.js?v=daaa7f91';
+import { IND_BY_ID } from '../config/industries.js?v=daaa7f91';
+import { pay, receive, canPay, canPayMust } from './ledger.js?v=daaa7f91';
+import { MONTH_MS, monthIndex } from './gametime.js?v=daaa7f91';
+import { addMsg } from './inbox.js?v=daaa7f91';
 
 const r2 = (x) => Math.round(x * 100) / 100;
 export const deals = (s) => (s.equityDeals = s.equityDeals || []);
@@ -36,7 +36,7 @@ export function monthEquity(s, m, end) {
     if (d.overdue) d.lateFee = r2(d.lateFee + d.overdue * INSTALL.lateDaily * 30); // 欠着的按日 0.05%，一个月 30 天
     const amt = r2(due.reduce((a, x) => a + x.amount, 0));
     const need = r2(d.overdue + amt + d.lateFee);
-    if (canPay(s, 'company', need)) {
+    if (canPayMust(s, 'company', need)) {
       if (d.overdue + amt > 0) pay(s, { wallet: 'company', cat: 'acquire', amount: d.overdue + amt, party: d.name, ref: d.contract, note: `收购${d.name}分期款 第 ${due.map((x) => x.k).join('、') || d.k} 期` }, end);
       if (d.lateFee > 0) pay(s, { wallet: 'company', cat: 'penalty', amount: d.lateFee, party: d.name, ref: d.contract, note: `收购${d.name}分期逾期违约金（按日 0.05%）` }, end);
       d.paid = r2(d.paid + d.overdue + amt); d.left = r2(d.left - d.overdue - amt); d.overdue = 0; d.lateFee = 0; d.missed = 0; d.k = due.length ? due.at(-1).k : d.k;

@@ -1,35 +1,35 @@
 // 「秘书」页签（设计18 第四节 2）：上面一条培训位、两列卡片（没来的剪影 + 条件）；
 // 秘书详情全屏：上半立绘、下半面板（资料 | 培养 | 衣柜 | 职位工资），底部动作条（互动 · 送礼 · 约会 · 陪着我）
-import * as CP from '../core/capital.js?v=6f6c00ef';
-import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=6f6c00ef';
-import { COURSE_BY_ID } from '../config/courses.js?v=6f6c00ef';
-import { OUTFITS, priceOf } from '../config/outfits.js?v=6f6c00ef';
-import { IND_BY_ID } from '../config/industries.js?v=6f6c00ef';
-import * as S from '../core/secretary.js?v=6f6c00ef';
-import * as T from '../core/training.js?v=6f6c00ef';
-import { isScouting } from '../core/busy.js?v=6f6c00ef'; // V2-08
-import * as STY from '../core/styles.js?v=6f6c00ef'; // 设计36 第 4 条：衣柜写衣服名字 + 款式
-import * as O from '../core/outfits.js?v=6f6c00ef';
-import * as A from '../core/affection.js?v=6f6c00ef';
-import { query } from '../core/ledger.js?v=6f6c00ef';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=6f6c00ef';
-import { asset } from '../platform/assets.js?v=6f6c00ef';
-import { now } from '../core/clock.js?v=6f6c00ef';
-import { game } from '../game.js?v=6f6c00ef';
-import { h, toast, liveRender } from './dom.js?v=6f6c00ef';
-import { openFull, closeTab, goHome } from './shell.js?v=6f6c00ef';
-import { switchSecretary, dressUp } from './main-screen.js?v=6f6c00ef';
-import { pickSec, renderCourses } from './training.js?v=6f6c00ef';
-import { openMall } from './mall.js?v=6f6c00ef';
-import { openDate } from './date.js?v=6f6c00ef';
-import { createPortrait } from './portrait.js?v=6f6c00ef';
-import { bgKeyFor } from './main-screen.js?v=6f6c00ef';
-import * as PO from '../core/posts.js?v=6f6c00ef';
-import { openTab } from './shell.js?v=6f6c00ef';
-import { addFavor } from '../core/affection.js?v=6f6c00ef';
-import { gameDate, dateText } from '../core/gametime.js?v=6f6c00ef'; // 送礼明细的日期
-import * as COUP from '../core/coupon.js?v=6f6c00ef'; // 设计39 再聊 5 次（开发2）
-import { openWallet } from './coupon.js?v=6f6c00ef'; // 设计39 去卡包买互动券（开发2）
+import * as CP from '../core/capital.js?v=daaa7f91';
+import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=daaa7f91';
+import { COURSE_BY_ID } from '../config/courses.js?v=daaa7f91';
+import { OUTFITS, priceOf } from '../config/outfits.js?v=daaa7f91';
+import { IND_BY_ID } from '../config/industries.js?v=daaa7f91';
+import * as S from '../core/secretary.js?v=daaa7f91';
+import * as T from '../core/training.js?v=daaa7f91';
+import { isScouting } from '../core/busy.js?v=daaa7f91'; // V2-08
+import * as STY from '../core/styles.js?v=daaa7f91'; // 设计36 第 4 条：衣柜写衣服名字 + 款式
+import * as O from '../core/outfits.js?v=daaa7f91';
+import * as A from '../core/affection.js?v=daaa7f91';
+import { query } from '../core/ledger.js?v=daaa7f91';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=daaa7f91';
+import { asset } from '../platform/assets.js?v=daaa7f91';
+import { now } from '../core/clock.js?v=daaa7f91';
+import { game } from '../game.js?v=daaa7f91';
+import { h, toast, liveRender } from './dom.js?v=daaa7f91';
+import { openFull, closeTab, goHome } from './shell.js?v=daaa7f91';
+import { switchSecretary, dressUp } from './main-screen.js?v=daaa7f91';
+import { pickSec, renderCourses } from './training.js?v=daaa7f91';
+import { openMall } from './mall.js?v=daaa7f91';
+import { openDate } from './date.js?v=daaa7f91';
+import { createPortrait } from './portrait.js?v=daaa7f91';
+import { bgKeyFor } from './main-screen.js?v=daaa7f91';
+import * as PO from '../core/posts.js?v=daaa7f91';
+import { openTab } from './shell.js?v=daaa7f91';
+import { addFavor } from '../core/affection.js?v=daaa7f91';
+import { gameDate, dateText } from '../core/gametime.js?v=daaa7f91'; // 送礼明细的日期
+import * as COUP from '../core/coupon.js?v=daaa7f91'; // 设计39 再聊 5 次（开发2）
+import { openWallet } from './coupon.js?v=daaa7f91'; // 设计39 去卡包买互动券（开发2）
 
 const BEST_NAME = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 /** 她现在的职位名：没有返回 '' */

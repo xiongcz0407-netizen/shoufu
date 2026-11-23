@@ -1,15 +1,15 @@
 // V0.2.3 资金链断裂（设计35）：花钱前留够两个月工资 + 社保 + 房租；跨样子升级先算账；可用 < 1 个月工资发急报；
 // 欠薪停业满 1 个游戏月员工自动遣散（N+1 记应付）；公司账户负数时银行给一次应急周转贷（3 个月工资，利率高一档）
-import { IND_BY_ID } from '../config/industries.js?v=6f6c00ef';
-import B from '../config/bank.json?v=6f6c00ef' with { type: 'json' };
-import * as ST from './staff.js?v=6f6c00ef';
-import { available, monthlyRent, payables } from './accrual.js?v=6f6c00ef';
-import { lineK } from './cities.js?v=6f6c00ef';
-import { pay, receive, post } from './ledger.js?v=6f6c00ef';
-import { addMsg } from './inbox.js?v=6f6c00ef';
-import { holder, isSec } from './posts.js?v=6f6c00ef';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=6f6c00ef';
-import { fmtMoney } from './format.js?v=6f6c00ef';
+import { IND_BY_ID } from '../config/industries.js?v=daaa7f91';
+import B from '../config/bank.json?v=daaa7f91' with { type: 'json' };
+import * as ST from './staff.js?v=daaa7f91';
+import { available, monthlyRent, payables } from './accrual.js?v=daaa7f91';
+import { lineK } from './cities.js?v=daaa7f91';
+import { pay, receive, post, setCompanyFloor, lockState } from './ledger.js?v=daaa7f91';
+import { addMsg } from './inbox.js?v=daaa7f91';
+import { holder, isSec } from './posts.js?v=daaa7f91';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=daaa7f91';
+import { fmtMoney } from './format.js?v=daaa7f91';
 
 export const CUSHION_MONTHS = 2;
 const r2 = (x) => Math.round(x * 100) / 100;
@@ -18,16 +18,25 @@ const cfoOf = (s) => { const c = holder(s, 'cfo'); if (isSec(c)) return c; retur
 /** 每月固定要付的：工资 + 社保 + 派遣 + 房租 */
 export const monthlyWage = (s) => ST.monthlyLabor(s).total;
 export const burn = (s) => monthlyWage(s) + monthlyRent(s);
-export const cushion = (s) => CUSHION_MONTHS * burn(s);
+/** V0.2.9：打工人留 1 个月工资 + 社保（开局 2 万照样能开小吃摊）；小老板起留 2 个月工资 + 社保 + 房租 */
+export const cushion = (s) => ((s.title || 0) ? CUSHION_MONTHS * burn(s) : monthlyWage(s));
 /** 花 cost 以后可用还够不够两个月；打工人阶段不管（开局 2 万要能开小吃摊，事件另有 20% 封顶）；测试可以 flags.noCushion 关掉 */
 export function cushionShort(s, cost) {
-  if (!(s.title || 0) || (s.flags && s.flags.noCushion)) return 0;
+  if ((s.flags && s.flags.noCushion) || lockState.bypass) return 0;   /* V0.2.9：玩家点了「照样花」 */   /* V0.2.9：打工人也锁（没开店时工资房租是 0，开局 2 万照样能开第一个摊） */
   const P = payables(s); /* 本月已经计提的工资房租就是这两个月里的第一个月，不重复算 */
-  return Math.max(0, Math.ceil(cushion(s) - (available(s) + P.labor + P.rent - cost)));
+  const k = Math.max(0, Math.ceil(cushion(s) - (available(s) + P.labor + ((s.title || 0) ? P.rent : 0) - cost)));
+  if (k > 0) lockState.last = { cost, at: Date.now() };
+  return k;
 }
 /** 花多少以后还留得够两个月工资（能花的上限） */
-export const room = (s) => { const P = payables(s); return Math.max(0, Math.floor(available(s) + P.labor + P.rent - cushion(s))); };
-export const whyCushion = (s, cost) => { const k = cushionShort(s, cost); return k > 0 ? `留够两个月工资：还差 ${fmtMoney(k)}` : null; };
+export const room = (s) => { const P = payables(s); return Math.max(0, Math.floor(available(s) + P.labor + ((s.title || 0) ? P.rent : 0) - cushion(s))); };
+/** V0.2.9：最多能分红多少（留够工资以后）*/
+export const divMax = (s) => Math.max(0, Math.min(Math.floor(available(s)), room(s)));
+export const whyCushion = (s, cost) => (cushionShort(s, cost) > 0 ? LOCK_WHY : null);
+export const LOCK_WHY = '钱不够（要留工资）';
+setCompanyFloor((s, cost) => cushionShort(s, cost) > 0);
+/** 锁住时给玩家看的：花多少、花完剩多少、要留多少、还差多少 */
+export function lockInfo(s, cost) { const P = payables(s); const left = Math.floor(available(s) + P.labor + ((s.title || 0) ? P.rent : 0) - cost); return { cost: Math.round(cost), left, need: Math.round(cushion(s)), short: Math.max(0, Math.round(cushion(s) - left)), months: (s.title || 0) ? CUSHION_MONTHS : 1 }; }   // V0.2.9：公司账户自己选着花的钱都走这把锁
 
 /** 跨样子升级先算账：{ cross, addStaff, addMonthly, months（升完账上够撑几个月） } */
 export function upgradePreview(s, id, cost = 0) {
@@ -47,10 +56,10 @@ export const fundLow = (s) => { const w = monthlyWage(s); return w > 0 && availa
 export const FUND_ACTIONS = [{ key: 'inject', label: '注资' }, { key: 'loan', label: '申请经营贷' }, { key: 'sell', label: '卖股票 / 资产' }, { key: 'fire', label: '裁员 / 关店' }];
 /** 每秒（在线）：缺钱了财务总监发急报，一个游戏月最多一次 */
 export function tickFund(s, t) {
-  if (!fundLow(s)) return null; const C = cf(s); if (C.alertAt && t - C.alertAt < MONTH_MS) return null;
+  if (!fundLow(s)) { for (const m of s.inbox || []) if (m.type === 'fund_low' && m.status === 'open') { m.status = 'done'; m.read = true; } return null; }   /* V0.2.9：钱够了急报自动收起 */ const C = cf(s); if (C.alertAt && t - C.alertAt < MONTH_MS) return null;
   C.alertAt = t; const w = monthlyWage(s); const av = available(s);
   return addMsg(s, { kind: 'request', type: 'fund_low', from: cfoOf(s), title: '急报：公司快发不出工资了',
-    body: `公司可用 ${fmtMoney(av)}，一个月工资社保要 ${fmtMoney(w)}。发不出工资员工会走、拖两个月门店全部停业。先补上：注资、申请经营贷、卖股票 / 资产，或者裁员 / 关店。`, actions: FUND_ACTIONS }, t);
+    body: `公司可用 ${fmtMoney(av)}，一个月工资社保要 ${fmtMoney(w)}。发不出工资员工会走、拖两个月门店全部停业。先补上：注资、申请经营贷、卖股票 / 资产，或者裁员 / 关店。`, actions: [...FUND_ACTIONS, { key: 'ok', label: '知道了' }] }, t);
 }
 
 /** 月底（hookCompany 里 monthEnd 之后）：欠薪停业满 1 个月自动遣散；公司负数给应急周转贷 */
