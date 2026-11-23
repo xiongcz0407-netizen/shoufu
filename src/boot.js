@@ -5,13 +5,13 @@
       - 云端能用：记住了名字口令直接登录，本机和云端取新的；没记住弹「登录」卡片（名字 + 6 位口令）
       - 云端不能用（开发版、本地文件、令牌为空）：直接用本机存档
    4. 定好存档写进本机 → 读游戏本体 main.js（它从本机读档、开局起名、开场剧情）→ 加载页淡出 */
-import { APP_V, versionText } from './version.js?v=daaa7f91';
-import { fitPhone } from './platform/screen.js?v=daaa7f91';
-import * as AD from './platform/assetdb.js?v=daaa7f91';
-import { loadList, devFetch, finishLoad, LOAD } from './platform/assets.js?v=daaa7f91';
-import * as CL from './core/cloud.js?v=daaa7f91';
-import { syncTime, setFloor, server } from './core/clock.js?v=daaa7f91';
-import { checkUpdate, upd, watch, whatsNew } from './ui/update.js?v=daaa7f91';
+import { APP_V, versionText } from './version.js?v=598ef1ae';
+import { fitPhone } from './platform/screen.js?v=598ef1ae';
+import * as AD from './platform/assetdb.js?v=598ef1ae';
+import { loadList, devFetch, finishLoad, LOAD } from './platform/assets.js?v=598ef1ae';
+import * as CL from './core/cloud.js?v=598ef1ae';
+import { syncTime, setFloor, server } from './core/clock.js?v=598ef1ae';
+import { checkUpdate, upd, watch, whatsNew } from './ui/update.js?v=598ef1ae';
 
 const $ = (s) => document.querySelector(s);
 const mb = (b) => (b / 1048576).toFixed(1);
@@ -140,21 +140,21 @@ async function main() {
   if (!server.synced && r.text) { try { setFloor(JSON.parse(r.text).lastSeen || 0); } catch (e) { /* */ } }   // 没取到服务器时间：不让时间倒退
   $('.bt-txt').textContent = '开门营业…';
   // 存档：本机马上存，云端隔 1 分钟传一次
-  const { game } = await import('./game.js?v=daaa7f91');
+  const { game } = await import('./game.js?v=598ef1ae');
   const save0 = game.save;
   game.save = function () { if (CL.lock.on) return; save0.call(this); CL.onSave(); };   // 重新开始 / 换名字时，刷新前不再存
-  const [E, { TITLES }, { fmtMoney }] = await Promise.all([import('./core/economy.js?v=daaa7f91'), import('./config/titles.js?v=daaa7f91'), import('./core/format.js?v=daaa7f91')]);
+  const [E, { TITLES }, { fmtMoney }] = await Promise.all([import('./core/economy.js?v=598ef1ae'), import('./config/titles.js?v=598ef1ae'), import('./core/format.js?v=598ef1ae')]);
   CL.bind(() => game.state, (s) => `${(TITLES[s.title] || {}).name || ''}　身价 ${fmtMoney(E.netWorth(s))}　${s.companyName || ''}`);
   CL.onState(cloudNote); CL.startRetry();
   upd.beforeUpdate = () => { game.save(); return CL.push(true); };
   clearInterval(tipT);
-  await import('./main.js?v=daaa7f91');
-  const { addDebugInfo } = await import('./debug.js?v=daaa7f91');
+  await import('./main.js?v=598ef1ae');
+  const { addDebugInfo } = await import('./debug.js?v=598ef1ae');
   addDebugInfo(() => { const a = AD.stat; return `素材：${AD.dbOK() ? '库能用' : '库不能用（' + (a.why || LOAD.mode) + '）'}　存了 ${a.have + a.got} 个 ${(a.storedBytes / 1048576).toFixed(1)} MB　这次本机拿 ${a.have} 个、新下 ${a.got} 个（${mb(a.gotBytes)} MB）`; });
   addDebugInfo(() => `云端：${CL.onCloud() ? CL.acct.name + '　' + (CL.cloudState.ok === false ? '没连上 ' + CL.cloudState.err : CL.cloudState.at ? '已传' : '待传') : '只用本机'}　服务器时间 ${server.synced ? '已对' : '没取到'}`);
   cloudNote(); watch();
   // 礼物信箱（V0.2.8）：开着每 2 分钟、回到前台时看一眼；领到就弹框、马上存档上传，再删信箱
-  const GF = await import('./core/gift.js?v=daaa7f91'); let giftBusy = false;
+  const GF = await import('./core/gift.js?v=598ef1ae'); let giftBusy = false;
   const pollGift = async () => {
     if (giftBusy || !CL.onCloud() || CL.lock.on || !game.state) return; giftBusy = true;
     try {
@@ -162,7 +162,7 @@ async function main() {
       const got = GF.applyGifts(game.state, r.list, Date.now());
       if (got.length) {
         game.changed(); game.save(); await CL.push(true);
-        const { upgradeBox } = await import('./ui/upgradebox.js?v=daaa7f91');
+        const { upgradeBox } = await import('./ui/upgradebox.js?v=598ef1ae');
         for (const g of got) upgradeBox({ title: '收到礼物', what: g.why, sub: '放进卡包了', gains: g.lines });
       }
       if (GF.allTaken(game.state, r.list) && CL.cloudState.ok !== false) await CL.cloudGiftsDone();
@@ -172,7 +172,7 @@ async function main() {
   document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(pollGift, 1500); });
   const items = whatsNew();
   if (items.length) setTimeout(async () => {
-    const { openPanel, h } = await import('./ui/dom.js?v=daaa7f91');
+    const { openPanel, h } = await import('./ui/dom.js?v=598ef1ae');
     const p = openPanel('这一版新加了什么');
     p.body.appendChild(h('div', 'tr-gain', items.map((x) => '· ' + esc(x)).join('<br>')));
   }, 2500);

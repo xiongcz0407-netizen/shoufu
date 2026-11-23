@@ -1,14 +1,14 @@
 // 设计28 第二节 进货挑品：每个游戏天的季节、天气、节日；每家店（门店线）每天选一次主推（不花精力）
 // 对路营业额 +8%～15%，不对路营业额 −3%、进货 +2%（压货）；按家数摊，第三档样子再减半；估值不算（临时效果）
 // 没选的：有店长的店长替选（一半对路、一半一般），没店长的按昨天的；智慧最高的秘书出主意（对的概率 50% + 智慧 / 2）
-import { credit } from './credit.js?v=daaa7f91'; // V3-01 亲自拍板攒投入度
-import M from '../config/manage.json?v=daaa7f91' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=daaa7f91';
-import { SEC_BY_ID } from '../config/secretaries.js?v=daaa7f91';
-import * as MG from './manage.js?v=daaa7f91';
-import { holder, attrs } from './posts.js?v=daaa7f91';
-import { isTraining } from './training.js?v=daaa7f91';
-import * as E from './economy.js?v=daaa7f91';
+import { credit } from './credit.js?v=598ef1ae'; // V3-01 亲自拍板攒投入度
+import M from '../config/manage.json?v=598ef1ae' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=598ef1ae';
+import { SEC_BY_ID } from '../config/secretaries.js?v=598ef1ae';
+import * as MG from './manage.js?v=598ef1ae';
+import { holder, attrs } from './posts.js?v=598ef1ae';
+import { isTraining } from './training.js?v=598ef1ae';
+import * as E from './economy.js?v=598ef1ae';
 
 const P = M.pick;
 export { P as PICK_CFG };

@@ -3,16 +3,17 @@
 // 拍卖：跟车同一个拍卖会（core/auction.js）；这里算古董成交的佣金和海外进口税、收藏顾问代拍提成
 // 私洽：达·芬奇 救世主只给大藏家（人脉 90 + 藏品 10 件），名额 1，等 30 分钟
 // 估价每小时随机走；再拍卖卖出扣 10% 佣金，赚了交 20%；算身价（估价），加眼光 + 人脉；不送人
-import { profitMul } from './calib.js?v=daaa7f91'; // 设计38
-import CFG from '../config/antique.json?v=daaa7f91' with { type: 'json' };
-import { pay, receive } from './ledger.js?v=daaa7f91';
-import { addContract } from './contracts.js?v=daaa7f91';
-import { premium, addAssetHook } from './assets.js?v=daaa7f91';
-import { addAttrHook, bossAttrs } from './boss.js?v=daaa7f91';
-import { holder, isSec, attrs as secAttrs, OUT } from './posts.js?v=daaa7f91';
-import { SEC_BY_ID } from '../config/secretaries.js?v=daaa7f91';
-import { taxRec } from './fiscal.js?v=daaa7f91';
-import { payerOfPost } from './fiscal.js?v=daaa7f91';
+import { YEAR_MS } from './gametime.js?v=598ef1ae'; // V0.2.10
+import { profitMul } from './calib.js?v=598ef1ae'; // 设计38
+import CFG from '../config/antique.json?v=598ef1ae' with { type: 'json' };
+import { pay, receive } from './ledger.js?v=598ef1ae';
+import { addContract } from './contracts.js?v=598ef1ae';
+import { premium, addAssetHook } from './assets.js?v=598ef1ae';
+import { addAttrHook, bossAttrs } from './boss.js?v=598ef1ae';
+import { holder, isSec, attrs as secAttrs, OUT } from './posts.js?v=598ef1ae';
+import { SEC_BY_ID } from '../config/secretaries.js?v=598ef1ae';
+import { taxRec } from './fiscal.js?v=598ef1ae';
+import { payerOfPost } from './fiscal.js?v=598ef1ae';
 
 export const ACFG = CFG;
 export const ITEMS = CFG.items.map((x) => ({ ...x, kind: 'antique' }));
@@ -117,7 +118,7 @@ export function drift(s, t, rnd = Math.random) {
   const d = aq(s); if (d.hourAt == null) { d.hourAt = t; return 0; }
   const n = Math.min(24 * 30, Math.floor((t - d.hourAt) / 3600e3)); if (n <= 0) return 0;
   d.hourAt += n * 3600e3;
-  const sh = (CFG.drift.lo + CFG.drift.hi) / 2 * (profitMul() / (CFG.drift.refPM || 10) - 1); /* 设计38：均值跟 profitMul 走（配置按 10 写的） */
+  const sh = (CFG.drift.lo + CFG.drift.hi) / 2 * (profitMul() / (CFG.drift.refPM || 10) * (CFG.drift.refHours || 200) / (YEAR_MS / 3600e3) - 1); /* V0.2.10：配置按一年 200 小时写的，一年变短每小时多走一点，每游戏年还是一样 */ /* 设计38：均值跟 profitMul 走（配置按 10 写的） */
   for (const it of d.items) if (!it.fake) for (let i = 0; i < n; i++) it.est = Math.round(it.est * (1 + sh + CFG.drift.lo + rnd() * (CFG.drift.hi - CFG.drift.lo)));
   return n;
 }

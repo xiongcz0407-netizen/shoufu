@@ -1,12 +1,12 @@
 // 事件弹层（2-01）：消息中心「事件」点「去看看」→ 剧情 + 选择
-import * as EV from '../core/events.js?v=daaa7f91';
-import { EVENT_BY_ID } from '../config/events.js?v=daaa7f91';
-import { game } from '../game.js?v=daaa7f91';
-import { now } from '../core/clock.js?v=daaa7f91';
-import { playStory } from './story.js?v=daaa7f91';
-import { asset, hasAsset } from '../platform/assets.js?v=daaa7f91';
-import { toast } from './dom.js?v=daaa7f91';
-import { fmtMoney } from '../core/format.js?v=daaa7f91';
+import * as EV from '../core/events.js?v=598ef1ae';
+import { EVENT_BY_ID } from '../config/events.js?v=598ef1ae';
+import { game } from '../game.js?v=598ef1ae';
+import { now } from '../core/clock.js?v=598ef1ae';
+import { playStory } from './story.js?v=598ef1ae';
+import { asset, hasAsset } from '../platform/assets.js?v=598ef1ae';
+import { toast } from './dom.js?v=598ef1ae';
+import { fmtMoney } from '../core/format.js?v=598ef1ae';
 
 const BG = { teambuild: 'bg_teambuild', crisis: 'bg_finance', jobfair: 'bg_meeting' }; // 有背景图的用图（团建的图还没有）
 const BG_LABEL = { teambuild: '郊外拓展基地' };

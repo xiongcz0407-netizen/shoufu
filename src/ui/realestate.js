@@ -1,22 +1,22 @@
 // 地产详情（公司 → 产业 → 地产，全屏）：土地市场 | 我的项目 | 持有物业；举牌在底部抽屉
-import { openNegotiate } from './negotiate.js?v=daaa7f91'; // V2-07 谈地（开发2 的谈判）
-import { bigBonus } from '../core/manage.js?v=daaa7f91';
-import * as RE from '../core/realestate.js?v=daaa7f91';
-import * as ST from '../core/staff.js?v=daaa7f91';
-import * as PO from '../core/posts.js?v=daaa7f91';
-import { SEC_BY_ID } from '../config/secretaries.js?v=daaa7f91';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=daaa7f91';
-import { now } from '../core/clock.js?v=daaa7f91';
-import { game } from '../game.js?v=daaa7f91';
-import { h, openPanel, toast, liveRender } from './dom.js?v=daaa7f91';
-import { openFull } from './shell.js?v=daaa7f91';
-import { openHire, cityRows, bindCityRows } from './company.js?v=daaa7f91';
-import { openPost } from './posts.js?v=daaa7f91';
-import { asset, hasAsset } from '../platform/assets.js?v=daaa7f91';
-import { MONTH_MS } from '../core/gametime.js?v=daaa7f91';
-import { gm } from '../core/calib.js?v=daaa7f91';
-import { hint } from './guide.js?v=daaa7f91';
-import { hintLater } from './guide2.js?v=daaa7f91';
+import { openNegotiate } from './negotiate.js?v=598ef1ae'; // V2-07 谈地（开发2 的谈判）
+import { bigBonus } from '../core/manage.js?v=598ef1ae';
+import * as RE from '../core/realestate.js?v=598ef1ae';
+import * as ST from '../core/staff.js?v=598ef1ae';
+import * as PO from '../core/posts.js?v=598ef1ae';
+import { SEC_BY_ID } from '../config/secretaries.js?v=598ef1ae';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=598ef1ae';
+import { now } from '../core/clock.js?v=598ef1ae';
+import { game } from '../game.js?v=598ef1ae';
+import { h, openPanel, toast, liveRender } from './dom.js?v=598ef1ae';
+import { openFull } from './shell.js?v=598ef1ae';
+import { openHire, cityRows, bindCityRows } from './company.js?v=598ef1ae';
+import { openPost } from './posts.js?v=598ef1ae';
+import { asset, hasAsset } from '../platform/assets.js?v=598ef1ae';
+import { MONTH_MS } from '../core/gametime.js?v=598ef1ae';
+import { gm } from '../core/calib.js?v=598ef1ae';
+import { hint } from './guide.js?v=598ef1ae';
+import { hintLater } from './guide2.js?v=598ef1ae';
 
 const C = RE.RE_CFG;
 const city = (k) => C.cities[k].name;

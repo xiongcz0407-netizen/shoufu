@@ -1,8 +1,8 @@
 // 公司交税（设计15 第二节 1）：增值税 + 附加每游戏月；企业所得税每游戏季度预缴；分红代扣 20% 个税
-import TAX from '../config/tax.json?v=daaa7f91' with { type: 'json' };
-import { pay, receive, canPay } from './ledger.js?v=daaa7f91';
-import { MONTH_MS } from './gametime.js?v=daaa7f91';
-import { addContract } from './contracts.js?v=daaa7f91';
+import TAX from '../config/tax.json?v=598ef1ae' with { type: 'json' };
+import { pay, receive, canPay } from './ledger.js?v=598ef1ae';
+import { MONTH_MS } from './gametime.js?v=598ef1ae';
+import { addContract } from './contracts.js?v=598ef1ae';
 export { TAX };
 
 const sum = (o) => Object.values(o || {}).reduce((a, b) => a + b, 0);

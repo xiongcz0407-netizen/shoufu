@@ -3,14 +3,15 @@
 // 每跳 ln P += β·M（大盘，牛 / 熊 / 震荡）+ B（板块）+ σ·ε + κ·(ln F − ln P) + 新闻跳空；随机数 = hash(名字, 跳数)，固定种子
 // 只能用个人现金买；佣金、过户费、卖出印花税、大单滑点；交割单进档案柜；分红按持有时间扣个税；持股 5% 举牌公告，30% 进度
 // 投资经理（秘书职位）：你划一笔钱 + 风格（稳健 / 平衡 / 进取）+ 止损线，按大盘走 + 她的超额（智慧）；新闻前一跳有概率提前给判断
-import CFG from '../config/stocks.json?v=daaa7f91' with { type: 'json' };
-import { pay, receive } from './ledger.js?v=daaa7f91';
-import { addContract } from './contracts.js?v=daaa7f91';
-import { addAssetHook } from './assets.js?v=daaa7f91';
-import { holder, isSec, attrs as secAttrs, efficiency, OUT } from './posts.js?v=daaa7f91';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=daaa7f91';
-import { taxRec, payerOfPost } from './fiscal.js?v=daaa7f91';
-import { profitMul } from './calib.js?v=daaa7f91';
+import CFG from '../config/stocks.json?v=598ef1ae' with { type: 'json' };
+import { pay, receive } from './ledger.js?v=598ef1ae';
+import { addContract } from './contracts.js?v=598ef1ae';
+import { addAssetHook } from './assets.js?v=598ef1ae';
+import { holder, isSec, attrs as secAttrs, efficiency, OUT } from './posts.js?v=598ef1ae';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=598ef1ae';
+const YEAR_H = YEAR_MS / 3600e3; // 游戏一年 = 现实多少小时（V0.2.10：144）
+import { taxRec, payerOfPost } from './fiscal.js?v=598ef1ae';
+import { profitMul } from './calib.js?v=598ef1ae';
 
 export const SCFG = CFG;
 export const STOCKS = CFG.stocks;
@@ -161,14 +162,14 @@ export function stake(s, code) {
 export const holdings = (s) => Object.entries(mkt(s).hold).map(([code, h]) => ({ code, ...h, value: r2(h.n * price(s, code)), pnl: r2(h.n * price(s, code) - h.n * h.cost) }));
 export const holdValue = (s) => holdings(s).reduce((a, h) => a + h.value, 0);
 
-/** 分红：每真实 1 小时按「年股息率 / 200」发；个税按持有时间（游戏时间） */
+/** 分红：每真实 1 小时按「年股息率 ÷ 游戏一年的小时数」发；个税按持有时间（游戏时间） */
 export function dividends(s, t) {
   const m = mkt(s, t); const D = CFG.dividend; const per = D.everyMin * 60e3;
   const n = Math.floor((t - m.divAt) / per); if (n <= 0) return [];
   m.divAt += n * per; const out = [];
   for (const h of holdings(s)) {
     const x = BY[h.code]; if (!x.div) continue;
-    const amt = r2(h.value * x.div * profitMul() / 200 * n * (D.everyMin / 60)); if (amt < 0.01) continue;
+    const amt = r2(h.value * x.div * profitMul() / YEAR_H * n * (D.everyMin / 60)); if (amt < 0.01) continue;
     const held = t - h.at; const rate = held >= YEAR_MS ? 0 : held >= MONTH_MS ? D.taxMid : D.taxShort; const tax = r2(amt * rate);
     taxRec(s, { kind: '股息红利个税', base: amt, rate, amount: tax, t });
     receive(s, { wallet: 'personal', cat: 'stock_div', amount: amt - tax, tax, party: x.name, note: `${x.name} 分红（持有${held >= YEAR_MS ? '满 1 年免税' : held >= MONTH_MS ? '1 个月～1 年，个税 10%' : '不到 1 个月，个税 20%'}）` }, t);

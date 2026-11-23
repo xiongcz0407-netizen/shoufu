@@ -30,7 +30,7 @@ export const CATS = {
   newbie: ['新手奖励', 'personal'], margin_in: ['融资借款（买股票）', 'personal'], margin_repay: ['归还融资', 'personal'], margin_interest: ['融资利息', 'personal'], ipo_pay: ['新股中签缴款', 'personal'], // 第 P-06 项
 };
 export const KEEP_GAME_YEARS = 3;
-import BANKCFG from '../config/bank.json?v=daaa7f91' with { type: 'json' };
+import BANKCFG from '../config/bank.json?v=598ef1ae' with { type: 'json' };
 const USE_CATS = BANKCFG.useCats;
 
 const bal = (s, w) => (w === 'company' ? s.company : w === 'offshore' ? (s.offshore || 0) : s.cash);
@@ -65,7 +65,10 @@ export function post(s, e, t = Date.now()) {
   return row;
 }
 export const pay = (s, e, t) => post(s, { ...e, dir: 'out' }, t);
-export const receive = (s, e, t) => post(s, { ...e, dir: 'in' }, t);
+/** 设计40 收益流水（开发2 core/flow.js 挂）：一笔一笔进来的钱 fn(s, row) */
+const RECEIVE_HOOKS = [];
+export const addReceiveHook = (fn) => { RECEIVE_HOOKS.push(fn); };
+export const receive = (s, e, t) => { const r = post(s, { ...e, dir: 'in' }, t); if (r) for (const fn of RECEIVE_HOOKS) fn(s, r); return r; };
 
 /** 按秒产生的收入（每秒一条太多）：先攒着，flushAccruals 时合成一条 */
 export function accrue(s, key, wallet, cat, amount, note = '', dir = 'in') {

@@ -1,14 +1,15 @@
 // 「财富 → 投资 → 基金」（第 2-10 项）：公募 / 私募 / 天使风投；申购、赎回（下一跳到账）、私募三份文件
-import * as FD from '../core/funds.js?v=daaa7f91';
-import * as AS from '../core/assets.js?v=daaa7f91';
-import * as INB from '../core/inbox.js?v=daaa7f91';
-import * as E from '../core/economy.js?v=daaa7f91';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=daaa7f91';
-import { game } from '../game.js?v=daaa7f91';
-import { now } from '../core/clock.js?v=daaa7f91';
-import { h, openPanel, toast } from './dom.js?v=daaa7f91';
-import { spark } from './stocks.js?v=daaa7f91';
-import { hintLater } from './guide2.js?v=daaa7f91';
+import { YEAR_MS } from '../core/gametime.js?v=598ef1ae'; // V0.2.10
+import * as FD from '../core/funds.js?v=598ef1ae';
+import * as AS from '../core/assets.js?v=598ef1ae';
+import * as INB from '../core/inbox.js?v=598ef1ae';
+import * as E from '../core/economy.js?v=598ef1ae';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=598ef1ae';
+import { game } from '../game.js?v=598ef1ae';
+import { now } from '../core/clock.js?v=598ef1ae';
+import { h, openPanel, toast } from './dom.js?v=598ef1ae';
+import { spark } from './stocks.js?v=598ef1ae';
+import { hintLater } from './guide2.js?v=598ef1ae';
 
 const pct = (v) => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(2)}%`;
 const cls = (v) => (v > 0 ? 'up' : v < 0 ? 'down' : '');
@@ -36,7 +37,7 @@ function openFund(id, done) {
     const why = FD.whyNot(s, id, amt, nw);
     const chips = [1e3, 1e4, 1e5, 1e6, 5e6, 1e7, 1e8].filter((k) => k >= f.min);
     p.body.innerHTML = `<div class="tr-gain">${TYPE[f.type]} · ${f.manager}${f.qualified ? ' · <b>合格投资者</b>（身价 ≥ 1000 万）' : ''}${f.title ? ` · 称号「${['打工人', '小老板', '老板', '企业家'][f.title]}」` : ''}</div>
-      ${f.type === 'angel' ? `<div class="tr-gain">投进去锁 ${FD.lockGameYears(f)} 个游戏年（${fmtDuration(FD.lockGameYears(f) * 200 * 3600)} 真实时间）；到期随机：40% 亏一半、40% 拿回 1～2 倍、20% 翻 5～20 倍；赚的部分 20% 业绩报酬</div>${d.angel.filter((a) => a.id === id).map((a) => `<div class="tr-course"><div><b>投了 ${fmtMoney(a.amount)}</b><div class="tr-gain">还剩 ${fmtDuration(Math.max(0, a.until - t) / 1000)} 到期</div></div></div>`).join('')}` : `<div class="tr-gain">净值 <b>${d.nav[id].toFixed(4)}</b></div>${spark(d.hist[id] || [])}`}
+      ${f.type === 'angel' ? `<div class="tr-gain">投进去锁 ${FD.lockGameYears(f)} 个游戏年（${fmtDuration(FD.lockGameYears(f) * YEAR_MS / 1000)} 真实时间）；到期随机：40% 亏一半、40% 拿回 1～2 倍、20% 翻 5～20 倍；赚的部分 20% 业绩报酬</div>${d.angel.filter((a) => a.id === id).map((a) => `<div class="tr-course"><div><b>投了 ${fmtMoney(a.amount)}</b><div class="tr-gain">还剩 ${fmtDuration(Math.max(0, a.until - t) / 1000)} 到期</div></div></div>`).join('')}` : `<div class="tr-gain">净值 <b>${d.nav[id].toFixed(4)}</b></div>${spark(d.hist[id] || [])}`}
       ${hd ? `<div class="tr-course"><div><b>持有 ${fmtMoney(hd.units * d.nav[id])}</b><div class="tr-gain">${hd.units.toFixed(2)} 份　成本 ${fmtMoney(hd.cost)}　盈亏 <span class="${cls(hd.units * d.nav[id] - hd.cost)}">${fmtMoney(hd.units * d.nav[id] - hd.cost)}</span>　赎回费 ${(FD.redeemFee(f, t - hd.at) * 100).toFixed(1)}%</div></div></div>` : ''}
       <div class="sd-rec-title">申购金额</div><div class="tabs">${chips.map((k) => `<button class="tab ${k === amt ? 'on' : ''}" data-a="${k}">${fmtMoney(k)}</button>`).join('')}</div>
       <div class="tr-gain">申购费 ${(f.buyFee * 100).toFixed(2)}%（${fmtMoney(amt * f.buyFee)}）${f.qualified ? '；签认购协议、风险揭示书、合格投资者确认书' : ''}</div>

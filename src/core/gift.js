@@ -1,5 +1,5 @@
 // 礼物信箱（V0.2.8）：把云端信箱里作者送的金券 / 券加进卡包。领过的 id 记在 s.coupon.gifts，不会重复领
-import { cp, earn, giveItems, ITEMS } from './coupon.js?v=daaa7f91';
+import { cp, earn, giveItems, ITEMS } from './coupon.js?v=598ef1ae';
 
 /** list: [{ id, coupons, items, why }] → 这次新领到的 [{ why, lines: ['金券 +10000', '精力药水 ×5'] }] */
 export function applyGifts(s, list, t = Date.now()) {

@@ -990,3 +990,13 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 .pf-row .neg { color: #ff7a6e; }
 .sys-allread { width: 100%; margin: 6px 0; }
 .wage-lock { opacity: .7; }  /* V0.2.9 留不够工资：能点，点了先问 */
+/* 设计40 收益流水（开发2） */
+.fl-sum { display: flex; align-items: center; gap: 8px; padding: 8px 10px; margin-bottom: 6px; background: #1a2438; border: 1px solid #2c3a56; border-radius: 10px; font-size: 12px; }
+.fl-sum > span { font-weight: 700; color: #f6d67a; white-space: nowrap; } .fl-sum > div { flex: 1; display: flex; flex-direction: column; align-items: flex-end; } .fl-sum em { font-style: normal; opacity: .7; font-size: 11px; } .fl-sum b { font-size: 14px; } .fl-sum b.gold { color: #f6d67a; } .fl-sum b.neg, .fl-p.neg { color: #ff8a7a !important; }
+.fl-tabs { flex-wrap: nowrap; overflow-x: auto; margin-bottom: 6px; } .fl-tabs .tab { white-space: nowrap; }
+.fl-list { display: flex; flex-direction: column; gap: 5px; }
+.fl-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: #1a2438; border: 1px solid #2c3a56; border-radius: 10px; font-size: 12px; } .fl-row.big { border-color: var(--gold); }
+.fl-ic { width: 30px; height: 30px; border-radius: 8px; object-fit: cover; flex: none; } .fl-ic.ph { display: flex; align-items: center; justify-content: center; background: #2c3a56; font-size: 13px; }
+.fl-txt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .fl-txt b { color: #e8e0cc; }
+.fl-nums { display: flex; flex-direction: column; align-items: flex-end; flex: none; font-size: 11px; line-height: 1.3; } .fl-nums span { opacity: .8; } .fl-p { color: #f6d67a; opacity: 1 !important; font-weight: 700; font-size: 12px; }
+.fl-new { animation: flUp .45s ease-out; } @keyframes flUp { from { transform: translateY(18px); opacity: 0; background: #2a3550; } to { transform: none; opacity: 1; } }

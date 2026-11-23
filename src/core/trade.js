@@ -1,15 +1,15 @@
 // 第 P-06 项（设计25 第五节）：前期炒股 —— 条件单、打新股、融资融券、看盘、炒股周报
 // 条件单和两融的平仓线每跳检查（挂在 stocks.js 的 addStepHook 上，离线补算一样走）；打新、利息、周报按时间走 tick()（在线 ticker 和 core/offcap.js 都叫）
-import * as SK from './stocks.js?v=daaa7f91';
-import { pay, receive } from './ledger.js?v=daaa7f91';
-import { addContract } from './contracts.js?v=daaa7f91';
-import { addMsg } from './inbox.js?v=daaa7f91';
-import { MONTH_MS } from './gametime.js?v=daaa7f91';
-import { profitMul } from './calib.js?v=daaa7f91';
-import { isTraining } from './training.js?v=daaa7f91';
-import { attrs as secAttrs } from './posts.js?v=daaa7f91';
-import { SEC_BY_ID } from '../config/secretaries.js?v=daaa7f91';
-import { netWorth } from './economy.js?v=daaa7f91';
+import * as SK from './stocks.js?v=598ef1ae';
+import { pay, receive } from './ledger.js?v=598ef1ae';
+import { addContract } from './contracts.js?v=598ef1ae';
+import { addMsg } from './inbox.js?v=598ef1ae';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=598ef1ae';
+import { profitMul } from './calib.js?v=598ef1ae';
+import { isTraining } from './training.js?v=598ef1ae';
+import { attrs as secAttrs } from './posts.js?v=598ef1ae';
+import { SEC_BY_ID } from '../config/secretaries.js?v=598ef1ae';
+import { netWorth } from './economy.js?v=598ef1ae';
 
 const C = SK.SCFG; const O = C.orders, I = C.ipo, MG = C.margin, W = C.weekly;
 export const DAY = MONTH_MS / 30;
@@ -133,7 +133,7 @@ function interest(s, t) {
   const g = s.mkt.margin; if (!g) return;
   const n = Math.floor((t - g.intAt) / 3600e3); if (n <= 0) return; g.intAt += n * 3600e3;
   if (g.debt <= 0) return;
-  const amt = r2(g.debt * MG.yearRate * profitMul() / 200 * n);
+  const amt = r2(g.debt * MG.yearRate * profitMul() / (YEAR_MS / 3600e3) * n); /* 每真实 1 小时 = 一年的 1 / 144 */
   if (amt < 0.01) return;
   if (s.cash >= amt) pay(s, { wallet: 'personal', cat: 'margin_interest', amount: amt, party: '华太正券', note: `融资利息（${n} 小时）` }, t);
   else { g.debt = r2(g.debt + amt); g.capInt = r2((g.capInt || 0) + amt); }   // 现金不够：利息记进负债

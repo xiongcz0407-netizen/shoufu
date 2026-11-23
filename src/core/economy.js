@@ -1,28 +1,29 @@
 // 经济：产钱、升级、分店、派驻、身价、离线收益（纯函数，node 测试能跑）
-import { whyCushion } from './cashflow.js?v=daaa7f91'; // V0.2.3 留够两个月工资（设计35）
-import { INDUSTRIES, IND_BY_ID, SEC_BONUS_PER_POINT, BRANCH_CAP, LOOK3_TITLE } from '../config/industries.js?v=daaa7f91';
-import * as CB from './calib.js?v=daaa7f91';
-import CAP from '../config/capital.json?v=daaa7f91' with { type: 'json' };
-import { TITLES } from '../config/titles.js?v=daaa7f91';
-import { pay, receive, accrue, canPay } from './ledger.js?v=daaa7f91';
-import { staffFactor, staffUp, PAY, estTotal } from './staff.js?v=daaa7f91';
-import { track } from './companytax.js?v=daaa7f91';
-import { payables } from './accrual.js?v=daaa7f91';
-import { visionIncome } from './boss.js?v=daaa7f91';
-import { managerRevMult, managerCostMult, stat } from './posts.js?v=daaa7f91';
-import { reValue } from './realestate.js?v=daaa7f91';
-import { logiRevPerSec, linkCogsMult, fleetValue } from './logistics.js?v=daaa7f91';
-import { techRevPerSec, techLink } from './tech.js?v=daaa7f91';
-import { liveRevPerSec, mediaLink } from './media.js?v=daaa7f91';
-import { lineK, lineCities, cityOpen, cityK, cityName, CITY_CFG } from './cities.js?v=daaa7f91';
-import { revK, debt } from './rivalry.js?v=daaa7f91';
-import { depositTotal, loanDebt, setNW } from './bank.js?v=daaa7f91';
-import { equityOwed } from './equity.js?v=daaa7f91';
+import { YEAR_MS } from './gametime.js?v=598ef1ae'; // V0.2.10 一个月 = 现实 12 小时
+import { whyCushion } from './cashflow.js?v=598ef1ae'; // V0.2.3 留够两个月工资（设计35）
+import { INDUSTRIES, IND_BY_ID, SEC_BONUS_PER_POINT, BRANCH_CAP, LOOK3_TITLE } from '../config/industries.js?v=598ef1ae';
+import * as CB from './calib.js?v=598ef1ae';
+import CAP from '../config/capital.json?v=598ef1ae' with { type: 'json' };
+import { TITLES } from '../config/titles.js?v=598ef1ae';
+import { pay, receive, accrue, canPay } from './ledger.js?v=598ef1ae';
+import { staffFactor, staffUp, PAY, estTotal } from './staff.js?v=598ef1ae';
+import { track } from './companytax.js?v=598ef1ae';
+import { payables } from './accrual.js?v=598ef1ae';
+import { visionIncome } from './boss.js?v=598ef1ae';
+import { managerRevMult, managerCostMult, stat } from './posts.js?v=598ef1ae';
+import { reValue } from './realestate.js?v=598ef1ae';
+import { logiRevPerSec, linkCogsMult, fleetValue } from './logistics.js?v=598ef1ae';
+import { techRevPerSec, techLink } from './tech.js?v=598ef1ae';
+import { liveRevPerSec, mediaLink } from './media.js?v=598ef1ae';
+import { lineK, lineCities, cityOpen, cityK, cityName, CITY_CFG } from './cities.js?v=598ef1ae';
+import { revK, debt } from './rivalry.js?v=598ef1ae';
+import { depositTotal, loanDebt, setNW } from './bank.js?v=598ef1ae';
+import { equityOwed } from './equity.js?v=598ef1ae';
 
 /** 存档里的产业：{ store: { level, branches, spent, sec, staff, agency, openedAt } } */
 export function newIndustry(t = Date.now()) { return { level: 1, branches: 1, spent: 0, sec: null, staff: {}, agency: {}, openedAt: t }; }
 
-const MONTH_SEC = 200 * 3600 / 12; // 游戏一个月的秒数（gametime.json yearHours 200）
+const MONTH_SEC = YEAR_MS / 12 / 1000; // 游戏一个月的秒数（跟 gametime.json yearHours 走）
 /** 升级费：门店三条线按真实经济（core/calib.js，升级是每家店都升，乘家数）；别的线照旧 */
 export const upgradeCost = (cfg, level, branches = 1) => cfg.retail ? Math.ceil(CB.upCostPerStore(cfg, level) * Math.max(1, branches)) : Math.ceil(cfg.upCost * Math.pow(cfg.upGrow, level - 1));
 /** 开分店费：门店 = 单店投资（现在的样子）× 城市系数 × 1.12^已有家数（设计21）；物流照旧 */
@@ -213,11 +214,14 @@ export function assign(s, id, secId) {
 }
 
 /** 在线每秒 */
+/** 设计40 收益流水（开发2 core/flow.js 挂）：在线每秒每条线 fn(s, id, rev, cogs, sec)；离线结算不调 */
+let INCOME_HOOK = null;
+export const setIncomeHook = (fn) => { INCOME_HOOK = fn; };
 export function tickIncome(s, dt, secCfgById) {
-  return runIncome(s, dt, secCfgById);
+  return runIncome(s, dt, secCfgById, INCOME_HOOK);
 }
 // 营收进公司账户、进货成本同时扣（都按秒攒着，定时写成流水），记进本月 / 本季累计
-function runIncome(s, sec, secCfgById) {
+function runIncome(s, sec, secCfgById, hook = null) {
   let g = 0;
   for (const id of Object.keys(s.inds)) {
     const rev = industryRevenue(s, id, secCfgById) * sec; const cogs = rev * cogsRate(s, id);
@@ -226,6 +230,7 @@ function runIncome(s, sec, secCfgById) {
     accrue(s, 'rev_' + id, 'company', 'revenue', rev, `${IND_BY_ID[id].name}营业收入`);
     accrue(s, 'cogs_' + id, 'company', 'cogs', cogs, `${IND_BY_ID[id].name}进货`, 'out');
     track(s, id, rev, cogs); g += rev - cogs;
+    if (hook) hook(s, id, rev, cogs, sec); // 设计40 收益流水（开发2）
   }
   s.stats.earned = (s.stats.earned || 0) + g;
   return g;
@@ -250,5 +255,5 @@ export function canPromote(s) {
 }
 
 // 资产的验资要看身价（避免互相 import）
-import { setNetWorthFn } from './assets.js?v=daaa7f91';
+import { setNetWorthFn } from './assets.js?v=598ef1ae';
 setNetWorthFn(netWorth); setNW(netWorth);
