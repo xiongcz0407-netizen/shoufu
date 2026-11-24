@@ -3,13 +3,14 @@
 // 私募对冲：合格投资者（身价 ≥ 1000 万）、起投 100 万，签认购协议 + 风险揭示书 + 合格投资者确认书；管理费 2% + 赚的部分 20%
 // 天使 / 风投：合格投资者 + 企业家、起投 500 万；锁定期按游戏时间；到期随机：40% 亏一半、40% 拿回 1～2 倍、20% 翻 5～20 倍；赚的部分 20%
 // 申购费、赎回费（按持有时间）；赎回下一跳（30 秒）到账；交给投资经理：她按风格配这些基金
-import CFG from '../config/funds.json?v=701206f7' with { type: 'json' };
-import * as SK from './stocks.js?v=701206f7';
-import { pay, receive } from './ledger.js?v=701206f7';
-import { addContract } from './contracts.js?v=701206f7';
-import { addAssetHook } from './assets.js?v=701206f7';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=701206f7';
-import { profitMul } from './calib.js?v=701206f7';
+import { shortWhy } from './invest.js?v=ad479e23';   // 设计62
+import CFG from '../config/funds.json?v=ad479e23' with { type: 'json' };
+import * as SK from './stocks.js?v=ad479e23';
+import { pay, receive } from './ledger.js?v=ad479e23';
+import { addContract } from './contracts.js?v=ad479e23';
+import { addAssetHook } from './assets.js?v=ad479e23';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=ad479e23';
+import { profitMul } from './calib.js?v=ad479e23';
 
 export const FCFG = CFG;
 export const FUNDS = CFG.funds;
@@ -19,7 +20,7 @@ const TICKS_PER_YEAR = YEAR_MS / (SK.SCFG.tickSec * 1000);
 export const lockGameYears = (f) => f.lockYears / profitMul();
 const r2 = (v) => Math.round(v * 100) / 100;
 const fmt = (n) => (Math.abs(n) >= 1e8 ? `${+(n / 1e8).toFixed(2)}亿` : Math.abs(n) >= 1e4 ? `${+(n / 1e4).toFixed(1)}万` : `${Math.round(n)}`);
-const freeCash = (s) => s.cash - (s.freezes || []).reduce((a, f) => a + f.amount, 0);
+const freeCash = (s) => s.invest || 0;   // 设计62：基金走投资账户
 
 /** 存档 s.fund：{ nav, ret（这一跳每只的对数收益）, hist, hold: { id: { units, cost, at } }, pending: [{ id, amount, at }], angel: [{ uid, amount, at, until }], seq } */
 export function fd(s) {
@@ -51,7 +52,7 @@ export function whyNot(s, id, amount, netWorth) {
   const f = FB[id]; if ((s.title || 0) < (f.title || 0)) return `称号要「${['打工人', '小老板', '老板', '企业家'][f.title]}」`;
   if (amount < f.min) return `起投 ${fmt(f.min)}`;
   if (f.qualified && netWorth < CFG.qualifiedNetWorth) return `合格投资者：身价要 ≥ ${fmt(CFG.qualifiedNetWorth)}（照私募规定：金融资产 ≥ 300 万或年收入 ≥ 50 万，游戏里简化成身价）`;
-  if (freeCash(s) < amount) return `个人现金还差 ${fmt(amount - freeCash(s))}`;
+  if (freeCash(s) < amount) return shortWhy(amount - freeCash(s));
   return null;
 }
 // ---------- 申购 ----------
@@ -61,8 +62,8 @@ export function subscribe(s, id, amount, t, { netWorth = Infinity, by = '' } = {
   let docs = [];
   if (f.qualified) docs = ['认购协议', '风险揭示书', '合格投资者确认书'].map((title) => addContract(s, { prefix: 'SM', kind: 'private_fund', title, parties: [['投资者', s.bossName || '老板'], ['基金管理人', f.manager]], subject: `${f.name}，认购 ${fmt(amount)}`, rows: title === '认购协议' ? [['认购金额', amount, ''], ['认购费', fee, `${(f.buyFee * 100).toFixed(2)}%`]] : [], total: title === '认购协议' ? amount : 0, wallet: 'personal' }, t));
   else docs = [addContract(s, { prefix: 'JJ', kind: 'fund', title: '基金申购确认单', parties: [['投资者', s.bossName || '老板'], ['基金公司', f.manager]], subject: f.name, rows: [['申购金额', amount, ''], ['申购费', fee, `${(f.buyFee * 100).toFixed(2)}%`]], total: amount, wallet: 'personal' }, t)];
-  pay(s, { wallet: 'personal', cat: 'fund_buy', amount: net, ref: docs[0].no, party: f.manager, by, note: `申购 ${f.name}` }, t);
-  if (fee > 0) pay(s, { wallet: 'personal', cat: 'fund_fee', amount: fee, ref: docs[0].no, party: f.manager, by, note: `${f.name} 申购费` }, t);
+  pay(s, { wallet: 'invest', cat: 'fund_buy', amount: net, ref: docs[0].no, party: f.manager, by, note: `申购 ${f.name}` }, t);
+  if (fee > 0) pay(s, { wallet: 'invest', cat: 'fund_fee', amount: fee, ref: docs[0].no, party: f.manager, by, note: `${f.name} 申购费` }, t);
   const d = fd(s);
   if (f.type === 'angel') { d.seq += 1; const a = { uid: d.seq, id, amount: net, at: t, until: t + lockGameYears(f) * YEAR_MS }; d.angel.push(a); return { ok: true, angel: a, docs }; }
   const units = net / d.nav[id]; const h = d.hold[id] || (d.hold[id] = { units: 0, cost: 0, at: t });
@@ -84,16 +85,16 @@ export function tick(s, t, rnd = null) {
   const d = fd(s); const out = [];
   for (const p of d.pending.slice()) if (t >= p.at) {
     const f = FB[p.id];
-    receive(s, { wallet: 'personal', cat: 'fund_sell', amount: p.gross, party: f.manager, note: `赎回 ${f.name}（基金收益免个税）` }, t);
-    if (p.rf + p.perf > 0) pay(s, { wallet: 'personal', cat: 'fund_fee', amount: p.rf + p.perf, party: f.manager, note: `${f.name} ${p.rf ? '赎回费' : ''}${p.rf && p.perf ? '、' : ''}${p.perf ? '业绩报酬 20%' : ''}`, force: true }, t);
+    receive(s, { wallet: 'invest', cat: 'fund_sell', amount: p.gross, party: f.manager, note: `赎回 ${f.name}（基金收益免个税）` }, t);
+    if (p.rf + p.perf > 0) pay(s, { wallet: 'invest', cat: 'fund_fee', amount: p.rf + p.perf, party: f.manager, note: `${f.name} ${p.rf ? '赎回费' : ''}${p.rf && p.perf ? '、' : ''}${p.perf ? '业绩报酬 20%' : ''}`, force: true }, t);
     d.pending = d.pending.filter((x) => x !== p); out.push(`${f.name}赎回到账 ${fmt(p.gross - p.rf - p.perf)}`);
   }
   for (const a of d.angel.slice()) if (t >= a.until) {
     const f = FB[a.id]; const u = rnd ? rnd() : SK.hu('ANGEL' + (s.gid || ''), a.uid); const v = rnd ? rnd() : SK.hu('ANGELX' + (s.gid || ''), a.uid);
     const O = f.outcomes; const mult = u < O.lose[0] ? O.lose[1] : u < O.lose[0] + O.mid[0] ? O.mid[1] + v * (O.mid[2] - O.mid[1]) : O.big[1] + v * (O.big[2] - O.big[1]);
     const back = r2(a.amount * mult); const carry = r2(Math.max(0, back - a.amount) * f.perfFee);
-    receive(s, { wallet: 'personal', cat: 'fund_sell', amount: back, party: f.manager, note: `${f.name} 到期退出（${mult.toFixed(2)} 倍）` }, t);
-    if (carry > 0) pay(s, { wallet: 'personal', cat: 'fund_fee', amount: carry, party: f.manager, note: `${f.name} 业绩报酬 20%`, force: true }, t);
+    receive(s, { wallet: 'invest', cat: 'fund_sell', amount: back, party: f.manager, note: `${f.name} 到期退出（${mult.toFixed(2)} 倍）` }, t);
+    if (carry > 0) pay(s, { wallet: 'invest', cat: 'fund_fee', amount: carry, party: f.manager, note: `${f.name} 业绩报酬 20%`, force: true }, t);
     d.angel = d.angel.filter((x) => x !== a); out.push(`${f.name}到期：${mult < 1 ? '亏了一半' : mult >= 5 ? `投中独角兽，${mult.toFixed(1)} 倍` : `拿回 ${mult.toFixed(2)} 倍`}，到手 ${fmt(back - carry)}`);
   }
   return out;

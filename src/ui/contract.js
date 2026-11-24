@@ -1,8 +1,8 @@
 // 合同全屏（设计18 第五节、设计14）：合同纸、编号、甲乙方、标的、金额明细表，往下滚看，底部「签字」→ 签名 + 盖章动画 → 付款
-import { fmtMoney } from '../core/format.js?v=701206f7';
-import { asset, hasAsset } from '../platform/assets.js?v=701206f7';
-import { h } from './dom.js?v=701206f7';
-import { openFull } from './shell.js?v=701206f7';
+import { fmtMoney } from '../core/format.js?v=ad479e23';
+import { asset, hasAsset } from '../platform/assets.js?v=ad479e23';
+import { h } from './dom.js?v=ad479e23';
+import { openFull } from './shell.js?v=ad479e23';
 
 /** opts: { title, no, parties: [[甲方, 名], [乙方, 名]], subject, rows: [[项目, 金额, 说明]], total, terms: [..], signer, onSign(), signText } */
 export function openContract(opts) {
@@ -14,7 +14,7 @@ export function openContract(opts) {
     ${opts.parties.map(([k, v]) => `<div class="ct-party"><span>${k}</span><b>${v}</b></div>`).join('')}
     <div class="ct-sec">一、标的</div><div class="ct-text">${opts.subject}</div>
     <div class="ct-sec">二、价款和税费</div>
-    <table class="ct-tbl">${opts.rows.map(([k, v, note]) => `<tr><td>${k}${note ? `<small>${note}</small>` : ''}</td><td>${fmtMoney(v)}</td></tr>`).join('')}
+    <table class="ct-tbl">${opts.rows.map(([k, v, note, tone, txt]) => `<tr><td>${k}${note ? `<small>${note}</small>` : ''}</td><td${tone ? ` class="${tone}"` : ''}>${txt != null ? txt : fmtMoney(v)}</td></tr>`).join('')}
       <tr class="sum"><td>合计</td><td>${fmtMoney(opts.total)}</td></tr></table>
     ${(opts.terms || []).length ? `<div class="ct-sec">三、约定</div>${opts.terms.map((x, i) => `<div class="ct-text">${i + 1}. ${x}</div>`).join('')}` : ''}
     <div class="ct-sign"><div>买方签字：<span class="ct-name"></span></div><div class="ct-seals"></div></div>`;

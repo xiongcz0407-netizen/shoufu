@@ -1,8 +1,8 @@
 // 公司交税（设计15 第二节 1）：增值税 + 附加每游戏月；企业所得税每游戏季度预缴；分红代扣 20% 个税
-import TAX from '../config/tax.json?v=701206f7' with { type: 'json' };
-import { pay, receive, canPay } from './ledger.js?v=701206f7';
-import { MONTH_MS } from './gametime.js?v=701206f7';
-import { addContract } from './contracts.js?v=701206f7';
+import TAX from '../config/tax.json?v=ad479e23' with { type: 'json' };
+import { pay, receive, canPay } from './ledger.js?v=ad479e23';
+import { MONTH_MS } from './gametime.js?v=ad479e23';
+import { addContract } from './contracts.js?v=ad479e23';
 export { TAX };
 
 const sum = (o) => Object.values(o || {}).reduce((a, b) => a + b, 0);
@@ -114,28 +114,32 @@ export function paidIn(s) {
 }
 /** 个人能动的现金（扣掉冻结中的） */
 export const freeCash = (s) => Math.max(0, Math.floor((s.cash || 0) - (s.freezes || []).reduce((a, f) => a + f.amount, 0)));
-/** 注资到公司（设计28 第零节）：个人现金 → 公司账户，不交税，记实收资本，出《增资确认书》 */
-export function inject(s, amount, t) {
-  amount = Math.floor(amount);
+/** 注资到公司（设计28 第零节）：个人现金 → 公司账户，不交税，记实收资本，出《增资确认书》
+ *  设计62：from: 'invest' 从投资账户注资（开发2 的 core/invest.js 用 setCompanyBridge 挂过来） */
+export function inject(s, amount, t, { from = 'personal' } = {}) {
+  const inv = from === 'invest';
+  amount = inv ? Math.floor(amount * 100) / 100 : Math.floor(amount);
   if (!(amount > 0)) return { ok: false, why: '金额不对' };
-  if (!canPay(s, 'personal', amount)) return { ok: false, why: '个人现金不够（冻结中的钱不能用）' };
+  if (!canPay(s, from, amount)) return { ok: false, why: inv ? '投资账户不够' : '个人现金不够（冻结中的钱不能用）' };
   const before = paidIn(s);
-  pay(s, { wallet: 'personal', cat: 'capital_out', amount, party: s.companyName || '公司', note: '注资到公司' }, t);
-  receive(s, { wallet: 'company', cat: 'capital', amount, party: s.bossName || '老板', note: '老板注资' }, t);
+  pay(s, { wallet: from, cat: 'capital_out', amount, party: s.companyName || '公司', note: inv ? '投资账户注资到公司' : '注资到公司' }, t);
+  receive(s, { wallet: 'company', cat: 'capital', amount, party: s.bossName || '老板', note: inv ? '老板注资（从投资账户）' : '老板注资' }, t);
   s.paidIn = before + amount;
-  const ct = addContract(s, { prefix: 'ZZ', kind: 'capital', title: '增资确认书', parties: [['股东', s.bossName || '老板'], ['公司', s.companyName || '公司']], subject: `股东以货币增资，持股 100% 不变`, rows: [['本次增资', amount, '货币出资，已到公司账户'], ['增资前实收资本', before, ''], ['增资后实收资本', s.paidIn, '']], total: amount, wallet: 'personal' }, t);
+  const ct = addContract(s, { prefix: 'ZZ', kind: 'capital', title: '增资确认书', parties: [['股东', s.bossName || '老板'], ['公司', s.companyName || '公司']], subject: inv ? '股东以货币增资（从投资账户划款），持股 100% 不变' : `股东以货币增资，持股 100% 不变`, rows: [['本次增资', amount, '货币出资，已到公司账户'], ['增资前实收资本', before, ''], ['增资后实收资本', s.paidIn, '']], total: amount, wallet: from }, t);
   return { ok: true, paidIn: s.paidIn, no: ct.no };
 }
-/** 分红到个人：公司账户出 amount，代扣 20% 个税，到手 80% */
-export function dividend(s, amount, t) {
+/** 分红到个人：公司账户出 amount，代扣 20% 个税，到手 80%。设计62：to: 'invest' 到手的进投资账户 */
+export function dividend(s, amount, t, { to = 'personal' } = {}) {
+  const inv = to === 'invest';
   amount = Math.floor(amount);
   if (!(amount > 0)) return { ok: false, why: '金额不对' };
   if (!canPay(s, 'company', amount)) return { ok: false, why: '公司账户不够' };
   if (s.company - ((s.bank && s.bank.restricted) || 0) < amount) return { ok: false, why: '公司账户里有贷款资金，专款专用，不能拿来分红' };
   const tax = Math.round(amount * TAX.dividendIIT * 100) / 100;
-  pay(s, { wallet: 'company', cat: 'dividend_out', amount, party: '老板', note: '分红给老板（税前）' }, t);
+  pay(s, { wallet: 'company', cat: 'dividend_out', amount, party: '老板', note: inv ? '分红给老板（税前，进投资账户）' : '分红给老板（税前）' }, t);
   s.taxSeq = (s.taxSeq || 0) + 1; const cert = `完税-${String(s.taxSeq).padStart(5, '0')}`;
   (s.taxes = s.taxes || []).push({ id: s.taxSeq, t, kind: '分红个税', period: '', base: amount, rate: TAX.dividendIIT, amount: tax, payer: 'personal', cert });
-  receive(s, { wallet: 'personal', cat: 'dividend', amount: amount - tax, tax, party: s.companyName || '公司', ref: cert, note: `分红 ${amount}（代扣个税 20%）` }, t);
-  return { ok: true, net: amount - tax, tax };
+  const net = Math.round((amount - tax) * 100) / 100;
+  receive(s, { wallet: to, cat: 'dividend', amount: net, tax, party: s.companyName || '公司', ref: cert, note: inv ? `分红 ${amount}（代扣个税 20%，进投资账户）` : `分红 ${amount}（代扣个税 20%）` }, t);
+  return { ok: true, net, tax };
 }

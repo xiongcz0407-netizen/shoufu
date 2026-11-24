@@ -1,18 +1,18 @@
 // 3-01 私人银行 + 股票质押 + 艺术品质押（设计23 第五节）
 // 私行：金融资产到门槛自动是客户（core/bank.js isPrivateAt / privateTier）：存款高一档、贷款低一档、人脉 +5、客户经理消息
 // 质押：个人的股票 / 古董押给银行，钱借给公司（专款专用）；按月付息、1 个游戏年到期还本；股票 150% 预警、130% 强平；逾期 3 期处置
-import { BANK_CFG as B, bank, loanDebt, rateFor, privateTier, isPrivateAt, setFinAssetsFn, setPledgeHooks, finAssets } from './bank.js?v=701206f7';
-import * as SK from './stocks.js?v=701206f7';
-import * as FD from './funds.js?v=701206f7';
-import * as AQ from './antique.js?v=701206f7';
-import { addAttrHook } from './boss.js?v=701206f7';
-import { receive, pay, canPay, canPayMust } from './ledger.js?v=701206f7';
-import { TAX } from './companytax.js?v=701206f7';
-import { addContract } from './contracts.js?v=701206f7';
-import { addMsg } from './inbox.js?v=701206f7';
-import { YEAR_MS, monthIndex } from './gametime.js?v=701206f7';
-import * as LS from './listing.js?v=701206f7';
-import { stakeOf } from './economy.js?v=701206f7';
+import { BANK_CFG as B, bank, loanDebt, rateFor, privateTier, isPrivateAt, setFinAssetsFn, setPledgeHooks, finAssets } from './bank.js?v=ad479e23';
+import * as SK from './stocks.js?v=ad479e23';
+import * as FD from './funds.js?v=ad479e23';
+import * as AQ from './antique.js?v=ad479e23';
+import { addAttrHook } from './boss.js?v=ad479e23';
+import { receive, pay, canPay, canPayMust } from './ledger.js?v=ad479e23';
+import { TAX } from './companytax.js?v=ad479e23';
+import { addContract } from './contracts.js?v=ad479e23';
+import { addMsg } from './inbox.js?v=ad479e23';
+import { YEAR_MS, monthIndex } from './gametime.js?v=ad479e23';
+import * as LS from './listing.js?v=ad479e23';
+import { stakeOf } from './economy.js?v=ad479e23';
 
 const r2 = (x) => Math.round(x * 100) / 100;
 setFinAssetsFn((s) => (s.mkt ? SK.myShareValue(s) : 0) + (s.fund ? FD.value(s) : 0));   // V0.2.16：卖单里的股票也算金融资产
@@ -113,10 +113,10 @@ function seize(s, l, t, why) {
   if (c.kind === 'own') { // 银行在二级市场卖：不受锁定期和每期减持上限（借 listing.reduce 记账，卖完把窗口还原）
     const X = s.listing.listed; const pct = Math.min(c.pct, stakeOf(s)); const keep = [X.lockUntil, X.win, X.used]; X.lockUntil = 0; X.win = t; X.used = LS.LCFG.reduceMax - pct; const c0 = s.cash;
     const r = LS.reduce(s, pct, t); [X.lockUntil, X.win, X.used] = keep; if (r.ok) got = s.cash - c0;
-  } else if (c.kind === 'stock') { const c0 = s.cash; const r = SK.sell(s, c.code, Math.min(c.n, (s.mkt.hold[c.code] || {}).n || 0), t); if (r.ok) got = s.cash - c0; }
+  } else if (c.kind === 'stock') { const c0 = s.invest || 0; const r = SK.sell(s, c.code, Math.min(c.n, (s.mkt.hold[c.code] || {}).n || 0), t); if (r.ok) got = (s.invest || 0) - c0; }   // 设计62：卖股票的钱进投资账户
   else { const c0 = s.cash; const r = AQ.sell(s, c.uid, t, () => 0.5); if (r.ok) got = s.cash - c0; }
   const back = Math.min(got, l.principal);
-  if (back > 0) pay(s, { wallet: 'personal', cat: 'pledge_repay', amount: back, force: true, party: K.name, ref: l.contract, note: `${why}：处置所得还${l.type === 'stock' ? '股票质押' : '艺术品质押'}借款` }, t);
+  if (back > 0) pay(s, { wallet: c.kind === 'stock' ? 'invest' : 'personal', cat: 'pledge_repay', amount: back, force: true, party: K.name, ref: l.contract, note: `${why}：处置所得还${l.type === 'stock' ? '股票质押' : '艺术品质押'}借款` }, t);
   const rest = r2(l.principal - back); if (rest > 0.01) pay(s, { wallet: 'company', cat: 'loan_out', amount: rest, force: true, party: K.name, ref: l.contract, note: `${why}：处置不够，从公司账户划扣` }, t);
   X.loans = X.loans.filter((x) => x !== l); capRestricted(s);
   addMsg(s, { kind: 'system', type: 'loan', title: `${K.name}${why}`, body: `${c.kind === 'own' ? `自己公司 ${+(c.pct * 100).toFixed(2)}% 的股份被银行在二级市场卖了` : c.kind === 'stock' ? `${SK.BY[c.code].name} ${c.n} 股按市价卖了` : '藏品送拍了'}，得 ${Math.round(got)} 元，先还借款 ${Math.round(l.principal)} 元。` }, t);

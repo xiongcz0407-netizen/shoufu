@@ -1142,3 +1142,15 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 
 /* 设计61 炒股赚了多少 */
 .pl-card .pl-row { display: flex; align-items: baseline; gap: 10px; font-size: 13px; margin: 3px 0; } .pl-card .pl-row > span { width: 34px; opacity: .7; } .pl-card .pl-row b { font-size: 15px; } .pl-card .pl-row small { font-size: 11px; opacity: .75; margin-left: 4px; } .pl-card em { font-style: normal; opacity: .6; } .pl-note { font-size: 10px; opacity: .55; margin-top: 4px; }
+/* 设计62 投资账户（开发2） */
+.iv-bar { display: flex; align-items: center; gap: 8px; margin: 8px 0; padding: 10px 12px; border-radius: 12px; background: linear-gradient(90deg, rgba(240,160,96,.16), rgba(24,34,58,.6)); border: 1px solid rgba(240,160,96,.35); }
+.iv-bar > div { flex: 1; display: flex; flex-direction: column; }
+.iv-bar b { font-size: 18px; color: #f6d67a; } .iv-bar small { color: #9aa6c0; font-size: 11px; }
+.iv-acc3 { display: flex; gap: 6px; margin: 6px 0; }
+.iv-acc3 > div { flex: 1; display: flex; flex-direction: column; padding: 8px; border-radius: 10px; background: rgba(24,34,58,.7); border: 1px solid #2a3650; min-width: 0; }
+.iv-acc3 > div.from { border-color: #f0a060; } .iv-acc3 > div.to { border-color: #8fe08f; }
+.iv-acc3 b { font-size: 14px; word-break: break-all; } .iv-acc3 small { color: #9aa6c0; font-size: 11px; }
+.iv-accs .iv-go { width: 100%; margin-top: 4px; }
+.iv-dirs .tab { flex: 1 1 45%; }
+.iv-amt { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #34425c; background: #18223a; color: var(--paper); font-size: 16px; box-sizing: border-box; }
+.iv-short { font-size: 16px; margin: 4px 0 8px; } .iv-short b { color: #e5484d; }

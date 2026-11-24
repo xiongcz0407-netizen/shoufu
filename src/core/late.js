@@ -3,18 +3,18 @@
 // 2. 大项目节点：科技立项、传媒投拍、跨城市扩张中途要你拍板（限时 30 分钟，不选按默认），结果按决策和秘书属性浮动；地产在 realestate.js（V2-09）
 // 3. 对手主动进攻：老板起每游戏月有概率来一次，应对窗口 30 分钟：商战三回合 / 花钱摆平 / 不理（按比例掉营业额、做空掉股价）
 // 4. 日程：agenda() 列出要你去的事（经营会、项目节点、地产决策、对手进攻），onAgenda(fn) 新事件推给日程表（开发2）
-import { setCredit } from './credit.js?v=701206f7';
-import L from '../config/late.json?v=701206f7' with { type: 'json' };
-import * as E from './economy.js?v=701206f7';
-import { addMsg, onAction } from './inbox.js?v=701206f7';
-import { pay } from './ledger.js?v=701206f7';
-import { RIVALS, RIVAL_BY_ID } from '../config/rivals.js?v=701206f7';
-import { IND_BY_ID } from '../config/industries.js?v=701206f7';
-import * as B from './battle.js?v=701206f7';
-import * as W from './war.js?v=701206f7';
-import { holder, isSec, attrs } from './posts.js?v=701206f7';
-import * as MG from './manage.js?v=701206f7';
-import { isTraining } from './training.js?v=701206f7';
+import { setCredit } from './credit.js?v=ad479e23';
+import L from '../config/late.json?v=ad479e23' with { type: 'json' };
+import * as E from './economy.js?v=ad479e23';
+import { addMsg, onAction } from './inbox.js?v=ad479e23';
+import { pay } from './ledger.js?v=ad479e23';
+import { RIVALS, RIVAL_BY_ID } from '../config/rivals.js?v=ad479e23';
+import { IND_BY_ID } from '../config/industries.js?v=ad479e23';
+import * as B from './battle.js?v=ad479e23';
+import * as W from './war.js?v=ad479e23';
+import { holder, isSec, attrs } from './posts.js?v=ad479e23';
+import * as MG from './manage.js?v=ad479e23';
+import { isTraining } from './training.js?v=ad479e23';
 
 export { L as LATE_CFG };
 const MIN = 60e3; const clamp = (x, a, b) => Math.max(a, Math.min(b, x));

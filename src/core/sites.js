@@ -1,15 +1,15 @@
 // 分店记录 + 关店转让（V2-08；设计35 第十二节取消地段）：开分店只选城市，不再有候选铺位、踩点、铺位系数、口碑起点。
 // 每家店基础营业额、租金一样（按城市系数，economy / accrual 里算）；这里只记每家开在哪个城市、花了多少开店费，用来关店转让（拿回 30%）。
 // 存档：s.sites = { lines: { 产业id: [{ city, cost, at }] } }；老存档里记的 type / k / rentK 一律不再用（系数按 1）
-import C from '../config/sites.json?v=701206f7' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=701206f7';
-import { setSiteHooks } from './economy.js?v=701206f7';
-import { setRentHook } from './accrual.js?v=701206f7';
-import { lineCities, cityName, cityK } from './cities.js?v=701206f7';
-import { receive } from './ledger.js?v=701206f7';
-import { estTotal, onDuty } from './staff.js?v=701206f7';
-import { line as mgLine } from './manage.js?v=701206f7';
-import * as CB from './calib.js?v=701206f7';
+import C from '../config/sites.json?v=ad479e23' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=ad479e23';
+import { setSiteHooks } from './economy.js?v=ad479e23';
+import { setRentHook } from './accrual.js?v=ad479e23';
+import { lineCities, cityName, cityK } from './cities.js?v=ad479e23';
+import { receive } from './ledger.js?v=ad479e23';
+import { estTotal, onDuty } from './staff.js?v=ad479e23';
+import { line as mgLine } from './manage.js?v=ad479e23';
+import * as CB from './calib.js?v=ad479e23';
 export { C as SITE_CFG };
 
 export const st = (s) => { const x = (s.sites = s.sites || { lines: {} }); x.lines = x.lines || {}; if (x.pick) x.pick = null; if (x.busy) delete x.busy; return x; };

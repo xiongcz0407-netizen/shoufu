@@ -1,19 +1,20 @@
 // 设计41 / 46 / 47 看盘界面（开发2）：看盘那一块（开始 / 现在看一眼 / 结束）、看盘消息弹框（⅓仓 / 半仓 / 全仓）、照她说的挂单（条件单表）、消息「重要」里的按钮
-import * as SK from '../core/stocks.js?v=701206f7';
-import * as TR from '../core/trade.js?v=701206f7';
-import * as LK from '../core/look.js?v=701206f7';
-import * as I from '../core/inbox.js?v=701206f7';
-import { SEC_BY_ID } from '../config/secretaries.js?v=701206f7';
-import { fmtMoney } from '../core/format.js?v=701206f7';
-import { asset, hasAsset } from '../platform/assets.js?v=701206f7';
-import { game } from '../game.js?v=701206f7';
-import { now } from '../core/clock.js?v=701206f7';
-import { h, openPanel, toast } from './dom.js?v=701206f7';
-import { addActionUi } from './inbox.js?v=701206f7';
-import * as WSM from '../core/ws.js?v=701206f7';   // 设计47
-import { attrs as secAttrs } from '../core/posts.js?v=701206f7';
-import { isTraining } from '../core/training.js?v=701206f7';
-import { itemIcon, goBuyHtml, bindGoBuy } from './coupon.js?v=701206f7';   // 设计53 投资券
+import { whyToast } from './invest.js?v=ad479e23';   // 设计62：钱不够一键从个人账户转入
+import * as SK from '../core/stocks.js?v=ad479e23';
+import * as TR from '../core/trade.js?v=ad479e23';
+import * as LK from '../core/look.js?v=ad479e23';
+import * as I from '../core/inbox.js?v=ad479e23';
+import { SEC_BY_ID } from '../config/secretaries.js?v=ad479e23';
+import { fmtMoney } from '../core/format.js?v=ad479e23';
+import { asset, hasAsset } from '../platform/assets.js?v=ad479e23';
+import { game } from '../game.js?v=ad479e23';
+import { now } from '../core/clock.js?v=ad479e23';
+import { h, openPanel, toast } from './dom.js?v=ad479e23';
+import { addActionUi } from './inbox.js?v=ad479e23';
+import * as WSM from '../core/ws.js?v=ad479e23';   // 设计47
+import { attrs as secAttrs } from '../core/posts.js?v=ad479e23';
+import { isTraining } from '../core/training.js?v=ad479e23';
+import { itemIcon, goBuyHtml, bindGoBuy } from './coupon.js?v=ad479e23';   // 设计53 投资券
 
 const W = SK.SCFG.watch; const WSC = W.ws;
 const WS_wit = (s, id) => secAttrs(s, id).wit;
@@ -22,7 +23,7 @@ const head = (who, title) => `<div class="lk-head">${who && hasAsset(`assets/sec
 const yuan = (v) => `¥${v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const busy = () => !!document.querySelector('.story, .panel-mask, .full, .naming, .cf-mask, .ub-mask');
 
-/** 设计46：⅓仓 / 半仓 / 全仓 三个按钮（按这一刻的个人现金算；不够 1 股的灰掉；三个都不够写「钱不够」） */
+/** 设计46：⅓仓 / 半仓 / 全仓 三个按钮（按这一刻的投资账户现金算；不够 1 股的灰掉；三个都不够写「钱不够」） */
 function posBtns(s, code, px, i = 0, edit = false, lock = false) {
   const ed = edit ? `<button class="btn sm lk-edit" data-i="${i}" ${lock ? 'disabled' : ''}>改</button>` : '';
   const ops = LK.posOptions(s, code, px); if (!ops.some((o) => o.n >= 1)) return `<div class="lk-pos"><span class="lk-none">钱不够</span>${ed}</div>`;
@@ -35,12 +36,12 @@ export function openOrderSheet(legs, title, onPlace) {
   const draw = () => {
     p.body.innerHTML = `<div class="tr-gain">这几张连在一起：${L[0].kind === 'buy' ? '买进成交以后，止盈、止损才生效；一张成交，另一张自动撤' : '卖出成交以后，抄底那张才生效'}。价和股数都能改。</div>
       ${L.map((x, i) => `<div class="lk-leg"><span class="${x.kind === 'buy' ? '' : TR.toneOf(x.px, L[0].kind === 'buy' ? L[0].px : ((SK.myShares(game.state)[x.code] || {}).cost ?? null), x.kind)}">${TR.KIND[x.kind]}${x.role === 'out' ? '<small>（等前面成交）</small>' : ''}</span><input type="number" step="0.01" data-p="${i}" value="${x.px.toFixed(2)}"><span>元</span><input type="number" step="1" data-n="${i}" value="${x.n}"><span>股</span></div>${i === 0 ? `<div class="lk-pos">${LK.POS.map((q) => `<button class="btn sm" data-q="${q.k}">${x.kind === 'buy' ? q.name : q.sell}</button>`).join('')}</div>` : ''}`).join('')}
-      <div class="tr-gain">约 ${fmtMoney(L[0].px * L[0].n)}${L[0].kind === 'buy' ? `（挂上就从个人现金扣 ${fmtMoney(TR.buyCost(game.state, L[0].code, L[0].px, L[0].n))}，现在 ${fmtMoney(TR.availCash(game.state))}）` : ''}</div>
+      <div class="tr-gain">约 ${fmtMoney(L[0].px * L[0].n)}${L[0].kind === 'buy' ? `（挂上就从投资账户扣 ${fmtMoney(TR.buyCost(game.state, L[0].code, L[0].px, L[0].n))}，现在 ${fmtMoney(TR.availCash(game.state))}）` : ''}</div>
       <button class="btn gold lk-go" style="width:100%">挂单</button>`;
     p.body.querySelectorAll('[data-p]').forEach((el) => (el.onchange = () => { L[+el.dataset.p].px = +el.value; }));
     p.body.querySelectorAll('[data-n]').forEach((el) => (el.onchange = () => { const n = Math.max(1, Math.floor(+el.value)); for (const x of L) x.n = n; draw(); }));
     p.body.querySelectorAll('[data-q]').forEach((b) => (b.onclick = () => { const s = game.state; const x = L[0]; const q = LK.POS_BY[b.dataset.q]; const n = x.kind === 'buy' ? LK.posShares(s, x.code, x.px, q.k) : Math.floor(TR.sellable(s, x.code) * q.f); if (n < 1) { toast(x.kind === 'buy' ? '不够 1 股' : '没有能卖的'); return; } for (const y of L) y.n = n; draw(); }));   // 设计46：⅓ / 半 / 全
-    p.body.querySelector('.lk-go').onclick = () => { const r = onPlace(L); if (!r.ok) { toast(r.why); return; } p.close(); done('挂好了，离线也会触发'); };
+    p.body.querySelector('.lk-go').onclick = () => { const r = onPlace(L); if (!r.ok) { whyToast(r.why); return; } p.close(); done('挂好了，离线也会触发'); };
   };
   draw(); return p;
 }
@@ -60,14 +61,14 @@ export function pickAndStart(after) {
   ids.forEach((id, i) => {
     const tr = isTraining(s, id); const b = h('button', `sk-row ${tr ? 'dim' : ''}`, `${hasAsset(`assets/sec/${id}/c1.webp`) ? `<img class="sk-logo" src="${asset(`assets/sec/${id}/c1.webp`)}" alt="" style="object-fit:cover;object-position:top;border-radius:50%">` : ''}<div class="sk-name"><b>${secName(id)}${i === 0 ? '<small>（智慧最高）</small>' : ''}</b><small>智慧 ${WS_wit(s, id)}　每次看得到 ${Math.min(30, Math.floor(W.look.seeBase + Math.min(100, WS_wit(s, id)) / W.look.seeDiv))} 只${tr ? '　在上课，不能看盘' : ''}</small></div>`);
     if (tr) b.disabled = true;
-    b.onclick = () => { const r = WSM.startWatch(s, id, now()); if (!r.ok) { toast(r.why); return; } p.close(); done(`${secName(id)}开始看盘了${r.free ? '（送的，不花精力）' : ''}`); if (after) after(); };
+    b.onclick = () => { const r = WSM.startWatch(s, id, now()); if (!r.ok) { whyToast(r.why); return; } p.close(); done(`${secName(id)}开始看盘了${r.free ? '（送的，不花精力）' : ''}`); if (after) after(); };
     p.body.appendChild(b);
   });
   return p;
 }
 /** 「让她现在看一眼」：不花精力；有新的直接弹开，没有说一句 */
 export function lookNowUi(after) {
-  const s = game.state; const r = WSM.lookOnce(s, now()); if (!r.ok) { toast(r.why); return null; }
+  const s = game.state; const r = WSM.lookOnce(s, now()); if (!r.ok) { whyToast(r.why); return null; }
   done(); if (after) after();
   if (r.msgs.length) return openWsMsg(r.msgs[0]);
   sayIt(r.who, r.line); return null;
@@ -130,7 +131,7 @@ export function openWsMsg(msg) {
         <div class="lk-l2"><span>现在卖 <b class="${TR.toneOf(d.X, (SK.myShares(s)[d.code] || {}).cost ?? null, 'sl')}">${yuan(d.X)}</b>（1 分钟内卖掉）</span><span>不卖还要跌 ${Math.abs(d.g * 100).toFixed(1)}%</span><span>你手里能卖 ${have.toLocaleString()} 股</span></div>
         <div class="lk-pos">${LK.POS.map((q) => { const n = Math.floor(have * q.f); return `<button class="btn sm ${n >= 1 ? 'gold' : ''}" data-s="${q.k}" ${n >= 1 ? '' : 'disabled'}>卖${q.sell}<small>${n >= 1 ? `${n.toLocaleString()}股` : '没有能卖的'}</small></button>`; }).join('')}</div></div>
         <div class="ind-btns"><button class="btn lk-no">不用了</button></div>`;
-      p.body.querySelectorAll('[data-s]').forEach((b) => (b.onclick = () => { const r = WSM.sellWs(s, msg, b.dataset.s, now()); if (!r.ok) { toast(r.why); return; } p.close(); done(`挂好了：${SK.BY[d.code].name} 现在卖 ¥${d.X} · ${r.n.toLocaleString()} 股`); }));
+      p.body.querySelectorAll('[data-s]').forEach((b) => (b.onclick = () => { const r = WSM.sellWs(s, msg, b.dataset.s, now()); if (!r.ok) { whyToast(r.why); return; } p.close(); done(`挂好了：${SK.BY[d.code].name} 现在卖 ¥${d.X} · ${r.n.toLocaleString()} 股`); }));
     } else {
       const fs = WSM.followState(s, now()); const lock = !fs.ok;   // 设计53：免费用完用投资券；没券按钮灰、去卡包买
       const fl = fs.free > 0 ? `<div class="ws-follow-s">今天还能免费跟 ${fs.free} 单</div>` : fs.coupons > 0 ? `<div class="ws-follow-s coupon">${itemIcon('invest', 'cp-card-ic ws-inv-big')}用 1 张投资券跟<small>（还有 ${fs.coupons} 张）</small></div>` : `<div class="ws-follow-s none">${itemIcon('invest', 'cp-card-ic ws-inv-big')}今天免费的 ${WSC.freePerDay} 单用完了，没有投资券${goBuyHtml('invest')}</div>`;
@@ -141,7 +142,7 @@ export function openWsMsg(msg) {
         <div class="tr-gain">点一个仓位就按她给的价挂上三张联动单：到低点那一刻买进（没买进自动撤、钱退回），从挂单起 10 分钟内卖掉（止盈 / 止损 / 到时按现价卖）。价钱每跳跟着变。</div>
         <div class="ind-btns"><button class="btn lk-no">不用了</button></div>`;
       bindGoBuy(p.body, () => {}); p.body.querySelectorAll('.cp-go').forEach((x) => x.addEventListener('click', () => p.close()));
-      p.body.querySelectorAll('[data-q]').forEach((b) => (b.onclick = () => { const r = WSM.placeWs(s, msg, b.dataset.q, now()); if (!r.ok) { toast(r.why); draw(); return; } p.close(); done(`挂好了：${SK.BY[d.code].name} ${r.pos} ${r.n.toLocaleString()} 股${r.coupon ? '（用了 1 张投资券）' : ''}`); }));
+      p.body.querySelectorAll('[data-q]').forEach((b) => (b.onclick = () => { const r = WSM.placeWs(s, msg, b.dataset.q, now()); if (!r.ok) { whyToast(r.why); draw(); return; } p.close(); done(`挂好了：${SK.BY[d.code].name} ${r.pos} ${r.n.toLocaleString()} 股${r.coupon ? '（用了 1 张投资券）' : ''}`); }));
       const ed = p.body.querySelector('.lk-edit'); if (ed) ed.onclick = () => { const n = Math.max(1, LK.posShares(s, d.code, d.X, 'third')); openOrderSheet(LK.legsOfRow({ code: d.code, X: d.X, Y: d.Y, Z: d.Z, n }), `挂 ${SK.BY[d.code].name}`, (legs) => { const r = WSM.placeLegs(s, msg, legs, now()); if (r.ok) p.close(); return r; }); };
     }
     p.body.querySelector('.lk-no').onclick = () => { WSM.dismissTip(s, msg.id); p.close(); done('收起了，这次看盘她不再说这只'); };

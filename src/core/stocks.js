@@ -1,18 +1,19 @@
 // 股票 + 投资经理（第 2-09 项，设计12、设计14 第二节 6、设计16 投资经理）
 // 50 只（设计54），每 30 秒一跳，一直开盘；跳数按服务器时间算（同一跳谁算都一样），离线回来一跳一跳补（最多 7 天）
 // 每跳 ln P += β·M（大盘，牛 / 熊 / 震荡）+ B（板块）+ σ·ε + κ·(ln F − ln P) + 新闻跳空；随机数 = hash(名字, 跳数)，固定种子
-// 只能用个人现金买；佣金、过户费、卖出印花税、大单滑点；交割单进档案柜；分红按持有时间扣个税；持股 5% 举牌公告，30% 进度
+// 设计62：只能用投资账户的钱买（个人现金先转进投资账户）；佣金、过户费、卖出印花税、大单滑点；交割单进档案柜；分红按持有时间扣个税；持股 5% 举牌公告，30% 进度
 // 投资经理（秘书职位）：你划一笔钱 + 风格（稳健 / 平衡 / 进取）+ 止损线，按大盘走 + 她的超额（智慧）；新闻前一跳有概率提前给判断
-import CFG from '../config/stocks.json?v=701206f7' with { type: 'json' };
-import { pay, receive } from './ledger.js?v=701206f7';
-import { addContract } from './contracts.js?v=701206f7';
-import { addAssetHook } from './assets.js?v=701206f7';
-import { holder, isSec, attrs as secAttrs, efficiency, OUT } from './posts.js?v=701206f7';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=701206f7';
+import CFG from '../config/stocks.json?v=ad479e23' with { type: 'json' };
+import { pay, receive } from './ledger.js?v=ad479e23';
+import { addContract } from './contracts.js?v=ad479e23';
+import { addAssetHook } from './assets.js?v=ad479e23';
+import { shortWhy } from './invest.js?v=ad479e23';   // 设计62 投资账户（身价挂钩、钱不够的说法）
+import { holder, isSec, attrs as secAttrs, efficiency, OUT } from './posts.js?v=ad479e23';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=ad479e23';
 const YEAR_H = YEAR_MS / 3600e3; // 游戏一年 = 现实多少小时（V0.2.10：144）
-import { taxRec, payerOfPost } from './fiscal.js?v=701206f7';
-import { profitMul } from './calib.js?v=701206f7';
-import { TITLES } from '../config/titles.js?v=701206f7';
+import { taxRec, payerOfPost } from './fiscal.js?v=ad479e23';
+import { profitMul } from './calib.js?v=ad479e23';
+import { TITLES } from '../config/titles.js?v=ad479e23';
 
 export const SCFG = CFG;
 export const STOCKS = CFG.stocks;
@@ -206,12 +207,15 @@ export function quote(s, code, n, side) {
   const fees = r2(commission + transfer + stamp);
   return { px: p, exec, gross, commission, transfer, stamp, fees, impact, total: side === 'buy' ? r2(gross + fees) : r2(gross - fees) };
 }
-const freeCash = (s) => s.cash - (s.freezes || []).reduce((a, f) => a + f.amount, 0);
+const freeCash = (s) => s.invest || 0;   // 设计62：股票走投资账户（认筹冻结只在个人现金里，跟这里无关）
 export const unlocked = (s) => (s.title || 0) >= CFG.unlockTitle;
-function slip(s, code, n, side, q, t) {
+/** 设计62 第四件：卖出交割单加「成本」「这笔赚了」两行（gain 跟 m.pl 记的是同一个数） */
+const plRows = (cost, gain) => { const p = cost > 0 ? gain / cost : 0; const up = gain >= 0; const mag = Math.abs(gain).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return [['成本', cost, '成本价 × 卖出股数（成本价含买入手续费）'], ['这笔赚了', gain, '卖出到手 − 成本', up ? 'up' : 'down', `${up ? '+' : '−'}¥${mag}（${up ? '+' : '−'}${Math.abs(p * 100).toFixed(2)}%）`]]; };
+function slip(s, code, n, side, q, t, extra = []) {
   const x = BY[code];
   return addContract(s, { prefix: 'JG', kind: 'stock', title: '交割单', parties: [['股东', s.bossName || '老板'], ['券商', '华太正券']], subject: `${side === 'buy' ? '买入' : '卖出'} ${x.name}（${code}）${n.toLocaleString()} 股，成交价 ${q.exec}${q.impact ? `（大单滑点 ${(q.impact * 100).toFixed(2)}%）` : ''}`,
-    rows: [['成交金额', q.gross, ''], ['佣金', q.commission, '0.025%，最低 5 元'], ['过户费', q.transfer, '0.001%'], ...(q.stamp ? [['印花税', q.stamp, '卖出 0.05%']] : [])], total: q.total, wallet: 'personal' }, t);
+    rows: [['成交金额', q.gross, ''], ['佣金', q.commission, '0.025%，最低 5 元'], ['过户费', q.transfer, '0.001%'], ...(q.stamp ? [['印花税', q.stamp, '卖出 0.05%']] : []), ...extra], total: q.total, wallet: 'invest' }, t);
 }
 /** 全仓（任务板 V0.2.11 第 1e 项）：budget 以内（含佣金过户费、大单滑点）最多能买几股；cap 是最多还能买到几股（个人 5%、公司 30% 的线） */
 export function maxBuyN(s, code, budget, cap = Infinity) {
@@ -220,21 +224,21 @@ export function maxBuyN(s, code, budget, cap = Infinity) {
   while (lo < hi) { const mid = Math.ceil((lo + hi) / 2); if (quote(s, code, mid, 'buy').total <= budget + 1e-9) lo = mid; else hi = mid - 1; }
   return lo;
 }
-/** 个人全仓：全部个人现金（冻结的不算），个人最多买到 5% 以下 */
+/** 个人全仓：投资账户全部现金（设计62），个人最多买到 5% 以下 */
 export const maxBuyMe = (s, code) => { const h = (mkt(s).hold[code] || { n: 0 }).n; const cap = Math.ceil(CFG.stake.notice * BY[code].shares * 1e8 - 1e-6) - 1 - h; return maxBuyN(s, code, freeCash(s), Math.max(0, cap)); };
 /** 全部卖出：手里能卖的（质押的不算） */
 export const maxSellMe = (s, code) => { const h = mkt(s).hold[code]; return h ? Math.max(0, h.n - (h.pledged || 0)) : 0; };   // 设计43：挂在卖单里的股票已经划出持仓
-/** 个人现金能花的（扣掉认筹冻结） */
+/** 投资账户能花的（设计62） */
 export const availCash = (s) => freeCash(s);
 export function buy(s, code, n, t = Date.now()) {
   n = Math.floor(n); if (!unlocked(s)) return { ok: false, why: '还不能开户' }; if (n < 1) return { ok: false, why: '最少 1 股' };
   if (!(mkt(s, t).px[code] > 0)) return { ok: false, why: '还没上市' };
   if (onBoard(mkt(s, t), code) === 'up') return { ok: false, why: '封在涨停，买不进（等开板）' };   // 设计41 第九节
   const m0 = mkt(s, t); const have = (m0.hold[code] || { n: 0 }).n; if ((have + n) / (BY[code].shares * 1e8) >= CFG.stake.notice - 1e-12) return { ok: false, why: `个人最多买到 ${CFG.stake.notice * 100}% 以下（只算投资）；要举牌、要约、控股，用「公司买」` };   // 验收阶段三：个人买只算投资
-  const q = quote(s, code, n, 'buy'); if (freeCash(s) < q.total) return { ok: false, why: `个人现金还差 ${fmt(q.total - freeCash(s))}（股票只能用个人现金）` };
+  const q = quote(s, code, n, 'buy'); if (freeCash(s) < q.total) return { ok: false, why: shortWhy(q.total - freeCash(s)), short: q.total - freeCash(s) };
   const ct = slip(s, code, n, 'buy', q, t);
-  pay(s, { wallet: 'personal', cat: 'stock_buy', amount: q.gross, ref: ct.no, party: '证券账户', note: `买入 ${BY[code].name} ${n} 股` }, t);
-  pay(s, { wallet: 'personal', cat: 'stock_fee', amount: q.fees, ref: ct.no, party: '华太正券', note: `${BY[code].name} 佣金、过户费` }, t);
+  pay(s, { wallet: 'invest', cat: 'stock_buy', amount: q.gross, ref: ct.no, party: '证券账户', note: `买入 ${BY[code].name} ${n} 股` }, t);
+  pay(s, { wallet: 'invest', cat: 'stock_fee', amount: q.fees, ref: ct.no, party: '华太正券', note: `${BY[code].name} 佣金、过户费` }, t);
   const m = mkt(s, t); const h = m.hold[code] || (m.hold[code] = { n: 0, cost: 0, at: t });
   if (!h.n) h.at = t; h.cost = r2((h.cost * h.n + q.total) / (h.n + n)); h.n += n;
   flow(m, code, 'buy', q.total); m.bought = (m.bought || 0) + 1;   // 第 P-06 项：周报、新手目标
@@ -257,11 +261,11 @@ export function sell(s, code, n, t = Date.now()) {
   const m = mkt(s, t); const h = m.hold[code]; n = Math.floor(n); if (!h || h.n < n || n < 1) return { ok: false, why: '没有这么多股' };
   if (onBoard(m, code) === 'down') return { ok: false, why: '封在跌停，卖不出（等开板）' };   // 设计41 第九节
   if (h.pledged && n > h.n - h.pledged) return { ok: false, why: `有 ${h.pledged} 股质押在银行，不能卖` }; // 3-01 股票质押（开发1 加的挂钩）
-  const q = quote(s, code, n, 'sell'); const ct = slip(s, code, n, 'sell', q, t);
+  const q = quote(s, code, n, 'sell'); const cost = r2(h.cost * n); const gain = r2(q.total - cost);   // 设计62：先算好，交割单和 m.pl 用同一个 gain
+  const ct = slip(s, code, n, 'sell', q, t, plRows(cost, gain));
   taxRec(s, { kind: '证券交易印花税', base: q.gross, rate: CFG.fees.stamp, amount: q.stamp, t });
-  receive(s, { wallet: 'personal', cat: 'stock_sell', amount: q.gross, ref: ct.no, party: '证券账户', note: `卖出 ${BY[code].name} ${n} 股（A 股差价免个税）` }, t);
-  pay(s, { wallet: 'personal', cat: 'stock_fee', amount: q.fees, ref: ct.no, party: '华太正券', note: `${BY[code].name} 佣金、过户费、印花税`, force: true }, t);
-  const gain = r2(q.total - h.cost * n);
+  receive(s, { wallet: 'invest', cat: 'stock_sell', amount: q.gross, ref: ct.no, party: '证券账户', note: `卖出 ${BY[code].name} ${n} 股（A 股差价免个税）` }, t);
+  pay(s, { wallet: 'invest', cat: 'stock_fee', amount: q.fees, ref: ct.no, party: '华太正券', note: `${BY[code].name} 佣金、过户费、印花税`, force: true }, t);
   h.n -= n; if (!h.n) delete m.hold[code];
   flow(m, code, 'sell', q.total, gain); plAdd(m, gain, t);   // 设计61：每卖一笔记今天 / 累计赚多少
   return { ok: true, quote: q, slip: ct, gain };
@@ -304,7 +308,7 @@ export function dividends(s, t) {
     const amt = r2(h.value * x.div * profitMul() / YEAR_H * n * (D.everyMin / 60)); if (amt < 0.01) continue;
     const held = t - h.at; const rate = held >= YEAR_MS ? 0 : held >= MONTH_MS ? D.taxMid : D.taxShort; const tax = r2(amt * rate);
     taxRec(s, { kind: '股息红利个税', base: amt, rate, amount: tax, t });
-    receive(s, { wallet: 'personal', cat: 'stock_div', amount: amt - tax, tax, party: x.name, note: `${x.name} 分红（持有${held >= YEAR_MS ? '满 1 年免税' : held >= MONTH_MS ? '1 个月～1 年，个税 10%' : '不到 1 个月，个税 20%'}）` }, t);
+    receive(s, { wallet: 'invest', cat: 'stock_div', amount: amt - tax, tax, party: x.name, note: `${x.name} 分红（持有${held >= YEAR_MS ? '满 1 年免税' : held >= MONTH_MS ? '1 个月～1 年，个税 10%' : '不到 1 个月，个税 20%'}）` }, t);
     out.push({ code: h.code, amt, tax });
   }
   return out;
@@ -323,7 +327,7 @@ export function giveMgr(s, amount, t = Date.now()) {
   const w = mgrWho(s); if (!w) return { ok: false, why: '先在「秘书 → 职位」任命投资经理' };
   amount = r2(amount); if (!(amount > 0)) return { ok: false, why: '填一个金额' };
   const room = mgrRoom(s); if (amount > room + 0.005) return { ok: false, why: `她最多管 ¥${fmt(mgrCap(s))}，还能再划 ¥${fmt(room)}` };
-  if (!pay(s, { wallet: 'personal', cat: 'inv_out', amount, party: isSec(w) ? w : '券商投顾', by: isSec(w) ? w : '', note: '划给投资经理' }, t)) return { ok: false, why: '个人现金不够' };
+  if (!pay(s, { wallet: 'invest', cat: 'inv_out', amount, party: isSec(w) ? w : '券商投顾', by: isSec(w) ? w : '', note: '划给投资经理' }, t)) return { ok: false, why: shortWhy(amount - (s.invest || 0)), short: amount - (s.invest || 0) };
   const m = mkt(s, t); const g = m.mgr;
   if (g && g.value > 0) { g.principal += amount; g.value += amount; }
   else m.mgr = { principal: amount, value: amount, earn: 0, fees: 0, back: 0, cur: null, hist: [], day: null };
@@ -332,7 +336,7 @@ export function giveMgr(s, amount, t = Date.now()) {
 export function takeBack(s, t = Date.now()) {
   const m = mkt(s, t); const g = m.mgr; if (!g || g.value <= 0) return { ok: false, why: '她手上没有你的钱' };
   const w = mgrWho(s); const amt = r2(g.value);
-  receive(s, { wallet: 'personal', cat: 'inv_in', amount: amt, by: isSec(w) ? w : '', party: '投资经理', note: `从投资经理收回（本金 ¥${fmt(g.principal)}，她手上 ¥${fmt(amt)}）` }, t);
+  receive(s, { wallet: 'invest', cat: 'inv_in', amount: amt, by: isSec(w) ? w : '', party: '投资经理', note: `从投资经理收回（本金 ¥${fmt(g.principal)}，她手上 ¥${fmt(amt)}）` }, t);
   m.mgr = null; return { ok: true, amount: amt };
 }
 /** 每跳：core/mgr.js 挂进来（开轮、成交、结算、货币基金利息） */

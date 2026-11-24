@@ -1,7 +1,7 @@
 // 财务报表（第 13 项，设计15 第三节 + 设计17 第三节）：从流水算利润表、个人收支、纳税、资产清单
-import { CATS } from './ledger.js?v=701206f7';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=701206f7';
-import { INDUSTRIES } from '../config/industries.js?v=701206f7';
+import { CATS } from './ledger.js?v=ad479e23';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=ad479e23';
+import { INDUSTRIES } from '../config/industries.js?v=ad479e23';
 
 export const PERIODS = [['day', '今天'], ['month', '本月'], ['year', '本年'], ['all', '全部']];
 /** 时间段起点（游戏日 / 月 / 年，从开局算） */
@@ -41,7 +41,7 @@ export function companyPL(s, from, t) {
 }
 /** 个人收支 */
 export function personal(s, from, t) {
-  const rows = inPeriod(allRows(s, t), from).filter((r) => r.wallet === 'personal' && !r.memo && !['debug', 'deposit_in', 'deposit_out'].includes(r.cat)); // 存取款是转账，不算收支
+  const rows = inPeriod(allRows(s, t), from).filter((r) => r.wallet === 'personal' && !r.memo && !['debug', 'deposit_in', 'deposit_out', 'transfer_in', 'transfer_out'].includes(r.cat)); // 存取款是转账，不算收支（设计62：个人 ↔ 投资账户转账也不算）
   const group = (dir) => { const o = {}; for (const r of rows.filter((x) => x.dir === dir)) o[r.cat] = (o[r.cat] || 0) + r.amount; return Object.entries(o).map(([k, v]) => [CATS[k] ? CATS[k][0] : k, v]).sort((a, b) => b[1] - a[1]); };
   const inc = group('in'), out = group('out');
   return { inc, out, incTotal: inc.reduce((a, x) => a + x[1], 0), outTotal: out.reduce((a, x) => a + x[1], 0) };
@@ -63,24 +63,24 @@ export function ledgerView(s, { wallet, cat, by, from }, t) {
 }
 
 // ---------- 第 2-15 项：资产负债表、资产清单 ----------
-import * as EC from './economy.js?v=701206f7';
-import { depositTotal, loanDebt } from './bank.js?v=701206f7';
-import { debt as bridgeDebt } from './rivalry.js?v=701206f7';
-import { equityOwed } from './equity.js?v=701206f7';
-import { payables } from './accrual.js?v=701206f7';
-import { fleetValue } from './logistics.js?v=701206f7';
-import { reValue } from './realestate.js?v=701206f7';
-import * as AS from './assets.js?v=701206f7';
-import * as YT from './yacht.js?v=701206f7';
-import * as LX from './luxury.js?v=701206f7';
-import * as AQ from './antique.js?v=701206f7';
-import * as OF from './offshore.js?v=701206f7';
-import * as SK from './stocks.js?v=701206f7';
-import * as TR from './trade.js?v=701206f7'; // 设计43 第二版：挂单中
-import * as FD from './funds.js?v=701206f7';
-import { SEC_BY_ID } from '../config/secretaries.js?v=701206f7';
-import * as LMK from './landmark.js?v=701206f7';
-import { paidIn as paidInOf } from './companytax.js?v=701206f7';
+import * as EC from './economy.js?v=ad479e23';
+import { depositTotal, loanDebt } from './bank.js?v=ad479e23';
+import { debt as bridgeDebt } from './rivalry.js?v=ad479e23';
+import { equityOwed } from './equity.js?v=ad479e23';
+import { payables } from './accrual.js?v=ad479e23';
+import { fleetValue } from './logistics.js?v=ad479e23';
+import { reValue } from './realestate.js?v=ad479e23';
+import * as AS from './assets.js?v=ad479e23';
+import * as YT from './yacht.js?v=ad479e23';
+import * as LX from './luxury.js?v=ad479e23';
+import * as AQ from './antique.js?v=ad479e23';
+import * as OF from './offshore.js?v=ad479e23';
+import * as SK from './stocks.js?v=ad479e23';
+import * as TR from './trade.js?v=ad479e23'; // 设计43 第二版：挂单中
+import * as FD from './funds.js?v=ad479e23';
+import { SEC_BY_ID } from '../config/secretaries.js?v=ad479e23';
+import * as LMK from './landmark.js?v=ad479e23';
+import { paidIn as paidInOf } from './companytax.js?v=ad479e23';
 
 const r2b = (v) => Math.round(v * 100) / 100;
 const tot = (rows) => r2b(rows.reduce((a, r) => a + r[1], 0));
@@ -93,7 +93,7 @@ export function balanceSheet(s) {
   const g = s.garage || { cars: [], houses: [], planes: [] }; const byKind = (k, f = () => true) => ((g[k] || []).filter((id) => AS.ITEM[id] && f(AS.ITEM[id])).reduce((a, id) => a + AS.sellPrice(s, id), 0));
   const kindSum = (kind) => LX.mine(s, kind).reduce((a, id) => a + LX.sellPrice(s, id), 0);
   const mgr = s.mkt && s.mkt.mgr ? s.mkt.mgr.value : 0;
-  const pA = [['个人现金', s.cash || 0], ['银行存款（个人）', depositTotal(s, 'personal')], ['车', byKind('cars')], ['房产（国内）', byKind('houses', (it) => !OF.isAbroad(it))], ['房产（香港、海外）', byKind('houses', (it) => OF.isAbroad(it))], ['飞机', byKind('planes')], ['游艇', YT.value(s)], ['名表', kindSum('watch')], ['西装', kindSum('suit')], ['古董藏品（估价）', AQ.value(s)], ['股票（现价）', s.mkt ? SK.holdValue(s) : 0], ['基金（含锁定、在途）', FD.value(s)], ['交给投资经理的', mgr], ['挂单中（股票条件单里的钱和股票）', s.mkt ? TR.orderValue(s) : 0], [`公司股权（你持股 ${+(company.stake * 100).toFixed(2)}%）`, r2b(company.equity * company.stake)], ['其他（上市市值等）', EC.netWorth(s) - (s.cash + (s.assetValue || 0) + depositTotal(s, 'personal') + (EC.companyEquity ? EC.companyEquity(s) : company.equity) * company.stake)]].filter((r) => Math.abs(r[1]) >= 0.01);
+  const pA = [['个人现金', s.cash || 0], ['投资账户现金', s.invest || 0], ['银行存款（个人）', depositTotal(s, 'personal')], ['车', byKind('cars')], ['房产（国内）', byKind('houses', (it) => !OF.isAbroad(it))], ['房产（香港、海外）', byKind('houses', (it) => OF.isAbroad(it))], ['飞机', byKind('planes')], ['游艇', YT.value(s)], ['名表', kindSum('watch')], ['西装', kindSum('suit')], ['古董藏品（估价）', AQ.value(s)], ['股票（现价）', s.mkt ? SK.holdValue(s) : 0], ['基金（含锁定、在途）', FD.value(s)], ['交给投资经理的', mgr], ['挂单中（股票条件单里的钱和股票）', s.mkt ? TR.orderValue(s) : 0], [`公司股权（你持股 ${+(company.stake * 100).toFixed(2)}%）`, r2b(company.equity * company.stake)], ['其他（上市市值等）', EC.netWorth(s) - (s.cash + (s.invest || 0) + (s.assetValue || 0) + depositTotal(s, 'personal') + (EC.companyEquity ? EC.companyEquity(s) : company.equity) * company.stake)]].filter((r) => Math.abs(r[1]) >= 0.01);
   const pL = [['股票质押、艺术品质押（阶段三）', 0]];
   const personal = { assets: pA, liabilities: pL, A: tot(pA), L: 0 }; personal.net = personal.A;
   return { company, personal, netWorth: EC.netWorth(s) };

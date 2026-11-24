@@ -1,16 +1,16 @@
 // 设计44 投资经理自动炒股（开发2）：每天本地 0 / 6 / 12 / 18 点各一轮。
 // 开轮那一跳：用看盘同一套（core/look.js bestRun / priceRow、SK.future 先算接下来 240 跳）挑最多 3 只，她手上的钱全部平分（第二版：没有风格）；
 // 买卖点从真实走势里挑，所以一定成交、一定赚；到了买那一跳记「买进」、卖那一跳记「卖出」，都卖完结算：赚的 10% 是她的提成（照 payerOfPost 谁付；外包也收「投顾服务费」）。
-// 她的账在 s.mkt.mgr：不进玩家持仓、不用条件单、不动玩家现金、不改股价。第二版：她最多管 SK.mgrCap（下一个称号门槛 × 10%），每轮卖完超出的转回个人现金。
+// 她的账在 s.mkt.mgr：不进玩家持仓、不用条件单、不动玩家现金、不改股价。第二版：她最多管 SK.mgrCap（下一个称号门槛 × 10%），每轮卖完超出的转回投资账户。
 // 每一步只看「这一跳」和固定种子（种子带存档的 gid，每局不一样）：离线补算一跳一跳走过来，跟在线一模一样。
-import * as SK from './stocks.js?v=701206f7';
-import { bestRun, priceRow } from './look.js?v=701206f7';
-import { addMsg } from './inbox.js?v=701206f7';
-import { pay, receive } from './ledger.js?v=701206f7';
-import { addUpHook } from './upnote.js?v=701206f7';
-import { payerOfPost } from './fiscal.js?v=701206f7';
-import { isSec } from './posts.js?v=701206f7';
-import { SEC_BY_ID } from '../config/secretaries.js?v=701206f7';
+import * as SK from './stocks.js?v=ad479e23';
+import { bestRun, priceRow } from './look.js?v=ad479e23';
+import { addMsg } from './inbox.js?v=ad479e23';
+import { pay, receive } from './ledger.js?v=ad479e23';
+import { addUpHook } from './upnote.js?v=ad479e23';
+import { payerOfPost } from './fiscal.js?v=ad479e23';
+import { isSec } from './posts.js?v=ad479e23';
+import { SEC_BY_ID } from '../config/secretaries.js?v=ad479e23';
 
 const C = SK.SCFG; const G = C.mgr; const K = C.watch.look; const LU = C.watch.lu; const F = C.fees;
 const TICK = C.tickSec * 1000;
@@ -82,9 +82,9 @@ function settle(s, g, tk, t) {
     pay(s, { wallet: w, cat: w === 'personal' ? 'family_office' : sec ? 'sec_salary' : 'outsource', amount: fee, force: true, party: sec ? who : '券商投顾', by: sec ? who : '', note: sec ? '投资经理炒股提成 10%' : '投顾服务费（券商投顾，赚的 10%）' }, t);
     g.fees = r2((g.fees || 0) + fee);
   }
-  // 第二版：超过上限的转回个人现金（扣了提成以后）
+  // 第二版：超过上限的转回投资账户（扣了提成以后）
   const over = r2(g.value - SK.mgrCap(s)); let back = 0;
-  if (over >= 0.01) { back = over; g.value = r2(g.value - over); g.back = r2((g.back || 0) + over); receive(s, { wallet: 'personal', cat: 'inv_in', amount: over, by: sec ? who : '', party: '投资经理', note: `投资经理转回赚头（她最多管 ${fmt(SK.mgrCap(s))}）` }, t); }
+  if (over >= 0.01) { back = over; g.value = r2(g.value - over); g.back = r2((g.back || 0) + over); receive(s, { wallet: 'invest', cat: 'inv_in', amount: over, by: sec ? who : '', party: '投资经理', note: `投资经理转回赚头（她最多管 ${fmt(SK.mgrCap(s))}）` }, t); }
   const luN = rows.filter((r) => r.lu).length;
   const d = g.day || (g.day = { start: g.value - pnl, n: 0, pnl: 0, lu: 0, back: 0 }); d.n += 1; d.pnl = r2(d.pnl + pnl); d.lu += luN; d.back = r2((d.back || 0) + back);
   const rec = { key: c.key, at: c.at, done: tk * TICK, rows, pnl, fee, back, value: g.value, inv: c.inv, lu: luN };

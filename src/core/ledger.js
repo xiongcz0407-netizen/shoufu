@@ -1,7 +1,7 @@
 // 流水账（设计15 第一节）：所有钱的进出都走 post()，不准直接改余额
 // 钱包：personal 个人现金（s.cash）/ company 公司账户（s.company）
 // 每条：{ id, t, wallet, dir: 'in'|'out', cat, amount, tax, party, ref, by, note }
-export const WALLET_NAME = { personal: '个人现金', company: '公司账户', offshore: '境外账户' }; // offshore：第 2-14 项，按人民币等值记（s.offshore）
+export const WALLET_NAME = { personal: '个人现金', company: '公司账户', offshore: '境外账户', invest: '投资账户' }; // invest：设计62 投资账户（s.invest），股票、基金、两融、打新、投资经理都走它 // offshore：第 2-14 项，按人民币等值记（s.offshore）
 // 类别（设计15）：key → [中文, 归属]
 export const CATS = {
   // 公司收入
@@ -28,12 +28,13 @@ export const CATS = {
   charity: ['慈善捐款', 'personal'], trip: ['出差（机票酒店）', 'personal'], // V3-02 日程表、V3-03 出差
   offshore_back: ['境外账户取消，余额转回', 'personal'], offshore_back_co: ['香港子公司取消，钱转回公司', 'company'], // V0.2 设计30：存档迁移用
   newbie: ['新手奖励', 'personal'], margin_in: ['融资借款（买股票）', 'personal'], margin_repay: ['归还融资', 'personal'], margin_interest: ['融资利息', 'personal'], ipo_pay: ['新股中签缴款', 'personal'], // 第 P-06 项
+  transfer_in: ['转入', 'personal'], transfer_out: ['转出', 'personal'], // 设计62：个人 ↔ 投资账户转账（两头各记一笔，wallet 写明是哪个账户）
 };
 export const KEEP_GAME_YEARS = 3;
-import BANKCFG from '../config/bank.json?v=701206f7' with { type: 'json' };
+import BANKCFG from '../config/bank.json?v=ad479e23' with { type: 'json' };
 const USE_CATS = BANKCFG.useCats;
 
-const bal = (s, w) => (w === 'company' ? s.company : w === 'offshore' ? (s.offshore || 0) : s.cash);
+const bal = (s, w) => (w === 'company' ? s.company : w === 'offshore' ? (s.offshore || 0) : w === 'invest' ? (s.invest || 0) : s.cash);
 export const balance = bal;
 /** 个人现金里冻结的（买房验资认筹）不能花 */
 const frozenCash = (s) => (s.freezes || []).reduce((a, f) => a + f.amount, 0);
@@ -57,7 +58,7 @@ export function post(s, e, t = Date.now()) {
   const wallet = e.wallet || (CATS[e.cat] ? CATS[e.cat][1] : 'personal');
   if (e.dir === 'out' && !e.force && !e.memo && !canPayMust(s, wallet, amount)) return null;
   const k = e.dir === 'out' ? -1 : 1;
-  if (e.memo) { /* 备忘行（代扣个税等）：只记账不动余额 */ } else if (wallet === 'company') s.company = (s.company || 0) + k * amount; else if (wallet === 'offshore') s.offshore = (s.offshore || 0) + k * amount; else s.cash = (s.cash || 0) + k * amount;
+  if (e.memo) { /* 备忘行（代扣个税等）：只记账不动余额 */ } else if (wallet === 'company') s.company = (s.company || 0) + k * amount; else if (wallet === 'offshore') s.offshore = (s.offshore || 0) + k * amount; else if (wallet === 'invest') s.invest = (s.invest || 0) + k * amount; else s.cash = (s.cash || 0) + k * amount;
   s.ledgerSeq = (s.ledgerSeq || 0) + 1;
   if (e.dir === 'out' && wallet === 'company' && !e.memo && s.bank && s.bank.restricted > 0 && USE_CATS.includes(e.cat)) s.bank.restricted = Math.max(0, s.bank.restricted - amount); // 贷款资金先花在产业上（专款专用）
   const row = { id: s.ledgerSeq, t, wallet, dir: e.dir, cat: e.cat, amount, memo: !!e.memo, tax: e.tax || 0, party: e.party || '', ref: e.ref || '', by: e.by || '', note: e.note || '' };
@@ -74,7 +75,7 @@ export const receive = (s, e, t) => { const r = post(s, { ...e, dir: 'in' }, t);
 export function accrue(s, key, wallet, cat, amount, note = '', dir = 'in') {
   if (!(amount > 0)) return;
   const k = dir === 'out' ? -1 : 1;
-  if (wallet === 'company') s.company = (s.company || 0) + k * amount; else if (wallet === 'offshore') s.offshore = (s.offshore || 0) + k * amount; else s.cash = (s.cash || 0) + k * amount;
+  if (wallet === 'company') s.company = (s.company || 0) + k * amount; else if (wallet === 'offshore') s.offshore = (s.offshore || 0) + k * amount; else if (wallet === 'invest') s.invest = (s.invest || 0) + k * amount; else s.cash = (s.cash || 0) + k * amount;
   const a = (s.accruals = s.accruals || {});
   const x = (a[key] = a[key] || { wallet, cat, amount: 0, note, dir });
   x.amount += amount;

@@ -1,12 +1,12 @@
 // 只有一个存档，自动存；带存档版本号，新版本必须能读旧存档
-import { APP_V } from '../version.js?v=701206f7';
-import { mkt, fillNew } from './stocks.js?v=701206f7';
+import { APP_V } from '../version.js?v=ad479e23';
+import { mkt, fillNew } from './stocks.js?v=ad479e23';
 
 export const SAVE_KEY = 'shoufu_save';
 export const SAVE_VERSION = 2; // 第一次发布（V0.1）是 1；2：V0.2 取消境外账户（设计30，core/migrate.js v1to2）
-import { v1to2 } from './migrate.js?v=701206f7';
-import { dropOrphans } from './orphans.js?v=701206f7';
-import { recallEmpty } from './posts.js?v=701206f7';
+import { v1to2 } from './migrate.js?v=ad479e23';
+import { dropOrphans } from './orphans.js?v=ad479e23';
+import { recallEmpty } from './posts.js?v=ad479e23';
 
 /** 局号：每开一局一个 */
 export const newGid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -21,6 +21,7 @@ export function defaultState(t = Date.now()) {
     lastSeen: t,      // 上次在线（算离线收益）
     cash: 0,          // 个人现金
     company: 0,       // 公司账户（开局由 core/start.js 注资开店）
+    invest: 0,        // 投资账户（设计62：股票、基金、两融、打新、投资经理；老存档从 0 开始）
     bossName: '', companyName: '',
     ledger: [], ledgerSeq: 0, accruals: {},
     clock: { monthsDone: 0 },

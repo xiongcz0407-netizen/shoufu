@@ -1,15 +1,16 @@
 // 「财富 → 投资 → 基金」（第 2-10 项）：公募 / 私募 / 天使风投；申购、赎回（下一跳到账）、私募三份文件
-import { YEAR_MS } from '../core/gametime.js?v=701206f7'; // V0.2.10
-import * as FD from '../core/funds.js?v=701206f7';
-import * as AS from '../core/assets.js?v=701206f7';
-import * as INB from '../core/inbox.js?v=701206f7';
-import * as E from '../core/economy.js?v=701206f7';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=701206f7';
-import { game } from '../game.js?v=701206f7';
-import { now } from '../core/clock.js?v=701206f7';
-import { h, openPanel, toast } from './dom.js?v=701206f7';
-import { spark } from './stocks.js?v=701206f7';
-import { hintLater } from './guide2.js?v=701206f7';
+import { whyToast } from './invest.js?v=ad479e23';   // 设计62：钱不够一键从个人账户转入
+import { YEAR_MS } from '../core/gametime.js?v=ad479e23'; // V0.2.10
+import * as FD from '../core/funds.js?v=ad479e23';
+import * as AS from '../core/assets.js?v=ad479e23';
+import * as INB from '../core/inbox.js?v=ad479e23';
+import * as E from '../core/economy.js?v=ad479e23';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=ad479e23';
+import { game } from '../game.js?v=ad479e23';
+import { now } from '../core/clock.js?v=ad479e23';
+import { h, openPanel, toast } from './dom.js?v=ad479e23';
+import { spark } from './stocks.js?v=ad479e23';
+import { hintLater } from './guide2.js?v=ad479e23';
 
 const pct = (v) => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(2)}%`;
 const cls = (v) => (v > 0 ? 'up' : v < 0 ? 'down' : '');
@@ -42,10 +43,10 @@ function openFund(id, done) {
       <div class="sd-rec-title">申购金额</div><div class="tabs">${chips.map((k) => `<button class="tab ${k === amt ? 'on' : ''}" data-a="${k}">${fmtMoney(k)}</button>`).join('')}</div>
       <div class="tr-gain">申购费 ${(f.buyFee * 100).toFixed(2)}%（${fmtMoney(amt * f.buyFee)}）${f.qualified ? '；签认购协议、风险揭示书、合格投资者确认书' : ''}</div>
       ${why ? `<div class="sc-cond">${why}</div>` : ''}
-      <div class="ind-btns"><button class="btn gold buy" ${why ? 'disabled' : ''}>申购</button>${hd ? '<button class="btn half">赎回一半</button><button class="btn all">全部赎回</button>' : ''}</div>`;
+      <div class="ind-btns"><button class="btn gold buy" ${why && !why.startsWith('投资账户不够') ? 'disabled' : ''}>申购</button>${hd ? '<button class="btn half">赎回一半</button><button class="btn all">全部赎回</button>' : ''}</div>`;
     p.body.querySelectorAll('[data-a]').forEach((b) => (b.onclick = () => { amt = +b.dataset.a; render(); }));
-    p.body.querySelector('.buy').onclick = () => { const r = FD.subscribe(s, id, amt, now(), { netWorth: E.netWorth(s) }); if (!r.ok) { toast(r.why); return; } toast(`申购好了：${r.docs.map((x) => x.title).join('、')}进档案柜`, 2600); AS.recalc(s); game.changed(); game.save(); render(); done && done(); };
-    const red = (k) => { const r = FD.redeem(s, id, k, now()); if (!r.ok) { toast(r.why); return; } toast(`赎回 ${fmtMoney(r.gross)}${r.rf ? `，赎回费 ${fmtMoney(r.rf)}` : ''}${r.perf ? `，业绩报酬 ${fmtMoney(r.perf)}` : ''}，30 秒后到账`, 2600); AS.recalc(s); game.changed(); game.save(); render(); done && done(); };
+    p.body.querySelector('.buy').onclick = () => { const r = FD.subscribe(s, id, amt, now(), { netWorth: E.netWorth(s) }); if (!r.ok) { whyToast(r.why); return; } toast(`申购好了：${r.docs.map((x) => x.title).join('、')}进档案柜`, 2600); AS.recalc(s); game.changed(); game.save(); render(); done && done(); };
+    const red = (k) => { const r = FD.redeem(s, id, k, now()); if (!r.ok) { whyToast(r.why); return; } toast(`赎回 ${fmtMoney(r.gross)}${r.rf ? `，赎回费 ${fmtMoney(r.rf)}` : ''}${r.perf ? `，业绩报酬 ${fmtMoney(r.perf)}` : ''}，30 秒后到账`, 2600); AS.recalc(s); game.changed(); game.save(); render(); done && done(); };
     const hb = p.body.querySelector('.half'); if (hb) hb.onclick = () => red(0.5); const ab = p.body.querySelector('.all'); if (ab) ab.onclick = () => red(1);
   };
   render();

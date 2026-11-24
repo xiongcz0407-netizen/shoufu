@@ -1,12 +1,12 @@
 // 设计41 秘书看盘给价（开发2）：价钱算法（bestRun / priceRow / lookRows / tipPlan）、她的战绩、设计46 仓位、设计45 持仓页数据。
 // 设计47 起：秘书主动的新闻提醒、一次性「看盘」都去掉了，看盘改成时间段（core/ws.js 用这里的算法发消息）
 // 看盘：lookNow 用 SK.future 把接下来 240 跳先算出来（跟真实走的一样），挑真实会到的低点 L、之后的高点 H 定价，一定能成交
-import * as SK from './stocks.js?v=701206f7';
-import * as TR from './trade.js?v=701206f7';
-import { addMsg } from './inbox.js?v=701206f7';
-import { attrs as secAttrs } from './posts.js?v=701206f7';
-import { whyEnergy, doEnergy } from './manage.js?v=701206f7';
-import { SEC_BY_ID } from '../config/secretaries.js?v=701206f7';
+import * as SK from './stocks.js?v=ad479e23';
+import * as TR from './trade.js?v=ad479e23';
+import { addMsg } from './inbox.js?v=ad479e23';
+import { attrs as secAttrs } from './posts.js?v=ad479e23';
+import { whyEnergy, doEnergy } from './manage.js?v=ad479e23';
+import { SEC_BY_ID } from '../config/secretaries.js?v=ad479e23';
 
 const W = SK.SCFG.watch; const TICK = SK.SCFG.tickSec * 1000;
 const up2 = (v) => Math.ceil(v * 100 - 1e-7) / 100;     // 买入价往上取整到分
@@ -14,7 +14,7 @@ const dn2 = (v) => Math.floor(v * 100 + 1e-7) / 100;    // 卖出价往下取整
 const fmt = (n) => (Math.abs(n) >= 1e8 ? `${+(n / 1e8).toFixed(2)}亿` : Math.abs(n) >= 1e4 ? `${+(n / 1e4).toFixed(1)}万` : `${Math.round(n)}`);
 const nm = (c) => SK.BY[c].name;
 const lineOf = (who, k, v) => { const t = (SEC_BY_ID[who] || {}).type; const L = W.lines[t] || W.lines['知性']; return (L[k] || '').replace(/\{(\w+)\}/g, (_, x) => (v[x] != null ? v[x] : '')); };
-// ---------- 设计46 看盘选仓位：⅓仓 / 半仓 / 全仓（按点的那一刻的个人现金算；挂单的钱已经划走了，设计43）----------
+// ---------- 设计46 看盘选仓位：⅓仓 / 半仓 / 全仓（按点的那一刻的投资账户现金算；挂单的钱已经划走了，设计43）----------
 export const POS = [{ k: 'third', name: '⅓仓', sell: '⅓', f: 1 / 3 }, { k: 'half', name: '半仓', sell: '一半', f: 1 / 2 }, { k: 'all', name: '全仓', sell: '全部', f: 1 }];
 export const POS_BY = Object.fromEntries(POS.map((x) => [x.k, x]));
 /** 这么多钱按挂单价最多买几股（连买入费用一起不超过 amt） */
@@ -139,5 +139,5 @@ export function holdView(s, t = Date.now()) {
 function etaView(g, kind) { const T = SK.SCFG.tickSec * 1000; if (!g || g.etaBuy == null || g.sellBy == null) return null; return { kind, at: (kind === 'buy' ? g.etaBuy : g.etaSell) * T, by: g.sellBy * T }; }
 /** 撤一组卖单（同组的止盈止损一起撤，股票回到持仓） */
 export function cancelSell(s, ids, t = Date.now()) { let n = 0; for (const id of ids) { const o = (s.mkt.orders || []).find((x) => x.id === id); if (TR.cancelOrder(s, id, false, t)) n = Math.max(n, (o && o.backN) || 0); } return n; }
-import './ws.js?v=701206f7'; // 设计47：看盘改成时间段（挂进 stocks.js advance）
-import './mgr.js?v=701206f7'; // 设计44：投资经理每天 4 轮（挂进 stocks.js advance）
+import './ws.js?v=ad479e23'; // 设计47：看盘改成时间段（挂进 stocks.js advance）
+import './mgr.js?v=ad479e23'; // 设计44：投资经理每天 4 轮（挂进 stocks.js advance）
