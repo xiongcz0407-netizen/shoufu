@@ -1,18 +1,18 @@
 // 约会：选地点 → 开车去 → 约会画面（背景、她的台词、加了多少）→ 次数解锁
-import * as MG from '../core/manage.js?v=451b6719'; // 设计39 约会花精力
-import { SEC_BY_ID } from '../config/secretaries.js?v=451b6719';
-import { DATE_PLACES, DATES_PER_DAY, DATE5_LINES, DATE50_TITLE, RARE_NARR, RARE_REACT, ROOFTOP_LINES } from '../config/dates.js?v=451b6719';
-import * as LMK from '../core/landmark.js?v=451b6719';
-import { FIRST_DATE_LINES, DATE50_LINES } from '../config/love-stories.js?v=451b6719';
-import { LINES } from '../config/lines.js?v=451b6719';
-import * as D from '../core/dates.js?v=451b6719';
-import { fmtMoney } from '../core/format.js?v=451b6719';
-import { now } from '../core/clock.js?v=451b6719';
-import { asset, hasAsset } from '../platform/assets.js?v=451b6719';
-import { game } from '../game.js?v=451b6719';
-import { h, openPanel, toast } from './dom.js?v=451b6719';
-import { playStory } from './story.js?v=451b6719';
-import { dateTicketHtml, bindDateTicket, potionHtml, bindPotion } from './coupon.js?v=451b6719'; // 设计39 约会券、精力药水（开发2）
+import * as MG from '../core/manage.js?v=e379aa95'; // 设计39 约会花精力
+import { SEC_BY_ID } from '../config/secretaries.js?v=e379aa95';
+import { DATE_PLACES, DATES_PER_DAY, DATE5_LINES, DATE50_TITLE, RARE_NARR, RARE_REACT, ROOFTOP_LINES } from '../config/dates.js?v=e379aa95';
+import * as LMK from '../core/landmark.js?v=e379aa95';
+import { FIRST_DATE_LINES, DATE50_LINES } from '../config/love-stories.js?v=e379aa95';
+import { LINES } from '../config/lines.js?v=e379aa95';
+import * as D from '../core/dates.js?v=e379aa95';
+import { fmtMoney } from '../core/format.js?v=e379aa95';
+import { now } from '../core/clock.js?v=e379aa95';
+import { asset, hasAsset } from '../platform/assets.js?v=e379aa95';
+import { game } from '../game.js?v=e379aa95';
+import { h, openPanel, toast } from './dom.js?v=e379aa95';
+import { playStory } from './story.js?v=e379aa95';
+import { dateTicketHtml, bindDateTicket, potionHtml, bindPotion } from './coupon.js?v=e379aa95'; // 设计39 约会券、精力药水（开发2）
 
 // 车：返回 { tier, name, rarity: 'normal'|'limited'|'unique', count }；没车就打车
 let carFor = () => ({ tier: 0, name: '' });
@@ -59,8 +59,9 @@ function go(secId, placeId) {
   if (r.milestones.some((m) => m.n === 1)) for (const x of FIRST_DATE_LINES) lines.push({ who: 'narr', text: name(x) });
   lines.push({ who: secId, text: LINES[secId].date });
   if (r.milestones.some((m) => m.kind === 'line')) lines.push({ who: secId, text: DATE5_LINES[c.type] });
-  lines.push({ who: 'narr', text: `这是你们第 ${s.secs[secId].rec.dates} 次约会。`, fx: `♥ +${r.love.to - r.love.from}　好感 +${r.favor.to - r.favor.from}` });
+  lines.push({ who: 'narr', text: `这是你们第 ${s.secs[secId].rec.dates} 次约会。`, fx: `♥ +${+(r.love.to - r.love.from).toFixed(2)}　好感 +${+(r.favor.to - r.favor.from).toFixed(2)}` });
   if (r.milestones.some((m) => m.kind === 'place')) lines.push({ who: 'narr', text: '解锁了新的约会地点：游艇。' });
+  if (r.token) { lines.push({ who: 'narr', text: `回去的路上，${c.name}忽然停下来，说起一件很久以前的事。` }); lines.push({ who: secId, text: r.token.line }); lines.push({ who: 'narr', text: `定情信物「${r.token.name}」出现在商场「奢侈品」和她的详情页（${fmtMoney(r.token.price)}）。` }); }   // 设计56
   if (r.milestones.some((m) => m.kind === 'outfit')) lines.push({ who: 'narr', text: `约会满 20 次，${c.name}有了一套只穿给你看的衣服。` });
   if (r.milestones.some((m) => m.kind === 'title')) { for (const x of DATE50_LINES) lines.push({ who: 'narr', text: name(x) }); lines.push({ who: 'narr', text: `${c.name}获得称号「${DATE50_TITLE}」。` }); }
   const bgp = `assets/bg/${r.place.bg}.webp`;

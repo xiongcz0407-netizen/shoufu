@@ -1,13 +1,12 @@
 // 商场（首页右侧浮动；秘书详情「送礼」直达）：礼物 | 衣服，都按秘书分页，走个人现金
-import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=451b6719';
-import { fmtMoney } from '../core/format.js?v=451b6719';
-import { game } from '../game.js?v=451b6719';
-import { h } from './dom.js?v=451b6719';
-import { asset, hasAsset } from '../platform/assets.js?v=451b6719';
-import { openFull } from './shell.js?v=451b6719';
-import { openGift } from './gift.js?v=451b6719';
-import { openShop } from './outfit.js?v=451b6719';
-import { openBags } from './luxury.js?v=451b6719';
+import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=e379aa95';
+import { fmtMoney } from '../core/format.js?v=e379aa95';
+import { game } from '../game.js?v=e379aa95';
+import { h } from './dom.js?v=e379aa95';
+import { asset, hasAsset } from '../platform/assets.js?v=e379aa95';
+import { openFull } from './shell.js?v=e379aa95';
+import { openGift, openLux } from './gift.js?v=e379aa95';   // 设计56：礼物 / 奢侈品
+import { openShop } from './outfit.js?v=e379aa95';
 
 export function openMall(secId, seg = 'gift') {
   const s = game.state;
@@ -18,19 +17,20 @@ export function openMall(secId, seg = 'gift') {
   const host = { el: body, body, close: () => render() };
   const render = () => {
     segBar.innerHTML = '';
-    for (const [k, n] of [['gift', '礼物'], ['bag', '名包'], ['clothes', '衣服']]) {
+    for (const [k, n] of [['gift', '礼物'], ['lux', '奢侈品'], ['clothes', '衣服']]) {
       const b = h('button', 'seg' + (k === seg ? ' on' : ''), n); b.onclick = () => { seg = k; render(); }; segBar.appendChild(b);
     }
     top.innerHTML = `💰 个人现金 <b>${fmtMoney(game.state.cash)}</b>`;
     const bgk = `assets/bg/${seg === 'gift' ? 'bg_mall' : 'bg_boutique'}.webp`; // 商场 / 服装店背景做页头
     top.style.backgroundImage = hasAsset(bgk) ? `linear-gradient(90deg, rgba(10,14,24,.92) 35%, rgba(10,14,24,.3)), url("${asset(bgk)}")` : '';
     body.innerHTML = '';
-    if (seg === 'gift' || seg === 'bag') {
+    if (seg === 'bag') seg = 'lux';
+    if (seg === 'gift' || seg === 'lux') {
       const tabs = h('div', 'tabs');
       for (const c of SECRETARIES.filter((x) => s.secs[x.id])) { const b = h('button', 'tab' + (c.id === who ? ' on' : ''), c.name); b.onclick = () => { who = c.id; render(); }; tabs.appendChild(b); }
       body.appendChild(tabs);
       const inner = h('div'); body.appendChild(inner);
-      if (seg === 'bag') openBags(who, { el: inner, body: inner }); // 第 2-12 项：名包只能送秘书
+      if (seg === 'lux') openLux(who, { el: inner, body: inner }); // 设计56：奢侈品（名包 + 首饰 / 表 / 酒）只加爱慕
       else openGift(who, { el: inner, body: inner, close: () => render() });
     } else openShop(who, host);
   };

@@ -1,5 +1,5 @@
 // 礼物 36 件（设计13；表在 美术/礼物/礼物和藏品表.md，图 gift_01～36）。tier 档 1～4；price 元；favor 好感
-// 送她最喜欢的 3 样：好感 ×2、爱慕 +1；别的只加好感
+// 设计56：favor 不再用（礼物 = 价钱 ÷ 500 好感、1 万以上的进「奢侈品」= 价钱 ÷ 1 万爱慕，见 config/love.json、core/love.js）
 export const GIFT_TIERS = ['', '小心意', '用心', '贵重', '珍宝'];
 export const GIFTS = [
   { id: 'gift_01', name: '奶茶', tier: 1, price: 30, favor: 2 },

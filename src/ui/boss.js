@@ -1,19 +1,19 @@
-import { avatarKey } from './main-screen.js?v=451b6719';
-import * as MG from '../core/manage.js?v=451b6719'; // P-05 精力
-import { asset, hasAsset } from '../platform/assets.js?v=451b6719';
+import { avatarKey } from './main-screen.js?v=e379aa95';
+import * as MG from '../core/manage.js?v=e379aa95'; // P-05 精力
+import { asset, hasAsset } from '../platform/assets.js?v=e379aa95';
 // 老板页：名字和公司、老板属性、称号进度、穿戴、统计、设置（存档、重新开始在「设置」里，设计22）
-import { TITLES } from '../config/titles.js?v=451b6719';
-import { RIVALS } from '../config/rivals.js?v=451b6719';
-import * as E from '../core/economy.js?v=451b6719';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=451b6719';
-import { versionText } from '../version.js?v=451b6719';
-import { now } from '../core/clock.js?v=451b6719';
-import { game } from '../game.js?v=451b6719';
-import { h, toast } from './dom.js?v=451b6719';
-import { openFull } from './shell.js?v=451b6719';
-import { wearHtml } from './luxury.js?v=451b6719';
-import { appendCloudSettings } from './cloudset.js?v=451b6719';
-import { inputBox } from './confirm.js?v=451b6719'; // 设计37 第一节：游戏样式输入框
+import { TITLES } from '../config/titles.js?v=e379aa95';
+import { RIVALS } from '../config/rivals.js?v=e379aa95';
+import * as E from '../core/economy.js?v=e379aa95';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=e379aa95';
+import { versionText } from '../version.js?v=e379aa95';
+import { now } from '../core/clock.js?v=e379aa95';
+import { game } from '../game.js?v=e379aa95';
+import { h, toast } from './dom.js?v=e379aa95';
+import { openFull } from './shell.js?v=e379aa95';
+import { wearHtml } from './luxury.js?v=e379aa95';
+import { appendCloudSettings } from './cloudset.js?v=e379aa95';
+import { inputBox } from './confirm.js?v=e379aa95'; // 设计37 第一节：游戏样式输入框
 
 // 老板属性（设计09 第一节）由第 12 项提供：返回 [{ name, value, from }]
 let bossAttrs = () => [];

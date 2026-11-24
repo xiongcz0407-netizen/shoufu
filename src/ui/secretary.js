@@ -1,35 +1,37 @@
 // 「秘书」页签（设计18 第四节 2）：上面一条培训位、两列卡片（没来的剪影 + 条件）；
 // 秘书详情全屏：上半立绘、下半面板（资料 | 培养 | 衣柜 | 职位工资），底部动作条（互动 · 送礼 · 约会 · 陪着我）
-import * as CP from '../core/capital.js?v=451b6719';
-import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=451b6719';
-import { COURSE_BY_ID } from '../config/courses.js?v=451b6719';
-import { OUTFITS, priceOf } from '../config/outfits.js?v=451b6719';
-import { IND_BY_ID } from '../config/industries.js?v=451b6719';
-import * as S from '../core/secretary.js?v=451b6719';
-import * as T from '../core/training.js?v=451b6719';
-import { isScouting } from '../core/busy.js?v=451b6719'; // V2-08
-import * as STY from '../core/styles.js?v=451b6719'; // 设计36 第 4 条：衣柜写衣服名字 + 款式
-import * as O from '../core/outfits.js?v=451b6719';
-import * as A from '../core/affection.js?v=451b6719';
-import { query } from '../core/ledger.js?v=451b6719';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=451b6719';
-import { asset } from '../platform/assets.js?v=451b6719';
-import { now } from '../core/clock.js?v=451b6719';
-import { game } from '../game.js?v=451b6719';
-import { h, toast, liveRender } from './dom.js?v=451b6719';
-import { openFull, closeTab, goHome } from './shell.js?v=451b6719';
-import { switchSecretary, dressUp } from './main-screen.js?v=451b6719';
-import { pickSec, renderCourses } from './training.js?v=451b6719';
-import { openMall } from './mall.js?v=451b6719';
-import { openDate } from './date.js?v=451b6719';
-import { createPortrait } from './portrait.js?v=451b6719';
-import { bgKeyFor } from './main-screen.js?v=451b6719';
-import * as PO from '../core/posts.js?v=451b6719';
-import { openTab } from './shell.js?v=451b6719';
-import { addFavor } from '../core/affection.js?v=451b6719';
-import { gameDate, dateText } from '../core/gametime.js?v=451b6719'; // 送礼明细的日期
-import * as COUP from '../core/coupon.js?v=451b6719'; // 设计39 再聊 5 次（开发2）
-import { openWallet } from './coupon.js?v=451b6719'; // 设计39 去卡包买互动券（开发2）
+import * as LV from '../core/love.js?v=e379aa95';   // 设计56
+import { tokenCard, jewelBoxHtml } from './gift.js?v=e379aa95';
+import * as CP from '../core/capital.js?v=e379aa95';
+import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=e379aa95';
+import { COURSE_BY_ID } from '../config/courses.js?v=e379aa95';
+import { OUTFITS, priceOf } from '../config/outfits.js?v=e379aa95';
+import { IND_BY_ID } from '../config/industries.js?v=e379aa95';
+import * as S from '../core/secretary.js?v=e379aa95';
+import * as T from '../core/training.js?v=e379aa95';
+import { isScouting } from '../core/busy.js?v=e379aa95'; // V2-08
+import * as STY from '../core/styles.js?v=e379aa95'; // 设计36 第 4 条：衣柜写衣服名字 + 款式
+import * as O from '../core/outfits.js?v=e379aa95';
+import * as A from '../core/affection.js?v=e379aa95';
+import { query } from '../core/ledger.js?v=e379aa95';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=e379aa95';
+import { asset } from '../platform/assets.js?v=e379aa95';
+import { now } from '../core/clock.js?v=e379aa95';
+import { game } from '../game.js?v=e379aa95';
+import { h, toast, liveRender } from './dom.js?v=e379aa95';
+import { openFull, closeTab, goHome } from './shell.js?v=e379aa95';
+import { switchSecretary, dressUp } from './main-screen.js?v=e379aa95';
+import { pickSec, renderCourses } from './training.js?v=e379aa95';
+import { openMall } from './mall.js?v=e379aa95';
+import { openDate } from './date.js?v=e379aa95';
+import { createPortrait } from './portrait.js?v=e379aa95';
+import { bgKeyFor } from './main-screen.js?v=e379aa95';
+import * as PO from '../core/posts.js?v=e379aa95';
+import { openTab } from './shell.js?v=e379aa95';
+import { addFavor } from '../core/affection.js?v=e379aa95';
+import { gameDate, dateText } from '../core/gametime.js?v=e379aa95'; // 送礼明细的日期
+import * as COUP from '../core/coupon.js?v=e379aa95'; // 设计39 再聊 5 次（开发2）
+import { openWallet } from './coupon.js?v=e379aa95'; // 设计39 去卡包买互动券（开发2）
 
 const BEST_NAME = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 /** 她现在的职位名：没有返回 '' */
@@ -135,7 +137,7 @@ export function openDetail(id, seg = 'info') {
     if (!A.talksLeft(game.state, id, now())) { if (!COUP.have(game.state, 'talk')) { openWallet({ focus: 'talk', back: talkText }); return; } const r = COUP.useTalk(game.state, id, now()); toast(r.ok ? `今天能跟${SEC_BY_ID[id].name}再聊 ${r.n} 次` : r.why); game.changed(); game.save(); talkText(); return; }
     const res = A.tapSec(game.state, id, now());
     portrait.bounce(); bubble(res.line);
-    floatUp(hero, res.favor && res.favor.to > res.favor.from ? `好感 +${res.favor.to - res.favor.from}` : '今天聊够了，明天再来');
+    floatUp(hero, res.favor && res.favor.to > res.favor.from ? `好感 +${+(res.favor.to - res.favor.from).toFixed(2)}` : '今天聊够了，明天再来');
     if (res.favor && res.favor.stageUp) game.emit('favorUp', id, res.favor);
     game.changed(); game.save();
   };
@@ -153,7 +155,9 @@ function drawInfo(el, id) {
   el.innerHTML = `
     <div class="sd-attrs">${ATTRS.map((a) => `<div class="sd-attr"><span>${a.name}${a.key === c.best ? '<i class="best">★</i>' : ''}</span><div class="bar"><i style="width:${r.attrs[a.key]}%"></i></div><b>${r.attrs[a.key]}</b></div>`).join('')}</div>
     <div class="sd-rel">好感 <b>${S.FAVOR_STAGES[fs]}</b> <span class="fav">${hearts(fs + 1)}</span><div class="bar fav"><i style="width:${S.favorInStage(r.favor)}%"></i></div></div>
-    <div class="sd-rel">爱慕 <span class="heart">♥</span> <b>${r.love}</b>（${S.LOVE_STAGES[ls][1]}）<div class="bar love"><i style="width:${r.love}%"></i></div></div>
+    <div class="sd-rel">爱慕 <span class="heart">♥</span> <b>${+(+r.love).toFixed(2)}</b>（${S.LOVE_STAGES[ls][1]}）<div class="bar love"><i style="width:${r.love}%"></i></div></div>
+    <div class="sd-rel sd-bday">🎂 生日：每月 ${LV.birthdayOf(id)} 号${LV.isBirthday(s, id, now()) ? '　<b>就是今天！</b>' : ''}</div>
+    <div class="sd-token"></div>
     <div class="sd-rec-title">她的记录</div>
     <div class="sd-rec">
       <div>认识<b>${S.daysKnown(s, id)} 天</b></div><div>互动<b>${r.rec.talks} 次</b></div><div>约会<b>${r.rec.dates} 次</b></div>
@@ -163,8 +167,10 @@ function drawInfo(el, id) {
     </div>
     <div class="sd-rec-title">送过的礼物</div>
     <div class="sd-gifts">${g.list.length ? g.list.map((x) => `<span>${x.name}${x.n > 1 ? ` ×${x.n}` : ''}</span>`).join('') : '<em>还没送过礼物</em>'}</div>
-    <div class="sd-gift-log" hidden>${g.log.map((x) => `<div><span>${x.name}</span><small>${dateText(gameDate(s, x.t))}</small><b>${x.favor != null ? `好感 +${x.favor}${x.love ? `　♥ +${x.love}` : ''}` : '—'}</b></div>`).join('')}</div>
-    <div class="sd-places">去过：${places.length ? places.join('、') : '还没一起出去过'}</div>`;
+    <div class="sd-gift-log" hidden>${g.log.map((x) => `<div><span>${x.name}</span><small>${dateText(gameDate(s, x.t))}</small><b>${x.favor != null ? `${x.favor ? `好感 +${x.favor}` : ''}${x.love ? `　♥ +${x.love}` : ''}` || '—' : '—'}</b></div>`).join('')}</div>
+    <div class="sd-places">去过：${places.length ? places.join('、') : '还没一起出去过'}</div>
+    <div class="sd-rec-title">首饰盒</div><div class="sd-jbox">${jewelBoxHtml(s, id)}</div>`;
+  { const tk = tokenCard(s, id, () => drawInfo(el, id)); if (tk) el.querySelector('.sd-token').appendChild(tk); }   // 设计56 定情信物
   const tap = el.querySelector('.sd-gift-n.tap'); const lg = el.querySelector('.sd-gift-log');
   if (tap) tap.onclick = () => { lg.hidden = !lg.hidden; tap.classList.toggle('on', !lg.hidden); };
 }

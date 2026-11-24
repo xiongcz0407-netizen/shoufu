@@ -1,11 +1,11 @@
 // 秘书职位（设计16）和秘书工资（设计17 第二节）：数据、任免、效率、加成、工资、谈加薪
 // 注意：不 import economy（economy 要用这里的店长加成）
-import P from '../config/posts.json?v=451b6719' with { type: 'json' };
-import { SEC_BY_ID } from '../config/secretaries.js?v=451b6719';
-import { IND_BY_ID } from '../config/industries.js?v=451b6719';
-import { MONTH_MS } from './gametime.js?v=451b6719';
-import { addMsg } from './inbox.js?v=451b6719';
-import { POST_LINES } from '../config/post-lines.js?v=451b6719';
+import P from '../config/posts.json?v=e379aa95' with { type: 'json' };
+import { SEC_BY_ID } from '../config/secretaries.js?v=e379aa95';
+import { IND_BY_ID } from '../config/industries.js?v=e379aa95';
+import { MONTH_MS } from './gametime.js?v=e379aa95';
+import { addMsg } from './inbox.js?v=e379aa95';
+import { POST_LINES } from '../config/post-lines.js?v=e379aa95';
 export { P as POSTS_CFG };
 
 export const OUT = 'outsource';
@@ -42,10 +42,11 @@ export function efficiency(s, id, key, t = nowOf(s)) {
   let e = 1;
   for (const [f, k] of P.favorEff) if ((r.favor || 0) >= f) e = k;
   const last = (r.rec && r.rec.lastWith) || r.joinedAt || t;
-  if (t - last >= P.neglectDays * DAY) e *= P.neglectEff;
+  const only = (r.love || 0) >= 100;   // 设计56：「唯一」的不心不在焉、拒绝加薪也不低落
+  if (t - last >= P.neglectDays * DAY && !only) e *= P.neglectEff;
   if ((s.training || []).some((x) => x.sec === id)) e *= P.trainingEff;
   if (key && t - (meta(s, key).since || 0) < P.handoverMin * 60e3) e *= P.handoverEff;
-  if (r.pay && r.pay.sadUntil > t) e *= P.raise.rejectEff;
+  if (r.pay && r.pay.sadUntil > t && !only) e *= P.raise.rejectEff;
   if (s.cap && s.cap.options && s.cap.options[id]) e *= (s.cap.optionEff || 1.1); // 拿了期权（3-03）
   return e;
 }
@@ -112,7 +113,7 @@ export function checkRaises(s, t = nowOf(s)) {
 export function answerRaise(s, id, yes, to, t = nowOf(s), addFavor) {
   const r = s.secs[id]; r.pay = r.pay || {};
   if (yes) { r.salary = to; addFavor && addFavor(s, id, P.raise.acceptFavor); }
-  else { r.pay.sadUntil = t + MONTH_MS; addFavor && addFavor(s, id, P.raise.rejectFavor); }
+  else { if ((r.love || 0) < 100) r.pay.sadUntil = t + MONTH_MS; addFavor && addFavor(s, id, P.raise.rejectFavor); }
   return say(id, yes ? 'yes' : 'no');
 }
 /** 你主动给她加薪 10%（一个游戏月一次） */

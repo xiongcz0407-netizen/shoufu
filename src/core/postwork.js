@@ -1,24 +1,24 @@
 // 职位上的人每天干的活（设计16 第二节）：店长自动招人 + 托管（升级 / 开分店）+ 经营月报 + 小事故；
 // 财务总监自动申报 / 算错 / 小微企业提醒 / 现金流预警 / 分红建议；资产管家出租（豪宅、飞机托管包机）+ 资产月报；
 // 外包；授权额度和请示；秘书绩效 / 提成
-import * as CF from './cashflow.js?v=451b6719'; // V0.2.3
-import P from '../config/posts.json?v=451b6719' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=451b6719';
-import { SEC_BY_ID } from '../config/secretaries.js?v=451b6719';
-import { HOUSES } from '../config/estates.js?v=451b6719';
-import { PLANES } from '../config/vehicles.js?v=451b6719';
-import * as PO from './posts.js?v=451b6719';
-import * as ST from './staff.js?v=451b6719';
-import * as E from './economy.js?v=451b6719';
-import * as CB from './calib.js?v=451b6719';
-import * as CT from './companytax.js?v=451b6719';
-import * as AC from './accrual.js?v=451b6719';
-import { pay, receive } from './ledger.js?v=451b6719';
-import { addMsg, onAction } from './inbox.js?v=451b6719';
-import { addFavor } from './affection.js?v=451b6719';
-import { MONTH_MS } from './gametime.js?v=451b6719';
-import { fmtMoney } from './format.js?v=451b6719';
-import { taxRec, payerOfPost } from './fiscal.js?v=451b6719';
+import * as CF from './cashflow.js?v=e379aa95'; // V0.2.3
+import P from '../config/posts.json?v=e379aa95' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=e379aa95';
+import { SEC_BY_ID } from '../config/secretaries.js?v=e379aa95';
+import { HOUSES } from '../config/estates.js?v=e379aa95';
+import { PLANES } from '../config/vehicles.js?v=e379aa95';
+import * as PO from './posts.js?v=e379aa95';
+import * as ST from './staff.js?v=e379aa95';
+import * as E from './economy.js?v=e379aa95';
+import * as CB from './calib.js?v=e379aa95';
+import * as CT from './companytax.js?v=e379aa95';
+import * as AC from './accrual.js?v=e379aa95';
+import { pay, receive } from './ledger.js?v=e379aa95';
+import { addMsg, onAction } from './inbox.js?v=e379aa95';
+import { addFavor } from './affection.js?v=e379aa95';
+import { MONTH_MS } from './gametime.js?v=e379aa95';
+import { fmtMoney } from './format.js?v=e379aa95';
+import { taxRec, payerOfPost } from './fiscal.js?v=e379aa95';
 
 const sum = (o) => Object.values(o || {}).reduce((a, b) => a + b, 0);
 const nameOf = (who) => (PO.isSec(who) ? SEC_BY_ID[who].name : who === PO.OUT ? '外包' : '');

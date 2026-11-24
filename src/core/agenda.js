@@ -2,24 +2,25 @@
 // 邀请：答应 / 推掉 / 派秘书代去（效果一半）；到点去参加 = 一个小场景（ui/agenda.js）；宴会、慈善、讲座、私人场合选车 / 表 / 西装 / 女伴
 // 外部事件（开发1 的大项目节点、对手进攻；开发2 的经营会）用 pushEvent 放进日程，界面上「去处理」交给注册的打开函数
 // 存档 s.agenda = { day 推到第几天, seq, items: [{ id, day, slot, kind, title, tier, host, line, sec, firm, status, ext, ref, days, city, purpose }], net 人脉, gov 政府关系, log }
-import C from '../config/agenda.json?v=451b6719' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=451b6719';
-import { SEC_BY_ID } from '../config/secretaries.js?v=451b6719';
-import { RIVALS } from '../config/rivals.js?v=451b6719';
-import { DAY_MS, dayIndex, addFx, addRep, isShop, dayRev } from './manage.js?v=451b6719';
-import { postOfSec, attrs } from './posts.js?v=451b6719';
-import { isTraining } from './training.js?v=451b6719';
-import { isScouting } from './busy.js?v=451b6719';
-import { addAttrHook } from './boss.js?v=451b6719';
-import { addFavor, addLove } from './affection.js?v=451b6719';
-import { addMsg } from './inbox.js?v=451b6719';
-import { pay } from './ledger.js?v=451b6719';
-import { netWorth } from './economy.js?v=451b6719';
-import { rivalState } from './battle.js?v=451b6719';
-import { ITEM } from './assets.js?v=451b6719';
-import * as LX from './luxury.js?v=451b6719';
-import * as STY from './styles.js?v=451b6719'; // V3-05 女伴按款式
-import * as LT from './late.js?v=451b6719'; // 开发1 V3-01：大项目节点、对手进攻、地产决策的消息
+import C from '../config/agenda.json?v=e379aa95' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=e379aa95';
+import { SEC_BY_ID } from '../config/secretaries.js?v=e379aa95';
+import { RIVALS } from '../config/rivals.js?v=e379aa95';
+import { DAY_MS, dayIndex, addFx, addRep, isShop, dayRev } from './manage.js?v=e379aa95';
+import { postOfSec, attrs } from './posts.js?v=e379aa95';
+import { isTraining } from './training.js?v=e379aa95';
+import { isScouting } from './busy.js?v=e379aa95';
+import { addAttrHook } from './boss.js?v=e379aa95';
+import { addFavor, addLove } from './affection.js?v=e379aa95';
+import { afterDate } from './love.js?v=e379aa95';   // 设计56
+import { addMsg } from './inbox.js?v=e379aa95';
+import { pay } from './ledger.js?v=e379aa95';
+import { netWorth } from './economy.js?v=e379aa95';
+import { rivalState } from './battle.js?v=e379aa95';
+import { ITEM } from './assets.js?v=e379aa95';
+import * as LX from './luxury.js?v=e379aa95';
+import * as STY from './styles.js?v=e379aa95'; // V3-05 女伴按款式
+import * as LT from './late.js?v=e379aa95'; // 开发1 V3-01：大项目节点、对手进攻、地产决策的消息
 export { C as AGENDA_CFG };
 
 const SLOT_MS = DAY_MS / 3;
@@ -189,7 +190,7 @@ export function resolve(s, it, sel, t, opts = {}, rnd = Math.random) {
   }
   const comp = !opts.delegated && sel && sel.sec && s.secs[sel.sec] ? sel.sec : null;
   if (comp && needDress(it)) { addFavor(s, comp, 3); addLove(s, comp, it.kind === 'private' ? K.love : 0.5); res.comp = comp; }
-  if (it.kind === 'datesec' && it.sec && s.secs[it.sec]) { addFavor(s, it.sec, Math.round(K.favor * m)); addLove(s, it.sec, Math.round(K.love * m * 10) / 10); res.lines.push(`${SEC_BY_ID[it.sec].name}好感 +${Math.round(K.favor * m)}`); }
+  if (it.kind === 'datesec' && it.sec && s.secs[it.sec]) { const l0 = s.secs[it.sec].love; addFavor(s, it.sec, Math.round(K.favor * m)); const lv = addLove(s, it.sec, Math.round(K.love * m * 10) / 10, { cross: true }); if (lv.stageUp) res.loveUp = { id: it.sec, r: lv }; const tk = afterDate(s, it.sec, l0, t); if (tk) { res.token = { id: it.sec, ...tk }; res.lines.push(`${SEC_BY_ID[it.sec].name}：「${tk.line}」`); } /* 设计56：日程里她约你也算约会（能跨门、提起信物） */  res.lines.push(`${SEC_BY_ID[it.sec].name}好感 +${Math.round(K.favor * m)}`); }
   if (res.net) res.lines.unshift(`人脉 ${res.net > 0 ? '+' : ''}${res.net}`);
   it.status = 'done'; it.res = { m: res.m, delegated: !!opts.delegated, score };
   A.log.unshift({ t, id: it.id, text: `${opts.delegated ? `${SEC_BY_ID[it.del] ? SEC_BY_ID[it.del].name : '秘书'}代你去了` : '去了'}${it.title}：${res.lines.join('，') || '没什么收获'}` });

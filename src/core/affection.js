@@ -1,10 +1,11 @@
 // 好感、爱慕、每天互动、送礼、台词触发规则（设计03 第五节）、吃醋 / 冷落
-import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=451b6719';
-import { GIFT_BY_ID } from '../config/gifts.js?v=451b6719';
-import { LINES } from '../config/lines.js?v=451b6719';
-import { ensureSec, favorStage, loveStage, FAVOR_MAX, LOVE_STAGES } from './secretary.js?v=451b6719';
-import { bump } from './daily.js?v=451b6719';
-import { pay, receive, accrue, canPay } from './ledger.js?v=451b6719';
+import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=e379aa95';
+import { GIFT_BY_ID } from '../config/gifts.js?v=e379aa95';
+import { LINES } from '../config/lines.js?v=e379aa95';
+import { ensureSec, favorStage, loveStage, FAVOR_MAX, LOVE_STAGES } from './secretary.js?v=e379aa95';
+import { bump } from './daily.js?v=e379aa95';
+import { pay, receive, accrue, canPay } from './ledger.js?v=e379aa95';
+import LOVE from '../config/love.json?v=e379aa95' with { type: 'json' };   // 设计56
 
 export const DAILY_TALKS = 10;      // 每人每天点她涨好感的次数
 export const TALK_FAVOR = 2;
@@ -25,21 +26,35 @@ export function daily(s, t) {
 let auraOf = () => 0;
 export const setAura = (fn) => { auraOf = fn; };
 export const favorMult = (s) => 1 + (auraOf(s) || 0) / 200;
-/** 加好感（加的时候乘气场）；返回 { from, to, stageUp } */
+const r2 = (v) => Math.round(v * 100) / 100;
+/** 设计56：到了「唯一」（爱慕 100）以后不再掉好感、也不掉爱慕 */
+export const isOnly = (s, id) => !!(s.secs[id] && s.secs[id].love >= 100);
+/** 加好感（加的时候乘气场；设计56 起存两位小数，阶段等判断都按整数段）；「唯一」的不掉；返回 { from, to, stageUp } */
 export function addFavor(s, id, n) {
   const r = ensureSec(s, id); const from = r.favor;
-  if (n > 0) n = Math.round(n * favorMult(s));
-  r.favor = Math.max(0, Math.min(FAVOR_MAX, r.favor + n));
+  if (n < 0 && isOnly(s, id)) return { from, to: from, stageUp: false };
+  if (n > 0) n = r2(n * favorMult(s));
+  r.favor = r2(Math.max(0, Math.min(FAVOR_MAX, r.favor + n)));
   return { from, to: r.favor, stageUp: favorStage(r.favor) > favorStage(from) };
 }
-/** 加爱慕；减的时候不掉阶段；返回 { from, to, stageUp } */
-export function addLove(s, id, n) {
-  const r = ensureSec(s, id); const from = r.love;
-  let v = Math.max(0, Math.min(100, r.love + n));
-  if (n < 0) v = Math.max(v, LOVE_STAGES[loveStage(from)][0]);
-  r.love = v;
-  return { from, to: v, stageUp: loveStage(v) > loveStage(from) };
+/** 设计56 门：20 / 40 / 60 / 80 / 100。加爱慕最多加到下一道门减 1；cross（约会）能跨 20 / 40 / 60 / 80，但最多 99（100 只靠定情信物） */
+export const LOVE_GATES = LOVE.gates;
+export function loveCap(from, cross = false) {
+  if (from >= 100) return 100; if (cross) return 99;
+  const g = LOVE_GATES.find((x) => x > from + 1e-9); return g == null ? 100 : g - 1;
 }
+/** 加爱慕；减的时候不掉阶段、「唯一」的不掉；加的时候到门口为止（cross = 约会能跨门）；返回 { from, to, stageUp, capped } */
+export function addLove(s, id, n, { cross = false } = {}) {
+  const r = ensureSec(s, id); const from = r.love;
+  if (n < 0 && from >= 100) return { from, to: from, stageUp: false };
+  let v = Math.max(0, Math.min(100, from + n)); let capped = false;
+  if (n > 0) { const cap = loveCap(from, cross); if (v > cap) { v = Math.max(from, cap); capped = true; } }
+  if (n < 0) v = Math.max(v, LOVE_STAGES[loveStage(from)][0]);
+  r.love = r2(v);
+  return { from, to: r.love, stageUp: loveStage(r.love) > loveStage(from), capped };
+}
+/** 定情信物：爱慕直接到 100（只有 core/love.js 调） */
+export function setOnly(s, id) { const r = ensureSec(s, id); const from = r.love; r.love = 100; return { from, to: 100, stageUp: loveStage(100) > loveStage(from) }; }
 
 /** 陪着她（换人、点她）：记一下，用来算冷落和「同一天陪别人」 */
 export function markWith(s, id, t) {
@@ -68,6 +83,7 @@ export function tapSec(s, id, t, rnd = Math.random) {
     scene = 'flirt';
     if (!d.flirts[id]) { d.flirts[id] = true; favor = favor || null; addLove(s, id, 1); } // 暧昧时点她，每天第一次 +1 爱慕
   }
+  if (new Date(t).getDate() === LOVE.secretary.birthday[id] && !(d.bday && d.bday[id])) { (d.bday = d.bday || {})[id] = true; return { scene: 'happy', line: LOVE.birthdayLines[id], favor, birthday: true }; }   // 设计56：生日当天点她，先说生日那句
   return { scene, line: LINES[id] && LINES[id][scene], favor };
 }
 
@@ -75,28 +91,13 @@ export function tapSec(s, id, t, rnd = Math.random) {
 export function switchTo(s, id, t) {
   const d = daily(s, t);
   const others = Object.keys(d.accompanied).some((k) => k !== id);
-  const jealous = neglectedDays(s, id, t) >= NEGLECT_DAYS || (others && !d.accompanied[id]);
+  const jealous = !isOnly(s, id) && (neglectedDays(s, id, t) >= NEGLECT_DAYS || (others && !d.accompanied[id]));   // 设计56：「唯一」的不吃醋
   markWith(s, id, t);
   const scene = jealous ? 'jealous' : 'greet';
   return { scene, line: LINES[id] && LINES[id][scene] };
 }
 
-/** 送礼；返回 { ok, liked, favor, love, line } 或 { ok:false, why } */
-export function giveGift(s, id, giftId, t) {
-  const g = GIFT_BY_ID[giftId]; const c = SEC_BY_ID[id];
-  if (!g || !s.secs[id]) return { ok: false, why: '没有这个' };
-  if (!canPay(s, 'personal', g.price)) return { ok: false, why: '个人现金不够' };
-  const inv = invoice(s, { item: g.name, amount: g.price, seller: '星光商场', t });
-  pay(s, { wallet: 'personal', cat: 'gift', amount: g.price, party: id, ref: inv.no, note: `送${g.name}` }, t);
-  const r = ensureSec(s, id);
-  r.rec.gifts += 1; s.stats.gifts = (s.stats.gifts || 0) + 1; bump(s, t, 'gift');
-  const liked = (c.gifts || []).includes(g.name);
-  const favor = addFavor(s, id, liked ? g.favor * 2 : g.favor);
-  const love = addLove(s, id, liked ? 1 : 0);
-  r.rec.giftLog = r.rec.giftLog || []; r.rec.giftLog.push({ t, name: g.name, favor: favor.to - favor.from, love: love.to - love.from }); if (r.rec.giftLog.length > 300) r.rec.giftLog.shift(); // 秘书详情「送过的礼物」明细
-  markWith(s, id, t);
-  return { ok: true, liked, favor, love, invoice: inv, line: LINES[id] && LINES[id].happy };
-}
+// 送礼（设计56）搬到 core/love.js giveGift（礼物只加好感 = 价钱 ÷ 500）
 
 /** 每天过天时：冷落 2 天以上的爱慕 -1（不掉阶段）。返回掉了的人 */
 export function dailyDecay(s, t) {
@@ -105,7 +106,7 @@ export function dailyDecay(s, t) {
   const out = [];
   for (const c of SECRETARIES) {
     if (!s.secs[c.id]) continue;
-    if (neglectedDays(s, c.id, t) >= NEGLECT_DAYS) { const r = addLove(s, c.id, -1); if (r.to < r.from) out.push(c.id); }
+    if (neglectedDays(s, c.id, t) >= NEGLECT_DAYS && !isOnly(s, c.id)) { const r = addLove(s, c.id, -1); if (r.to < r.from) out.push(c.id); }
   }
   return out;
 }

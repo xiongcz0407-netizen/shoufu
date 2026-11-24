@@ -1,7 +1,7 @@
 // 每日：签到（7 天一轮）、每日任务。奖励小额（设计21：打工人几百到几千），跟着称号涨（economy.json rewards）
-import { daily, dayKey } from './affection.js?v=451b6719';
-import { receive } from './ledger.js?v=451b6719';
-import ECO from '../config/economy.json?v=451b6719' with { type: 'json' };
+import { daily, dayKey } from './affection.js?v=e379aa95';
+import { receive } from './ledger.js?v=e379aa95';
+import ECO from '../config/economy.json?v=e379aa95' with { type: 'json' };
 
 const R = ECO.rewards;
 export const rewardK = (title) => R.byTitle[Math.max(0, Math.min(R.byTitle.length - 1, title | 0))];

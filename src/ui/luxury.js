@@ -2,20 +2,20 @@
 // 穿戴：上展示戴着的表、穿着的西装；下两格「表柜 / 衣帽间」，点一件 → 详情（戴上 / 穿上、卖回、发票）
 // 表行 / 定制店：按品牌分段，顶上写这个品牌的累计消费、配货额度（变差 / 拉黑的可以让商务总监去求情）
 // 名包：在商场按秘书分页，买了直接送她（喜欢的牌子 ♥），走个人现金、出发票
-import * as LX from '../core/luxury.js?v=451b6719';
-import * as INB from '../core/inbox.js?v=451b6719';
-import { SEC_BY_ID } from '../config/secretaries.js?v=451b6719';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=451b6719';
-import { asset, hasAsset } from '../platform/assets.js?v=451b6719';
-import { game } from '../game.js?v=451b6719';
-import { now } from '../core/clock.js?v=451b6719';
-import { h, openPanel, toast, liveRender } from './dom.js?v=451b6719';
-import { openFull } from './shell.js?v=451b6719';
-import { openContract } from './contract.js?v=451b6719';
-import { nextContractNo } from '../core/contracts.js?v=451b6719';
-import { say } from './main-screen.js?v=451b6719';
-import * as A from '../core/affection.js?v=451b6719';
-import * as BI from './brandinv.js?v=451b6719'; // 设计35 第九节 品牌邀请不过期
+import * as LX from '../core/luxury.js?v=e379aa95';
+import * as INB from '../core/inbox.js?v=e379aa95';
+import { SEC_BY_ID } from '../config/secretaries.js?v=e379aa95';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=e379aa95';
+import { asset, hasAsset } from '../platform/assets.js?v=e379aa95';
+import { game } from '../game.js?v=e379aa95';
+import { now } from '../core/clock.js?v=e379aa95';
+import { h, openPanel, toast, liveRender } from './dom.js?v=e379aa95';
+import { openFull } from './shell.js?v=e379aa95';
+import { openContract } from './contract.js?v=e379aa95';
+import { nextContractNo } from '../core/contracts.js?v=e379aa95';
+import { say } from './main-screen.js?v=e379aa95';
+import * as A from '../core/affection.js?v=e379aa95';
+import * as BI from './brandinv.js?v=e379aa95'; // 设计35 第九节 品牌邀请不过期
 
 const imgOf = (x) => `assets/${x.kind}/${x.img || x.id}.webp`;
 const pic = (x, cls = 'as-img') => (hasAsset(imgOf(x)) ? `<img class="${cls}" src="${asset(imgOf(x))}" alt="">` : `<div class="${cls} as-ph">${x.brand}<small>${x.model}</small></div>`);
@@ -117,7 +117,7 @@ function shopCard(s, x, t, draw, secId) {
   else if (LX.queues(x)) act = `<button class="btn gold order two">${x.channel === 'invite' ? '登记，等邀请' : x.channel === 'custom' ? `${x.kind === 'suit' ? '预约量体' : '提交定制委托'}，付定金 ${fmtMoney(x.price * 0.3)}` : x.channel === 'alloc' ? '配货，排队' : x.kind === 'suit' ? '量体下单' : '下单排队'}<small>立刻交付</small></button>`;
   else act = `<button class="btn gold buy">${x.kind === 'bag' ? `买下送给${SEC_BY_ID[secId].name}` : '付款'}</button>`;
   let extra = '';
-  if (x.kind === 'bag') { const g = LX.bagFavor(s, x, secId); extra = `<small>好感 +${Math.round(g.favor * A.favorMult(s))}${g.love ? '　爱慕 +1' : ''}${g.liked ? '　<b class="pos">♥ 她喜欢</b>' : ''}</small>`; }
+   // 设计56：名包改在商场「奢侈品」送（ui/gift.js openLux），这里不再显示好感
   const c = h('div', 'as-card ' + frame(x) + (why && !own && !o ? ' dim' : ''), `${pic(x)}${badges(x)}<b>${LX.label(x)}</b>${sub(x)}<small>${fmtMoney(x.price)}　${LX.CH_NAME[x.channel]}${x.quotaX ? `（额度 ${fmtMoney(LX.quotaNeed(s, x))}）` : ''}</small>${extra}${act}`);
   const on = (sel, fn) => { const y = c.querySelector(sel); if (y) y.onclick = fn; };
   on('.buy', () => (x.kind === 'bag' ? giveFlow(x, secId, false, draw) : invoiceBuy(x, draw)));
@@ -155,10 +155,10 @@ function contractBuy(x, done) {
 /** 送包 */
 function giveFlow(x, secId, queued, done) {
   const s = game.state; const c = SEC_BY_ID[secId];
-  const r = queued ? LX.buyQueued(s, x.id, now(), secId) : LX.giveBag(s, x.id, secId, now());
+  const r = queued ? LX.buyQueued(s, x.id, now(), secId) : { ok: false, why: '名包去商场「奢侈品」送' };   // 设计56
   if (!r.ok) { toast(r.why); return; }
   say(secId, r.liked ? `${x.brand}……你怎么知道我喜欢这个？` : `${x.model}？……谢谢老板。`, 3600, 'happy');
-  toast(`${c.name} 好感 +${r.favor.to - r.favor.from}${r.love.to > r.love.from ? `　♥ +${r.love.to - r.love.from}` : ''}`, 2600, { top: true });
+  toast(`${c.name} 好感 +${+(r.favor.to - r.favor.from).toFixed(2)}${r.love.to > r.love.from ? `　♥ +${+(r.love.to - r.love.from).toFixed(2)}` : ''}`, 2600, { top: true });
   if (r.favor.stageUp) game.emit('favorUp', secId, r.favor);
   if (r.love.stageUp) game.emit('loveUp', secId, r.love);
   game.changed(); game.save(); done && done();
@@ -183,8 +183,9 @@ function openAuction(x, done) {
 }
 
 /** 商场「名包」：host 是商场里的格子 */
+/** 设计56 以后不用了（商场「奢侈品」= ui/gift.js openLux），留着给老入口 */
 export function openBags(secId, host) {
-  const s = game.state; const c = SEC_BY_ID[secId]; const likes = (LX.LCFG.bag.likes[secId] || []).map((k) => LX.BRANDS('bag').find((b) => b[0] === k)).filter(Boolean).map((b) => b[1]);
+  const s = game.state; const c = SEC_BY_ID[secId]; const likes = [SEC_BY_ID[secId].likeBrand].map((k) => LX.BRANDS('bag').find((b) => b[0] === k)).filter(Boolean).map((b) => b[1]);
   host.body.appendChild(h('div', 'gift-tip', `名包只能送人，不算身价。${c.name}喜欢：<b>${likes.join('、') || '—'}</b>（好感 ×2、爱慕 +1）；爱马士谁都喜欢。香奈尔 CF 每天 1 个，爱马士配货包每天 2 个`));
   const box = h('div'); host.body.appendChild(box);
   const draw = () => {
@@ -207,6 +208,6 @@ export function wearHtml(s) {
 
 // 每秒：排队到点进消息中心
 game.addTicker((s) => {
-  for (const x of LX.tick(s, now())) BI.notify(s, 'lux', x.order, x.text, LX.L[x.order.id].kind === 'bag' ? '去「商场 → 名包」送给她。' : '去「资产 → 穿戴」的表行 / 定制店。');
+  for (const x of LX.tick(s, now())) BI.notify(s, 'lux', x.order, x.text, LX.L[x.order.id].kind === 'bag' ? '去「商场 → 奢侈品」送给她。' : '去「资产 → 穿戴」的表行 / 定制店。');
 });
 game.on('tabHome', () => { curKind = 'watch'; }); // 从底下导航点进来：回到第一个小页签

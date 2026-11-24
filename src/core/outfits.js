@@ -1,9 +1,9 @@
 // 衣服：买（算送礼）、好感到了自动换上、衣柜、约会穿哪套
-import { OUTFITS, OUTFIT_BY_ID, GIFT_CLOTH_FAVOR, DATE_OUTFIT, priceOf } from '../config/outfits.js?v=451b6719';
-import { ensureSec, FAVOR_STAGES } from './secretary.js?v=451b6719';
-import { addFavor } from './affection.js?v=451b6719';
-import { pay, receive, accrue, canPay } from './ledger.js?v=451b6719';
-import * as STY from './styles.js?v=451b6719'; // V3-05 按款式挑
+import { OUTFITS, OUTFIT_BY_ID, DATE_OUTFIT, priceOf } from '../config/outfits.js?v=e379aa95';
+import { ensureSec, FAVOR_STAGES } from './secretary.js?v=e379aa95';
+import { addFavor } from './affection.js?v=e379aa95';
+import { pay, receive, accrue, canPay } from './ledger.js?v=e379aa95';
+import * as STY from './styles.js?v=e379aa95'; // V3-05 按款式挑
 
 function rec(s, id) {
   const r = ensureSec(s, id);
@@ -30,7 +30,7 @@ export function buyOutfit(s, id, o, t = Date.now()) {
   if (!canPay(s, 'personal', price)) return { ok: false, why: '个人现金不够' };
   pay(s, { wallet: 'personal', cat: 'clothes', amount: price, party: id, note: `给${id}买第 ${o.slice(1)} 套` }, t); r.owned.push(o);
   r.rec.clothes += 1; r.rec.gifts += 1; s.stats.clothes = (s.stats.clothes || 0) + 1;
-  const favor = addFavor(s, id, GIFT_CLOTH_FAVOR);
+  const f0 = (s.secs[id] || {}).favor || 0; const favor = { from: f0, to: f0, stageUp: false };   // 设计56：衣服不加好感、不加爱慕
   return { ok: true, favor, wearNow: canWear(s, id, o) };
 }
 

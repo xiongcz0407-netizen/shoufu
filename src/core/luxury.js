@@ -3,18 +3,18 @@
 // 表、西装：老板自己的，算身价（卖回价），加气场（全定制西装加人脉），戴着的表、穿着的西装再加一半；能卖回（配货表马上卖 → 配货变差一档；邀请 / 定制的卖了 → 拉黑）
 // 名包：只能送秘书（喜欢的牌子翻倍、进她的记录），不算身价、不画在立绘上；爱马士配货包每天最多 2 个，香奈尔 CF 每天 1 个
 // 商务总监（秘书）：配货额度攒得快；被拉黑 / 变差后去品牌「求情」
-import { MONTH_MS } from './gametime.js?v=451b6719'; // V0.2.10
-import CFG from '../config/luxury.json?v=451b6719' with { type: 'json' };
-import { pay } from './ledger.js?v=451b6719';
-import { receive } from './ledger.js?v=451b6719';
-import { addContract } from './contracts.js?v=451b6719';
-import { invoice, addFavor, addLove, markWith, dayKey } from './affection.js?v=451b6719';
-import { ensureSec } from './secretary.js?v=451b6719';
-import { stewardSellRate, stewardQueueMult, holder, isSec, attrs as secAttrs } from './posts.js?v=451b6719';
-import { addAssetHook, recalc, premium } from './assets.js?v=451b6719';
-import { addAttrHook, bossAttrs } from './boss.js?v=451b6719';
-import { SEC_BY_ID } from '../config/secretaries.js?v=451b6719';
-import { taxRec } from './fiscal.js?v=451b6719';
+import { MONTH_MS } from './gametime.js?v=e379aa95'; // V0.2.10
+import CFG from '../config/luxury.json?v=e379aa95' with { type: 'json' };
+import { pay } from './ledger.js?v=e379aa95';
+import { receive } from './ledger.js?v=e379aa95';
+import { addContract } from './contracts.js?v=e379aa95';
+import { invoice, dayKey } from './affection.js?v=e379aa95';
+import { ensureSec } from './secretary.js?v=e379aa95';
+import { stewardSellRate, stewardQueueMult, holder, isSec, attrs as secAttrs } from './posts.js?v=e379aa95';
+import { addAssetHook, recalc, premium } from './assets.js?v=e379aa95';
+import { addAttrHook, bossAttrs } from './boss.js?v=e379aa95';
+import { SEC_BY_ID } from '../config/secretaries.js?v=e379aa95';
+import { taxRec } from './fiscal.js?v=e379aa95';
 
 export const LCFG = CFG;
 export const WATCHES = CFG.watches, SUITS = CFG.suits, BAGS = CFG.bags;
@@ -30,8 +30,15 @@ const CAT = { watch: 'watch', suit: 'suit', bag: 'bag' };
 /** 存档 s.lux */
 export function lx(s) {
   const d = (s.lux = s.lux || {});
+  if (Array.isArray(d.orders) && d.orders.some((o) => L[o.id] && L[o.id].kind === 'bag')) dropBagOrders(s, d);
   for (const [k, v] of Object.entries({ own: [], meta: {}, spend: {}, quota: {}, penalty: {}, black: {}, allocBags: 0, day: '', cf: 0, alloc: 0, suitSlot: {}, orders: [], worn: {}, pleadAt: 0, given: [] })) if (d[k] == null) d[k] = structuredClone(v);
   return d;
+}
+/** 设计56 老存档：排着队的名包订单（配货 / 邀请，都没交定金）直接撤掉，写一条系统消息：现在去「奢侈品」直接买（交过定金的退回） */
+function dropBagOrders(s, d) {
+  const bags = d.orders.filter((o) => L[o.id] && L[o.id].kind === 'bag'); d.orders = d.orders.filter((o) => !bags.includes(o));
+  for (const o of bags) if (o.deposit > 0) receive(s, { wallet: 'personal', cat: 'bag', amount: o.deposit, party: L[o.id].brand, note: `${label(L[o.id])} 订单撤了，定金退回` });
+  (s.inbox = s.inbox || []); d.bagOrdersDropped = (d.bagOrdersDropped || 0) + bags.length;
 }
 function today(s, t) { const d = lx(s); const k = dayKey(t); if (d.day !== k) { d.day = k; d.cf = 0; d.alloc = 0; d.suitSlot = {}; } return d; }
 export const owns = (s, id) => lx(s).own.includes(id);
@@ -49,7 +56,8 @@ let networkOf = (s) => bossAttrs(s).network; export const setNetworkFn = (fn) =>
 export function whyNot(s, id, t = Date.now(), { forQueue = false } = {}) {
   const x = L[id]; if (!x) return '没有这件';
   const d = today(s, t); const b = x.brandKey;
-  if (x.kind !== 'bag' && owns(s, id)) return '已经有了';
+  if (x.kind === 'bag') return x.retired ? '这件不卖了' : freeCash(s) < x.price ? `个人现金还差 ${fmt(x.price - freeCash(s))}` : null;   // 设计56：名包全部现货直接买（没有限量、配货、邀请）
+  if (owns(s, id)) return '已经有了';
   if (orderOf(s, id)) return null;   // 已经在排队：到点直接签
   if (d.black[b]) return `你转卖过${x.brand}的东西，被拉黑了（商务总监可以去求情）`;
   if (x.spend && spendOf(s, b) < x.spend) return `${x.brand}累计消费要到 ${fmt(x.spend)}（还差 ${fmt(x.spend - spendOf(s, b))}）`;
@@ -80,11 +88,14 @@ function payFor(s, x, amount, t, { paid = 0, by = '', party = '', note = '' } = 
   { const ir = invoiceRows(x, amount); taxRec(s, { kind: `增值税等（含在价款里：${({ watch: '名表', suit: '西装', bag: '名包' })[x.kind]}）`, base: amount, amount: ir.vat + ir.rows.filter((r) => r[0].startsWith('其中')).reduce((a, r) => a + r[1], 0), t }); }
   if (amount - paid >= 0.01 && !pay(s, { wallet: 'personal', cat: CAT[x.kind], amount: amount - paid, tax: invoiceRows(x, amount).vat, ref: inv.no, party: party || x.brand, by, note: note || label(x) + (paid ? '（尾款）' : '') }, t)) return null;
   const d = lx(s); const b = x.brandKey;
+  if (x.kind === 'bag') return inv;   // 设计56：买包不再攒品牌消费、配货额度
   d.spend[b] = (d.spend[b] || 0) + amount;
   if (x.channel === 'alloc') d.quota[b] = Math.max(0, (d.quota[b] || 0) - quotaNeed(s, x));
   else d.quota[b] = (d.quota[b] || 0) + amount * quotaMult(s);
   return inv;
 }
+/** 设计56：送秘书的奢侈品（名包）付钱、开发票（不攒额度） */
+export const payBag = (s, x, t, opts) => payFor(s, x, x.price, t, opts);
 function countDaily(s, x, t) { const d = today(s, t); if (x.dailyMax) d.cf++; if (x.allocDaily) d.alloc++; if (x.kind === 'bag' && (x.channel === 'alloc')) d.allocBags++; }
 
 /** 买表 / 西装（签发票付钱）。price：拍卖成交价；paid：定金 */
@@ -111,27 +122,7 @@ export function buy(s, id, t = Date.now(), { price = null, paid = 0, channel = n
   return { ok: true, item: x, invoice: inv, contract: ct, rows: invoiceRows(x, p).rows };
 }
 
-/** 名包：买了直接送她 */
-export function bagFavor(s, x, secId) {
-  const B = CFG.bag; const liked = (B.likes[secId] || []).includes(x.brandKey);
-  let f = B.base + B.perLog * Math.log10(Math.max(1, x.price / 1e4));
-  if (x.brandKey === 'hermes') f *= B.hermesX; if (liked) f *= B.likedX;
-  return { favor: Math.round(f), love: liked || (x.brandKey === 'hermes' && x.channel !== 'spot') ? 1 : 0, liked };
-}
-export function giveBag(s, id, secId, t = Date.now(), { skipCheck = false, paid = 0 } = {}) {
-  const x = L[id]; if (!x || x.kind !== 'bag') return { ok: false, why: '没有这个包' };
-  if (!s.secs[secId]) return { ok: false, why: '还没有这个秘书' };
-  if (!skipCheck) { const why = whyNot(s, id, t); if (why) return { ok: false, why }; }
-  if (freeCash(s) < x.price - paid) return { ok: false, why: '个人现金不够' };
-  const inv = payFor(s, x, x.price, t, { paid, party: x.brand, note: `送${SEC_BY_ID[secId].name} ${label(x)}` }); if (!inv) return { ok: false, why: '个人现金不够' };
-  countDaily(s, x, t);
-  const r = ensureSec(s, secId); const g = bagFavor(s, x, secId);
-  r.rec.gifts += 1; r.rec.bags = r.rec.bags || []; r.rec.bags.push({ id, t });
-  s.stats = s.stats || {}; s.stats.gifts = (s.stats.gifts || 0) + 1; lx(s).given.push({ id, sec: secId, t });
-  const favor = addFavor(s, secId, g.favor); const love = addLove(s, secId, g.love);
-  markWith(s, secId, t);
-  return { ok: true, item: x, invoice: inv, liked: g.liked, favor, love };
-}
+// 名包送秘书（设计56）搬到 core/love.js giveLux：只加爱慕 = 价钱 ÷ 1 万
 
 // ---------- 排队：订单配额 / 邀请 / 定制委托（全定制西装两次试衣）----------
 export const orderOf = (s, id) => lx(s).orders.find((o) => o.id === id);
@@ -160,7 +151,8 @@ export const orderReady = (s, id, t) => { const o = orderOf(s, id); const x = L[
 export function buyQueued(s, id, t, secId = null) {
   if (!orderOf(s, id) || !orderReady(s, id, t)) return { ok: false, why: '还在等' };
   const o = orderOf(s, id); const x = L[id];
-  const r = x.kind === 'bag' ? giveBag(s, id, secId, t, { paid: o.deposit, skipCheck: true }) : buy(s, id, t, { paid: o.deposit, channel: o.ch, skipCheck: true });
+  if (x.kind === 'bag') return { ok: false, why: '名包不用排队了，去商场「奢侈品」直接买' };   // 设计56
+  const r = buy(s, id, t, { paid: o.deposit, channel: o.ch, skipCheck: true });
   if (r.ok) lx(s).orders = lx(s).orders.filter((y) => y !== o);
   return r;
 }

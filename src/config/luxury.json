@@ -618,184 +618,22 @@
   }
  ],
  "bags": [
-  {
-   "id": "bag_01",
-   "kind": "bag",
-   "brandKey": "lv",
-   "brand": "路易薇登",
-   "model": "托特包 Neverfull",
-   "modelEn": "Neverfull",
-   "price": 15000,
-   "channel": "spot"
-  },
-  {
-   "id": "bag_02",
-   "kind": "bag",
-   "brandKey": "lv",
-   "brand": "路易薇登",
-   "model": "卡普辛",
-   "modelEn": "Capucines",
-   "price": 40000,
-   "channel": "spot"
-  },
-  {
-   "id": "bag_03",
-   "kind": "bag",
-   "brandKey": "dior",
-   "brand": "迪傲",
-   "model": "戴妃包",
-   "modelEn": "Lady Dior",
-   "price": 45000,
-   "channel": "spot"
-  },
-  {
-   "id": "bag_04",
-   "kind": "bag",
-   "brandKey": "dior",
-   "brand": "迪傲",
-   "model": "马鞍包",
-   "modelEn": "Saddle",
-   "price": 30000,
-   "channel": "spot"
-  },
-  {
-   "id": "bag_05",
-   "kind": "bag",
-   "brandKey": "bv",
-   "brand": "宝蝶家",
-   "model": "编织 Jodie 包",
-   "modelEn": "Jodie",
-   "price": 25000,
-   "channel": "spot"
-  },
-  {
-   "id": "bag_06",
-   "kind": "bag",
-   "brandKey": "bv",
-   "brand": "宝蝶家",
-   "model": "编织盒子包",
-   "modelEn": "Cassette",
-   "price": 30000,
-   "channel": "spot"
-  },
-  {
-   "id": "bag_07",
-   "kind": "bag",
-   "brandKey": "chanel",
-   "brand": "香奈尔",
-   "model": "经典口盖包（CF）",
-   "modelEn": "Classic Flap",
-   "price": 80000,
-   "channel": "spot",
-   "dailyMax": 1
-  },
-  {
-   "id": "bag_08",
-   "kind": "bag",
-   "brandKey": "chanel",
-   "brand": "香奈尔",
-   "model": "流浪包",
-   "modelEn": "Boy",
-   "price": 50000,
-   "channel": "spot"
-  },
-  {
-   "id": "bag_09",
-   "kind": "bag",
-   "brandKey": "hermes",
-   "brand": "爱马士",
-   "model": "菜篮子",
-   "modelEn": "Picotin",
-   "price": 30000,
-   "channel": "spot"
-  },
-  {
-   "id": "bag_10",
-   "kind": "bag",
-   "brandKey": "hermes",
-   "brand": "爱马士",
-   "model": "伊芙琳",
-   "modelEn": "Evelyne",
-   "price": 30000,
-   "channel": "spot"
-  },
-  {
-   "id": "bag_11",
-   "kind": "bag",
-   "brandKey": "hermes",
-   "brand": "爱马士",
-   "model": "康斯坦斯",
-   "modelEn": "Constance",
-   "price": 120000,
-   "channel": "alloc",
-   "quotaX": 1,
-   "allocDaily": true
-  },
-  {
-   "id": "bag_12",
-   "kind": "bag",
-   "brandKey": "hermes",
-   "brand": "爱马士",
-   "model": "凯莉包",
-   "modelEn": "Kelly",
-   "price": 150000,
-   "channel": "alloc",
-   "quotaX": 1.2,
-   "allocDaily": true
-  },
-  {
-   "id": "bag_13",
-   "kind": "bag",
-   "brandKey": "hermes",
-   "brand": "爱马士",
-   "model": "铂金包",
-   "modelEn": "Birkin",
-   "price": 250000,
-   "channel": "alloc",
-   "quotaX": 1.5,
-   "allocDaily": true
-  },
-  {
-   "id": "bag_14",
-   "kind": "bag",
-   "brandKey": "hermes",
-   "brand": "爱马士",
-   "model": "铂金包 鳄鱼皮",
-   "modelEn": "Birkin Croco",
-   "price": 600000,
-   "channel": "invite",
-   "spend": 3000000,
-   "allocBags": 2,
-   "wait": 20
-  },
-  {
-   "id": "bag_15",
-   "kind": "bag",
-   "brandKey": "hermes",
-   "brand": "爱马士",
-   "model": "凯莉包 鳄鱼皮",
-   "modelEn": "Kelly Croco",
-   "price": 800000,
-   "channel": "invite",
-   "spend": 3000000,
-   "allocBags": 2,
-   "wait": 20
-  },
-  {
-   "id": "bag_16",
-   "kind": "bag",
-   "brandKey": "hermes",
-   "brand": "爱马士",
-   "model": "喜马拉雅铂金包",
-   "modelEn": "Himalaya Birkin",
-   "price": 3000000,
-   "channel": "invite",
-   "spend": 5000000,
-   "allocBags": 3,
-   "network": 50,
-   "wait": 30,
-   "limit": 1
-  }
+  {"id": "bag_01", "kind": "bag", "brandKey": "lv", "brand": "路易薇登", "model": "托特包 Neverfull", "modelEn": "Neverfull", "price": 15000, "channel": "spot"},
+  {"id": "bag_02", "kind": "bag", "brandKey": "lv", "brand": "路易薇登", "model": "卡普辛", "modelEn": "Capucines", "price": 40000, "channel": "spot"},
+  {"id": "bag_03", "kind": "bag", "brandKey": "dior", "brand": "迪傲", "model": "戴妃包", "modelEn": "Lady Dior", "price": 45000, "channel": "spot"},
+  {"id": "bag_04", "kind": "bag", "brandKey": "dior", "brand": "迪傲", "model": "马鞍包", "modelEn": "Saddle", "price": 30000, "channel": "spot"},
+  {"id": "bag_05", "kind": "bag", "brandKey": "bv", "brand": "宝蝶家", "model": "编织 Jodie 包", "modelEn": "Jodie", "price": 25000, "channel": "spot"},
+  {"id": "bag_06", "kind": "bag", "brandKey": "bv", "brand": "宝蝶家", "model": "编织盒子包", "modelEn": "Cassette", "price": 30000, "channel": "spot"},
+  {"id": "bag_07", "kind": "bag", "brandKey": "chanel", "brand": "香奈尔", "model": "经典口盖包（CF）", "modelEn": "Classic Flap", "price": 80000, "channel": "spot"},
+  {"id": "bag_08", "kind": "bag", "brandKey": "chanel", "brand": "香奈尔", "model": "流浪包", "modelEn": "Boy", "price": 50000, "channel": "spot"},
+  {"id": "bag_09", "kind": "bag", "brandKey": "hermes", "brand": "爱马士", "model": "菜篮子", "modelEn": "Picotin", "price": 30000, "channel": "spot"},
+  {"id": "bag_10", "kind": "bag", "brandKey": "hermes", "brand": "爱马士", "model": "伊芙琳", "modelEn": "Evelyne", "price": 30000, "channel": "spot"},
+  {"id": "bag_11", "kind": "bag", "brandKey": "hermes", "brand": "爱马士", "model": "康斯坦斯", "modelEn": "Constance", "price": 120000, "channel": "spot"},
+  {"id": "bag_12", "kind": "bag", "brandKey": "hermes", "brand": "爱马士", "model": "凯莉包", "modelEn": "Kelly", "price": 150000, "channel": "spot"},
+  {"id": "bag_13", "kind": "bag", "brandKey": "hermes", "brand": "爱马士", "model": "铂金包", "modelEn": "Birkin", "price": 250000, "channel": "spot"},
+  {"id": "bag_14", "kind": "bag", "brandKey": "hermes", "brand": "爱马士", "model": "铂金包 鳄鱼皮", "modelEn": "Birkin Croco", "price": 600000, "channel": "spot"},
+  {"id": "bag_15", "kind": "bag", "brandKey": "hermes", "brand": "爱马士", "model": "凯莉包 鳄鱼皮", "modelEn": "Kelly Croco", "price": 800000, "channel": "spot"},
+  {"id": "bag_16", "kind": "bag", "brandKey": "hermes", "brand": "爱马士", "model": "喜马拉雅铂金包", "modelEn": "Himalaya Birkin", "price": 3000000, "channel": "invite", "retired": true}
  ],
  "tax": {
   "_说明": "发票照设计14 第二节 2：价格含税，列不含税价 + 增值税 13%；手表 ≥ 1 万元/只「含消费税 20%」；进口品「含进口关税」（约）",
@@ -819,56 +657,7 @@
   "suitCustomNetwork": 1,
   "wornBonus": 0.5
  },
- "bag": {
-  "_说明": "名包送秘书：好感 = 6 + 4 × log10(价格万元)；爱马士 ×1.5；她喜欢的牌子 ×2、爱慕 +1（爱马士配货包、邀请包也 +1）",
-  "base": 6,
-  "perLog": 4,
-  "hermesX": 1.5,
-  "likedX": 2,
-  "likes": {
-   "s09_xia": [
-    "bv",
-    "lv"
-   ],
-   "s10_lu": [
-    "lv",
-    "bv"
-   ],
-   "s06_ye": [
-    "dior",
-    "chanel"
-   ],
-   "s07_tang": [
-    "lv",
-    "dior"
-   ],
-   "s03_lin": [
-    "chanel",
-    "dior"
-   ],
-   "s05_jiang": [
-    "chanel",
-    "hermes"
-   ],
-   "s08_xu": [
-    "bv",
-    "hermes"
-   ],
-   "s04_gu": [
-    "bv",
-    "lv"
-   ],
-   "s01_shen": [
-    "chanel",
-    "hermes"
-   ],
-   "s02_su": [
-    "hermes",
-    "bv"
-   ]
-  },
-  "_likes": "设计没写每人喜欢哪个牌子，开发按性格先定（等设计改）"
- },
+ "bag": {"_说明": "设计56：名包并进商场「奢侈品」（送秘书只加爱慕 = 价钱 ÷ 1 万，见 config/love.json）；全部现货直接买，没有每天限量、配货额度、邀请；买包不攒品牌配货额度（老板名表、西装的配货 / 邀请 / 定制 / 拍卖照旧）。bag_16 喜马拉雅（300 万）retired：不再卖，老存档送过的还在首饰盒"},
  "sellRate": 0.7,
  "_sellRate": "表、西装卖回按买价 70%（资产管家最高 80%）；包送出去了不能卖",
  "allocResellMonths": 1,

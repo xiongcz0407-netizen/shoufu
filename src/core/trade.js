@@ -1,17 +1,17 @@
 // 第 P-06 项（设计25 第五节）：前期炒股 —— 条件单、打新股、融资融券、看盘、炒股周报
 // 条件单和两融的平仓线每跳检查（挂在 stocks.js 的 addStepHook 上，离线补算一样走）；打新、利息、周报按时间走 tick()（在线 ticker 和 core/offcap.js 都叫）
-import { dropOrphans } from './orphans.js?v=451b6719';
-import * as SK from './stocks.js?v=451b6719';
-import { pay, receive } from './ledger.js?v=451b6719';
-import { addContract } from './contracts.js?v=451b6719';
-import { addMsg } from './inbox.js?v=451b6719';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=451b6719';
-import { profitMul } from './calib.js?v=451b6719';
-import { isTraining } from './training.js?v=451b6719';
-import { attrs as secAttrs } from './posts.js?v=451b6719';
-import { SEC_BY_ID } from '../config/secretaries.js?v=451b6719';
-import { netWorth } from './economy.js?v=451b6719';
-import { addAssetHook } from './assets.js?v=451b6719';
+import { dropOrphans } from './orphans.js?v=e379aa95';
+import * as SK from './stocks.js?v=e379aa95';
+import { pay, receive } from './ledger.js?v=e379aa95';
+import { addContract } from './contracts.js?v=e379aa95';
+import { addMsg } from './inbox.js?v=e379aa95';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=e379aa95';
+import { profitMul } from './calib.js?v=e379aa95';
+import { isTraining } from './training.js?v=e379aa95';
+import { attrs as secAttrs } from './posts.js?v=e379aa95';
+import { SEC_BY_ID } from '../config/secretaries.js?v=e379aa95';
+import { netWorth } from './economy.js?v=e379aa95';
+import { addAssetHook } from './assets.js?v=e379aa95';
 
 const C = SK.SCFG; const O = C.orders, I = C.ipo, MG = C.margin, W = C.weekly;
 export const DAY = MONTH_MS / 30;
@@ -106,6 +106,47 @@ export function inOrders(s) {
 export const orderValue = (s) => inOrders(s).value;
 export const { myShares, myShareValue, myHoldings } = SK;   // V0.2.16：放在 stocks.js（分红也要用），这里转一下
 addAssetHook({ value: (s) => orderValue(s) });
+// ---------- 设计57 补仓：按成本价马上成交（不碰盘口、不动股价、不算滑点；佣金、过户费照收），并进挂着的卖单或持仓；不算跟单次数 ----------
+const LOT = 100;
+const POSK = [{ k: 'third', name: '⅓仓', f: 1 / 3 }, { k: 'half', name: '半仓', f: 1 / 2 }, { k: 'all', name: '全仓', f: 1 }];
+const feesAt = (gross) => { const F = C.fees; const commission = r2(Math.max(F.minCommission, gross * F.commission)); const transfer = r2(gross * F.transfer); return { commission, transfer, fees: r2(commission + transfer) }; };
+/** 补进哪：挂着卖单的 → 股数最多那份（联动组 g.sh 或单张 o.sh）；没挂 → 持仓。{ box（null = 持仓）, cost, n, outs（那份的卖单）} */
+export function topUpBox(s, code) {
+  const m = s.mkt; if (!m) return null; const seen = new Set(); let best = null;
+  for (const o of m.orders || []) { if (o.code !== code || o.kind === 'buy') continue; const box = shOf(s, o); if (seen.has(box) || !box.sh || !(box.sh.n > 0)) continue; seen.add(box); if (!best || box.sh.n > best.sh.n) best = box; }
+  if (best) return { box: best, cost: best.sh.cost, n: best.sh.n, outs: m.orders.filter((o) => o.kind !== 'buy' && shOf(s, o) === best) };
+  const h = m.hold[code]; return h && h.n > 0 ? { box: null, cost: h.cost, n: h.n, outs: [] } : null;
+}
+/** 补 n 股要多少：{ gross, commission, transfer, fees, total } */
+export const topUpCost = (cost, n) => { const gross = r2(cost * n); const f = feesAt(gross); return { gross, ...f, total: r2(gross + f.fees) }; };
+/** 三个按钮：[{ k, name, n（100 股一手，0 = 不够一手）, cost, total, tp: { px, gain }, sl: { px, loss } }] */
+export function topUpOptions(s, code) {
+  const T = topUpBox(s, code); if (!T) return []; const cash = Math.max(0, availCash(s)); const R = 1 + C.fees.commission + C.fees.transfer;
+  const capN = Math.max(0, Math.ceil(SK.BY[code].shares * 1e8 * C.stake.notice) - 1 - ((SK.myShares(s)[code] || { n: 0 }).n));   // 个人 5% 以下
+  const tp = T.outs.find((o) => o.kind === 'tp'), sl = T.outs.find((o) => o.kind === 'sl');
+  return POSK.map((x) => {
+    const amt = cash * x.f; let n = Math.floor(Math.min(capN, amt / (T.cost * R)) / LOT) * LOT; while (n > 0 && topUpCost(T.cost, n).total > amt + 1e-9) n -= LOT;
+    const q = topUpCost(T.cost, n);
+    return { k: x.k, name: x.name, n, cost: T.cost, total: q.total, gross: q.gross, tp: tp ? { px: tp.px, gain: r2((tp.px - T.cost) * n) } : null, sl: sl ? { px: sl.px, loss: r2((sl.px - T.cost) * n) } : null };
+  });
+}
+/** 补仓：n 股（100 的整数倍）按成本价马上成交 */
+export function topUp(s, code, n, t = Date.now()) {
+  const m = s.mkt; const T = topUpBox(s, code); n = Math.floor(n); if (!T) return { ok: false, why: '没有这只的持仓' };
+  if (n < LOT || n % LOT) return { ok: false, why: '补仓按 100 股一手' };
+  const q = topUpCost(T.cost, n); if (availCash(s) < q.total - 1e-9) return { ok: false, why: `个人现金还差 ${fmt(q.total - availCash(s))}` };
+  if (((SK.myShares(s)[code] || { n: 0 }).n + n) / (SK.BY[code].shares * 1e8) >= C.stake.notice - 1e-12) return { ok: false, why: `个人最多买到 ${C.stake.notice * 100}% 以下` };
+  const x = SK.BY[code];
+  const ct = addContract(s, { prefix: 'JG', kind: 'stock', title: '交割单', parties: [['股东', s.bossName || '老板'], ['券商', '华太正券']], subject: `补仓 ${x.name}（${code}）${n.toLocaleString()} 股，按成本价 ${T.cost}`, rows: [['成交金额', q.gross, '按成本价'], ['佣金', q.commission, '0.025%，最低 5 元'], ['过户费', q.transfer, '0.001%']], total: q.total, wallet: 'personal' }, t);
+  pay(s, { wallet: 'personal', cat: 'stock_buy', amount: q.gross, ref: ct.no, party: '证券账户', note: `补仓（按成本价）：${x.name} ${n} 股 × ${T.cost}` }, t);
+  pay(s, { wallet: 'personal', cat: 'stock_fee', amount: q.fees, ref: ct.no, party: '华太正券', note: `${x.name} 补仓佣金、过户费` }, t);
+  if (T.box) {   // 并进那份卖单：股数、组的股数和成本、每张卖单的股数都加上，按原来的卖价、原来的时限一起卖
+    T.box.sh.n += n; for (const o of T.outs) o.n += n;
+    if (!T.outs.includes(T.box)) { const g = T.box; if (g.n != null) g.n += n; if (g.cost != null) g.cost = r2(g.cost + q.total); }   // 联动组：g.n、g.cost 跟着加（盈亏按全部股数算）
+  } else m.hold[code].n += n;   // 成本不变（按成本价补）
+  if (m.wk) { const f = m.wk.f[code] || (m.wk.f[code] = { buy: 0, sell: 0 }); f.buy = r2(f.buy + q.total); }
+  return { ok: true, n, cost: T.cost, total: q.total, gross: q.gross, fees: q.fees, into: T.box ? 'order' : 'hold', slip: ct };
+}
 /** 玩家自己卖（个股页的卖出 / 全部卖出）：只卖持仓里剩下的 */
 export function sellMine(s, code, n, t = Date.now()) {
   const k = sellable(s, code); const lk = lockedShares(s, code);

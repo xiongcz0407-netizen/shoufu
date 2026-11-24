@@ -1102,3 +1102,32 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 @keyframes flUp { 0% { background: rgba(229, 72, 77, .45); } 100% { background: transparent; } }
 @keyframes flDn { 0% { background: rgba(47, 179, 122, .45); } 100% { background: transparent; } }
 .fl-up { animation: flUp .8s ease-out; border-radius: 3px; } .fl-dn { animation: flDn .8s ease-out; border-radius: 3px; }
+
+/* 设计57 补仓 */
+.hv-top .hv-add { margin-left: 6px; flex: none; }
+.tu-top { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; } .tu-top small { display: block; font-size: 11px; opacity: .8; margin-top: 2px; }
+.tu-ops { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0; }
+.tu-op { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; } .tu-op small { font-size: 10.5px; line-height: 1.3; }
+.tu-op.gold small { color: #4a3410; opacity: 1; } .tu-op.gold small.up { color: #b3261e; font-weight: 600; } .tu-op.gold small.down { color: #0d6b41; font-weight: 600; }
+
+/* 设计56 礼物 / 奢侈品 / 定情信物 / 首饰盒 / 生日 */
+.gift-card.fav { border: 2px solid #e8c46a; box-shadow: 0 0 8px rgba(232, 196, 106, .35); }
+.gift-card.dis { border-color: #555d6e; opacity: .72; filter: grayscale(.5); }
+.gift-tag { position: absolute; left: 4px; top: 4px; font-style: normal; font-size: 9.5px; padding: 1px 5px; border-radius: 6px; max-width: 92%; line-height: 1.25; }
+.gift-tag.fav { background: #e8c46a; color: #3a2a08; font-weight: 700; } .gift-tag.dis { background: #4a5263; color: #dfe4ee; }
+.gift-card small.gift-none, .tk-card small.gift-none { color: #f0a35e; opacity: 1; }
+.gift-bday { background: linear-gradient(90deg, #5a2b4a, #2a2238); border: 1px solid #c86b9a; border-radius: 8px; padding: 6px 10px; font-size: 12px; margin: 4px 0 8px; }
+.lux-tabs { margin: 6px 0 8px; }
+.tk-card { display: flex; gap: 10px; align-items: center; background: linear-gradient(135deg, #3b2440, #1d2236); border: 1px solid #c88ab0; border-radius: 12px; padding: 10px; margin-bottom: 10px; }
+.tk-card b { display: block; font-size: 14px; color: #ffd9ec; } .tk-card small { display: block; font-size: 11px; opacity: .85; margin-top: 2px; } .tk-card .btn { margin-top: 6px; width: 100%; }
+.tk-pic { width: 64px; height: 64px; flex: none; display: flex; align-items: center; justify-content: center; } .tk-pic img { width: 64px; height: 64px; object-fit: contain; }
+.tk-pic.sil img { filter: brightness(0) opacity(.55); } .tk-pic.sil .tk-ph { filter: grayscale(1) brightness(.2); }
+.tk-ph { font-size: 38px; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; background: #2a2238; border-radius: 10px; }
+.tk-card.tk-hidden b, .tk-card.tk-wait b { color: #b9aec4; }
+.jb-top { font-size: 12px; margin: 4px 0 6px; color: #ffd9ec; }
+.jb-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.jb-item { background: #1a2438; border: 1px solid #2c3a56; border-radius: 8px; padding: 4px; text-align: center; } .jb-item.token { border-color: #c88ab0; }
+.jb-item img, .jb-item .tk-ph { width: 52px; height: 52px; object-fit: contain; margin: 0 auto; font-size: 26px; } .jb-item b { display: block; font-size: 10px; line-height: 1.2; } .jb-item small { font-size: 9px; opacity: .65; }
+.bday-strip { position: absolute; left: 50%; transform: translateX(-50%); top: 62px; z-index: 30; background: linear-gradient(90deg, #7a2f5c, #3d2a5c); border: 1px solid #f2a6cf; color: #fff; border-radius: 16px; padding: 6px 14px; font-size: 13px; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,.4); }
+.ag-bday { display: flex; gap: 8px; align-items: center; background: linear-gradient(90deg, #5a2b4a, #2a2238); border: 1px solid #c86b9a; border-radius: 10px; padding: 8px 10px; margin-bottom: 8px; width: 100%; color: var(--paper); text-align: left; font-size: 13px; }
+.ag-bday.pre { opacity: .8; border-style: dashed; }

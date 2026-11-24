@@ -1,11 +1,12 @@
 // 约会：地点、花钱、爱慕 / 好感、记录、次数解锁、同一天陪别人
-import { whyEnergy, doEnergy, E_COST } from './manage.js?v=451b6719'; // 设计39 约会花精力
-import { DATE_PLACES, PLACE_BY_ID, DATES_PER_DAY, CAR_TIER_LOVE, OTHER_SAME_DAY_LOVE, DATE_MILESTONES } from '../config/dates.js?v=451b6719';
-import { ensureSec } from './secretary.js?v=451b6719';
-import { addFavor, addLove, daily, markWith, favorMult } from './affection.js?v=451b6719';
-import { isTraining } from './training.js?v=451b6719';
-import { bump } from './daily.js?v=451b6719';
-import { pay, receive, accrue, canPay } from './ledger.js?v=451b6719';
+import { whyEnergy, doEnergy, E_COST } from './manage.js?v=e379aa95'; // 设计39 约会花精力
+import { DATE_PLACES, PLACE_BY_ID, DATES_PER_DAY, CAR_TIER_LOVE, OTHER_SAME_DAY_LOVE, DATE_MILESTONES } from '../config/dates.js?v=e379aa95';
+import { ensureSec } from './secretary.js?v=e379aa95';
+import { addFavor, addLove, daily, markWith, favorMult } from './affection.js?v=e379aa95';
+import { isTraining } from './training.js?v=e379aa95';
+import { bump } from './daily.js?v=e379aa95';
+import { afterDate } from './love.js?v=e379aa95';   // 设计56 定情信物
+import { pay, receive, accrue, canPay } from './ledger.js?v=e379aa95';
 
 /** 地点的调整（第 2-11 项：自己有游艇就不花租船钱、按档次多加）：fn(s, placeId) → null 或 { price, love, favor, note } */
 const ADJ = [];
@@ -58,11 +59,13 @@ export function goDate(s, id, placeId, t, carTier = 0) {
   r.rec.dates += 1; r.rec.places[p.name] = (r.rec.places[p.name] || 0) + 1; r.rec.lastDate = t;
   s.stats.dates = (s.stats.dates || 0) + 1; bump(s, t, 'date');
   markWith(s, id, t);
-  const love = addLove(s, id, Math.round((p.love + (CAR_TIER_LOVE[carTier] || 0) + (adj ? adj.love : 0)) * favorMult(s))); // 老板气场也让爱慕涨得快
+  const love0 = r.love;
+  const love = addLove(s, id, Math.round((p.love + (CAR_TIER_LOVE[carTier] || 0) + (adj ? adj.love : 0)) * favorMult(s)), { cross: true }); // 老板气场也让爱慕涨得快；设计56：只有约会能跨 20 / 40 / 60 / 80（最多 99）
   const favor = addFavor(s, id, p.favor + carTier * 2 + (adj ? adj.favor : 0));
   const milestones = DATE_MILESTONES.filter((m) => m.n === r.rec.dates);
   if (milestones.some((m) => m.kind === 'outfit')) r.dateOutfit = true;
   if (milestones.some((m) => m.kind === 'title')) r.dateTitle = true;
-  return { ok: true, place: p, love, favor, milestones, hurt, adj };
+  const token = afterDate(s, id, love0, t);   // 设计56：爱慕 ≥ 80 以后的下一次约会，她提起定情信物
+  return { ok: true, place: p, love, favor, milestones, hurt, adj, token };
 }
 export { DATE_PLACES };
