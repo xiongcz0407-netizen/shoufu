@@ -1,20 +1,20 @@
 // P-05 前期核心玩法·经营（设计25 第一、三节）：老板精力、每家店四个亲自经营动作（可带秘书）、口碑、店长 / 秘书自动经营、大盘行情、老板以后的大事
 // 「店」= 一条门店线（便利店 / 餐饮 / 服装）；营业额、进货的加成通过 economy.setManageHooks 挂进去
-import { credit } from './credit.js?v=d17576a6'; // V3-01 亲自拍板攒投入度
-import M from '../config/manage.json?v=d17576a6' with { type: 'json' };
-import AD from '../config/ads.json?v=d17576a6' with { type: 'json' }; // V0.2.5 口碑底线 = 广告升的口碑
-import { IND_BY_ID } from '../config/industries.js?v=d17576a6';
-import { SEC_BY_ID } from '../config/secretaries.js?v=d17576a6';
-import { YEAR_MS, MONTH_MS } from './gametime.js?v=d17576a6';
-import { industryRevenue, setManageHooks } from './economy.js?v=d17576a6';
-import { setRateAdjFn } from './bank.js?v=d17576a6';
-import { pay, receive, canPay } from './ledger.js?v=d17576a6';
-import { holder, isSec, attrs } from './posts.js?v=d17576a6';
-import { bossAttrs } from './boss.js?v=d17576a6';
-import { addFavor, dayKey } from './affection.js?v=d17576a6';
-import { isTraining } from './training.js?v=d17576a6';
-import { mark, energyBonus, onReward } from './goals.js?v=d17576a6'; // P-06 目标链（开发2）：做到了打勾、精力上限、奖励
-import { wage } from './staff.js?v=d17576a6';
+import { credit } from './credit.js?v=6993e46b'; // V3-01 亲自拍板攒投入度
+import M from '../config/manage.json?v=6993e46b' with { type: 'json' };
+import AD from '../config/ads.json?v=6993e46b' with { type: 'json' }; // V0.2.5 口碑底线 = 广告升的口碑
+import { IND_BY_ID } from '../config/industries.js?v=6993e46b';
+import { SEC_BY_ID } from '../config/secretaries.js?v=6993e46b';
+import { YEAR_MS, MONTH_MS } from './gametime.js?v=6993e46b';
+import { industryRevenue, setManageHooks } from './economy.js?v=6993e46b';
+import { setRateAdjFn } from './bank.js?v=6993e46b';
+import { pay, receive, canPay } from './ledger.js?v=6993e46b';
+import { holder, isSec, attrs } from './posts.js?v=6993e46b';
+import { bossAttrs } from './boss.js?v=6993e46b';
+import { dayKey } from './affection.js?v=6993e46b';
+import { isTraining } from './training.js?v=6993e46b';
+import { mark, energyBonus, onReward } from './goals.js?v=6993e46b'; // P-06 目标链（开发2）：做到了打勾、精力上限、奖励
+import { wage } from './staff.js?v=6993e46b';
 
 export { M as MANAGE_CFG };
 export const DAY_MS = YEAR_MS / M.daysPerYear;
@@ -67,10 +67,12 @@ const active = (s, f) => f.until > ((s.mg && s.mg.t) || 0);
 export const marketK = (s) => { const k = s.mkt && s.mkt.regime && s.mkt.regime.kind; return 1 + (M.market[k] || 0); };
 export const marketText = (s) => { const k = s.mkt && s.mkt.regime && s.mkt.regime.kind; return k === 'bull' ? '最近行情好，大家舍得花钱（营业额 +3%）' : k === 'bear' ? '最近行情差，大家捂紧钱包（营业额 −3%）' : ''; };
 /** V0.2.5 广告人流（core/ads.js 挂进来，永久，估值也算） */
+let pickHook = () => 1; export const setPickHook = (fn) => { pickHook = fn; }; // 设计49（core/pick.js 挂进来）
 let adsHook = () => 1; export const setAdsHook = (fn) => { adsHook = fn; };
 export function revMult(s, id, valueMode = false) {
   const L = s.mg && s.mg.lines[id]; let k = repK(L ? L.rep : M.rep.start) * marketK(s);
   if (L && !valueMode) for (const f of L.fx) if (f.rev && active(s, f)) k *= 1 + f.rev;
+  if (!valueMode) k *= pickHook(s, id); /* 设计49 今日主推自动选：营业额 +15%（估值不算） */
   return k * adsHook(s, id, valueMode); /* V0.2.5 广告人流 */
 }
 export function cogsAdj(s, id, valueMode = false) {
@@ -97,12 +99,11 @@ export const addRep = (s, id, n) => { const L = line(s, id); L.rep = clamp(L.rep
 export const personalMax = (s) => M.personalLines[Math.min(M.personalLines.length - 1, s.title || 0)];
 export const halfK = (s) => ((s.title || 0) >= M.bigHalfFrom ? 0.5 : 1);   // 老板以后效果减半
 const todayLines = (s, t) => Object.entries((s.mg && s.mg.lines) || {}).filter(([, L]) => Object.values(L.act).includes(dayIndex(s, t))).map(([id]) => id);
-export function whyNot(s, id, act, t, secId = null) {
+export function whyNot(s, id, act, t) { /* 设计50：不再带秘书 */
   const A = M.actions[act]; if (!A) return '没有这个动作';
   if (!isShop(id) || !s.inds[id] || !s.inds[id].branches) return '只有门店能亲自上阵';
   const left = actLeft(s, id, act, t); if (left > 0) return `生效中 · 还剩 ${durText(left)}`; /* 设计39：去掉「每个动作一天一次」，生效中到期才能再点 */
   { const w = whyEnergy(s, A.energy, t); if (w) return w; }
-  if (secId && (!s.secs[secId] || isTraining(s, secId))) return '上课中的秘书不能带';
   return null;
 }
 /** 这个动作还生效多久（毫秒，0 = 没在生效） */
@@ -111,19 +112,18 @@ const durText = (ms) => { const m = Math.ceil(ms / 60e3); const hh = Math.floor(
 export const ACT_KEYS = Object.keys(M.actions);
 /** 按钮上写的：「搞促销 · 6 小时 · 5 精力」 */
 export const actBtnText = (act) => `${M.actions[act].name} · ${M.energy.actHours} 小时 · ${M.actions[act].energy} 精力`;
-/** 做一个动作：返回 { ok, text, ... }。secId 陪同的秘书（她的对应属性加成、好感 +1）；rnd 给测试 */
-export function doAct(s, id, act, t, secId = null, rnd = Math.random) {
-  const why = whyNot(s, id, act, t, secId); if (why) return { ok: false, why };
+/** 做一个动作：返回 { ok, text, ... }。设计50：不带秘书、不加好感；第 5 个参数留着不用（老的调用不用改）；rnd 给测试 */
+export function doAct(s, id, act, t, _unused = null, rnd = Math.random) {
+  const why = whyNot(s, id, act, t); if (why) return { ok: false, why };
   const A = M.actions[act]; const L = line(s, id); spend(s, A.energy, t); L.act[act] = dayIndex(s, t); L.care = dayIndex(s, t);
-  if (secId) addFavor(s, secId, 1);
-  const r = applyAct(s, id, act, t, secId, rnd); if (!r.ok) { mg(s, t).e += A.energy; return r; }
+  const r = applyAct(s, id, act, t, rnd); if (!r.ok) { mg(s, t).e += A.energy; return r; }
   mark(s, 'act'); credit(s, 'act', 1, t); return r;
 }
 /** 动作的效果（亲自做、自动上阵共用）：管 6 小时 */
-function applyAct(s, id, act, t, secId, rnd = Math.random) {
+function applyAct(s, id, act, t, rnd = Math.random) { /* 设计50：效果一律按不带秘书算 */
   const A = M.actions[act]; const L = line(s, id); const K = M.actK != null ? M.actK : 1;
-  const sa = secId ? (attrs(s, secId)[A.attr] || 0) : 0; const nb = Math.max(1, s.inds[id].branches); const h = halfK(s) / nb * K; /* 亲自上阵管的是其中一家店：这条线开了 N 家，效果按 1/N 摊到整条线上 */ const name = IND_BY_ID[id].name; const dr = dayRev(s, id);
-  const q = clamp(0.5 * rnd() + 0.5 * Math.min(1, sa / 100), 0, 1); const who = secId ? `${SEC_BY_ID[secId].name}陪着去的，` : '';
+  const sa = 0; const nb = Math.max(1, s.inds[id].branches); const h = halfK(s) / nb * K; /* 亲自上阵管的是其中一家店：这条线开了 N 家，效果按 1/N 摊到整条线上 */ const name = IND_BY_ID[id].name; const dr = dayRev(s, id);
+  const q = clamp(0.5 * rnd(), 0, 1); const who = '';
   const fx = (f) => addFxFor(s, id, { ...f, act }, t, ACT_MS); const hrs = `${M.energy.actHours} 小时`;
   let text = '';
   if (act === 'bargain') {
@@ -157,8 +157,7 @@ export const autoActLeft = (s, id, t) => { const L = s.mg && s.mg.lines[id]; ret
 export function tickAutoAct(s, t) {
   for (const id of Object.keys((s.mg && s.mg.lines) || {})) {
     const L = s.mg.lines[id]; if (!L.autoUntil || !s.inds[id] || !s.inds[id].branches) continue;
-    const who = holder(s, 'manager_' + id); const sec = isSec(who) && !isTraining(s, who) ? who : null;
-    for (const act of ACT_KEYS) { let at = Math.max((L.on && L.on[act]) || 0, L.autoFrom || 0); if (!at || at < t - 400 * ACT_MS) at = t; for (let k = 0; k < 400 && at <= t && at < L.autoUntil; k++) { applyAct(s, id, act, at, sec); at = L.on[act]; } }
+    for (const act of ACT_KEYS) { let at = Math.max((L.on && L.on[act]) || 0, L.autoFrom || 0); if (!at || at < t - 400 * ACT_MS) at = t; for (let k = 0; k < 400 && at <= t && at < L.autoUntil; k++) { applyAct(s, id, act, at); at = L.on[act]; /* 设计50：自动上阵也不带秘书 */ } }
     if (!L.autoWarned && L.autoUntil > t && L.autoUntil - t < 86400e3) { L.autoWarned = true; AUTO_WARN(s, id, L.autoUntil, t); }
     if (L.autoUntil <= t) { delete L.autoUntil; delete L.autoFrom; }
   }

@@ -320,7 +320,7 @@ body.story-open .portrait, body.story-open .bubble { visibility: hidden; }
 .nav-btn.locked span { opacity: .45; }
 .nav-btn.locked .lock { display: block; position: absolute; top: 14px; font-size: 18px; }
 .nav-btn .dot { position: absolute; top: 2px; right: 18%; width: 10px; height: 10px; border-radius: 5px; background: #f44; margin: 0; }
-.nav-btn .cnt { position: absolute; top: 0; right: 12%; min-width: 16px; padding: 0 4px; border-radius: 8px; background: #3a6fd8; font-size: 10px; line-height: 16px; }
+.nav-btn .cnt { position: absolute; top: 0; right: 12%; min-width: 16px; padding: 0 4px; border-radius: 8px; background: #e5484d; color: #fff; font-size: 10px; line-height: 16px; font-weight: 700; }
 .nav-btn.on span { color: var(--gold); font-weight: 800; }
 .nav-btn.flash { animation: tabFlash 1.2s ease-out 2; }
 @keyframes tabFlash { 0%,100% { filter: none; } 50% { filter: drop-shadow(0 0 10px #ffd27a) brightness(1.5); } }
@@ -1076,3 +1076,24 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 .ws-tip.show{transform:none;opacity:1;pointer-events:auto}
 .ws-tip img{width:30px;height:30px;border-radius:50%;object-fit:cover;object-position:top}
 .ws-tip span{flex:1}.ws-tip i{font-style:normal;opacity:.7}
+.seg{position:relative}
+.seg .seg-cnt{position:absolute;top:-6px;right:-4px;min-width:16px;padding:0 4px;border-radius:8px;background:#e5484d;color:#fff;font-size:10px;line-height:16px;font-style:normal;font-weight:700}
+.tab .tab-cnt{display:inline-block;margin-left:4px;min-width:16px;padding:0 4px;border-radius:8px;background:#e5484d;color:#fff;font-size:10px;line-height:16px;font-style:normal;font-weight:700}
+/* 设计48 看盘提示放股票页 */
+.ws-tips{margin-top:10px;border-top:1px solid rgba(255,255,255,.08);padding-top:8px}
+.ws-tips-t{font-size:13px;font-weight:700;margin-bottom:4px;color:#e9d9a8}
+.ws-none{font-size:12px;color:#8a93a6;padding:4px 0}
+.ws-tip-row{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:8px 4px;border:0;border-bottom:1px solid rgba(255,255,255,.06);background:none;color:inherit}
+.ws-tip-row > div{flex:1;min-width:0}
+.ws-tip-row .l1{font-size:13px}
+.ws-tip-row .l2{font-size:12px;opacity:.85;margin-top:2px}
+.ws-tip-row > i{font-style:normal;opacity:.6}
+.ws-new{display:inline-block;margin-left:6px;padding:0 5px;border-radius:7px;background:#e5484d;color:#fff;font-size:10px;line-height:15px;font-style:normal;vertical-align:middle}
+.ws-tip-row.pre{opacity:.6}
+
+/* 设计53 跟单次数、投资券 */
+.ws-follow { font-size: 12px; color: var(--gold, #e7c77a); margin: 2px 0 6px; } .ws-follow.out { color: #c9b9a0; } .ws-follow b { font-size: 14px; }
+.ws-inv-ic { width: 14px; height: 14px; vertical-align: -2px; }
+.ws-follow-s { font-size: 12px; margin: 8px 0 4px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; } .ws-follow-s small { opacity: .7; }
+.ws-follow-s.coupon { color: var(--gold, #e7c77a); } .ws-follow-s.none { color: #c9b9a0; } .ws-follow-s.none .cp-go { margin-left: auto; }
+.ws-inv-big { width: 22px; height: 22px; margin-right: 2px; }

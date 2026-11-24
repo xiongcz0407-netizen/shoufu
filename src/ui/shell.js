@@ -1,8 +1,8 @@
 // 界面框架（设计18）：首页层 + 页面层叠加；底部 5 页签；二级分段；记住上次分段；逐步开放和锁；红点
-import { asset, hasAsset } from '../platform/assets.js?v=d17576a6';
-import { onTap } from '../platform/input.js?v=d17576a6';
-import { game } from '../game.js?v=d17576a6';
-import { h, toast } from './dom.js?v=d17576a6';
+import { asset, hasAsset } from '../platform/assets.js?v=6993e46b';
+import { onTap } from '../platform/input.js?v=6993e46b';
+import { game } from '../game.js?v=6993e46b';
+import { h, toast } from './dom.js?v=6993e46b';
 
 export const TABS = [
   { key: 'company', name: '公司', icon: 'icon_industry' },
@@ -26,6 +26,10 @@ const overlays = []; let ignorePop = 0; // 全屏层的栈（返回键一层层�
 
 export const registerPage = (key, def) => { pages[key] = def; };
 export const registerBadge = (key, fn) => { (badges[key] = badges[key] || []).push(fn); };
+const segBadges = {};   // 'tab.seg' → fn(s) → 数字（设计48：分段上的数字红点，开发2 加的挂钩）
+export const registerSegBadge = (tab, seg, fn) => { (segBadges[`${tab}.${seg}`] = segBadges[`${tab}.${seg}`] || []).push(fn); };
+const segCount = (s, tab, seg) => (segBadges[`${tab}.${seg}`] || []).reduce((a, fn) => a + (fn(s) || 0), 0);
+function refreshSegs(s) { if (!current || !layer) return; layer.querySelectorAll('.seg-bar .seg[data-seg]').forEach((b) => { const n = segCount(s, current.key, b.dataset.seg); const c = b.querySelector('.seg-cnt'); if (c) { c.textContent = n > 99 ? '99+' : n; c.style.display = n ? '' : 'none'; } }); }
 export const currentTab = () => current && current.key;
 
 /** 底部导航 */
@@ -62,10 +66,11 @@ export function refreshNav(s) {
     b.classList.toggle('locked', !!why);
     let red = 0, count = 0;
     for (const fn of badges[t.key] || []) { const r = fn(s) || {}; red += r.red || 0; count += r.count || 0; }
-    b.querySelector('.dot').style.display = !why && red ? '' : 'none';
-    const c = b.querySelector('.cnt'); c.textContent = count > 99 ? '99+' : count; c.style.display = !why && !red && count ? '' : 'none';
+    b.querySelector('.dot').style.display = !why && red ? 'block' : 'none';   // 设计48：原来写 '' 会落回 CSS 的 display:none，红点、角标一直不显示
+    const c = b.querySelector('.cnt'); c.textContent = count > 99 ? '99+' : count; c.style.display = !why && !red && count ? 'block' : 'none';
     b.classList.toggle('on', !!current && current.key === t.key);
   }
+  refreshSegs(s);
 }
 export function flashTab(key) {
   const b = navEl && navEl.querySelector(`[data-key=${key}]`);
@@ -97,16 +102,17 @@ export function openTab(key, segKey) {
     segBar.innerHTML = '';
     for (const x of segs) {
       const lk = x.lock && x.lock(s);
-      const b = h('button', 'seg' + (x.key === k ? ' on' : '') + (lk ? ' locked' : ''), x.name + (lk ? ' 🔒' : ''));
+      const b = h('button', 'seg' + (x.key === k ? ' on' : '') + (lk ? ' locked' : ''), x.name + (lk ? ' 🔒' : '') + '<i class="seg-cnt" style="display:none"></i>'); b.dataset.seg = x.key;
       b.onclick = () => (lk ? toast(`🔒 ${lk}`) : show(x.key));
       segBar.appendChild(b);
     }
     body.innerHTML = ''; body.scrollTop = 0;
     const ctx = { onCleanup: (fn) => current.cleanup.push(fn), rerender: () => show(k), tab: key, seg: k };
     segs.find((x) => x.key === k).render(body, ctx);
+    refreshSegs(s);
   };
   show(seg);
-  refreshNav(s);
+  refreshNav(s); refreshSegs(s);
   game.emit('tabOpened', key);
 }
 export function closeTab(fromPop = false) {

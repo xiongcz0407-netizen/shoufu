@@ -1,16 +1,16 @@
 // 第 P-06 项（设计25 第五节）：前期炒股 —— 条件单、打新股、融资融券、看盘、炒股周报
 // 条件单和两融的平仓线每跳检查（挂在 stocks.js 的 addStepHook 上，离线补算一样走）；打新、利息、周报按时间走 tick()（在线 ticker 和 core/offcap.js 都叫）
-import * as SK from './stocks.js?v=d17576a6';
-import { pay, receive } from './ledger.js?v=d17576a6';
-import { addContract } from './contracts.js?v=d17576a6';
-import { addMsg } from './inbox.js?v=d17576a6';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=d17576a6';
-import { profitMul } from './calib.js?v=d17576a6';
-import { isTraining } from './training.js?v=d17576a6';
-import { attrs as secAttrs } from './posts.js?v=d17576a6';
-import { SEC_BY_ID } from '../config/secretaries.js?v=d17576a6';
-import { netWorth } from './economy.js?v=d17576a6';
-import { addAssetHook } from './assets.js?v=d17576a6';
+import * as SK from './stocks.js?v=6993e46b';
+import { pay, receive } from './ledger.js?v=6993e46b';
+import { addContract } from './contracts.js?v=6993e46b';
+import { addMsg } from './inbox.js?v=6993e46b';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=6993e46b';
+import { profitMul } from './calib.js?v=6993e46b';
+import { isTraining } from './training.js?v=6993e46b';
+import { attrs as secAttrs } from './posts.js?v=6993e46b';
+import { SEC_BY_ID } from '../config/secretaries.js?v=6993e46b';
+import { netWorth } from './economy.js?v=6993e46b';
+import { addAssetHook } from './assets.js?v=6993e46b';
 
 const C = SK.SCFG; const O = C.orders, I = C.ipo, MG = C.margin, W = C.weekly;
 export const DAY = MONTH_MS / 30;
@@ -153,7 +153,7 @@ export function addGroup(s, legs, meta = {}, t = Date.now()) {
   const ins = legs.filter((x) => x.role === 'in'); if (ins.length !== 1) return { ok: false, why: '联动单要一张开头的单子' };
   for (const l of legs) { const why = whyNotOrder(s, { ...l, on: l.role === 'in' }); if (why) return { ok: false, why }; }
   const g = (m.grpSeq = (m.grpSeq || 0) + 1); m.grps = m.grps || {};
-  m.grps[g] = { src: meta.src || '', code: ins[0].code, at: t, lu: !!meta.lu, cost: 0, n: 0 };
+  m.grps[g] = { src: meta.src || '', code: ins[0].code, at: t, lu: !!meta.lu, cost: 0, n: 0 }; if (meta.hold) m.grps[g].hold = meta.hold;   // 设计51：买入成交后 hold 跳没卖掉按现价卖
   const out = legs.map((l) => { const x = { id: ++m.ordSeq, code: l.code, kind: l.kind, px: r2(l.px), n: Math.floor(l.n), at: t, grp: g, role: l.role, on: l.role === 'in' }; if (meta.exp && l.role === 'in') x.exp = meta.exp; return x; });
   const x0 = out.find((x) => x.role === 'in');   // 设计43：开头那张挂上就划款 / 划股（出场单买入成交后才有股票）
   if (!holdCash(s, x0, t)) { delete m.grps[g]; return { ok: false, why: `钱不够（个人现金 ¥${fmt(Math.max(0, availCash(s)))}）` }; }
@@ -164,6 +164,24 @@ export function addGroup(s, legs, meta = {}, t = Date.now()) {
 /** 照她挂的单成交以后（战绩用）：fn(s, { grp, kind: 'in' | 'out', pnl, lu }) */
 const GROUP_HOOKS = []; export const addGroupHook = (fn) => { GROUP_HOOKS.push(fn); };
 const hit = (o, p) => (o.kind === 'tp' ? p >= o.px : p <= o.px);
+/** 设计51：看盘买的那组，买入成交后 hold 跳（现实 10 分钟）止盈止损都没触发 → 按当跳价卖掉、撤掉止盈止损 */
+function timeUp(s, tk) {
+  const m = s.mkt; const t = tk * TICK;
+  for (const [id, g] of Object.entries(m.grps || {})) {
+    if (!g.sellAt || tk < g.sellAt) continue; const gid = +id;
+    const mates = m.orders.filter((x) => x.grp === gid); if (!mates.length) { delete m.grps[id]; continue; }
+    if (SK.onBoard(m, g.code) === 'down') continue;   // 封在跌停卖不出：下一跳再试
+    for (const x of mates) cancelOrder(s, x.id, true, t);   // 股票放回持仓
+    const n = Math.min(g.n || 0, (m.hold[g.code] || { n: 0 }).n); if (n < 1) { delete m.grps[id]; continue; }
+    const r = SK.sell(s, g.code, n, t); if (!r.ok) continue;
+    const pnl = r2(r.quote.total - g.cost * Math.min(1, n / (g.n || n)));
+    addMsg(s, { kind: 'system', type: 'stock_order', title: `到时间按现价卖出：${name(g.code)} ${n.toLocaleString()} 股 ${pnl >= 0 ? '+' : '−'}¥${fmt(Math.abs(pnl))}`, body: `买进 10 分钟止盈止损都没碰到，按现价 ${r.quote.exec} 卖掉，止盈止损撤了；交割单 ${r.slip.no}` }, t);
+    (m.soldQ = m.soldQ || []).push({ code: g.code, n, px: r.quote.exec, pnl, t }); if (m.soldQ.length > 10) m.soldQ.shift();
+    for (const fn of GROUP_HOOKS) fn(s, { grp: gid, kind: 'out', pnl, lu: g.lu, src: g.src, timeUp: true });
+    delete m.grps[id];
+  }
+}
+export const takeSold = (s) => { const q = (s.mkt && s.mkt.soldQ) || []; if (s.mkt) s.mkt.soldQ = []; return q; };
 function checkOrders(s, tk) {
   const m = s.mkt; if (!m.orders || !m.orders.length) return;
   const t = tk * TICK;
@@ -188,7 +206,7 @@ function linked(s, o, r, t) {
     const got = o.kind === 'buy' ? o.n : (r.quote ? Math.round(r.quote.gross / r.quote.exec) : o.n);
     if (o.kind === 'buy' && g && mates.some((x) => x.kind !== 'buy')) { const sh = takeShares(s, o.code, got); if (sh) { sh.cost = r2(r.quote.total / got); g.sh = sh; } }   // 设计43：买到的股票直接留在组里给止盈止损
     for (const x of mates) { x.on = true; x.n = got; x.at = t; if (!holdCash(s, x, t)) { cancelOrder(s, x.id, false, t); addMsg(s, { kind: 'system', type: 'stock_order', title: `抄底单挂不上：${name(x.code)}`, body: `个人现金不够（要 ¥${fmt(buyCost(s, x.code, x.px, x.n))}）` }, t); } }   // 设计43：抄底那张买单生效时扣钱
-    if (g) { g.cost = o.kind === 'buy' ? r.quote.total : 0; g.n = got; g.side = o.kind; }
+    if (g) { g.cost = o.kind === 'buy' ? r.quote.total : 0; g.n = got; g.side = o.kind; if (g.hold && o.kind === 'buy') g.sellAt = Math.floor(t / TICK) + g.hold; }
     for (const fn of GROUP_HOOKS) fn(s, { grp: o.grp, kind: 'in', lu: g && g.lu, src: g && g.src });
     if (!mates.length && g) delete m.grps[o.grp];
     return;
@@ -349,4 +367,4 @@ export function tick(s, t, rnd = Math.random) {
   if (!s.mkt) return null;
   tr(s, t); ipoTick(s, t, rnd); interest(s, t); for (const fn of TICK_HOOKS) fn(s, t); return weekly(s, t);
 }
-SK.addStepHook((s, tk) => { if (!s.mkt) return; checkOrders(s, tk); checkMargin(s, tk); });
+SK.addStepHook((s, tk) => { if (!s.mkt) return; checkOrders(s, tk); timeUp(s, tk); checkMargin(s, tk); });

@@ -1,14 +1,7 @@
-// 设计28 第二节 进货挑品：每个游戏天的季节、天气、节日；每家店（门店线）每天选一次主推（不花精力）
-// 对路营业额 +8%～15%，不对路营业额 −3%、进货 +2%（压货）；按家数摊，第三档样子再减半；估值不算（临时效果）
-// 没选的：有店长的店长替选（一半对路、一半一般），没店长的按昨天的；智慧最高的秘书出主意（对的概率 50% + 智慧 / 2）
-import { credit } from './credit.js?v=d17576a6'; // V3-01 亲自拍板攒投入度
-import M from '../config/manage.json?v=d17576a6' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=d17576a6';
-import { SEC_BY_ID } from '../config/secretaries.js?v=d17576a6';
-import * as MG from './manage.js?v=d17576a6';
-import { holder, attrs } from './posts.js?v=d17576a6';
-import { isTraining } from './training.js?v=d17576a6';
-import * as E from './economy.js?v=d17576a6';
+// 设计28 第二节 进货挑品 → 设计49（V0.2.15）今日主推自动选：每个游戏天的季节、天气、节日；每条门店线每天自动选最对路的那样，
+// 不用玩家、秘书、店长；离线照样每天有；开第一家店那天就有。营业额统一 +15%（pick.autoRev，不按家数摊、第三档不减半、没有不对路），估值不算。
+import M from '../config/manage.json?v=6993e46b' with { type: 'json' };
+import * as MG from './manage.js?v=6993e46b';
 
 const P = M.pick;
 export { P as PICK_CFG };
@@ -32,77 +25,30 @@ export const today = (s, t) => dayInfo(s, MG.dayIndex(s, t));
 export const todayText = (x) => `${P.weatherIcon[x.weather]} ${P.seasonName[x.season]} · ${P.weatherName[x.weather]}${x.holiday ? ` · ${x.holiday.name}` : x.weekend ? ' · 周末' : ''}`;
 export const options = (id) => P.options[id] || [];
 export const optOf = (id, key) => options(id).find((o) => o.key === key) || null;
-/** 合不合适：{ fit: good / normal / bad, bonus（对路时营业额加成，未摊） } */
-export function fitOf(info, id, key) {
-  const o = optOf(id, key); if (!o) return { fit: 'normal', bonus: 0 };
-  const g = o.good.filter((x) => info.tags.includes(x)).length, b = o.bad.filter((x) => info.tags.includes(x)).length;
-  if (g > 0 && g >= b) return { fit: 'good', bonus: Math.min(P.goodMax, P.goodBase + P.goodStep * (g - 1)) };
-  if (b > 0) return { fit: 'bad', bonus: 0 };
-  return { fit: 'normal', bonus: 0 };
-}
-/** 摊薄：÷ 家数，第三档样子再 × bigK（店大了、请齐了人，老板挑品作用变小） */
-export function scaleOf(s, id) {
-  const ind = s.inds[id]; if (!ind || !ind.branches) return 0; const cfg = IND_BY_ID[id];
-  return (1 / ind.branches) * (E.lookIndex(cfg, ind.level) >= 2 ? P.bigK : 1);
-}
-const st = (s) => (s.pick = s.pick || { lines: {}, log: [] });
-const hasManager = (s, id) => !!holder(s, 'manager_' + id) || ((s.inds[id] && s.inds[id].staff) || {}).manager > 0;
-/** 今天这家店的主推：{ d, key, by: you / mgr / keep, fit, bonus } 或 null */
-export function current(s, id, t) { const x = st(s).lines[id]; return x && x.d === MG.dayIndex(s, t) ? x : null; }
-/** 最好的选项（对路加成最大；没有对路的取一般） */
+/** 对上了几条合适的条件 */
+const goodN = (info, o) => o.good.filter((x) => info.tags.includes(x)).length;
+const badN = (info, o) => (o.bad || []).filter((x) => info.tags.includes(x)).length;
+/** 最对路的那样：对上的条件最多；一样多取不对路条件少的；再一样按配置顺序 */
 export function bestKey(info, id) {
-  const os = options(id).map((o) => ({ o, f: fitOf(info, id, o.key) }));
-  const rank = (x) => (x.f.fit === 'good' ? 1 + x.f.bonus : x.f.fit === 'normal' ? 0.5 : 0);
-  return os.sort((a, b) => rank(b) - rank(a))[0].o.key;
+  const os = options(id).map((o, i) => ({ o, i, g: goodN(info, o), b: badN(info, o) }));
+  return os.sort((a, b) => b.g - a.g || a.b - b.b || a.i - b.i)[0].o.key;
 }
-function apply(s, id, key, t, by) {
-  const L = MG.line(s, id); const d = MG.dayIndex(s, t); const end = s.createdAt + (d + 1) * MG.DAY_MS;
-  L.fx = L.fx.filter((f) => !(f.src === 'pick' && f.until === end)); // 换选：先撤掉今天的
-  const info = dayInfo(s, d); const f = fitOf(info, id, key); const k = scaleOf(s, id);
-  if (f.fit === 'good') L.fx.push({ rev: f.bonus * k, until: end, perm: false, src: 'pick' });
-  if (f.fit === 'bad') L.fx.push({ rev: P.bad.rev * k, cogs: P.bad.cogs * k, until: end, perm: false, src: 'pick' });
-  const rec = { d, key, by, fit: f.fit, bonus: f.bonus * k }; st(s).lines[id] = rec; return rec;
+/** 为什么选它：对上的第一条（天气 / 季节 / 节日 / 周末）；一条也没对上写今天的天气 */
+export function reasonOf(info, id, key) {
+  const o = optOf(id, key); const tag = o && o.good.find((x) => info.tags.includes(x));
+  if (P.weatherName[tag]) return `${P.weatherIcon[tag]} ${P.weatherName[tag]}`;
+  if (P.seasonName[tag]) return `${P.seasonName[tag]}天`;
+  if (tag === 'holiday' || (info.holiday && tag === info.holiday.id)) return info.holiday.name;
+  if (tag === 'weekend') return '周末'; if (tag === 'workday') return '工作日';
+  return `${P.weatherIcon[info.weather]} ${P.weatherName[info.weather]}`;
 }
-/** 玩家自己选（每家店每天一次；店长替选的 / 按昨天的可以换一次） */
-export function whyNotChoose(s, id, key, t) {
-  if (!MG.isShop(id) || !s.inds[id] || !s.inds[id].branches) return '先开一家';
-  if (!optOf(id, key)) return '没有这个选项';
-  const c = current(s, id, t); if (c && c.by === 'you') return '今天已经选过了';
-  return null;
+const isOpen = (s, id) => MG.isShop(id) && !!s.inds[id] && s.inds[id].branches > 0;
+/** 今天这条线的主推：{ d, key, name, reason, rev } 或 null（没开店） */
+export function current(s, id, t) {
+  if (!isOpen(s, id) || !options(id).length) return null; const d = MG.dayIndex(s, t); const info = dayInfo(s, d); const key = bestKey(info, id);
+  return { d, key, name: optOf(id, key).name, reason: reasonOf(info, id, key), rev: P.autoRev };
 }
-export function choose(s, id, key, t) {
-  const why = whyNotChoose(s, id, key, t); if (why) return { ok: false, why };
-  const rec = apply(s, id, key, t, 'you'); MG.mg(s, t); credit(s, 'pick', 1, t); return { ok: true, ...rec, name: optOf(id, key).name };
-}
-/** 秘书出主意：智慧最高、没在上课的；对的概率 50% + 智慧 / 2（%），同一天同一家店说法不变 */
-export function advice(s, id, t) {
-  const ids = Object.keys(s.secs || {}).filter((x) => !isTraining(s, x)); if (!ids.length || !options(id).length) return null;
-  const sec = ids.sort((a, b) => (attrs(s, b).wit || 0) - (attrs(s, a).wit || 0))[0]; const wit = attrs(s, sec).wit || 0;
-  const d = MG.dayIndex(s, t); const info = dayInfo(s, d); const best = bestKey(info, id); const salt = 7 + Object.keys(P.options).indexOf(id) * 13;
-  const right = dayRnd(s, d, salt) < 0.5 + wit / 200; const others = options(id).filter((o) => o.key !== best);
-  const key = right || !others.length ? best : others[Math.floor(dayRnd(s, d, salt + 1) * others.length)].key;
-  return { sec, key, right, name: optOf(id, key).name, text: `${SEC_BY_ID[sec] ? SEC_BY_ID[sec].name : ''}：「今天${P.weatherName[info.weather]}${info.holiday ? `，又是${info.holiday.name}` : ''}，我看主推${optOf(id, key).name}。」` };
-}
-/** 结果一句话（晚上出） */
-export function resultText(id, rec) {
-  const o = optOf(id, rec.key); if (!o) return '';
-  const name = `${IND_BY_ID[id].name}：`;
-  return name + (rec.fit === 'good' ? o.goodText : rec.fit === 'bad' ? o.badText : P.normalText.replace('{name}', o.name));
-}
-/** 新的一天（manage.tickManage 每天调）：先出昨天的结果，再给今天没人选的店替选 */
-export function onDay(s, d, at) {
-  const S = st(s); const out = [];
-  for (const id of Object.keys(s.inds)) {
-    if (!MG.isShop(id) || !s.inds[id].branches) continue; const prev = S.lines[id];
-    if (prev && prev.d === d - 1) { out.push(resultText(id, prev)); S.log.push({ d: prev.d, id, key: prev.key, fit: prev.fit, by: prev.by }); }
-    if (prev && prev.d >= d) continue;
-    if (hasManager(s, id)) {
-      const info = dayInfo(s, d); const good = options(id).filter((o) => fitOf(info, id, o.key).fit === 'good'); const normal = options(id).filter((o) => fitOf(info, id, o.key).fit === 'normal');
-      const r = dayRnd(s, d, 101 + Object.keys(P.options).indexOf(id)); const pool = (r < P.mgrGoodP && good.length) || !normal.length ? (good.length ? good : options(id)) : normal;
-      apply(s, id, pool[Math.floor(dayRnd(s, d, 202 + Object.keys(P.options).indexOf(id)) * pool.length)].key, at, 'mgr');
-    } else if (prev) apply(s, id, prev.key, at, 'keep');
-  }
-  if (S.log.length > 30) S.log.splice(0, S.log.length - 30);
-  return out;
-}
-MG.onDay(onDay);
+/** 门店线详情那一行：「今天主推：冰镇饮料（🔥 炎热）· 营业额 +15%」 */
+export const lineText = (c) => (c ? `今天主推：${c.name}（${c.reason}）· 营业额 +${Math.round(c.rev * 100)}%` : '');
+/** 营业额挂钩：开了店的门店线 × (1 + 15%)，按 manage 记的「现在」算哪一天 */
+MG.setPickHook((s, id) => (isOpen(s, id) && options(id).length ? 1 + P.autoRev : 1));

@@ -1,11 +1,11 @@
 // 礼物信箱 → 奖励邮件（V0.2.8 礼物信箱；设计42 改成邮件，开发2）
 // 云端信箱 shoufu/gifts/<id>.json：{ list: [{ id, why, at, minV, coupons, items, secAttrs: { 秘书id: { wit: 100 } } }] }
 // 看到新礼物（id 没收过、游戏版本 ≥ minV）→ 变成一封「重要」邮件（不过期），玩家点「领取」才到手；收过的 id 记在 s.coupon.gifts（只生成一封）
-import { cp, earn, giveItems, giftText, ITEMS } from './coupon.js?v=d17576a6';
-import { addMsg } from './inbox.js?v=d17576a6';
-import { attrs as secAttrs } from './posts.js?v=d17576a6';
-import { ATTR_MAX } from './training.js?v=d17576a6';
-import { SEC_BY_ID } from '../config/secretaries.js?v=d17576a6';
+import { cp, earn, giveItems, giftText, ITEMS } from './coupon.js?v=6993e46b';
+import { addMsg } from './inbox.js?v=6993e46b';
+import { attrs as secAttrs } from './posts.js?v=6993e46b';
+import { ATTR_MAX } from './training.js?v=6993e46b';
+import { SEC_BY_ID } from '../config/secretaries.js?v=6993e46b';
 
 export const ATTR_NAME = { charm: '魅力', wit: '智慧', social: '交际', manage: '管理' };
 const whyOf = (g) => String((g && g.why) || '作者赠送').slice(0, 30);

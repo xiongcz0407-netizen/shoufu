@@ -2,15 +2,15 @@
 // 存档 s.coupon = { bal, log: [{ t, n, why }], seen: { title, goal, final: {}, favor: {}, win: {} }, day: { key, sign, tasks, refill, talks: { 秘书id: 用了几张 }, dates: { 秘书id: 用了几张 } } }
 // 怎么得：全在 tick 里看（签到、每日任务全领完、目标链、升称号、收购最终对手、好感升阶、第一次赢对手），不改别的模块；新开局时把「已经有的」记成看过，不补发。
 // 挂钩默认已经接开发1 的真函数；测试可以用 setCouponHooks 换掉：{ energyAdd, refill, refillState, auto }
-import C from '../config/coupon.json?v=d17576a6' with { type: 'json' };
-import { daily, dayKey, talkExtra } from './affection.js?v=d17576a6';
-import { tasksFor } from './daily.js?v=d17576a6';
-import { gl } from './goals.js?v=d17576a6';
-import { favorStage } from './secretary.js?v=d17576a6';
-import { RIVALS } from '../config/rivals.js?v=d17576a6';
-import { addEnergy, autoActLeft, useAutoTicket } from './manage.js?v=d17576a6';
-import { whyNotMore, more as bizMore, moreLeft } from './bizevents.js?v=d17576a6';
-import { datesWith, dateTickets, DATE_TICKET_MAX } from './dates.js?v=d17576a6';
+import C from '../config/coupon.json?v=6993e46b' with { type: 'json' };
+import { daily, dayKey, talkExtra } from './affection.js?v=6993e46b';
+import { tasksFor } from './daily.js?v=6993e46b';
+import { gl } from './goals.js?v=6993e46b';
+import { favorStage } from './secretary.js?v=6993e46b';
+import { RIVALS } from '../config/rivals.js?v=6993e46b';
+import { addEnergy, autoActLeft, useAutoTicket } from './manage.js?v=6993e46b';
+import { whyNotMore, more as bizMore, moreLeft } from './bizevents.js?v=6993e46b';
+import { datesWith, dateTickets, DATE_TICKET_MAX } from './dates.js?v=6993e46b';
 export { C as COUPON_CFG };
 export const ITEMS = C.items;
 export const ITEM_KEYS = C.order;
@@ -38,6 +38,7 @@ export function spend(s, n, why, t = Date.now()) { const c = cp(s); if (c.bal < 
 export const have = (s, k) => (s.items && s.items[k]) || 0;
 const add = (s, k, n) => { s.items = s.items || {}; s.items[k] = Math.max(0, (s.items[k] || 0) + n); };
 const take = (s, k) => { if (!(have(s, k) > 0)) return false; add(s, k, -1); return true; };
+export const useItem = (s, k) => take(s, k);   // 设计53 投资券：跟一单扣一张
 export const giftText = (g) => Object.entries(g || {}).filter(([, n]) => n > 0).map(([k, n]) => `${ITEMS[k].name} ×${n}`).join('、');
 export function giveItems(s, g, why, t = Date.now()) { const txt = giftText(g); if (!txt) return ''; for (const [k, n] of Object.entries(g)) if (n > 0) add(s, k, n); log(s, t, 0, `${why}：送${txt}`); return txt; }
 export const packPrice = (k, n) => { const p = C.packs.find((x) => x[0] === n); return Math.round(ITEMS[k].price * n * (p ? p[1] : 1)); };

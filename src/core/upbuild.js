@@ -1,13 +1,13 @@
 // V0.2.5（设计37 第三节）店铺升级、换样子、开分店、其他产业线升级的升级框内容：升了什么 / 带来什么（前 → 后）/ 下一步。
 // 自己点的进 s.upq 马上弹；店长托管（by 有值）的攒起来合成（core/upnote.js）。
-import { IND_BY_ID } from '../config/industries.js?v=d17576a6';
-import { TITLES } from '../config/titles.js?v=d17576a6';
-import * as E from './economy.js?v=d17576a6';
-import { estTotal } from './staff.js?v=d17576a6';
-import { autoOn as hrAuto } from './cashflow.js?v=d17576a6';
-import { fmtMoney } from './format.js?v=d17576a6';
-import { noteUp, noteAuto, setRevNow } from './upnote.js?v=d17576a6';
-import { YEAR_MS } from './gametime.js?v=d17576a6';
+import { IND_BY_ID } from '../config/industries.js?v=6993e46b';
+import { TITLES } from '../config/titles.js?v=6993e46b';
+import * as E from './economy.js?v=6993e46b';
+import { estTotal } from './staff.js?v=6993e46b';
+import { autoOn as hrAuto } from './cashflow.js?v=6993e46b';
+import { fmtMoney } from './format.js?v=6993e46b';
+import { noteUp, noteAuto, setRevNow } from './upnote.js?v=6993e46b';
+import { YEAR_MS } from './gametime.js?v=6993e46b';
 
 const DAY_SEC = YEAR_MS / 360 / 1000;
 /** 这条线每天营业额（按人招满算：升级后编制变大，自动补员会补上） */

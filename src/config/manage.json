@@ -23,8 +23,7 @@
     0.03,
     0.08
    ],
-   "attr": "social",
-   "_说明": "当天进货成本 −3%～−8%：老板眼光、带去秘书的交际越高越靠上限"
+   "_说明": "进货成本 −3%～−8%：老板眼光越高越靠上限（设计50：不再带秘书）"
   },
   "promo": {
    "name": "搞促销",
@@ -34,8 +33,7 @@
     0.35
    ],
    "margin": 0.02,
-   "rep": 1,
-   "attr": "charm"
+   "rep": 1
   },
   "newitem": {
    "name": "上新品 / 换货架",
@@ -46,8 +44,7 @@
    ],
    "pay": 0.03,
    "hitP": 0.1,
-   "hitRev": 0.5,
-   "attr": "charm"
+   "hitRev": 0.5
   },
   "member": {
    "name": "拉熟客 / 发会员卡",
@@ -58,8 +55,7 @@
     0.05
    ],
    "prepaid": 0.2,
-   "prepaidDays": 7,
-   "attr": "social"
+   "prepaidDays": 7
   }
  },
  "personalLines": [
@@ -123,7 +119,7 @@
   "运筹帷幄"
  ],
  "pick": {
-  "_说明": "设计28 第二节 进货挑品：每个游戏天（30 天一个月、12 个月一年）定季节、天气、节日；每家店（门店线）每天选一次主推，不花精力。good / bad 是合适的条件（季节 spring/summer/autumn/winter、天气 sunny/rain/hot/cold、节日 id、holiday 任何节日、weekend / workday）。对路：营业额 +goodBase，每多对上一条 +goodStep，最多 goodMax；不对路：营业额 bad.rev、进货 bad.cogs；按家数摊（÷ 家数），第三档样子再 × bigK。店长替选 mgrGoodP 对路、其余一般；没店长按昨天的",
+  "_说明": "设计28 第二节 进货挑品 → 设计49（V0.2.15）今日主推自动选：每个游戏天（30 天一个月、12 个月一年）定季节、天气、节日；每条门店线每天自动选最对路的那样（good 对上最多的），营业额统一 +autoRev（不按家数摊、不分样子、没有不对路）；估值不算（临时效果）。good 是合适的条件（季节 spring/summer/autumn/winter、天气 sunny/rain/hot/cold、节日 id、holiday 任何节日、weekend / workday）；bad、goodText、badText 不用了（留着不影响）",
   "seasons": {
    "spring": [
     3,
@@ -481,16 +477,7 @@
     }
    ]
   },
-  "goodBase": 0.08,
-  "goodStep": 0.035,
-  "goodMax": 0.15,
-  "bad": {
-   "rev": -0.03,
-   "cogs": 0.02
-  },
-  "bigK": 0.5,
-  "mgrGoodP": 0.5,
-  "normalText": "{name}卖得一般。"
+  "autoRev": 0.15
  },
  "actK": 0.6,
  "_actK": "设计39 第二节：亲自上阵一次管 6 小时以后，四个动作的效果 × actK（让 A 只比 B / C 领先一点）"

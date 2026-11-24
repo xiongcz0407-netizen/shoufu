@@ -3,16 +3,16 @@
 // 每跳 ln P += β·M（大盘，牛 / 熊 / 震荡）+ B（板块）+ σ·ε + κ·(ln F − ln P) + 新闻跳空；随机数 = hash(名字, 跳数)，固定种子
 // 只能用个人现金买；佣金、过户费、卖出印花税、大单滑点；交割单进档案柜；分红按持有时间扣个税；持股 5% 举牌公告，30% 进度
 // 投资经理（秘书职位）：你划一笔钱 + 风格（稳健 / 平衡 / 进取）+ 止损线，按大盘走 + 她的超额（智慧）；新闻前一跳有概率提前给判断
-import CFG from '../config/stocks.json?v=d17576a6' with { type: 'json' };
-import { pay, receive } from './ledger.js?v=d17576a6';
-import { addContract } from './contracts.js?v=d17576a6';
-import { addAssetHook } from './assets.js?v=d17576a6';
-import { holder, isSec, attrs as secAttrs, efficiency, OUT } from './posts.js?v=d17576a6';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=d17576a6';
+import CFG from '../config/stocks.json?v=6993e46b' with { type: 'json' };
+import { pay, receive } from './ledger.js?v=6993e46b';
+import { addContract } from './contracts.js?v=6993e46b';
+import { addAssetHook } from './assets.js?v=6993e46b';
+import { holder, isSec, attrs as secAttrs, efficiency, OUT } from './posts.js?v=6993e46b';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=6993e46b';
 const YEAR_H = YEAR_MS / 3600e3; // 游戏一年 = 现实多少小时（V0.2.10：144）
-import { taxRec, payerOfPost } from './fiscal.js?v=d17576a6';
-import { profitMul } from './calib.js?v=d17576a6';
-import { TITLES } from '../config/titles.js?v=d17576a6';
+import { taxRec, payerOfPost } from './fiscal.js?v=6993e46b';
+import { profitMul } from './calib.js?v=6993e46b';
+import { TITLES } from '../config/titles.js?v=6993e46b';
 
 export const SCFG = CFG;
 export const STOCKS = CFG.stocks;
@@ -63,7 +63,7 @@ export function newsAt(tick) {
   const [title, lo, hi] = good ? N.marketGood : N.marketBad; return { kind, target: '', good, title: `大盘：${title}`, jump: lo + (hi - lo) * mag };
 }
 // ---------- 设计41 第八节：每天 2 只涨停（开发2）----------
-// 每天（手机本地 0 点到 0 点）按日期种子从 30 只里挑 2 只；当天 fromH～toH 点之间随机一跳开始，pullTicks 跳拉到涨停价（前一天收盘 × 1.10，第九节），然后封板到 0 点（不跳噪声、不吃新闻）
+// 每天（手机本地 0 点到 0 点）按日期种子从 30 只里挑 picks 只（设计52：4 只，0～6 / 6～12 / 12～18 / 18～24 点每段一只，段内随机一跳开始），pullTicks 跳拉到涨停价（前一天收盘 × 1.10，第九节），然后封板到 0 点（不跳噪声、不吃新闻）
 // 起点价已经 = 涨停价的换下一只（同一个起点）；30 只每一跳都夹在当天涨跌停价之间（第九节）；第二天合理价 × 1.05。状态在 m.lu，跟着存档走；离线补算一跳一跳走，结果一样
 const LUC = () => CFG.watch.lu;
 const TPH = 3600e3 / TICK;
@@ -71,7 +71,8 @@ const TPH = 3600e3 / TICK;
 export function dayOfTick(tick) { const d = new Date(tick * TICK); const z = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); return { key: d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(), start: Math.ceil(z / TICK) }; }
 /** 这一天的候选顺序（日期种子）和每只的起点跳 */
 export function luOrder(key) { return STOCKS.map((x, i) => [x.code, hu('LU' + key, i)]).sort((a, b) => a[1] - b[1]).map(([c]) => c); }
-const luAt = (key, start, i) => { const L = LUC(); return start + Math.round(L.fromH * TPH) + Math.floor(hu('LUT' + key, i) * (L.toH - L.fromH) * TPH); };
+/** 设计52：每 6 小时一段各一只（blocks），段内按种子随机开始；拉升 pullTicks 跳要在段内拉完 */
+const luAt = (key, start, i) => { const L = LUC(); const [a, b] = L.blocks[i % L.blocks.length]; return start + Math.round(a * TPH) + Math.floor(hu('LUT' + key, i) * Math.max(1, (b - a) * TPH - L.pullTicks)); };
 function luDay(m, tick) {
   const d = dayOfTick(tick); if (m.lu && m.lu.key === d.key) return m.lu;
   if (m.lu) for (const p of m.lu.act) if (p.sealed && m.fv[p.code]) m.fv[p.code] *= 1 + LUC().fvNext;   // 第二天：合理价往上挪一半
@@ -108,8 +109,18 @@ export function step(m, tick) {
     }
     pk[p.code] = p;
   }
+  const gd = {}; for (const g of m.guards || []) if (tick > (g.by != null ? g.by : g.from - 1) && tick < g.from + g.ticks && !(pk[g.code] && pk[g.code].from != null)) gd[g.code] = g;   // 设计52 保底：造出来的那只
   for (const x of live(m)) {
     const c = x.code; const lu = pk[c];
+    const gu = gd[c];
+    if (gu) {   // 稳稳往上涨 rise（几何），不跳噪声、不吃新闻、不超涨停价；涨完照常跳
+      m.fv[c] = Math.exp(Math.log(m.fv[c]) + MU());
+      if (tick < gu.from) continue;   // 造出来到开始涨之间：价钱停着不动（不然这几跳可能先冲到涨停附近，没空间了）
+      if (gu.p0 == null) gu.p0 = m.px[c];
+      const k = tick - gu.from + 1;
+      const B = band(m, c); m.px[c] = r2(Math.max(B.dn != null ? B.dn : 0, Math.min(B.up != null ? B.up : Infinity, gu.p0 * Math.pow(1 + gu.rise, k / gu.ticks))));   // 设计53 算错造的也走这里（rise 可以是负的）
+      continue;
+    }
     if (lu && lu.from != null) {   // 涨停：拉升 pullTicks 跳，然后封板（不跳噪声、不吃新闻）
       const k = tick - lu.at + 1; m.fv[c] = Math.exp(Math.log(m.fv[c]) + MU());
       m.px[c] = k >= LC.pullTicks ? lu.limit : r2(lu.from * Math.pow(lu.limit / lu.from, k / LC.pullTicks)); if (k >= LC.pullTicks) lu.sealed = true;
@@ -128,7 +139,7 @@ export function step(m, tick) {
 }
 /** 设计41 第七节：接下来 n 跳的价（用当下的盘复制一份往前走，跟真实一跳一跳走出来的一样）：{ path: { code: [n 个价] }, lu: 走完时的涨停状态 } */
 export function future(m, n) {
-  const c = { tick: m.tick, px: { ...m.px }, fv: { ...m.fv }, regime: { ...m.regime }, ipoOn: m.ipoOn, lu: m.lu ? JSON.parse(JSON.stringify(m.lu)) : null };
+  const c = { tick: m.tick, px: { ...m.px }, fv: { ...m.fv }, regime: { ...m.regime }, ipoOn: m.ipoOn, lu: m.lu ? JSON.parse(JSON.stringify(m.lu)) : null, guards: m.guards ? JSON.parse(JSON.stringify(m.guards)) : null };
   const path = {}; for (const x of live(c)) path[x.code] = [];
   for (let k = 1; k <= n; k++) { step(c, m.tick + k); for (const code of Object.keys(path)) path[code].push(c.px[code]); }
   return { path, lu: c.lu };

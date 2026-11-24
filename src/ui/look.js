@@ -1,18 +1,19 @@
 // 设计41 / 46 / 47 看盘界面（开发2）：看盘那一块（开始 / 现在看一眼 / 结束）、看盘消息弹框（⅓仓 / 半仓 / 全仓）、照她说的挂单（条件单表）、消息「重要」里的按钮
-import * as SK from '../core/stocks.js?v=d17576a6';
-import * as TR from '../core/trade.js?v=d17576a6';
-import * as LK from '../core/look.js?v=d17576a6';
-import * as I from '../core/inbox.js?v=d17576a6';
-import { SEC_BY_ID } from '../config/secretaries.js?v=d17576a6';
-import { fmtMoney } from '../core/format.js?v=d17576a6';
-import { asset, hasAsset } from '../platform/assets.js?v=d17576a6';
-import { game } from '../game.js?v=d17576a6';
-import { now } from '../core/clock.js?v=d17576a6';
-import { h, openPanel, toast } from './dom.js?v=d17576a6';
-import { addActionUi } from './inbox.js?v=d17576a6';
-import * as WSM from '../core/ws.js?v=d17576a6';   // 设计47
-import { attrs as secAttrs } from '../core/posts.js?v=d17576a6';
-import { isTraining } from '../core/training.js?v=d17576a6';
+import * as SK from '../core/stocks.js?v=6993e46b';
+import * as TR from '../core/trade.js?v=6993e46b';
+import * as LK from '../core/look.js?v=6993e46b';
+import * as I from '../core/inbox.js?v=6993e46b';
+import { SEC_BY_ID } from '../config/secretaries.js?v=6993e46b';
+import { fmtMoney } from '../core/format.js?v=6993e46b';
+import { asset, hasAsset } from '../platform/assets.js?v=6993e46b';
+import { game } from '../game.js?v=6993e46b';
+import { now } from '../core/clock.js?v=6993e46b';
+import { h, openPanel, toast } from './dom.js?v=6993e46b';
+import { addActionUi } from './inbox.js?v=6993e46b';
+import * as WSM from '../core/ws.js?v=6993e46b';   // 设计47
+import { attrs as secAttrs } from '../core/posts.js?v=6993e46b';
+import { isTraining } from '../core/training.js?v=6993e46b';
+import { itemIcon, goBuyHtml, bindGoBuy } from './coupon.js?v=6993e46b';   // 设计53 投资券
 
 const W = SK.SCFG.watch; const WSC = W.ws;
 const WS_wit = (s, id) => secAttrs(s, id).wit;
@@ -22,10 +23,10 @@ const yuan = (v) => `¥${v.toLocaleString('zh-CN', { minimumFractionDigits: 2, m
 const busy = () => !!document.querySelector('.story, .panel-mask, .full, .naming, .cf-mask, .ub-mask');
 
 /** 设计46：⅓仓 / 半仓 / 全仓 三个按钮（按这一刻的个人现金算；不够 1 股的灰掉；三个都不够写「钱不够」） */
-function posBtns(s, code, px, i = 0, edit = false) {
-  const ed = edit ? `<button class="btn sm lk-edit" data-i="${i}">改</button>` : '';
+function posBtns(s, code, px, i = 0, edit = false, lock = false) {
+  const ed = edit ? `<button class="btn sm lk-edit" data-i="${i}" ${lock ? 'disabled' : ''}>改</button>` : '';
   const ops = LK.posOptions(s, code, px); if (!ops.some((o) => o.n >= 1)) return `<div class="lk-pos"><span class="lk-none">钱不够</span>${ed}</div>`;
-  return `<div class="lk-pos">${ops.map((o) => `<button class="btn sm ${o.n >= 1 ? 'gold' : ''}" data-i="${i}" data-q="${o.k}" ${o.n >= 1 ? '' : 'disabled'}>${o.name}<small>${o.n >= 1 ? `${fmtMoney(o.amt)}·${o.n.toLocaleString()}股` : '不够 1 股'}</small></button>`).join('')}${ed}</div>`;
+  return `<div class="lk-pos">${ops.map((o) => `<button class="btn sm ${o.n >= 1 && !lock ? 'gold' : ''}" data-i="${i}" data-q="${o.k}" ${o.n >= 1 && !lock ? '' : 'disabled'}>${o.name}<small>${o.n >= 1 ? `${fmtMoney(o.amt)}·${o.n.toLocaleString()}股` : '不够 1 股'}</small></button>`).join('')}${ed}</div>`;
 }
 
 /** 照她说的挂单：条件单表填好（价、股数都能改），点「挂单」才挂 */
@@ -75,67 +76,88 @@ let sayIt = (who, text) => toast(`${secName(who)}：${text}`); export const setS
 /** 看盘那一块（投资 → 股票顶上；今日日常也叫）：没看盘「看盘 · 15 天（6 小时）· 5 精力」；看盘中「XX 看盘中 · 还剩…」+「让XX现在看一眼」+「结束看盘」 */
 export function watchBlock(s, redraw) {
   const t = now(); const w = WSM.ws(s, t); const box = h('div', 'fn-card ws-box');
+  const withTips = () => { const L = tipList(s, w, t, redraw); if (L) box.appendChild(L); return box; };
   if (!w) {
     const last = s.mkt.wsLast;
     box.innerHTML = `<div class="ws-top"><div><b>看盘</b><small>选一个秘书盯 ${WSC.hours} 小时：有涨停、利好、一波、你手里的要跌，她发消息给你挂单${s.mkt.freeHint ? `　🎁 送的看盘 ${s.mkt.freeHint} 次` : ''}</small>${last ? `<small>上次：${secName(last.who)}发了 ${last.sent} 条、你挂了 ${last.placed} 条${last.pnl ? `、${last.pnl >= 0 ? '赚' : '亏'} ${fmtMoney(Math.abs(last.pnl))}` : ''}</small>` : ''}</div><button class="btn gold ws-go">看盘 · ${WSC.hours * 60 / 24 | 0} 天（${WSC.hours} 小时）<small>${s.mkt.freeHint ? '送的，不花精力' : `${W.look.energy} 精力`}</small></button></div>`;
     box.querySelector('.ws-go').onclick = () => pickAndStart(redraw);
-    return box;
+    return withTips();
   }
   const cd = WSM.cdLeft(s, t); const nm = secName(w.who);
   box.innerHTML = `<div class="ws-top">${hasAsset(`assets/sec/${w.who}/c1.webp`) ? `<img class="ws-face" src="${asset(`assets/sec/${w.who}/c1.webp`)}" alt="">` : ''}<div><b>${nm}看盘中</b><small>还剩 ${leftText(w.end - t)}</small><small>这次：发了 ${w.sent} 条、你挂了 ${w.placed} 条${w.pnl ? `、${w.pnl >= 0 ? '赚' : '亏'} ${fmtMoney(Math.abs(w.pnl))}` : ''}</small></div></div>
     <div class="ind-btns ws-btns">${cd > 0 ? `<button class="btn ws-now" disabled>刚看过 · ${Math.ceil(cd / 60e3)} 分钟后再看</button>` : `<button class="btn gold ws-now">让${nm}现在看一眼<small>不花精力</small></button>`}<button class="btn ws-stop">结束看盘</button></div>`;
   const nb = box.querySelector('.ws-now'); if (nb && !nb.disabled) nb.onclick = () => lookNowUi(redraw);
   box.querySelector('.ws-stop').onclick = () => { const d = WSM.stopWatch(s, now(), true); done(); showDone(d); if (redraw) redraw(); };
+  return withTips();
+}
+/** 设计48：看盘卡片下面「XX给的 N 条」：每条两行，整行点开弹挂单弹框；没有提示时（看盘中）灰字 */
+function tipList(s, w, t, redraw) {
+  const L = WSM.tips(s); if (!L.length && !w) return null;
+  const box = h('div', 'ws-tips');
+  const fs = WSM.followState(s, t);   // 设计53：今天还能免费跟几单 / 投资券还有几张
+  const fl = fs.free > 0 ? `今天还能免费跟 <b>${fs.free}</b> 单` : `今天免费的用完了 · ${itemIcon('invest', 'cp-mini ws-inv-ic')}投资券还有 <b>${fs.coupons}</b> 张`;
+  if (!L.length) { box.innerHTML = `<div class="ws-follow ${fs.free > 0 ? '' : 'out'}">${fl}</div><div class="ws-none">她正盯着，有机会会告诉你</div>`; return box; }
+  const by = w ? w.who : L[0].from;
+  box.innerHTML = `<div class="ws-follow ${fs.free > 0 ? '' : 'out'}">${fl}</div><div class="ws-tips-t">${secName(by)}给的 ${L.length} 条</div>` + L.map((x) => { const d = x.data; const nm = SK.BY[d.code].name;
+    let l1, l2;
+    if (d.pre) { l1 = `<b>${nm}</b>　有利好，马上要出`; l2 = '等能「现在买、10 分钟内卖」时出按钮'; }
+    else if (d.kind === 'fall') { l1 = `<b>${nm}</b>　要跌 · 你手里 ${TR.sellable(s, d.code).toLocaleString()} 股`; l2 = `现在卖 <span class="down">${yuan(d.X)}</span> · 不卖还要跌 ${Math.abs(d.g * 100).toFixed(1)}%`; }
+    else { l1 = `${d.kind === 'lu' ? '🔥 ' : ''}<b>${nm}</b>　${KIND_T[d.kind].replace('🔥 ', '')} · +${(d.g * 100).toFixed(1)}%`; l2 = `现在买 ${yuan(d.X)} → 涨到 <span class="${TR.toneOf(d.Y, d.X, 'tp')}">${yuan(d.Y)}</span> 卖（约 ${d.mins} 分钟后）· 止损 <span class="${TR.toneOf(d.Z, d.X, 'sl')}">${yuan(d.Z)}</span>`; }
+    return `<button class="ws-tip-row ${d.pre ? 'pre' : ''}" data-t="${x.id}"><div><div class="l1">${l1}${x.seen || d.pre ? '' : '<i class="ws-new">新</i>'}</div><div class="l2">${l2}</div></div><i>${d.pre ? '' : '›'}</i></button>`; }).join('');
+  box.querySelectorAll('[data-t]').forEach((b) => (b.onclick = () => { const m = WSM.tipById(s, +b.dataset.t); if (!m) { toast('这条已经过了'); if (redraw) redraw(); return; } if (m.data.pre) { toast('还没到能买的时候，她会再告诉你'); return; } openWsMsg(m); }));
   return box;
 }
+
 /** 结束：弹一句台词 + 这段时间战绩 */
 let showDoneFn = (d) => toast(`${secName(d.who)}：${d.line}（发了 ${d.sent} 条，你挂了 ${d.placed} 条）`);
 export const setShowDone = (fn) => { showDoneFn = fn; };
 export const showDone = (d) => { if (d) showDoneFn(d); };
 
+/** 弹框标题：秘书写全名（设计53 第四节） */
+const titleOf = (msg) => { const d = msg.data; return `${secName(msg.from)}：${SK.BY[d.code].name}${d.kind === 'fall' ? '要跌' : KIND_T[d.kind].replace('🔥 ', '')}`; };
 /** 看盘消息弹框：买的 ⅓仓 / 半仓 / 全仓 一点挂上；要跌的 卖 ⅓ / 一半 / 全部 */
-const KIND_T = { lu: '🔥 今天会封涨停', news: '有利好', wave: '接下来能涨一波', fall: '要跌' };
+const KIND_T = { lu: '🔥 10 分钟内封涨停', news: '有利好', wave: '能涨一波', fall: '要跌' };
 export function openWsMsg(msg) {
   const s = game.state; const d = msg.data; const p = openPanel('看盘');
+  if (WSM.seeTip(s, msg.id)) game.changed();   // 设计48：点开就算看过（红点减）
   const draw = () => {
-    if (!s.inbox.includes(msg)) { p.close(); return; }
-    const left = Math.max(0, d.exp - now());
+    if (!WSM.tipById(s, msg.id)) { p.close(); return; }
     if (d.kind === 'fall') {
       const have = TR.sellable(s, d.code);
-      p.body.innerHTML = `${head(msg.from, msg.title)}<div class="lk-look"><div class="lk-l1"><b>${SK.BY[d.code].name}</b><em class="down">要跌</em></div>
-        <div class="lk-l2"><span>跌破 <b class="${TR.toneOf(d.X, (s.mkt.hold[d.code] || {}).cost ?? null, 'sl')}">${yuan(d.X)}</b> 先卖掉</span><span>你手里能卖 ${have.toLocaleString()} 股</span><span>还剩 ${hm(left)}</span></div>
+      p.body.innerHTML = `${head(msg.from, titleOf(msg))}<div class="lk-look"><div class="lk-l1"><b>${SK.BY[d.code].name}</b><em class="down">要跌</em></div>
+        <div class="lk-l2"><span>现在卖 <b class="${TR.toneOf(d.X, (s.mkt.hold[d.code] || {}).cost ?? null, 'sl')}">${yuan(d.X)}</b>（1 分钟内卖掉）</span><span>不卖还要跌 ${Math.abs(d.g * 100).toFixed(1)}%</span><span>你手里能卖 ${have.toLocaleString()} 股</span></div>
         <div class="lk-pos">${LK.POS.map((q) => { const n = Math.floor(have * q.f); return `<button class="btn sm ${n >= 1 ? 'gold' : ''}" data-s="${q.k}" ${n >= 1 ? '' : 'disabled'}>卖${q.sell}<small>${n >= 1 ? `${n.toLocaleString()}股` : '没有能卖的'}</small></button>`; }).join('')}</div></div>
         <div class="ind-btns"><button class="btn lk-no">不用了</button></div>`;
-      p.body.querySelectorAll('[data-s]').forEach((b) => (b.onclick = () => { const r = WSM.sellWs(s, msg, b.dataset.s, now()); if (!r.ok) { toast(r.why); return; } p.close(); done(`挂好了：${SK.BY[d.code].name} 跌到 ¥${d.X} 卖 ${r.n.toLocaleString()} 股`); }));
+      p.body.querySelectorAll('[data-s]').forEach((b) => (b.onclick = () => { const r = WSM.sellWs(s, msg, b.dataset.s, now()); if (!r.ok) { toast(r.why); return; } p.close(); done(`挂好了：${SK.BY[d.code].name} 现在卖 ¥${d.X} · ${r.n.toLocaleString()} 股`); }));
     } else {
-      p.body.innerHTML = `${head(msg.from, msg.title)}<div class="lk-look ${d.lu ? 'lu' : ''}">
+      const fs = WSM.followState(s, now()); const lock = !fs.ok;   // 设计53：免费用完用投资券；没券按钮灰、去卡包买
+      const fl = fs.free > 0 ? `<div class="ws-follow-s">今天还能免费跟 ${fs.free} 单</div>` : fs.coupons > 0 ? `<div class="ws-follow-s coupon">${itemIcon('invest', 'cp-card-ic ws-inv-big')}用 1 张投资券跟<small>（还有 ${fs.coupons} 张）</small></div>` : `<div class="ws-follow-s none">${itemIcon('invest', 'cp-card-ic ws-inv-big')}今天免费的 ${WSC.freePerDay} 单用完了，没有投资券${goBuyHtml('invest')}</div>`;
+      p.body.innerHTML = `${head(msg.from, titleOf(msg))}<div class="lk-look ${d.lu ? 'lu' : ''}">
         <div class="lk-l1"><b>${SK.BY[d.code].name}</b><em class="${d.lu ? 'hot' : ''}">${KIND_T[d.kind]} · +${(d.g * 100).toFixed(1)}%</em></div>
-        <div class="lk-l2"><span>${yuan(d.X)} 以内买进</span><span>涨到 <b class="${TR.toneOf(d.Y, d.X, 'tp')}">${yuan(d.Y)}</b> 卖</span><span>止损 <b class="${TR.toneOf(d.Z, d.X, 'sl')}">${yuan(d.Z)}</b></span><span>买入点还剩 ${hm(left)}</span></div>
-        ${posBtns(s, d.code, d.X, 0, true)}</div>
-        <div class="tr-gain">点一个仓位就挂上三张联动单（买进成交后止盈、止损才生效）；2 小时没买进的单子自动撤。</div>
+        <div class="lk-l2"><span>现在买 <b>${yuan(d.X)}</b></span><span>涨到 <b class="${TR.toneOf(d.Y, d.X, 'tp')}">${yuan(d.Y)}</b> 卖（约 ${d.mins} 分钟后）</span><span>止损 <b class="${TR.toneOf(d.Z, d.X, 'sl')}">${yuan(d.Z)}</b></span></div>
+        ${fl}${posBtns(s, d.code, d.X, 0, true, lock)}</div>
+        <div class="tr-gain">点一个仓位就按现在的价挂上三张联动单：1 分钟内买进（没买进自动撤、钱退回），买进后 10 分钟内卖掉（止盈 / 止损 / 到时按现价卖）。价钱每跳跟着变。</div>
         <div class="ind-btns"><button class="btn lk-no">不用了</button></div>`;
-      p.body.querySelectorAll('[data-q]').forEach((b) => (b.onclick = () => { const r = WSM.placeWs(s, msg, b.dataset.q, now()); if (!r.ok) { toast(r.why); return; } p.close(); done(`挂好了：${SK.BY[d.code].name} ${r.pos} ${r.n.toLocaleString()} 股`); }));
-      const ed = p.body.querySelector('.lk-edit'); if (ed) ed.onclick = () => { const n = Math.max(1, LK.posShares(s, d.code, d.X, 'third')); openOrderSheet(LK.legsOfRow({ code: d.code, X: d.X, Y: d.Y, Z: d.Z, n }), `挂 ${SK.BY[d.code].name}`, (legs) => { const r = TR.addGroup(s, legs, { src: 'watch', exp: now() + WSC.aheadTicks * SK.SCFG.tickSec * 1000, lu: !!d.lu }, now()); if (r.ok) { LK.delMsg(s, msg.id); const w = WSM.ws(s); if (w) { w.placed += 1; w.grps.push(r.grp); } p.close(); } return r; }); };
+      bindGoBuy(p.body, () => {}); p.body.querySelectorAll('.cp-go').forEach((x) => x.addEventListener('click', () => p.close()));
+      p.body.querySelectorAll('[data-q]').forEach((b) => (b.onclick = () => { const r = WSM.placeWs(s, msg, b.dataset.q, now()); if (!r.ok) { toast(r.why); draw(); return; } p.close(); done(`挂好了：${SK.BY[d.code].name} ${r.pos} ${r.n.toLocaleString()} 股${r.coupon ? '（用了 1 张投资券）' : ''}`); }));
+      const ed = p.body.querySelector('.lk-edit'); if (ed) ed.onclick = () => { const n = Math.max(1, LK.posShares(s, d.code, d.X, 'third')); openOrderSheet(LK.legsOfRow({ code: d.code, X: d.X, Y: d.Y, Z: d.Z, n }), `挂 ${SK.BY[d.code].name}`, (legs) => { const r = WSM.placeLegs(s, msg, legs, now()); if (r.ok) p.close(); return r; }); };
     }
-    p.body.querySelector('.lk-no').onclick = () => { LK.delMsg(s, msg.id); p.close(); done(); };
+    p.body.querySelector('.lk-no').onclick = () => { WSM.dismissTip(s, msg.id); p.close(); done('收起了，这次看盘她不再说这只'); };
   };
-  draw(); return p;
+  draw();
+  let lastTick = s.mkt.tick; const iv = setInterval(() => { if (!document.body.contains(p.body)) { clearInterval(iv); return; } if (s.mkt.tick !== lastTick) { lastTick = s.mkt.tick; if (!document.querySelector('.panel-mask:last-of-type .lk-leg')) draw(); } }, 500);   // 设计51：价钱每跳刷新
+  return p;
 }
 
 /** 设计47：看盘发了消息，游戏里弹一个小提示条「夏芷晴：平果有机会，去看看」，点了打开那条消息（5 秒后自己收起） */
-let tipTimer = null;
+let tipTimer = null; let gotoTipFn = (m) => openWsMsg(m); export const setGotoTip = (fn) => { gotoTipFn = fn; };
 export function wsTipBar(x) {
   const s = game.state; const ph = document.querySelector('#phone') || document.body;
   let bar = document.querySelector('.ws-tip'); if (!bar) { bar = h('button', 'ws-tip'); ph.appendChild(bar); }
   bar.innerHTML = `${hasAsset(`assets/sec/${x.who}/c1.webp`) ? `<img src="${asset(`assets/sec/${x.who}/c1.webp`)}" alt="">` : ''}<span><b>${secName(x.who)}</b>：${x.text}</span><i>›</i>`;
   bar.classList.add('show');
-  bar.onclick = () => { bar.classList.remove('show'); const m = (s.inbox || []).find((y) => y.id === x.id); if (m) openWsMsg(m); else toast('这条已经过了'); };
+  bar.onclick = () => { bar.classList.remove('show'); const m = WSM.tipById(s, x.id); if (!m) { toast('这条已经过了'); return; } gotoTipFn(m); };   // 设计48：跳到 财富 → 投资 → 股票，弹开那一条
   clearTimeout(tipTimer); tipTimer = setTimeout(() => bar.classList.remove('show'), 5000);
 }
 
-// 消息「重要」里的按钮
-addActionUi((s, m, a, render) => {
-  if (m.type === 'stock_ws') { if (a === 'no') { LK.delMsg(s, m.id); done(); render(); return true; } openWsMsg(m); return true; }
-  return false;
-});
 export { I, busy };
