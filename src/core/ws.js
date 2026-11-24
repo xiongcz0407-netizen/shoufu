@@ -3,14 +3,14 @@
 // 利好 / 利空新闻每跳检查、新闻前 30 跳就说（提前说 / 说准按「股票 + 新闻那一跳」定种子只掷一次，点几次都一样）。
 // 机会：要涨停 / 有利好 / 有一波 → 「重要」消息（⅓仓 / 半仓 / 全仓 一点就挂）；手里有的要跌 → 「¥X 以下先卖掉」（卖 ⅓ / 一半 / 全部）。
 // 设计48：提示不进消息，放在 s.mkt.wsTips（股票页看盘卡片下面列）；同一只不重复、最多 3 条；买入点过了收起；「不用了」这次看盘这只不再说。离线不补发：回来还在看盘时间里马上扫一次。结束弹战绩。不看盘就没有任何股票提示（规矩 9）。
-import * as SK from './stocks.js?v=2c0f4ae6';
-import * as TR from './trade.js?v=2c0f4ae6';
-import { attrs as secAttrs } from './posts.js?v=2c0f4ae6';
-import { whyEnergy, doEnergy } from './manage.js?v=2c0f4ae6';
-import { isTraining } from './training.js?v=2c0f4ae6';
-import { SEC_BY_ID } from '../config/secretaries.js?v=2c0f4ae6';
-import { posShares, POS_BY, nFor } from './look.js?v=2c0f4ae6';
-import { have as haveItem, useItem } from './coupon.js?v=2c0f4ae6';   // 设计53 投资券
+import * as SK from './stocks.js?v=691ed83a';
+import * as TR from './trade.js?v=691ed83a';
+import { attrs as secAttrs } from './posts.js?v=691ed83a';
+import { whyEnergy, doEnergy } from './manage.js?v=691ed83a';
+import { isTraining } from './training.js?v=691ed83a';
+import { SEC_BY_ID } from '../config/secretaries.js?v=691ed83a';
+import { posShares, POS_BY, nFor } from './look.js?v=691ed83a';
+import { have as haveItem, useItem } from './coupon.js?v=691ed83a';   // 设计53 投资券
 
 const C = SK.SCFG; const W = C.watch; const WS = W.ws; const T = W.tip;
 const TICK = C.tickSec * 1000; const HOUR_TICKS = 3600e3 / TICK;
@@ -205,7 +205,7 @@ export function scan(s, t = Date.now(), manual = false) {
   const ex = new Set(rows.map((r) => r.code)); let wi = 0;
   for (const r of rows) {
     if (msgs(s).some((x) => x.data.code === r.code) || (w.no && w.no[r.code])) continue;
-    const right = isRight(s, r.code, m.tick, wv); let d = { kind: r.lu ? 'lu' : 'wave', code: r.code, X: r.X, Y: r.Y, Z: r.Z, g: r.g, lu: r.lu, mins: r.mins, b: r.b, thr: r.thr };
+    const right = isRight(s, r.code, m.tick, wv); let d = { kind: r.lu ? 'lu' : 'wave', code: r.code, X: r.X, Y: r.Y, Z: r.Z, g: r.g, lu: r.lu, mins: r.mins, b: r.b, hit: r.hit, thr: r.thr };
     if (!right) { d = wrongBuy(s, w, see, d.kind, wv, ex, wi++); if (!d) continue; }   // 设计53 说错：换成一只其实要跌的，长得一样
     const x = send(s, w, d, t); if (x) { out.push(x); tally(w, !right); }
   }
@@ -260,7 +260,7 @@ export function refresh(s) {
     const q = quick(m, d.code, F.path[d.code], wv, LU[d.code] != null ? LU[d.code] : null);
     if (!q) { if (d.pre && tk <= d.newsTick + WS.buyTicks) continue; delTip(s, x.id); continue; }   // 预告：新闻出来前一直留着
     if (d.pre) { d.pre = false; const w = ws(s); if (w) tally(w, false); if (w) w.toast.push({ who: x.from, code: d.code, kind: 'news', id: x.id, text: `${nm(d.code)}有利好，现在能买了` }); x.title = `${SEC_BY_ID[x.from] ? SEC_BY_ID[x.from].name : ''}：${nm(d.code)}有利好`; }
-    Object.assign(d, { X: q.X, Y: q.Y, Z: q.Z, g: q.g, mins: q.mins, lu: q.lu, b: q.b, thr: q.thr }); if (d.kind !== 'news') d.kind = q.lu ? 'lu' : 'wave';
+    Object.assign(d, { X: q.X, Y: q.Y, Z: q.Z, g: q.g, mins: q.mins, lu: q.lu, b: q.b, hit: q.hit, thr: q.thr }); if (d.kind !== 'news') d.kind = q.lu ? 'lu' : 'wave';
   }
 }
 /** 每一跳（stocks.js advance 的钩子）：重算提示、到点自动扫、新闻前、结束；离线补的跳不发，回到现在马上扫一次 */
@@ -294,10 +294,13 @@ export function placeWs(s, msg, k, t = Date.now()) {
   const r = placeLegs(s, msg, [{ code: d.code, kind: 'buy', px: d.X, n, role: 'in' }, { code: d.code, kind: 'tp', px: d.Y, n, role: 'out' }, { code: d.code, kind: 'sl', px: d.Z, n, role: 'out' }], t);
   return r.ok ? { ...r, n, pos: POS_BY[k].name } : r;
 }
+/** 设计60：提示上的时间换成跳——低点 b 是 p[b]（挂单后第 b + 1 跳），碰到卖价 hit 同理；说错的没有 hit，按提示上写的「约 N 分钟」（N × 2 跳） */
+export const etaOf = (d, tk) => ({ buy: tk + 1 + (d.b || 0), sell: tk + Math.max(1 + (d.b || 0) + 1, d.hit != null && !d.wrong ? 1 + d.hit : (d.mins || 10) * 2) });
 /** 跟一单（⅓仓 / 半仓 / 全仓，或者「改」了价钱再挂）：先看今天还能不能跟（免费的 → 投资券），挂上才算 */
 export function placeLegs(s, msg, legs, t = Date.now()) {
   const d = msg.data; const f = followState(s, t); if (!f.ok) return { ok: false, why: '今天免费的用完了，没有投资券', noCoupon: true };
-  const r = TR.addGroup(s, legs, { src: 'watch', exp: t + ((d.b || 0) + 1 + WS.buyTicks) * TICK + 1000, lu: !!d.lu, sellBy: s.mkt.tick + AHEAD() }, t); if (!r.ok) return r;   // 设计59：到低点后 2 跳没成交撤；从挂单起 10 分钟到了按现价卖
+  const tk = s.mkt.tick; const eta = etaOf(d, tk);   // 设计60：预计到低点买入、预计卖出那一跳（说错的照提示上写的）
+  const r = TR.addGroup(s, legs, { src: 'watch', exp: t + ((d.b || 0) + 1 + WS.buyTicks) * TICK + 1000, lu: !!d.lu, sellBy: tk + AHEAD(), etaBuy: eta.buy, etaSell: eta.sell }, t); if (!r.ok) return r;   // 设计59：到低点后 2 跳没成交撤；从挂单起 10 分钟到了按现价卖
   const used = useFollow(s, t); delTip(s, msg.id); const w = ws(s); if (w) { w.placed += 1; w.grps.push(r.grp); if (d.wrong) (w.wrongGrps = w.wrongGrps || {})[r.grp] = 1; }
   return { ...r, coupon: used === 'coupon' };
 }

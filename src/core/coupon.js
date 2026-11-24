@@ -2,15 +2,15 @@
 // 存档 s.coupon = { bal, log: [{ t, n, why }], seen: { title, goal, final: {}, favor: {}, win: {} }, day: { key, sign, tasks, refill, talks: { 秘书id: 用了几张 }, dates: { 秘书id: 用了几张 } } }
 // 怎么得：全在 tick 里看（签到、每日任务全领完、目标链、升称号、收购最终对手、好感升阶、第一次赢对手），不改别的模块；新开局时把「已经有的」记成看过，不补发。
 // 挂钩默认已经接开发1 的真函数；测试可以用 setCouponHooks 换掉：{ energyAdd, refill, refillState, auto }
-import C from '../config/coupon.json?v=2c0f4ae6' with { type: 'json' };
-import { daily, dayKey, talkExtra } from './affection.js?v=2c0f4ae6';
-import { tasksFor } from './daily.js?v=2c0f4ae6';
-import { gl } from './goals.js?v=2c0f4ae6';
-import { favorStage } from './secretary.js?v=2c0f4ae6';
-import { RIVALS } from '../config/rivals.js?v=2c0f4ae6';
-import { addEnergy, autoActLeft, useAutoTicket } from './manage.js?v=2c0f4ae6';
-import { whyNotMore, more as bizMore, moreLeft } from './bizevents.js?v=2c0f4ae6';
-import { datesWith, dateTickets, DATE_TICKET_MAX } from './dates.js?v=2c0f4ae6';
+import C from '../config/coupon.json?v=691ed83a' with { type: 'json' };
+import { daily, dayKey, talkExtra } from './affection.js?v=691ed83a';
+import { tasksFor } from './daily.js?v=691ed83a';
+import { gl } from './goals.js?v=691ed83a';
+import { favorStage } from './secretary.js?v=691ed83a';
+import { RIVALS } from '../config/rivals.js?v=691ed83a';
+import { addEnergy, autoActLeft, useAutoTicket } from './manage.js?v=691ed83a';
+import { whyNotMore, more as bizMore, moreLeft } from './bizevents.js?v=691ed83a';
+import { datesWith, dateTickets, DATE_TICKET_MAX } from './dates.js?v=691ed83a';
 export { C as COUPON_CFG };
 export const ITEMS = C.items;
 export const ITEM_KEYS = C.order;
