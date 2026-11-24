@@ -1,16 +1,17 @@
 // 第 P-06 项：财富 → 投资 里的「打新 · 两融」页签、个股页的条件单 / 融资买入、行情顶上的看盘（设计25 第五节）
-import { whyToast } from './invest.js?v=ad479e23';   // 设计62：钱不够一键从个人账户转入
-import * as SK from '../core/stocks.js?v=ad479e23';
-import * as TR from '../core/trade.js?v=ad479e23';
-import * as LK from '../core/look.js?v=ad479e23'; // 设计41
-import * as AS from '../core/assets.js?v=ad479e23';
-import { attrs as secAttrs } from '../core/posts.js?v=ad479e23';
-import { SEC_BY_ID } from '../config/secretaries.js?v=ad479e23';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=ad479e23';
-import { profitMul } from '../core/calib.js?v=ad479e23';
-import { game } from '../game.js?v=ad479e23';
-import { now } from '../core/clock.js?v=ad479e23';
-import { h, openPanel, toast } from './dom.js?v=ad479e23';
+import { earnAt, cls, sgnPct } from './earn.js?v=f7808ad2';   // 设计65：挂单写百分比
+import { whyToast } from './invest.js?v=f7808ad2';   // 设计62：钱不够一键从个人账户转入
+import * as SK from '../core/stocks.js?v=f7808ad2';
+import * as TR from '../core/trade.js?v=f7808ad2';
+import * as LK from '../core/look.js?v=f7808ad2'; // 设计41
+import * as AS from '../core/assets.js?v=f7808ad2';
+import { attrs as secAttrs } from '../core/posts.js?v=f7808ad2';
+import { SEC_BY_ID } from '../config/secretaries.js?v=f7808ad2';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=f7808ad2';
+import { profitMul } from '../core/calib.js?v=f7808ad2';
+import { game } from '../game.js?v=f7808ad2';
+import { now } from '../core/clock.js?v=f7808ad2';
+import { h, openPanel, toast } from './dom.js?v=f7808ad2';
 
 const C = SK.SCFG; const I = C.ipo, MG = C.margin;
 const COLOR = { 科技: '#3b6fd8', 消费: '#d8823b', 能源: '#3ba86b', 汽车: '#7a5cd6', 金融: '#c9a43b', 传媒: '#d64b7a', 奢侈品: '#8a6a3a' };
@@ -26,13 +27,16 @@ export function orderBlock(s, code, n, rerender) {
   const mine = m.orders.filter((o) => o.code === code);
   const draw = () => {
     const def = kind === 'buy' ? px * 0.95 : kind === 'tp' ? px * 1.1 : px * 0.92;
+    /* 设计65：填的价旁边写百分比——买单比现价；止盈 / 止损按成本写「到了赚 +¥X，+x%」（没持仓按现价） */
+    const ordPct = (v) => { v = Math.round(+v * 100) / 100; if (!(v > 0)) return ''; if (kind === 'buy') return `比现价 <span class="${cls(v - px)}">${sgnPct(v / px - 1)}</span>`; const my = SK.myShares(s)[code]; const base = my ? my.cost : px; return `${my ? '按成本' : '按现价'} ${earnAt(v, base, Math.min(n, my ? my.n : n))}`; };
     el.innerHTML = `<div class="fn-row"><span><b>条件单</b><small>　不用一直盯盘：到价自动成交（离线也会触发），最多 ${C.orders.max} 张，${C.orders.expireDays} 个游戏天没触发自动撤</small></span></div>
       <div class="tabs">${Object.entries(TR.KIND).map(([k, v]) => `<button class="tab ${k === kind ? 'on' : ''}" data-k="${k}">${v}</button>`).join('')}</div>
-      <div class="ord-in"><span class="${kind === 'tp' ? 'up' : kind === 'sl' ? 'down' : ''}">${kind === 'tp' ? '涨到' : '跌到'}</span><input type="number" step="0.01" class="ord-px" value="${def.toFixed(2)}"><span>元，${kind === 'buy' ? '买' : '卖'} ${n.toLocaleString()} 股</span><button class="btn sm gold ord-go">挂单</button></div><div class="lk-pos ord-pos">${LK.POS.map((q) => `<button class="btn sm" data-q="${q.k}">${kind === 'buy' ? q.name : q.sell}</button>`).join('')}</div>
+      <div class="ord-in"><span class="${kind === 'tp' ? 'up' : kind === 'sl' ? 'down' : ''}">${kind === 'tp' ? '涨到' : '跌到'}</span><input type="text" inputmode="decimal" autocomplete="off" class="ord-px" value="${def.toFixed(2)}"><span>元，${kind === 'buy' ? '买' : '卖'} ${n.toLocaleString()} 股</span><button class="btn sm gold ord-go">挂单</button></div><div class="ord-pct">${ordPct(def)}</div><div class="lk-pos ord-pos">${LK.POS.map((q) => `<button class="btn sm" data-q="${q.k}">${kind === 'buy' ? q.name : q.sell}</button>`).join('')}</div>
       ${mine.map((o) => `<div class="fn-row"><span>${TR.KIND[o.kind]} <b class="${TR.sellTone(s, o)}">${o.px}</b> · ${o.n.toLocaleString()} 股${o.on === false ? '<small>（等前面成交才生效）</small>' : ''}</span><b><button class="btn sm" data-x="${o.id}">撤</button></b></div>`).join('')}
       ${TR.mg(s) ? `<div class="fn-row"><span><b>融资买入</b>　还能借 ${fmtMoney(TR.room(s))}</span></div><button class="btn sm gold mg-buy">借钱买 ${n.toLocaleString()} 股（约 ${fmtMoney(SK.quote(s, code, n, 'buy').total)}）</button>` : ''}`;
     el.querySelectorAll('[data-k]').forEach((b) => (b.onclick = () => { kind = b.dataset.k; draw(); }));
     el.querySelectorAll('[data-q]').forEach((b) => (b.onclick = () => { const q = LK.POS_BY[b.dataset.q]; const p0 = +el.querySelector('.ord-px').value; const nn = kind === 'buy' ? LK.posShares(s, code, p0, q.k) : Math.floor(TR.sellable(s, code) * q.f); if (!(nn >= 1)) { toast(kind === 'buy' ? '不够 1 股' : '没有能卖的'); return; } const r = TR.addOrder(s, { code, kind, px: p0, n: nn }, now()); if (!r.ok) { whyToast(r.why); return; } done(`挂好了：${TR.KIND[kind]} ${r.order.px} · ${nn.toLocaleString()} 股（${kind === 'buy' ? q.name : q.sell}）`); rerender(); }));   // 设计46：⅓ / 半仓 / 全仓（卖：⅓ / 一半 / 全部）
+    { const ip = el.querySelector('.ord-px'); ip.oninput = () => { el.querySelector('.ord-pct').innerHTML = ordPct(ip.value); }; }   // 设计65：改价跟着变
     el.querySelector('.ord-go').onclick = () => { const r = TR.addOrder(s, { code, kind, px: +el.querySelector('.ord-px').value, n }, now()); if (!r.ok) { whyToast(r.why); return; } done(`挂好了：${TR.KIND[kind]} ${r.order.px}`); rerender(); };
     el.querySelectorAll('[data-x]').forEach((b) => (b.onclick = () => { const o = m.orders.find((x) => x.id === +b.dataset.x); TR.cancelOrder(s, +b.dataset.x, false, now()); done(o && (o.back || o.backN) ? `撤了，${o.back ? `${fmtMoney(o.back)} 退回投资账户` : `${o.backN.toLocaleString()} 股退回持仓`}` : '撤了'); rerender(); }));
     const mb = el.querySelector('.mg-buy'); if (mb) mb.onclick = () => { const r = TR.marginBuy(s, code, n, now()); if (!r.ok) { whyToast(r.why); return; } done(`融资买好了，借 ${fmtMoney(r.borrowed)}`); rerender(); };

@@ -1,22 +1,22 @@
 // 地产详情（公司 → 产业 → 地产，全屏）：土地市场 | 我的项目 | 持有物业；举牌在底部抽屉
-import { openNegotiate } from './negotiate.js?v=ad479e23'; // V2-07 谈地（开发2 的谈判）
-import { bigBonus } from '../core/manage.js?v=ad479e23';
-import * as RE from '../core/realestate.js?v=ad479e23';
-import * as ST from '../core/staff.js?v=ad479e23';
-import * as PO from '../core/posts.js?v=ad479e23';
-import { SEC_BY_ID } from '../config/secretaries.js?v=ad479e23';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=ad479e23';
-import { now } from '../core/clock.js?v=ad479e23';
-import { game } from '../game.js?v=ad479e23';
-import { h, openPanel, toast, liveRender } from './dom.js?v=ad479e23';
-import { openFull } from './shell.js?v=ad479e23';
-import { openHire, cityRows, bindCityRows } from './company.js?v=ad479e23';
-import { openPost } from './posts.js?v=ad479e23';
-import { asset, hasAsset } from '../platform/assets.js?v=ad479e23';
-import { MONTH_MS } from '../core/gametime.js?v=ad479e23';
-import { gm } from '../core/calib.js?v=ad479e23';
-import { hint } from './guide.js?v=ad479e23';
-import { hintLater } from './guide2.js?v=ad479e23';
+import { openNegotiate } from './negotiate.js?v=f7808ad2'; // V2-07 谈地（开发2 的谈判）
+import { bigBonus } from '../core/manage.js?v=f7808ad2';
+import * as RE from '../core/realestate.js?v=f7808ad2';
+import * as ST from '../core/staff.js?v=f7808ad2';
+import * as PO from '../core/posts.js?v=f7808ad2';
+import { SEC_BY_ID } from '../config/secretaries.js?v=f7808ad2';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=f7808ad2';
+import { now } from '../core/clock.js?v=f7808ad2';
+import { game } from '../game.js?v=f7808ad2';
+import { h, openPanel, toast, liveRender } from './dom.js?v=f7808ad2';
+import { openFull } from './shell.js?v=f7808ad2';
+import { openHire, cityRows, bindCityRows } from './company.js?v=f7808ad2';
+import { openPost } from './posts.js?v=f7808ad2';
+import { asset, hasAsset } from '../platform/assets.js?v=f7808ad2';
+import { MONTH_MS } from '../core/gametime.js?v=f7808ad2';
+import { gm } from '../core/calib.js?v=f7808ad2';
+import { hint } from './guide.js?v=f7808ad2';
+import { hintLater } from './guide2.js?v=f7808ad2';
 
 const C = RE.RE_CFG;
 const city = (k) => C.cities[k].name;
@@ -88,7 +88,7 @@ function openBid(id) {
       <div class="sum-card"><div><small>现在最高</small><b>${l.leader ? wan(l.cur) : '—'}</b></div><div><small>谁</small><b>${l.leader === 'npc' ? l.npcName : l.leader === 'me' ? '你' : '没人'}</b></div>
       <div><small>折合楼面价</small><b>${Math.round(l.cur / l.gfa).toLocaleString()}</b></div><div><small>别人还能举几次</small><b>${C.market.npcRounds - l.npcRaises}</b></div></div>
       ${opts.map(([k, label]) => { const price = first ? l.start : Math.round(l.cur * (1 + k)); const why = RE.whyNotBid(s, l, price, now()); return `<button class="tr-course go" data-k="${k}" ${why ? 'disabled' : ''}><div><b>${label}</b><div class="tr-gain">${why || `成交要付 ${wan(RE.landTotal(price))}（含契税 3%、印花税）`}</div></div></button>`; }).join('')}
-      <div class="ind-btns" style="margin-top:6px"><input class="re-max" type="number" step="100000" placeholder="出价上限（元）" value="${Math.round(l.cur * 1.15)}" style="flex:1;padding:8px;border-radius:8px;border:1px solid #34425c;background:#18223a;color:var(--paper)"><button class="btn re-up">定上限自动举牌</button></div>
+      <div class="ind-btns" style="margin-top:6px"><input class="re-max" inputmode="numeric" pattern="[0-9]*" placeholder="出价上限（元）" value="${Math.round(l.cur * 1.15)}" style="flex:1;padding:8px;border-radius:8px;border:1px solid #34425c;background:#18223a;color:var(--paper)"><button class="btn re-up">定上限自动举牌</button></div>
       ${l.leader === 'npc' ? '<button class="btn quit" style="width:100%;margin-top:6px">不跟了</button>' : ''}
       <button class="btn re-nego" style="width:100%;margin-top:6px">找${l.npcName}私下谈（谈成它不举牌，按谈下来的价拿地）</button>`;
     p.body.querySelectorAll('.go').forEach((b) => (b.onclick = () => {

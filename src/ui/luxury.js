@@ -2,20 +2,20 @@
 // 穿戴：上展示戴着的表、穿着的西装；下两格「表柜 / 衣帽间」，点一件 → 详情（戴上 / 穿上、卖回、发票）
 // 表行 / 定制店：按品牌分段，顶上写这个品牌的累计消费、配货额度（变差 / 拉黑的可以让商务总监去求情）
 // 名包：在商场按秘书分页，买了直接送她（喜欢的牌子 ♥），走个人现金、出发票
-import * as LX from '../core/luxury.js?v=ad479e23';
-import * as INB from '../core/inbox.js?v=ad479e23';
-import { SEC_BY_ID } from '../config/secretaries.js?v=ad479e23';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=ad479e23';
-import { asset, hasAsset } from '../platform/assets.js?v=ad479e23';
-import { game } from '../game.js?v=ad479e23';
-import { now } from '../core/clock.js?v=ad479e23';
-import { h, openPanel, toast, liveRender } from './dom.js?v=ad479e23';
-import { openFull } from './shell.js?v=ad479e23';
-import { openContract } from './contract.js?v=ad479e23';
-import { nextContractNo } from '../core/contracts.js?v=ad479e23';
-import { say } from './main-screen.js?v=ad479e23';
-import * as A from '../core/affection.js?v=ad479e23';
-import * as BI from './brandinv.js?v=ad479e23'; // 设计35 第九节 品牌邀请不过期
+import * as LX from '../core/luxury.js?v=f7808ad2';
+import * as INB from '../core/inbox.js?v=f7808ad2';
+import { SEC_BY_ID } from '../config/secretaries.js?v=f7808ad2';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=f7808ad2';
+import { asset, hasAsset } from '../platform/assets.js?v=f7808ad2';
+import { game } from '../game.js?v=f7808ad2';
+import { now } from '../core/clock.js?v=f7808ad2';
+import { h, openPanel, toast, liveRender } from './dom.js?v=f7808ad2';
+import { openFull } from './shell.js?v=f7808ad2';
+import { openContract } from './contract.js?v=f7808ad2';
+import { nextContractNo } from '../core/contracts.js?v=f7808ad2';
+import { say } from './main-screen.js?v=f7808ad2';
+import * as A from '../core/affection.js?v=f7808ad2';
+import * as BI from './brandinv.js?v=f7808ad2'; // 设计35 第九节 品牌邀请不过期
 
 const imgOf = (x) => `assets/${x.kind}/${x.img || x.id}.webp`;
 const pic = (x, cls = 'as-img') => (hasAsset(imgOf(x)) ? `<img class="${cls}" src="${asset(imgOf(x))}" alt="">` : `<div class="${cls} as-ph">${x.brand}<small>${x.model}</small></div>`);

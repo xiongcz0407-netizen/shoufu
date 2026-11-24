@@ -1,18 +1,18 @@
 // 第 P-06 项（设计25 第五节）：前期炒股 —— 条件单、打新股、融资融券、看盘、炒股周报
 // 条件单和两融的平仓线每跳检查（挂在 stocks.js 的 addStepHook 上，离线补算一样走）；打新、利息、周报按时间走 tick()（在线 ticker 和 core/offcap.js 都叫）
-import { shortWhy } from './invest.js?v=ad479e23';   // 设计62
-import { dropOrphans } from './orphans.js?v=ad479e23';
-import * as SK from './stocks.js?v=ad479e23';
-import { pay, receive } from './ledger.js?v=ad479e23';
-import { addContract } from './contracts.js?v=ad479e23';
-import { addMsg } from './inbox.js?v=ad479e23';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=ad479e23';
-import { profitMul } from './calib.js?v=ad479e23';
-import { isTraining } from './training.js?v=ad479e23';
-import { attrs as secAttrs } from './posts.js?v=ad479e23';
-import { SEC_BY_ID } from '../config/secretaries.js?v=ad479e23';
-import { netWorth } from './economy.js?v=ad479e23';
-import { addAssetHook } from './assets.js?v=ad479e23';
+import { shortWhy } from './invest.js?v=f7808ad2';   // 设计62
+import { dropOrphans } from './orphans.js?v=f7808ad2';
+import * as SK from './stocks.js?v=f7808ad2';
+import { pay, receive } from './ledger.js?v=f7808ad2';
+import { addContract } from './contracts.js?v=f7808ad2';
+import { addMsg } from './inbox.js?v=f7808ad2';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=f7808ad2';
+import { profitMul } from './calib.js?v=f7808ad2';
+import { isTraining } from './training.js?v=f7808ad2';
+import { attrs as secAttrs } from './posts.js?v=f7808ad2';
+import { SEC_BY_ID } from '../config/secretaries.js?v=f7808ad2';
+import { netWorth } from './economy.js?v=f7808ad2';
+import { addAssetHook } from './assets.js?v=f7808ad2';
 
 const C = SK.SCFG; const O = C.orders, I = C.ipo, MG = C.margin, W = C.weekly;
 export const DAY = MONTH_MS / 30;
@@ -208,7 +208,7 @@ export function addGroup(s, legs, meta = {}, t = Date.now()) {
 /** 照她挂的单成交以后（战绩用）：fn(s, { grp, kind: 'in' | 'out', pnl, lu }) */
 const GROUP_HOOKS = []; export const addGroupHook = (fn) => { GROUP_HOOKS.push(fn); };
 const hit = (o, p) => (o.kind === 'tp' ? p >= o.px : p <= o.px);
-/** 设计51：看盘买的那组，买入成交后 hold 跳（现实 10 分钟）止盈止损都没触发 → 按当跳价卖掉、撤掉止盈止损 */
+/** 设计51 / 59 / 65：看盘买的那组，到 sellAt（挂单起 win 跳 = 现实 5 分钟）止盈止损都没触发 → 按当跳价卖掉、撤掉止盈止损 */
 function timeUp(s, tk) {
   const m = s.mkt; const t = tk * TICK;
   for (const [id, g] of Object.entries(m.grps || {})) {
@@ -219,7 +219,7 @@ function timeUp(s, tk) {
     const n = Math.min(g.n || 0, (m.hold[g.code] || { n: 0 }).n); if (n < 1) { delete m.grps[id]; continue; }
     const r = SK.sell(s, g.code, n, t); if (!r.ok) continue;
     const pnl = r2(r.quote.total - g.cost * Math.min(1, n / (g.n || n)));
-    addMsg(s, { kind: 'system', type: 'stock_order', title: `到时间按现价卖出：${name(g.code)} ${n.toLocaleString()} 股 ${pnl >= 0 ? '+' : '−'}¥${fmt(Math.abs(pnl))}`, body: `买进 10 分钟止盈止损都没碰到，按现价 ${r.quote.exec} 卖掉，止盈止损撤了；交割单 ${r.slip.no}` }, t);
+    addMsg(s, { kind: 'system', type: 'stock_order', title: `到时间按现价卖出：${name(g.code)} ${n.toLocaleString()} 股 ${pnl >= 0 ? '+' : '−'}¥${fmt(Math.abs(pnl))}`, body: `到了最晚卖出的时间（看盘单从挂单起 ${Math.ceil(SK.SCFG.watch.ws.win / 2)} 分钟），止盈止损都没碰到，按现价 ${r.quote.exec} 卖掉，止盈止损撤了；交割单 ${r.slip.no}` }, t);
     (m.soldQ = m.soldQ || []).push({ code: g.code, n, px: r.quote.exec, pnl, t }); if (m.soldQ.length > 10) m.soldQ.shift();
     for (const fn of GROUP_HOOKS) fn(s, { grp: gid, kind: 'out', pnl, lu: g.lu, src: g.src, timeUp: true });
     delete m.grps[id];

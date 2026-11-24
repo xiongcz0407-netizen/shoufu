@@ -1,12 +1,12 @@
 // 商场（首页右侧浮动；秘书详情「送礼」直达）：礼物 | 衣服，都按秘书分页，走个人现金
-import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=ad479e23';
-import { fmtMoney } from '../core/format.js?v=ad479e23';
-import { game } from '../game.js?v=ad479e23';
-import { h } from './dom.js?v=ad479e23';
-import { asset, hasAsset } from '../platform/assets.js?v=ad479e23';
-import { openFull } from './shell.js?v=ad479e23';
-import { openGift, openLux } from './gift.js?v=ad479e23';   // 设计56：礼物 / 奢侈品
-import { openShop } from './outfit.js?v=ad479e23';
+import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=f7808ad2';
+import { fmtMoney } from '../core/format.js?v=f7808ad2';
+import { game } from '../game.js?v=f7808ad2';
+import { h } from './dom.js?v=f7808ad2';
+import { asset, hasAsset } from '../platform/assets.js?v=f7808ad2';
+import { openFull } from './shell.js?v=f7808ad2';
+import { openGift, openLux } from './gift.js?v=f7808ad2';   // 设计56：礼物 / 奢侈品
+import { openShop } from './outfit.js?v=f7808ad2';
 
 export function openMall(secId, seg = 'gift') {
   const s = game.state;

@@ -1,16 +1,16 @@
 // 「财富 → 投资 → 基金」（第 2-10 项）：公募 / 私募 / 天使风投；申购、赎回（下一跳到账）、私募三份文件
-import { whyToast } from './invest.js?v=ad479e23';   // 设计62：钱不够一键从个人账户转入
-import { YEAR_MS } from '../core/gametime.js?v=ad479e23'; // V0.2.10
-import * as FD from '../core/funds.js?v=ad479e23';
-import * as AS from '../core/assets.js?v=ad479e23';
-import * as INB from '../core/inbox.js?v=ad479e23';
-import * as E from '../core/economy.js?v=ad479e23';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=ad479e23';
-import { game } from '../game.js?v=ad479e23';
-import { now } from '../core/clock.js?v=ad479e23';
-import { h, openPanel, toast } from './dom.js?v=ad479e23';
-import { spark } from './stocks.js?v=ad479e23';
-import { hintLater } from './guide2.js?v=ad479e23';
+import { whyToast } from './invest.js?v=f7808ad2';   // 设计62：钱不够一键从个人账户转入
+import { YEAR_MS } from '../core/gametime.js?v=f7808ad2'; // V0.2.10
+import * as FD from '../core/funds.js?v=f7808ad2';
+import * as AS from '../core/assets.js?v=f7808ad2';
+import * as INB from '../core/inbox.js?v=f7808ad2';
+import * as E from '../core/economy.js?v=f7808ad2';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=f7808ad2';
+import { game } from '../game.js?v=f7808ad2';
+import { now } from '../core/clock.js?v=f7808ad2';
+import { h, openPanel, toast } from './dom.js?v=f7808ad2';
+import { spark } from './stocks.js?v=f7808ad2';
+import { hintLater } from './guide2.js?v=f7808ad2';
 
 const pct = (v) => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(2)}%`;
 const cls = (v) => (v > 0 ? 'up' : v < 0 ? 'down' : '');

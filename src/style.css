@@ -1154,3 +1154,8 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 .iv-dirs .tab { flex: 1 1 45%; }
 .iv-amt { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #34425c; background: #18223a; color: var(--paper); font-size: 16px; box-sizing: border-box; }
 .iv-short { font-size: 16px; margin: 4px 0 8px; } .iv-short b { color: #e5484d; }
+.ws-none .ws-auto{display:block;font-size:11px;color:#6f7890;margin-top:2px} /* 设计63 */
+.lk-pos .btn small.lk-earn{font-size:10px;opacity:1;background:rgba(10,14,24,.75);border-radius:4px;margin-top:2px;padding:1px 0} /* 设计65 */
+.lk-pct{font-size:12px;margin:-2px 0 6px 4px} /* 设计65 */
+.ord-pct{font-size:12px;margin:2px 0 6px;color:#9aa6c0} /* 设计65 */
+.fn-doc .fn-doc-pl{display:block;font-size:12px;margin-top:2px} /* 设计65 小改 */

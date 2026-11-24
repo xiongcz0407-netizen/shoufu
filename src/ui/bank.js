@@ -1,22 +1,22 @@
 // 财富 → 银行：征信、存款、贷款（经营贷、开发贷、股票质押、艺术品质押）、私人银行；申请和存款在底部抽屉
-import ECO from '../config/economy.json?v=ad479e23' with { type: 'json' };
+import ECO from '../config/economy.json?v=f7808ad2' with { type: 'json' };
 const PM = ECO.profitMul;
 /** 利率后面的小字：游戏年利率 = 现实 × 赚钱倍数（验收 2-16b） */
 const rn = (r) => `<small class="rate-note">（游戏年利率；现实 ${(r / PM * 100).toFixed(2).replace(/\.?0+$/, '')}% × 赚钱倍数 ${PM}）</small>`;
-import * as BK from '../core/bank.js?v=ad479e23';
-import * as RE from '../core/realestate.js?v=ad479e23';
-import * as PL from '../core/pledge.js?v=ad479e23';
-import * as SK from '../core/stocks.js?v=ad479e23';
-import * as AQ from '../core/antique.js?v=ad479e23';
-import * as LS from '../core/listing.js?v=ad479e23';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=ad479e23';
-import { asset, hasAsset } from '../platform/assets.js?v=ad479e23';
-import { now } from '../core/clock.js?v=ad479e23';
-import { game } from '../game.js?v=ad479e23';
-import { h, openPanel, toast, liveRender } from './dom.js?v=ad479e23';
-import { hint } from './guide.js?v=ad479e23';
-import { hintLater } from './guide2.js?v=ad479e23';
-import { confirmBox } from './confirm.js?v=ad479e23'; // 设计37 第一节：游戏样式确认框
+import * as BK from '../core/bank.js?v=f7808ad2';
+import * as RE from '../core/realestate.js?v=f7808ad2';
+import * as PL from '../core/pledge.js?v=f7808ad2';
+import * as SK from '../core/stocks.js?v=f7808ad2';
+import * as AQ from '../core/antique.js?v=f7808ad2';
+import * as LS from '../core/listing.js?v=f7808ad2';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=f7808ad2';
+import { asset, hasAsset } from '../platform/assets.js?v=f7808ad2';
+import { now } from '../core/clock.js?v=f7808ad2';
+import { game } from '../game.js?v=f7808ad2';
+import { h, openPanel, toast, liveRender } from './dom.js?v=f7808ad2';
+import { hint } from './guide.js?v=f7808ad2';
+import { hintLater } from './guide2.js?v=f7808ad2';
+import { confirmBox } from './confirm.js?v=f7808ad2'; // 设计37 第一节：游戏样式确认框
 
 const C = BK.BANK_CFG;
 const logo = (k) => (hasAsset(`assets/org/${C.banks[k].logo}.webp`) ? `<img class="bk-logo" src="${asset(`assets/org/${C.banks[k].logo}.webp`)}" alt="">` : `<div class="bk-logo ph">${C.banks[k].name.slice(0, 2)}</div>`);
@@ -75,7 +75,7 @@ function openDeposit(bk) {
     const s = game.state; const why = BK.whyNotDeposit(s, bk, o.kind, o.wallet, o.amount);
     p.body.innerHTML = `<div class="sd-rec-title">从哪个钱包</div><div class="tabs"><button class="tab ${o.wallet === 'personal' ? 'on' : ''}" data-w="personal">个人现金 ${fmtMoney(s.cash)}</button><button class="tab ${o.wallet === 'company' ? 'on' : ''}" data-w="company">公司账户 ${fmtMoney(s.company)}</button></div>
       <div class="sd-rec-title">种类</div><div class="tabs">${Object.entries(C.deposits).map(([k, d]) => `<button class="tab ${o.kind === k ? 'on' : ''}" data-k="${k}">${d.name} ${pct(BK.depRate(bk, k))}</button>`).join('')}</div><small class="rate-note">都是游戏年利率；现实 ${pct(BK.depRate(bk, o.kind) / PM)} × 赚钱倍数 ${PM}</small>
-      <div class="sd-rec-title">金额（元）</div><input class="amt" type="number" min="0" step="10000" value="${o.amount}" style="width:100%;padding:10px;border-radius:8px;border:1px solid #34425c;background:#18223a;color:var(--paper);font-size:16px">
+      <div class="sd-rec-title">金额（元）</div><input class="amt" inputmode="numeric" pattern="[0-9]*" value="${o.amount}" style="width:100%;padding:10px;border-radius:8px;border:1px solid #34425c;background:#18223a;color:var(--paper);font-size:16px">
       <div class="rate">${why ? `<span class="sc-cond">${why}</span>` : `存 ${fmtMoney(o.amount)}，${C.deposits[o.kind].months ? `${C.deposits[o.kind].months} 个游戏月到期自动连本带息回来` : '随时取'}；储蓄存款利息免个税`}</div><button class="btn gold big go" ${why ? 'disabled' : ''}>存进去</button>`;
     p.body.querySelectorAll('[data-w]').forEach((b) => (b.onclick = () => { o.wallet = b.dataset.w; render(); }));
     p.body.querySelectorAll('[data-k]').forEach((b) => (b.onclick = () => { o.kind = b.dataset.k; render(); }));
@@ -96,7 +96,7 @@ function openLoan(bk) {
         <div class="sd-rec-title">期限</div><div class="tabs">${C.biz.years.map((y) => `<button class="tab ${o.years === y ? 'on' : ''}" data-y="${y}">${y} 年 ${pct(BK.rateFor(s, bk, 'biz', y))}</button>`).join('')}</div>`
       : `<div class="tr-gain">四证齐了才能贷；最多项目总投资 50%，自有资金要 ≥ 30%；土地和在建工程抵押；预售款进监管账户先还贷，交房还清。拿地的钱不能贷。</div>
         <div class="sd-rec-title">项目</div><div class="tabs">${projs().map((x) => `<button class="tab ${o.project === x.id ? 'on' : ''}" data-p="${x.id}">${x.name}（最多 ${fmtMoney(BK.devLimit(s, x))}）</button>`).join('') || '<span class="tr-gain">没有四证齐全的项目</span>'}</div>`}
-      <div class="sd-rec-title">金额（元）</div><input class="amt" type="number" min="0" step="100000" value="${o.amount}" style="width:100%;padding:10px;border-radius:8px;border:1px solid #34425c;background:#18223a;color:var(--paper);font-size:16px">
+      <div class="sd-rec-title">金额（元）</div><input class="amt" inputmode="numeric" pattern="[0-9]*" value="${o.amount}" style="width:100%;padding:10px;border-radius:8px;border:1px solid #34425c;background:#18223a;color:var(--paper);font-size:16px">
       <div class="rate">年利率 ${pct(rate)}${rn(rate)}（征信${BK.CREDIT_NAME[BK.bank(s).credit].split('（')[0]}${s.positions && s.positions.biz ? '，商务总监谈低了 0.25%' : ''}）${o.type === 'biz' ? `，月供 ${fmtMoney(BK.monthlyPay(o.amount, rate, o.years * 12))}` : `，每月付息约 ${fmtMoney(o.amount * rate / 12)}`}${why ? `<br><span class="sc-cond">${why}</span>` : ''}</div>
       <button class="btn gold big go" ${why ? 'disabled' : ''}>提交申请（马上出结果）</button>`;
     p.body.querySelectorAll('[data-t]').forEach((b) => (b.onclick = () => { o.type = b.dataset.t; if (o.type === 'dev' && pr) o.amount = BK.devLimit(s, pr); render(); }));
@@ -119,7 +119,7 @@ function openStockPledge(bk) {
     const val = isOwn ? LS.marketCap(s) * o.n / 100 : o.code ? SK.price(s, o.code) * o.n : 0; const amt = Math.floor(val * k); const rate = BK.rateFor(s, bk, 'stock');
     p.body.innerHTML = `<div class="tr-gain">个人的股票押给银行，钱借给<b>公司</b>（专款专用）。质押率 ${SP.ratio * 100}%（上市后自己公司的股 ${SP.ownRatio.map((x) => x * 100).join('～')}%）；按月付息、${SP.years} 个游戏年到期还本。股价跌到履约保障比例 ${SP.warn * 100}% 预警，${SP.liquidate * 100}% 银行强制平仓。押着的股不能卖。</div>
       <div class="sd-rec-title">押哪只</div><div class="tabs">${own ? `<button class="tab ${isOwn ? 'on' : ''}" data-c="${OWN}">自己公司 ${s.listing.listed.name} ${+(PL.freeOwn(s) * 100).toFixed(2)}%</button>` : ''}${hs.map((x) => `<button class="tab ${o.code === x.code ? 'on' : ''}" data-c="${x.code}">${SK.BY[x.code].name} ${PL.freeShares(s, x.code)} 股</button>`).join('') || (own ? '' : '<span class="tr-gain">没有没押的股票</span>')}</div>
-      <div class="sd-rec-title">${isOwn ? '押多少（占总股本 %）' : '押多少股'}</div><input class="amt" type="number" min="0" step="${isOwn ? 0.1 : 100}" value="${o.n}" style="width:100%;padding:10px;border-radius:8px;border:1px solid #34425c;background:#18223a;color:var(--paper);font-size:16px">
+      <div class="sd-rec-title">${isOwn ? '押多少（占总股本 %）' : '押多少股'}</div><input class="amt" ${isOwn ? 'inputmode="decimal"' : 'inputmode="numeric" pattern="[0-9]*"'} value="${o.n}" style="width:100%;padding:10px;border-radius:8px;border:1px solid #34425c;background:#18223a;color:var(--paper);font-size:16px">
       <div class="rate">市值 ${fmtMoney(val)} × ${Math.round(k * 100)}%${isOwn ? '（自己公司：市值 100 亿以上 50%，以下 30%）' : ''} = 借 <b>${fmtMoney(amt)}</b>；年利率 ${pct(rate)}${rn(rate)}，每月付息约 ${fmtMoney(amt * rate / 12)}${why ? `<br><span class="sc-cond">${why}</span>` : ''}</div>
       <button class="btn gold big go" ${why ? 'disabled' : ''}>签《股票质押合同》，放款</button>`;
     p.body.querySelectorAll('[data-c]').forEach((b) => (b.onclick = () => { o.code = b.dataset.c; o.n = o.code === OWN ? +(PL.freeOwn(game.state) * 100).toFixed(2) : PL.freeShares(game.state, o.code); render(); }));

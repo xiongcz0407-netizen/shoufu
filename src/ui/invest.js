@@ -1,12 +1,12 @@
 // 设计62 投资账户（开发2）：股票 / 基金页顶上的「投资账户 ¥X」条、转账弹框、钱不够一键转入、财务页三个账户、老存档第一次说明
-import * as IV from '../core/invest.js?v=ad479e23';
-import * as FD from '../core/funds.js?v=ad479e23';
-import * as SK from '../core/stocks.js?v=ad479e23';
-import * as TR from '../core/trade.js?v=ad479e23';
-import { fmtMoney } from '../core/format.js?v=ad479e23';
-import { game } from '../game.js?v=ad479e23';
-import { now } from '../core/clock.js?v=ad479e23';
-import { h, openPanel, toast } from './dom.js?v=ad479e23';
+import * as IV from '../core/invest.js?v=f7808ad2';
+import * as FD from '../core/funds.js?v=f7808ad2';
+import * as SK from '../core/stocks.js?v=f7808ad2';
+import * as TR from '../core/trade.js?v=f7808ad2';
+import { fmtMoney } from '../core/format.js?v=f7808ad2';
+import { game } from '../game.js?v=f7808ad2';
+import { now } from '../core/clock.js?v=f7808ad2';
+import { h, openPanel, toast } from './dom.js?v=f7808ad2';
 
 const DIRS = [['personal', 'invest', '个人 → 投资'], ['invest', 'personal', '投资 → 个人'], ['invest', 'company', '投资 → 公司'], ['company', 'invest', '公司 → 投资']];
 const NOTE = {
@@ -38,7 +38,7 @@ export function openTransfer(from = 'personal', to = 'invest', after) {
       <div class="tr-gain">${NOTE[key]}</div>
       <div class="rate">${IV.ACC[from]}最多能转 <b>${fmtMoney(max)}</b></div>
       <div class="tabs" style="margin-top:8px">${[[1e4, '1 万'], [1e5, '10 万'], [max, '全部']].map(([v, n]) => `<button class="tab ${v === amt && amt > 0 ? 'on' : ''}" data-v="${v}" ${v > max + 1e-9 || max < 0.01 ? 'disabled' : ''}>${n}</button>`).join('')}</div>
-      <div class="sd-rec-title">金额（元）</div><input class="amt iv-amt" type="number" min="0" step="10000" value="${amt}">
+      <div class="sd-rec-title">金额（元）</div><input class="amt iv-amt" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="${amt}">
       ${to === 'invest' && from === 'company' ? `<div class="tr-gain">到手 <b class="iv-net">${fmtMoney(amt * 0.8)}</b>（代扣个税 ${fmtMoney(amt * 0.2)}）</div>` : ''}
       <button class="btn gold big go">转 ${fmtMoney(amt)}</button>`;
     p.body.querySelectorAll('[data-d]').forEach((b) => (b.onclick = () => { [from, to] = b.dataset.d.split('>'); amt = 0; render(); }));

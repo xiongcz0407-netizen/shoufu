@@ -1,20 +1,20 @@
 // V3-02 老板日程表界面：首页「日程」→ 今天 / 明天，每个时段的邀请：答应 / 推掉 / 派人代去 / 去参加；外部事件「去处理」
 // 出席宴会、讲座、慈善、私人场合先选车 / 表 / 西装 / 女伴；参加 = 小场景（ui/scene.js）
-import * as LV from '../core/love.js?v=ad479e23';   // 设计56
-import * as AG from '../core/agenda.js?v=ad479e23';
-import { openTrip } from './trip.js?v=ad479e23';
-import * as INB from './inbox.js?v=ad479e23';
-import { SEC_BY_ID } from '../config/secretaries.js?v=ad479e23';
-import { attrs } from '../core/posts.js?v=ad479e23';
-import { dayIndex } from '../core/manage.js?v=ad479e23';
-import { game } from '../game.js?v=ad479e23';
-import { now } from '../core/clock.js?v=ad479e23';
-import { openPanel, toast } from './dom.js?v=ad479e23';
-import { playScene } from './scene.js?v=ad479e23';
-import { lineOf, setFavorFn } from '../core/storylib.js?v=ad479e23';
-import { favorStage } from '../core/secretary.js?v=ad479e23';
+import * as LV from '../core/love.js?v=f7808ad2';   // 设计56
+import * as AG from '../core/agenda.js?v=f7808ad2';
+import { openTrip } from './trip.js?v=f7808ad2';
+import * as INB from './inbox.js?v=f7808ad2';
+import { SEC_BY_ID } from '../config/secretaries.js?v=f7808ad2';
+import { attrs } from '../core/posts.js?v=f7808ad2';
+import { dayIndex } from '../core/manage.js?v=f7808ad2';
+import { game } from '../game.js?v=f7808ad2';
+import { now } from '../core/clock.js?v=f7808ad2';
+import { openPanel, toast } from './dom.js?v=f7808ad2';
+import { playScene } from './scene.js?v=f7808ad2';
+import { lineOf, setFavorFn } from '../core/storylib.js?v=f7808ad2';
+import { favorStage } from '../core/secretary.js?v=f7808ad2';
 setFavorFn((id) => { const r = game.state && game.state.secs && game.state.secs[id]; return r ? favorStage(r.favor || 0) : 0; }); // V3-04：{ t, fav } 好感到了才说
-import * as STY from '../core/styles.js?v=ad479e23';
+import * as STY from '../core/styles.js?v=f7808ad2';
 
 const C = AG.AGENDA_CFG;
 const OPENERS = {};
@@ -34,7 +34,7 @@ export function openAgenda() {
       ${[0, 1, 2].map((k) => { const ys = xs.filter((x) => (x.kind === 'trip' ? k === 0 : x.slot === k)); return `<div class="ag-slot ${off === 0 && cur.slot === k ? 'now' : ''}"><div class="ag-sh">${AG.slotName(k)}${off === 0 && cur.slot === k ? ' · 现在' : ''}</div>${ys.length ? ys.map((x) => card(s, x, t)).join('') : '<div class="ag-empty">空着</div>'}</div>`; }).join('')}
       ${A.log.length ? `<div class="sd-rec-title">最近</div><div class="ag-log">${A.log.slice(0, 5).map((l) => `<div>${l.text}</div>`).join('')}</div>` : ''}`;
     p.body.querySelectorAll('.ag-tabs .tab').forEach((b) => (b.onclick = () => { off = +b.dataset.o; draw(); }));
-    p.body.querySelectorAll('[data-bday]').forEach((b) => (b.onclick = () => { p.close(); import('./mall.js?v=ad479e23').then((u) => u.openMall(b.dataset.bday, 'gift')); }));
+    p.body.querySelectorAll('[data-bday]').forEach((b) => (b.onclick = () => { p.close(); import('./mall.js?v=f7808ad2').then((u) => u.openMall(b.dataset.bday, 'gift')); }));
     p.body.querySelectorAll('[data-act]').forEach((b) => (b.onclick = () => act(b.dataset.act, +b.dataset.id, draw, p)));
   };
   draw(); day0 = 0;
@@ -94,7 +94,7 @@ export function runScene(x, sel) {
   playScene([...(inv ? [{ who: comp, text: inv }] : []), ...fl, ...v.intro.map(sub), ...round(0)], { sec: comp && SEC_BY_ID[comp] ? comp : null, outfit: fit ? fit.o : undefined, bg: BG[x.kind], title: `${C.kinds[x.kind].name} · ${x.title}` });
 }
 INB.addActionUi((s, m, a) => { if (m.type !== 'agenda' || a !== 'open') return false; openAgenda(); return true; });
-import('./meeting.js?v=ad479e23').then((M) => registerOpen('meeting', () => M.openMeeting()));
+import('./meeting.js?v=f7808ad2').then((M) => registerOpen('meeting', () => M.openMeeting()));
 for (const k of ['project', 'attack', 'realestate']) registerOpen(k, () => INB.openInbox('important')); // 开发1 的消息（带按钮），设计39 起在消息中心「重要」页处理
 let last = 0;
 game.addTicker((s) => { const t = now(); if (t - last < 2000) return; last = t; const r = AG.tick(s, t); if (r && r.invites) toast(`${AG.scheduler(s) ? SEC_BY_ID[AG.scheduler(s)].name : '秘书'}把明天的日程排好了（${r.invites} 个邀请）`, 3000); });

@@ -1,24 +1,24 @@
 // P-05 经营事件（设计25 第二节，config/events.json）。设计39 第三节：每天 0 点（手机本地时间）整批来 10 件，不管在不在线；
 // 当天同一种只出一次；没做的 0 点清掉（不按默认、没有影响）；打工人只抽 tier 0（正好 10 种），小老板起 tier 0 + 1，小老板起「再来 10 件」一天一次（金券开发2 扣）。
 // 按你有的店、行业、称号筛；相关属性最高的秘书出主意（对的概率 50% + 属性 / 2）
-import { credit } from './credit.js?v=ad479e23'; // V3-01 亲自拍板攒投入度
-import EV from '../config/events.json?v=ad479e23' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=ad479e23';
-import { SEC_BY_ID } from '../config/secretaries.js?v=ad479e23';
-import { dayKey } from './affection.js?v=ad479e23';
-import { addMsg, onAction } from './inbox.js?v=ad479e23';
-import { pay, receive } from './ledger.js?v=ad479e23';
-import { addContract } from './contracts.js?v=ad479e23';
-import { attrs } from './posts.js?v=ad479e23';
-import { isTraining } from './training.js?v=ad479e23';
-import * as MG from './manage.js?v=ad479e23';
-import * as PK from './pick.js?v=ad479e23';
-import * as PQ from './prereq.js?v=ad479e23';
-import './late.js?v=ad479e23'; // V3-01 后期不挂机（挂钩注册） // V2-12 前置条件第一次满足时秘书说一句 // V2-03 进货挑品：暴雨跟着天气、节日事件跟着节日
-import { mark } from './goals.js?v=ad479e23';
-import { available } from './accrual.js?v=ad479e23'; // V0.2.2 打工人阶段事件花钱封顶
-import { fmtMoney } from './format.js?v=ad479e23';
-import * as CF from './cashflow.js?v=ad479e23'; // V0.2.9 工资锁
+import { credit } from './credit.js?v=f7808ad2'; // V3-01 亲自拍板攒投入度
+import EV from '../config/events.json?v=f7808ad2' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=f7808ad2';
+import { SEC_BY_ID } from '../config/secretaries.js?v=f7808ad2';
+import { dayKey } from './affection.js?v=f7808ad2';
+import { addMsg, onAction } from './inbox.js?v=f7808ad2';
+import { pay, receive } from './ledger.js?v=f7808ad2';
+import { addContract } from './contracts.js?v=f7808ad2';
+import { attrs } from './posts.js?v=f7808ad2';
+import { isTraining } from './training.js?v=f7808ad2';
+import * as MG from './manage.js?v=f7808ad2';
+import * as PK from './pick.js?v=f7808ad2';
+import * as PQ from './prereq.js?v=f7808ad2';
+import './late.js?v=f7808ad2'; // V3-01 后期不挂机（挂钩注册） // V2-12 前置条件第一次满足时秘书说一句 // V2-03 进货挑品：暴雨跟着天气、节日事件跟着节日
+import { mark } from './goals.js?v=f7808ad2';
+import { available } from './accrual.js?v=f7808ad2'; // V0.2.2 打工人阶段事件花钱封顶
+import { fmtMoney } from './format.js?v=f7808ad2';
+import * as CF from './cashflow.js?v=f7808ad2'; // V0.2.9 工资锁
 
 export { EV as EVENTS_CFG };
 const r2 = (x) => Math.round(x * 100) / 100;

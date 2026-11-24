@@ -1,10 +1,10 @@
 // ?debug=1 调试面板：加钱、加好感、快进时间、清存档。各功能用 addDebug() 往里加按钮
-import { skip, getOffset } from './core/clock.js?v=ad479e23';
-import { storage } from './platform/storage.js?v=ad479e23';
-import { SAVE_KEY } from './core/save.js?v=ad479e23';
-import { fmtMoney, fmtDuration } from './core/format.js?v=ad479e23';
-import { game, settleOffline } from './game.js?v=ad479e23';
-import { receive } from './core/ledger.js?v=ad479e23';
+import { skip, getOffset } from './core/clock.js?v=f7808ad2';
+import { storage } from './platform/storage.js?v=f7808ad2';
+import { SAVE_KEY } from './core/save.js?v=f7808ad2';
+import { fmtMoney, fmtDuration } from './core/format.js?v=f7808ad2';
+import { game, settleOffline } from './game.js?v=f7808ad2';
+import { receive } from './core/ledger.js?v=f7808ad2';
 
 export const isDebug = () => typeof location !== 'undefined' && new URLSearchParams(location.search).get('debug') === '1';
 const groups = new Map(); // 组名 → [[标签, fn]]
