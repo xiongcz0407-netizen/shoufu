@@ -1,15 +1,15 @@
 // 物流（设计20 第二节 2）：规模制产业 + 车队（公司资产、购置税、4 年折旧）+ 双十一 + 联动（便利店、服装进货 −2%）
 // 不 import economy（economy 用这里的收入、车队价值）
-import L from '../config/logistics.json?v=5ca34d35' with { type: 'json' };
-import { ECO, SOCIAL } from './calib.js?v=5ca34d35';
-import PAY from '../config/payroll.json?v=5ca34d35' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=5ca34d35';
-import { pay } from './ledger.js?v=5ca34d35';
-import { payTaxItem } from './companytax.js?v=5ca34d35';
-import { estTotal, onDuty, onDutyRole, wage, lookOf } from './staff.js?v=5ca34d35';
-import { MONTH_MS, YEAR_MS, monthIndex, gameDate } from './gametime.js?v=5ca34d35';
-import { addMsg } from './inbox.js?v=5ca34d35';
-import { holder, isSec, postMeta } from './posts.js?v=5ca34d35';
+import L from '../config/logistics.json?v=2c0f4ae6' with { type: 'json' };
+import { ECO, SOCIAL } from './calib.js?v=2c0f4ae6';
+import PAY from '../config/payroll.json?v=2c0f4ae6' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=2c0f4ae6';
+import { pay } from './ledger.js?v=2c0f4ae6';
+import { payTaxItem } from './companytax.js?v=2c0f4ae6';
+import { estTotal, onDuty, onDutyRole, wage, lookOf } from './staff.js?v=2c0f4ae6';
+import { MONTH_MS, YEAR_MS, monthIndex, gameDate } from './gametime.js?v=2c0f4ae6';
+import { addMsg } from './inbox.js?v=2c0f4ae6';
+import { holder, isSec, postMeta } from './posts.js?v=2c0f4ae6';
 export { L as LOGI_CFG };
 
 const r2 = (x) => Math.round(x * 100) / 100;

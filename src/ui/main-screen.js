@@ -1,18 +1,18 @@
 // 主界面：背景（跟称号换）、顶部条、立绘、台词气泡、底部 5 个按钮
-import { asset, hasAsset } from '../platform/assets.js?v=5ca34d35';
-import { onTap } from '../platform/input.js?v=5ca34d35';
-import { TITLES } from '../config/titles.js?v=5ca34d35';
-import { SEC_BY_ID } from '../config/secretaries.js?v=5ca34d35';
-import { fmtMoney, fmtNum } from '../core/format.js?v=5ca34d35';
-import { gameDate, dateText } from '../core/gametime.js?v=5ca34d35';
-import * as PK from '../core/pick.js?v=5ca34d35'; // V2-03 进货挑品
-import { bell as bellOf } from '../core/inbox.js?v=5ca34d35';
-import { now as nowFn } from '../core/clock.js?v=5ca34d35';
-import { game } from '../game.js?v=5ca34d35';
-import { h, openPanel, toast } from './dom.js?v=5ca34d35';
-import { createPortrait } from './portrait.js?v=5ca34d35';
-import { audio } from '../platform/audio.js?v=5ca34d35';
-import { voiceFile } from '../config/lines.js?v=5ca34d35';
+import { asset, hasAsset } from '../platform/assets.js?v=2c0f4ae6';
+import { onTap } from '../platform/input.js?v=2c0f4ae6';
+import { TITLES } from '../config/titles.js?v=2c0f4ae6';
+import { SEC_BY_ID } from '../config/secretaries.js?v=2c0f4ae6';
+import { fmtMoney, fmtNum } from '../core/format.js?v=2c0f4ae6';
+import { gameDate, dateText } from '../core/gametime.js?v=2c0f4ae6';
+import * as PK from '../core/pick.js?v=2c0f4ae6'; // V2-03 进货挑品
+import { bell as bellOf } from '../core/inbox.js?v=2c0f4ae6';
+import { now as nowFn } from '../core/clock.js?v=2c0f4ae6';
+import { game } from '../game.js?v=2c0f4ae6';
+import { h, openPanel, toast } from './dom.js?v=2c0f4ae6';
+import { createPortrait } from './portrait.js?v=2c0f4ae6';
+import { audio } from '../platform/audio.js?v=2c0f4ae6';
+import { voiceFile } from '../config/lines.js?v=2c0f4ae6';
 
 export const NAV = [
   { key: 'industry', name: '产业', icon: 'icon_industry' },

@@ -1,12 +1,12 @@
 // 设计41 秘书看盘给价（开发2）：价钱算法（bestRun / priceRow / lookRows / tipPlan）、她的战绩、设计46 仓位、设计45 持仓页数据。
 // 设计47 起：秘书主动的新闻提醒、一次性「看盘」都去掉了，看盘改成时间段（core/ws.js 用这里的算法发消息）
 // 看盘：lookNow 用 SK.future 把接下来 240 跳先算出来（跟真实走的一样），挑真实会到的低点 L、之后的高点 H 定价，一定能成交
-import * as SK from './stocks.js?v=5ca34d35';
-import * as TR from './trade.js?v=5ca34d35';
-import { addMsg } from './inbox.js?v=5ca34d35';
-import { attrs as secAttrs } from './posts.js?v=5ca34d35';
-import { whyEnergy, doEnergy } from './manage.js?v=5ca34d35';
-import { SEC_BY_ID } from '../config/secretaries.js?v=5ca34d35';
+import * as SK from './stocks.js?v=2c0f4ae6';
+import * as TR from './trade.js?v=2c0f4ae6';
+import { addMsg } from './inbox.js?v=2c0f4ae6';
+import { attrs as secAttrs } from './posts.js?v=2c0f4ae6';
+import { whyEnergy, doEnergy } from './manage.js?v=2c0f4ae6';
+import { SEC_BY_ID } from '../config/secretaries.js?v=2c0f4ae6';
 
 const W = SK.SCFG.watch; const TICK = SK.SCFG.tickSec * 1000;
 const up2 = (v) => Math.ceil(v * 100 - 1e-7) / 100;     // 买入价往上取整到分
@@ -111,7 +111,7 @@ export function holdView(s, t = Date.now()) {
     if (o.kind !== 'buy' || o.on === false) continue;
     const mates = o.grp && o.role === 'in' ? orders.filter((x) => x.grp === o.grp && x.role === 'out') : [];
     const tpO = mates.find((x) => x.kind === 'tp'); const slO = mates.find((x) => x.kind === 'sl');
-    const row = { id: o.id, X: o.px, n: o.n, tp: tpO ? tpO.px : null, sl: slO ? slO.px : null, gain: tpO ? Math.round((tpO.px - o.px) * o.n * 100) / 100 : null, slGain: slO ? Math.round((slO.px - o.px) * o.n * 100) / 100 : null, src: srcOf(o), left: Math.max(0, endOf(o) - t), hold: o.hold || 0 };
+    const row = { id: o.id, X: o.px, n: o.n, tp: tpO ? tpO.px : null, sl: slO ? slO.px : null, gain: tpO ? Math.round((tpO.px - o.px) * o.n * 100) / 100 : null, slGain: slO ? Math.round((slO.px - o.px) * o.n * 100) / 100 : null, src: srcOf(o), left: Math.max(0, (grps[o.grp] && grps[o.grp].sellBy != null ? grps[o.grp].sellBy * SK.SCFG.tickSec * 1000 : endOf(o)) - t), quick: !!(grps[o.grp] && grps[o.grp].sellBy != null), hold: o.hold || 0 };   // 设计59：看盘那组从挂单起 10 分钟
     out.cash += o.hold || 0; (byCode.get(o.code) || byCode.set(o.code, []).get(o.code)).push(row);
   }
   out.buys = [...byCode.entries()].map(([code, rows]) => ({ code, px: m.px[code], rows: rows.sort((a, b) => b.X - a.X) })).sort((a, b) => Math.min(...a.rows.map((r) => r.left)) - Math.min(...b.rows.map((r) => r.left)));
@@ -137,5 +137,5 @@ export function holdView(s, t = Date.now()) {
 }
 /** 撤一组卖单（同组的止盈止损一起撤，股票回到持仓） */
 export function cancelSell(s, ids, t = Date.now()) { let n = 0; for (const id of ids) { const o = (s.mkt.orders || []).find((x) => x.id === id); if (TR.cancelOrder(s, id, false, t)) n = Math.max(n, (o && o.backN) || 0); } return n; }
-import './ws.js?v=5ca34d35'; // 设计47：看盘改成时间段（挂进 stocks.js advance）
-import './mgr.js?v=5ca34d35'; // 设计44：投资经理每天 4 轮（挂进 stocks.js advance）
+import './ws.js?v=2c0f4ae6'; // 设计47：看盘改成时间段（挂进 stocks.js advance）
+import './mgr.js?v=2c0f4ae6'; // 设计44：投资经理每天 4 轮（挂进 stocks.js advance）

@@ -1,17 +1,17 @@
 // 第 P-06 项（设计25 第五节）：前期炒股 —— 条件单、打新股、融资融券、看盘、炒股周报
 // 条件单和两融的平仓线每跳检查（挂在 stocks.js 的 addStepHook 上，离线补算一样走）；打新、利息、周报按时间走 tick()（在线 ticker 和 core/offcap.js 都叫）
-import { dropOrphans } from './orphans.js?v=5ca34d35';
-import * as SK from './stocks.js?v=5ca34d35';
-import { pay, receive } from './ledger.js?v=5ca34d35';
-import { addContract } from './contracts.js?v=5ca34d35';
-import { addMsg } from './inbox.js?v=5ca34d35';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=5ca34d35';
-import { profitMul } from './calib.js?v=5ca34d35';
-import { isTraining } from './training.js?v=5ca34d35';
-import { attrs as secAttrs } from './posts.js?v=5ca34d35';
-import { SEC_BY_ID } from '../config/secretaries.js?v=5ca34d35';
-import { netWorth } from './economy.js?v=5ca34d35';
-import { addAssetHook } from './assets.js?v=5ca34d35';
+import { dropOrphans } from './orphans.js?v=2c0f4ae6';
+import * as SK from './stocks.js?v=2c0f4ae6';
+import { pay, receive } from './ledger.js?v=2c0f4ae6';
+import { addContract } from './contracts.js?v=2c0f4ae6';
+import { addMsg } from './inbox.js?v=2c0f4ae6';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=2c0f4ae6';
+import { profitMul } from './calib.js?v=2c0f4ae6';
+import { isTraining } from './training.js?v=2c0f4ae6';
+import { attrs as secAttrs } from './posts.js?v=2c0f4ae6';
+import { SEC_BY_ID } from '../config/secretaries.js?v=2c0f4ae6';
+import { netWorth } from './economy.js?v=2c0f4ae6';
+import { addAssetHook } from './assets.js?v=2c0f4ae6';
 
 const C = SK.SCFG; const O = C.orders, I = C.ipo, MG = C.margin, W = C.weekly;
 export const DAY = MONTH_MS / 30;
@@ -196,7 +196,7 @@ export function addGroup(s, legs, meta = {}, t = Date.now()) {
   const ins = legs.filter((x) => x.role === 'in'); if (ins.length !== 1) return { ok: false, why: '联动单要一张开头的单子' };
   for (const l of legs) { const why = whyNotOrder(s, { ...l, on: l.role === 'in' }); if (why) return { ok: false, why }; }
   const g = (m.grpSeq = (m.grpSeq || 0) + 1); m.grps = m.grps || {};
-  m.grps[g] = { src: meta.src || '', code: ins[0].code, at: t, lu: !!meta.lu, cost: 0, n: 0 }; if (meta.hold) m.grps[g].hold = meta.hold;   // 设计51：买入成交后 hold 跳没卖掉按现价卖
+  m.grps[g] = { src: meta.src || '', code: ins[0].code, at: t, lu: !!meta.lu, cost: 0, n: 0 }; if (meta.hold) m.grps[g].hold = meta.hold; if (meta.sellBy != null) m.grps[g].sellBy = meta.sellBy;   // 设计59：从挂单起 10 分钟（sellBy 那一跳）到了按现价卖   // 设计51：买入成交后 hold 跳没卖掉按现价卖
   const out = legs.map((l) => { const x = { id: ++m.ordSeq, code: l.code, kind: l.kind, px: r2(l.px), n: Math.floor(l.n), at: t, grp: g, role: l.role, on: l.role === 'in' }; if (meta.exp && l.role === 'in') x.exp = meta.exp; return x; });
   const x0 = out.find((x) => x.role === 'in');   // 设计43：开头那张挂上就划款 / 划股（出场单买入成交后才有股票）
   if (!holdCash(s, x0, t)) { delete m.grps[g]; return { ok: false, why: `钱不够（个人现金 ¥${fmt(Math.max(0, availCash(s)))}）` }; }
@@ -249,7 +249,7 @@ function linked(s, o, r, t) {
     const got = o.kind === 'buy' ? o.n : (r.quote ? Math.round(r.quote.gross / r.quote.exec) : o.n);
     if (o.kind === 'buy' && g && mates.some((x) => x.kind !== 'buy')) { const sh = takeShares(s, o.code, got); if (sh) { sh.cost = r2(r.quote.total / got); g.sh = sh; } }   // 设计43：买到的股票直接留在组里给止盈止损
     for (const x of mates) { x.on = true; x.n = got; x.at = t; if (!holdCash(s, x, t)) { cancelOrder(s, x.id, false, t); addMsg(s, { kind: 'system', type: 'stock_order', title: `抄底单挂不上：${name(x.code)}`, body: `个人现金不够（要 ¥${fmt(buyCost(s, x.code, x.px, x.n))}）` }, t); } }   // 设计43：抄底那张买单生效时扣钱
-    if (g) { g.cost = o.kind === 'buy' ? r.quote.total : 0; g.n = got; g.side = o.kind; if (g.hold && o.kind === 'buy') g.sellAt = Math.floor(t / TICK) + g.hold; }
+    if (g) { g.cost = o.kind === 'buy' ? r.quote.total : 0; g.n = got; g.side = o.kind; if (o.kind === 'buy') { if (g.sellBy != null) g.sellAt = g.sellBy; else if (g.hold) g.sellAt = Math.floor(t / TICK) + g.hold; } }
     for (const fn of GROUP_HOOKS) fn(s, { grp: o.grp, kind: 'in', lu: g && g.lu, src: g && g.src });
     if (!mates.length && g) delete m.grps[o.grp];
     return;

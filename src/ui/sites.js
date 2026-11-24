@@ -1,10 +1,10 @@
 // 分店（V2-08；设计35 第十二节取消地段）：开分店只选城市直接开（openSitePick 不再接手）；线详情里列每家分店、关店转让
-import * as SI from '../core/sites.js?v=5ca34d35';
-import { fmtMoney } from '../core/format.js?v=5ca34d35';
-import { now } from '../core/clock.js?v=5ca34d35';
-import { game } from '../game.js?v=5ca34d35';
-import { toast } from './dom.js?v=5ca34d35';
-import { confirmBox } from './confirm.js?v=5ca34d35'; // 设计37 第一节：游戏样式确认框
+import * as SI from '../core/sites.js?v=2c0f4ae6';
+import { fmtMoney } from '../core/format.js?v=2c0f4ae6';
+import { now } from '../core/clock.js?v=2c0f4ae6';
+import { game } from '../game.js?v=2c0f4ae6';
+import { toast } from './dom.js?v=2c0f4ae6';
+import { confirmBox } from './confirm.js?v=2c0f4ae6'; // 设计37 第一节：游戏样式确认框
 
 const C = SI.SITE_CFG;
 /** 设计35 第十二节：不选铺位了，返回 false = 照原来直接开 */

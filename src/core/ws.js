@@ -3,14 +3,14 @@
 // 利好 / 利空新闻每跳检查、新闻前 30 跳就说（提前说 / 说准按「股票 + 新闻那一跳」定种子只掷一次，点几次都一样）。
 // 机会：要涨停 / 有利好 / 有一波 → 「重要」消息（⅓仓 / 半仓 / 全仓 一点就挂）；手里有的要跌 → 「¥X 以下先卖掉」（卖 ⅓ / 一半 / 全部）。
 // 设计48：提示不进消息，放在 s.mkt.wsTips（股票页看盘卡片下面列）；同一只不重复、最多 3 条；买入点过了收起；「不用了」这次看盘这只不再说。离线不补发：回来还在看盘时间里马上扫一次。结束弹战绩。不看盘就没有任何股票提示（规矩 9）。
-import * as SK from './stocks.js?v=5ca34d35';
-import * as TR from './trade.js?v=5ca34d35';
-import { attrs as secAttrs } from './posts.js?v=5ca34d35';
-import { whyEnergy, doEnergy } from './manage.js?v=5ca34d35';
-import { isTraining } from './training.js?v=5ca34d35';
-import { SEC_BY_ID } from '../config/secretaries.js?v=5ca34d35';
-import { posShares, POS_BY, nFor } from './look.js?v=5ca34d35';
-import { have as haveItem, useItem } from './coupon.js?v=5ca34d35';   // 设计53 投资券
+import * as SK from './stocks.js?v=2c0f4ae6';
+import * as TR from './trade.js?v=2c0f4ae6';
+import { attrs as secAttrs } from './posts.js?v=2c0f4ae6';
+import { whyEnergy, doEnergy } from './manage.js?v=2c0f4ae6';
+import { isTraining } from './training.js?v=2c0f4ae6';
+import { SEC_BY_ID } from '../config/secretaries.js?v=2c0f4ae6';
+import { posShares, POS_BY, nFor } from './look.js?v=2c0f4ae6';
+import { have as haveItem, useItem } from './coupon.js?v=2c0f4ae6';   // 设计53 投资券
 
 const C = SK.SCFG; const W = C.watch; const WS = W.ws; const T = W.tip;
 const TICK = C.tickSec * 1000; const HOUR_TICKS = 3600e3 / TICK;
@@ -76,23 +76,29 @@ export function newsCall(s, w, newsTick) {
 // ---------- 设计51：只给马上能买、10 分钟内卖掉的 ----------
 const K = W.look; const up2 = (v) => Math.ceil(v * 100 - 1e-7) / 100;
 const cOf = (wv) => K.cBase + K.cK * Math.min(100, Math.max(0, wv)) / 100;
-const AHEAD = () => WS.buyTicks + WS.sellTicks;
+const AHEAD = () => WS.win;   // 设计59：只看接下来 10 分钟（从挂单算）
+/** 这个秘书的门槛：3% + 智慧 × 0.02%（智慧 100 = 5%） */
+export const thrOf = (wv) => WS.minG + Math.min(100, Math.max(0, wv)) * WS.minGK;
 /** 这一跳以后的 2 + 20 跳（看盘只看这么远） */
 const fut = (m) => SK.future(m, AHEAD());
 /** 窗口里会封涨停的：{ code: 涨停价 }（封板那一跳在接下来 sellTicks + 1 跳里，现在还没封） */
 function luIn(m, F) { const out = {}; const end = m.tick + AHEAD(); for (const p of (F.lu ? F.lu.act : [])) { const sealAt = p.at + W.lu.pullTicks - 1; if (p.limit && sealAt > m.tick && sealAt <= end && !SK.isSealed(m, p.code)) out[p.code] = p.limit; } return out; }
-/** 一只的价：现在买 X（接下来 2 跳最高、往上取整、不超涨停价）→ 成交后 20 跳里卖 Y（设计41 算法 + 智慧，封顶 gBase + 智慧 × gK；会封涨停的卖在涨停价附近）；止损 Z < X；mins 约几分钟后到 */
+/** 设计59 一只的价：接下来 win 跳（10 分钟）里找「先低后高」最赚的一对——卖点 j（1～win−1）、买点 b = p[0..j−1] 最低那一跳（同样低取最早）；
+ *  买价 X = p[b] 往上取整到分（不超涨停价）；卖价 Y = X + (高点 − X) × c 往下取整（不封顶；会封涨停的往涨停价靠）；止损 Z = X × 0.97；
+ *  只要赚头 ≥ 3% + 智慧 × 0.02%。返回 { code, X, Y, Z, g, lu, b（第几跳到低点，0 = 下一跳）, hit（第几跳碰到卖价）, mins（约几分钟内完成）, thr } */
 export function quick(m, code, path, wv, luLimit = null) {
   const P = m.px[code]; if (!(P > 0) || !path || path.length < AHEAD() || SK.onBoard(m, code) === 'up') return null;
-  const B = SK.band(m, code); let X = up2(Math.max(...path.slice(0, WS.buyTicks))); if (B.up != null) X = Math.min(X, B.up);
-  const win = path.slice(1, 1 + WS.sellTicks); const H = Math.max(...win); const Lw = Math.min(...win); const w = Math.min(100, Math.max(0, wv)); const c = cOf(w);
-  const lu = luLimit != null && H >= luLimit - 1e-9;
-  let Y = lu ? X + (luLimit - X) * c : X + (H - X) * c;
-  Y = dn2(Math.min(Y, H)); if (!lu) Y = Math.min(Y, up2(X * (1 + WS.gBase + w * WS.gK)));
-  const g = Y / X - 1;   // 设计54：封顶往上取整到分（便宜股几块钱，往下取整会掉到 3% 以下）
-  if (!(g >= WS.minG - 5e-4)) return null;
-  const Z = Math.min(dn2(Math.min(Lw, path[0]) * K.slK), dn2(X * K.slK));
-  const j = win.findIndex((p) => p >= Y - 1e-9); return { code, X, Y, Z, g, lu, mins: Math.min(Math.ceil(WS.sellTicks / 2), Math.max(1, Math.ceil((j + 1) / 2))) };
+  const B = SK.band(m, code); const w = Math.min(100, Math.max(0, wv)); const c = cOf(w); const thr = thrOf(w); let best = null; let lo = 0;
+  for (let j = 1; j < AHEAD(); j++) {
+    if (path[j - 1] < path[lo] - 1e-9) lo = j - 1;
+    let X = up2(path[lo]); if (B.up != null) X = Math.min(X, B.up); const H = path[j]; if (!(H > X)) continue;
+    const lu = luLimit != null && H >= luLimit - 1e-9;
+    const Y = dn2(Math.min(H, lu ? X + (luLimit - X) * c : X + (H - X) * c)); const g = Y / X - 1; if (!(g > 0)) continue;
+    let hit = j; for (let k = lo + 1; k <= j; k++) if (path[k] >= Y - 1e-9) { hit = k; break; }
+    if (!best || g > best.g + 1e-12 || (Math.abs(g - best.g) <= 1e-12 && hit < best.hit)) best = { X, Y, g, lu, b: lo, hit };
+  }
+  if (!best || !(best.g >= thr - 1e-9)) return null;   // 设计59：智慧 100 每条一定 ≥ 5%（不留取整的余量）
+  return { code, ...best, Z: dn2(best.X * K.slK), thr, mins: Math.min(Math.ceil(AHEAD() / 2), Math.max(1, Math.ceil((best.hit + 1) / 2))) };
 }
 /** 手里有的要跌：现在卖 Z（接下来 2 跳最低、往下取整、不低于跌停价）；drop 不卖还要跌多少 */
 export function quickFall(m, code, path, force = false) {
@@ -111,7 +117,7 @@ function visible(s, w) {
 }
 
 // ---------- 提示（设计48：放股票页，不进消息）----------
-const isGood = (x) => x.data.kind !== 'fall' && !x.data.pre && x.data.g >= WS.minG - 5e-4;
+const isGood = (x) => x.data.kind !== 'fall' && !x.data.pre && x.data.g >= (x.data.thr != null ? x.data.thr : WS.minG) - 1e-9;   // 设计59：按这个秘书的门槛
 const TITLE = { lu: '10 分钟内封涨停', news: '有利好', wave: '能涨一波', fall: '要跌' };
 function send(s, w, d, t) {
   if (msgs(s).some((x) => x.data.code === d.code) || (w.no && w.no[d.code])) return null;   // 同一只不重复；「不用了」的这次看盘不再说
@@ -132,7 +138,7 @@ const nextScan = (w, tk) => w.st + (Math.floor((tk - w.st) / WS.scanTicks) + 1) 
 export function makeGuard(s, w, see, tk) {
   const m = s.mkt; const G = WS.guard; m.guards = (m.guards || []).filter((g) => g.from + g.ticks > tk - 200);
   if (m.guards.some((g) => !g.w && g.from > tk)) return null;   // 已经有一只在等（算错造的不算）
-  const c = cOf(wit(s, w)); const rise = Math.pow(1 + WS.minG / c + G.extra, G.ticks / (G.ticks - WS.buyTicks)) - 1;
+  const c = cOf(wit(s, w)); const thr = thrOf(wit(s, w)); const rise = Math.pow(1 + thr / c + G.extra, G.ticks / (G.ticks - 1)) - 1;   // 设计59：低点是第一跳，高点是第 20 跳
   const lus = new Set(((m.lu && m.lu.act) || []).map((p) => p.code)); const busy = new Set(msgs(s).map((x) => x.data.code)); for (const o of m.orders || []) busy.add(o.code); for (const [c, h] of Object.entries(m.hold || {})) if (h && h.n > 0) busy.add(c);   // 手里有的、挂着单的不碰（不然把已经说好的走势改了）
   const base = (code) => m.px[code] > 0 && !lus.has(code) && !busy.has(code) && !(w.no && w.no[code]) && !SK.onBoard(m, code) && !SK.BY[code].ipo && !m.guards.some((g) => g.code === code && g.from + g.ticks > tk);
   const room = (code) => { const B = SK.band(m, code); return B.up == null ? Infinity : B.up / m.px[code]; };
@@ -141,7 +147,7 @@ export function makeGuard(s, w, see, tk) {
   let ok = []; for (const [pool, k] of [[see, 1.04], [all, 1.04], [see, 1.01], [all, 1.01]]) { ok = pool.filter((c) => base(c) && room(c) > (1 + rise) * k); if (ok.length) break; }
   if (!ok.length) { const b = all.filter(base).sort((a, c) => room(c) - room(a)); if (!b.length) return null; ok = [b[0]]; }
   const code = ok[Math.floor(SK.hu(`WSG${s.gid || ''}`, tk) * ok.length)];
-  const r1 = Math.pow(1 + WS.minG / c + G.extra + 0.03 / m.px[code], G.ticks / (G.ticks - WS.buyTicks)) - 1;   // 设计54：便宜股（几块钱）买价往上、卖价往下各取整到分，多留 3 分钱
+  const r1 = Math.pow(1 + thr / c + G.extra + 0.03 / m.px[code], G.ticks / (G.ticks - 1)) - 1;   // 设计54：便宜股（几块钱）买价往上、卖价往下各取整到分，多留 3 分钱
   const g = { code, from: nextScan(w, tk) + 1, ticks: G.ticks, rise: Math.round(r1 * 1e6) / 1e6, p0: null, by: tk }; m.guards.push(g); w.guards = (w.guards || 0) + 1; return g;
 }
 
@@ -157,15 +163,18 @@ function moveOn(s, code, tk, dir) {
   const a = G.moveMin + SK.hu(`WSM${s.gid || ''}:${code}`, tk) * (G.moveMax - G.moveMin);
   const g = { code, from: tk + 1, ticks: WS.guard.ticks, rise: Math.round(dir * a * 1e6) / 1e6, p0: null, by: tk, w: dir }; m.guards.push(g); return g;
 }
-/** 「其实要跌」：22 跳最高 < 买价 × 1.01，而且到时（第 20～22 跳）比 2 跳内最低的成交价还低 0.5%（不会碰巧按现价卖赚了） */
-const stillBad = (p, X) => Math.max(...p.slice(0, AHEAD())) < X * (1 + WS.wrong.maxUp) && Math.max(...p.slice(WS.sellTicks - 1, AHEAD())) < Math.min(...p.slice(0, WS.buyTicks)) * 0.995;
-/** 说错的那条：她看得到的里挑一只接下来 20 跳最高 < 买价 × 1.01、到第 20 跳低于买价的；没有就造一只往下走的。提示长得和对的一样（买价照样是接下来 2 跳最高） */
+/** 设计59 说错的：低点只在前 lowIn 跳里找（碰得到），碰到以后接着跌——10 分钟里最高 < 买价 × 1.01，挂单起第 win 跳（到时按现价卖）比低点还低 0.5% */
+const lowOf = (p) => { let b = 0; for (let k = 1; k < WS.lowIn; k++) if (p[k] < p[b] - 1e-9) b = k; return b; };
+const stillBad = (p, b, X) => Math.max(...p.slice(b + 1, AHEAD())) < X * (1 + WS.wrong.maxUp) && p[AHEAD() - 1] < p[b] * 0.995;
+const fakeG = (s, code, tk, wv) => thrOf(wv) + 0.001 + SK.hu(`WSG0${s.gid || ''}:${code}`, tk) * 0.02;
+const fakeMins = (s, code, tk, b) => Math.min(Math.ceil(AHEAD() / 2), Math.ceil((b + 1) / 2) + 1 + Math.floor(SK.hu(`WSN${s.gid || ''}:${code}`, tk) * 4));
+/** 说错的那条：她看得到的里挑一只「碰到低点以后接着跌」的；没有就造一只往下走的。提示长得和对的一样（低点买、+门槛以上卖、约 N 分钟内完成） */
 function wrongBuy(s, w, see, kind, wv, ex, i) {
   const m = s.mkt; const tk = m.tick; let F = fut(m); const busy = busyCodes(s); for (const c of ex) busy.add(c);
   const lus = new Set(((m.lu && m.lu.act) || []).map((p) => p.code));
-  const xOf = (c) => { const p = F.path[c]; const B = SK.band(m, c); let X = up2(Math.max(...p.slice(0, WS.buyTicks))); if (B.up != null) X = Math.min(X, B.up); return X; };
-  const hiG = WS.gBase + Math.min(100, wv) * WS.gK + 0.005; const roomUp = (c) => { const B = SK.band(m, c); return B.up == null || xOf(c) * (1 + Math.max(hiG, WS.minG + 0.01)) < B.up; };   // 卖价不能超涨停价
-  const bad = (c) => { const p = F.path[c]; if (!p || !roomUp(c)) return false; return stillBad(p, xOf(c)); };
+  const xOf = (c) => { const p = F.path[c]; const b = lowOf(p); const B = SK.band(m, c); let X = up2(p[b]); if (B.up != null) X = Math.min(X, B.up); return { X, b }; };
+  const roomUp = (c) => { const B = SK.band(m, c); return B.up == null || xOf(c).X * (1 + thrOf(wv) + 0.03) < B.up; };   // 卖价不能超涨停价
+  const bad = (c) => { const p = F.path[c]; if (!p || !roomUp(c)) return false; const q = xOf(c); return stillBad(p, q.b, q.X); };
   const fit = (c) => m.px[c] > 0 && !busy.has(c) && !(w.no && w.no[c]) && !SK.onBoard(m, c) && !SK.BY[c].ipo && !lus.has(c) && !(m.guards || []).some((g) => g.code === c && g.from + g.ticks > tk);
   const ok = see.filter((c) => fit(c) && bad(c)); let code;
   if (ok.length) code = ok[Math.floor(SK.hu(`WSW${s.gid || ''}`, tk * 8 + i) * ok.length)];
@@ -174,17 +183,17 @@ function wrongBuy(s, w, see, kind, wv, ex, i) {
     let L = see.filter((c) => fit(c) && room(c)); if (!L.length) L = SK.STOCKS.map((x) => x.code).filter((c) => fit(c) && room(c)); if (!L.length) return null;
     code = L[Math.floor(SK.hu(`WSD${s.gid || ''}`, tk * 8 + i) * L.length)]; if (!moveOn(s, code, tk, -1)) return null; F = fut(m);
   }
-  const X = xOf(code); const B = SK.band(m, code); const lo = WS.minG + 0.001, hi = Math.max(lo + 0.002, WS.gBase + Math.min(100, wv) * WS.gK);
-  const g0 = lo + SK.hu(`WSG0${s.gid || ''}:${code}`, tk) * (hi - lo); const lu = kind === 'lu' && B.up != null;
+  const { X, b } = xOf(code); const B = SK.band(m, code); const g0 = fakeG(s, code, tk, wv); const lu = kind === 'lu' && B.up != null;
   const Y = lu ? B.up : dn2(X * (1 + g0));
-  return { kind, code, X, Y, Z: dn2(X * K.slK), g: Y / X - 1, g0, lu, mins: 3 + Math.floor(SK.hu(`WSN${s.gid || ''}:${code}`, tk) * 7), wrong: 1, until: tk + WS.scanTicks };
+  return { kind, code, X, Y, Z: dn2(X * K.slK), g: Y / X - 1, g0, lu, b, thr: thrOf(wv), mins: fakeMins(s, code, tk, b), wrong: 1, until: tk + WS.scanTicks };
 }
-/** 说错的买单刷新：买价照样跟着变；还是「其实要跌」就留着（最多 scanTicks 跳），涨起来了就收起 */
+/** 说错的买单刷新：低点、买价照样跟着变；还是「碰到以后接着跌」就留着（最多 scanTicks 跳），不跌了就收起 */
 function refreshWrong(s, x, F) {
   const m = s.mkt; const d = x.data; const p = F.path[d.code]; if (!p || m.tick > d.until) return false;
-  const B = SK.band(m, d.code); let X = up2(Math.max(...p.slice(0, WS.buyTicks))); if (B.up != null) X = Math.min(X, B.up);
-  if (!stillBad(p, X)) return false;
-  const Y = d.lu && B.up != null ? B.up : dn2(X * (1 + d.g0)); if (B.up != null && (Y > B.up || Y / X - 1 < WS.minG - 5e-4)) return false; Object.assign(d, { X, Y, Z: dn2(X * K.slK), g: Y / X - 1 }); return true;
+  const b = lowOf(p); const B = SK.band(m, d.code); let X = up2(p[b]); if (B.up != null) X = Math.min(X, B.up);
+  if (!stillBad(p, b, X)) return false;
+  const Y = d.lu && B.up != null ? B.up : dn2(X * (1 + d.g0)); if (B.up != null && (Y > B.up || Y / X - 1 < (d.thr || WS.minG) - 5e-4)) return false;
+  Object.assign(d, { X, Y, Z: dn2(X * K.slK), g: Y / X - 1, b, mins: Math.max(Math.ceil((b + 1) / 2), Math.min(d.mins, Math.ceil(AHEAD() / 2))) }); return true;
 }
 
 /** 扫一次（自动 / 手动一样）：看得到的里 10 分钟内封涨停 / 能涨 ≥ 3% 的 + 手里有的要跌；没有好的就造一只（下一次扫一定有）；返回新发的提示 */
@@ -192,11 +201,11 @@ export function scan(s, t = Date.now(), manual = false) {
   const w = ws(s); if (!w) return [];
   const m = s.mkt; w.scans.push({ tk: m.tick, manual }); if (w.scans.length > 80) w.scans.shift(); const wv = wit(s, w);
   const F = fut(m); const LU = luIn(m, F); const see = visible(s, w); const out = [];
-  const rows = see.map((code) => quick(m, code, F.path[code], wv, LU[code] != null ? LU[code] : null)).filter(Boolean).sort((a, b) => (b.lu - a.lu) || (b.g - a.g));
+  const rows = see.map((code) => quick(m, code, F.path[code], wv, LU[code] != null ? LU[code] : null)).filter(Boolean).sort((a, b) => (b.lu - a.lu) || (b.g - a.g) || (a.hit - b.hit));
   const ex = new Set(rows.map((r) => r.code)); let wi = 0;
   for (const r of rows) {
     if (msgs(s).some((x) => x.data.code === r.code) || (w.no && w.no[r.code])) continue;
-    const right = isRight(s, r.code, m.tick, wv); let d = { kind: r.lu ? 'lu' : 'wave', code: r.code, X: r.X, Y: r.Y, Z: r.Z, g: r.g, lu: r.lu, mins: r.mins };
+    const right = isRight(s, r.code, m.tick, wv); let d = { kind: r.lu ? 'lu' : 'wave', code: r.code, X: r.X, Y: r.Y, Z: r.Z, g: r.g, lu: r.lu, mins: r.mins, b: r.b, thr: r.thr };
     if (!right) { d = wrongBuy(s, w, see, d.kind, wv, ex, wi++); if (!d) continue; }   // 设计53 说错：换成一只其实要跌的，长得一样
     const x = send(s, w, d, t); if (x) { out.push(x); tally(w, !right); }
   }
@@ -223,12 +232,11 @@ function newsCheck(s, w, tk, t) {
   const have = TR.sellable(s, c.code); if (have < 1) return null; const f = quickFall(s.mkt, c.code, fut(s.mkt).path[c.code], true);
   const x = send(s, w, { kind: 'fall', code: c.code, X: f.X, have, g: c.J2, newsTick: nt, right: c.right, wrong: c.right ? 0 : 1 }, t); if (x) tally(w, !c.right); return x;
 }
-/** 利好看错了的那只：照样给价（买价接下来 2 跳最高、卖价 +3.x%），其实新闻出来要跌 */
+/** 利好看错了的那只：照样给价（前 lowIn 跳里的低点买、卖价门槛以上），其实新闻出来要跌 */
 function wrongNews(s, w, code, wv) {
   const m = s.mkt; const p = fut(m).path[code]; if (!p || SK.onBoard(m, code) === 'up') return null; const B = SK.band(m, code);
-  let X = up2(Math.max(...p.slice(0, WS.buyTicks))); if (B.up != null) X = Math.min(X, B.up); const lo = WS.minG + 0.001, hi = Math.max(lo + 0.002, WS.gBase + Math.min(100, wv) * WS.gK);
-  const g0 = lo + SK.hu(`WSG0${s.gid || ''}:${code}`, m.tick) * (hi - lo); const Y = dn2(X * (1 + g0)); if (B.up != null && Y > B.up) return null;
-  return { X, Y, Z: dn2(X * K.slK), g: Y / X - 1, g0, lu: false, mins: 3 + Math.floor(SK.hu(`WSN${s.gid || ''}:${code}`, m.tick) * 7), wrong: 1, until: m.tick + WS.scanTicks };
+  const b = lowOf(p); let X = up2(p[b]); if (B.up != null) X = Math.min(X, B.up); const g0 = fakeG(s, code, m.tick, wv); const Y = dn2(X * (1 + g0)); if (B.up != null && Y > B.up) return null;
+  return { X, Y, Z: dn2(X * K.slK), g: Y / X - 1, g0, lu: false, b, thr: thrOf(wv), mins: fakeMins(s, code, m.tick, b), wrong: 1, until: m.tick + WS.scanTicks };
 }
 /** 每跳重算（设计51）：买价跟着变；机会没了收起；预告到能买时出按钮 */
 export function refresh(s) {
@@ -252,7 +260,7 @@ export function refresh(s) {
     const q = quick(m, d.code, F.path[d.code], wv, LU[d.code] != null ? LU[d.code] : null);
     if (!q) { if (d.pre && tk <= d.newsTick + WS.buyTicks) continue; delTip(s, x.id); continue; }   // 预告：新闻出来前一直留着
     if (d.pre) { d.pre = false; const w = ws(s); if (w) tally(w, false); if (w) w.toast.push({ who: x.from, code: d.code, kind: 'news', id: x.id, text: `${nm(d.code)}有利好，现在能买了` }); x.title = `${SEC_BY_ID[x.from] ? SEC_BY_ID[x.from].name : ''}：${nm(d.code)}有利好`; }
-    Object.assign(d, { X: q.X, Y: q.Y, Z: q.Z, g: q.g, mins: q.mins, lu: q.lu }); if (d.kind !== 'news') d.kind = q.lu ? 'lu' : 'wave';
+    Object.assign(d, { X: q.X, Y: q.Y, Z: q.Z, g: q.g, mins: q.mins, lu: q.lu, b: q.b, thr: q.thr }); if (d.kind !== 'news') d.kind = q.lu ? 'lu' : 'wave';
   }
 }
 /** 每一跳（stocks.js advance 的钩子）：重算提示、到点自动扫、新闻前、结束；离线补的跳不发，回到现在马上扫一次 */
@@ -289,7 +297,7 @@ export function placeWs(s, msg, k, t = Date.now()) {
 /** 跟一单（⅓仓 / 半仓 / 全仓，或者「改」了价钱再挂）：先看今天还能不能跟（免费的 → 投资券），挂上才算 */
 export function placeLegs(s, msg, legs, t = Date.now()) {
   const d = msg.data; const f = followState(s, t); if (!f.ok) return { ok: false, why: '今天免费的用完了，没有投资券', noCoupon: true };
-  const r = TR.addGroup(s, legs, { src: 'watch', exp: t + WS.buyTicks * TICK + 1000, lu: !!d.lu, hold: WS.sellTicks }, t); if (!r.ok) return r;
+  const r = TR.addGroup(s, legs, { src: 'watch', exp: t + ((d.b || 0) + 1 + WS.buyTicks) * TICK + 1000, lu: !!d.lu, sellBy: s.mkt.tick + AHEAD() }, t); if (!r.ok) return r;   // 设计59：到低点后 2 跳没成交撤；从挂单起 10 分钟到了按现价卖
   const used = useFollow(s, t); delTip(s, msg.id); const w = ws(s); if (w) { w.placed += 1; w.grps.push(r.grp); if (d.wrong) (w.wrongGrps = w.wrongGrps || {})[r.grp] = 1; }
   return { ...r, coupon: used === 'coupon' };
 }

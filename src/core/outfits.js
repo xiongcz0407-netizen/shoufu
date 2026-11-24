@@ -1,9 +1,9 @@
 // 衣服：买（算送礼）、好感到了自动换上、衣柜、约会穿哪套
-import { OUTFITS, OUTFIT_BY_ID, DATE_OUTFIT, priceOf } from '../config/outfits.js?v=5ca34d35';
-import { ensureSec, FAVOR_STAGES } from './secretary.js?v=5ca34d35';
-import { addFavor } from './affection.js?v=5ca34d35';
-import { pay, receive, accrue, canPay } from './ledger.js?v=5ca34d35';
-import * as STY from './styles.js?v=5ca34d35'; // V3-05 按款式挑
+import { OUTFITS, OUTFIT_BY_ID, DATE_OUTFIT, priceOf } from '../config/outfits.js?v=2c0f4ae6';
+import { ensureSec, FAVOR_STAGES } from './secretary.js?v=2c0f4ae6';
+import { addFavor } from './affection.js?v=2c0f4ae6';
+import { pay, receive, accrue, canPay } from './ledger.js?v=2c0f4ae6';
+import * as STY from './styles.js?v=2c0f4ae6'; // V3-05 按款式挑
 
 function rec(s, id) {
   const r = ensureSec(s, id);

@@ -3,21 +3,21 @@
 // 股票列表里的公司：公司持股每 5% 举牌公告（core/stocks.js stake）；二级市场最多买到 30%，再往上要发要约（价格 ≥ 最近 3 个游戏天均价 = 现实 30 天 ÷ profitMul），
 // 要约期 3 个游戏天，股东按溢价决定卖多少；到 50% 以上 = 控股（并进集团，资本页、集团页显示）
 // 换股：上市以后收购对手（battle.acquire 的挂钩），最多 50% 用你公司的新股付，按你的股价算，你的持股被稀释
-import CFG from '../config/takeover.json?v=5ca34d35' with { type: 'json' };
-import SCFG from '../config/stocks.json?v=5ca34d35' with { type: 'json' };
-import * as SK from './stocks.js?v=5ca34d35';
-import { pay, receive, canPay } from './ledger.js?v=5ca34d35';
-import { taxRec } from './fiscal.js?v=5ca34d35';
-import { addCompanyAssetHook } from './economy.js?v=5ca34d35';
-import { maMax, whyNotMa, maLoan } from './bank.js?v=5ca34d35';
-import { holder, isSec } from './posts.js?v=5ca34d35';
-import { addContract } from './contracts.js?v=5ca34d35';
-import { MONTH_MS } from './gametime.js?v=5ca34d35';
-import { addMsg } from './inbox.js?v=5ca34d35';
-import { addAttrHook } from './boss.js?v=5ca34d35';
-import { setSwapHook } from './battle.js?v=5ca34d35';
-import { cap } from './capital.js?v=5ca34d35';
-import { listed, marketCap } from './listing.js?v=5ca34d35';
+import CFG from '../config/takeover.json?v=2c0f4ae6' with { type: 'json' };
+import SCFG from '../config/stocks.json?v=2c0f4ae6' with { type: 'json' };
+import * as SK from './stocks.js?v=2c0f4ae6';
+import { pay, receive, canPay } from './ledger.js?v=2c0f4ae6';
+import { taxRec } from './fiscal.js?v=2c0f4ae6';
+import { addCompanyAssetHook } from './economy.js?v=2c0f4ae6';
+import { maMax, whyNotMa, maLoan } from './bank.js?v=2c0f4ae6';
+import { holder, isSec } from './posts.js?v=2c0f4ae6';
+import { addContract } from './contracts.js?v=2c0f4ae6';
+import { MONTH_MS } from './gametime.js?v=2c0f4ae6';
+import { addMsg } from './inbox.js?v=2c0f4ae6';
+import { addAttrHook } from './boss.js?v=2c0f4ae6';
+import { setSwapHook } from './battle.js?v=2c0f4ae6';
+import { cap } from './capital.js?v=2c0f4ae6';
+import { listed, marketCap } from './listing.js?v=2c0f4ae6';
 
 export const TCFG = CFG;
 const r2 = (v) => Math.round(v * 100) / 100;

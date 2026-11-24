@@ -1,28 +1,28 @@
 // 「资产」页签（第 12 项，设计18 第四节 4、设计19）：横滑标签 车库 / 房产 / 机库 / 码头 / 穿戴 / 收藏；
 // 上展示（场景背景 + 最贵的那件）下列表；点一件 → 详情抽屉（参数、编号、买入价 / 卖回价、持有成本、出租、卖回、合同）；
 // 「去买」→ 商店（车：现货 / 订单 / 邀请 / 拍卖 / 定制；房子：上海 / 广州 / 北京 / 深圳 / 香港 / 海外；飞机：现货）
-import { TIER_NAMES } from '../config/vehicles.js?v=5ca34d35';
-import { CHANNEL_NAME } from '../config/carmeta.js?v=5ca34d35';
-import * as AS from '../core/assets.js?v=5ca34d35';
-import * as PW from '../core/postwork.js?v=5ca34d35';
-import { bossAttrs } from '../core/boss.js?v=5ca34d35';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=5ca34d35';
-import { asset, hasAsset } from '../platform/assets.js?v=5ca34d35';
-import { game } from '../game.js?v=5ca34d35';
-import { now } from '../core/clock.js?v=5ca34d35';
-import { h, openPanel, toast, liveRender } from './dom.js?v=5ca34d35';
-import { openFull } from './shell.js?v=5ca34d35';
-import { openContract } from './contract.js?v=5ca34d35';
-import { nextContractNo } from '../core/contracts.js?v=5ca34d35';
-import { renderYachtTab } from './yacht.js?v=5ca34d35';
-import { renderWearTab } from './luxury.js?v=5ca34d35';
-import { renderCollectTab } from './antique.js?v=5ca34d35';
-import { abroadCard } from './offshore.js?v=5ca34d35';
-import { renderAuctionHouse } from './auction.js?v=5ca34d35';
-import * as OFS from '../core/offshore.js?v=5ca34d35';
-import { renderLandmarkGroup } from './landmark.js?v=5ca34d35';
-import * as CF from '../core/carfilter.js?v=5ca34d35';
-import { confirmBox } from './confirm.js?v=5ca34d35'; // 设计37 第一节：游戏样式确认框
+import { TIER_NAMES } from '../config/vehicles.js?v=2c0f4ae6';
+import { CHANNEL_NAME } from '../config/carmeta.js?v=2c0f4ae6';
+import * as AS from '../core/assets.js?v=2c0f4ae6';
+import * as PW from '../core/postwork.js?v=2c0f4ae6';
+import { bossAttrs } from '../core/boss.js?v=2c0f4ae6';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=2c0f4ae6';
+import { asset, hasAsset } from '../platform/assets.js?v=2c0f4ae6';
+import { game } from '../game.js?v=2c0f4ae6';
+import { now } from '../core/clock.js?v=2c0f4ae6';
+import { h, openPanel, toast, liveRender } from './dom.js?v=2c0f4ae6';
+import { openFull } from './shell.js?v=2c0f4ae6';
+import { openContract } from './contract.js?v=2c0f4ae6';
+import { nextContractNo } from '../core/contracts.js?v=2c0f4ae6';
+import { renderYachtTab } from './yacht.js?v=2c0f4ae6';
+import { renderWearTab } from './luxury.js?v=2c0f4ae6';
+import { renderCollectTab } from './antique.js?v=2c0f4ae6';
+import { abroadCard } from './offshore.js?v=2c0f4ae6';
+import { renderAuctionHouse } from './auction.js?v=2c0f4ae6';
+import * as OFS from '../core/offshore.js?v=2c0f4ae6';
+import { renderLandmarkGroup } from './landmark.js?v=2c0f4ae6';
+import * as CF from '../core/carfilter.js?v=2c0f4ae6';
+import { confirmBox } from './confirm.js?v=2c0f4ae6'; // 设计37 第一节：游戏样式确认框
 
 const imgPath = (it) => `assets/${it.kind}/${it.id}.webp`;
 function pic(it, cls = 'as-img') {
@@ -118,7 +118,7 @@ function openItem(id, done) {
 
 /** 商店（全屏）：按渠道 / 城市分段，卡片显示价格、税费合计和条件（不够的灰掉写差什么） */
 export function openShop(kind, done) {
-  setTimeout(() => import('./guide.js?v=5ca34d35').then((g) => g.hint('contract')), 400);
+  setTimeout(() => import('./guide.js?v=2c0f4ae6').then((g) => g.hint('contract')), 400);
   const p = openFull(kind === 'house' ? '买房' : kind === 'car' ? '车行' : '飞机');
   const segBar = h('div', 'seg-bar'); const body = h('div', 'page-body');
   p.body.append(segBar, body);
