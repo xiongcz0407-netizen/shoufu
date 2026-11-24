@@ -1,16 +1,16 @@
 // 消息中心（铃铛）：请示 / 月报 / 邀请拍卖 / 系统；请示直接批准 / 驳回
-import * as I from '../core/inbox.js?v=e379aa95';
-import { SEC_BY_ID } from '../config/secretaries.js?v=e379aa95';
-import { asset, hasAsset } from '../platform/assets.js?v=e379aa95';
-import { now } from '../core/clock.js?v=e379aa95';
-import { game } from '../game.js?v=e379aa95';
-import { h, toast } from './dom.js?v=e379aa95';
-import { openFull } from './shell.js?v=e379aa95';
-import { bump } from '../core/daily.js?v=e379aa95';
-import { openEventMsg } from './event.js?v=e379aa95';
-import * as CP from '../core/coupon.js?v=e379aa95'; // 设计39 再来 10 件
-import { refillHtml, bindRefill } from './coupon.js?v=e379aa95'; // 设计39 事件券（开发2）
-import { todayCount } from '../core/bizevents.js?v=e379aa95';
+import * as I from '../core/inbox.js?v=5ca34d35';
+import { SEC_BY_ID } from '../config/secretaries.js?v=5ca34d35';
+import { asset, hasAsset } from '../platform/assets.js?v=5ca34d35';
+import { now } from '../core/clock.js?v=5ca34d35';
+import { game } from '../game.js?v=5ca34d35';
+import { h, toast } from './dom.js?v=5ca34d35';
+import { openFull } from './shell.js?v=5ca34d35';
+import { bump } from '../core/daily.js?v=5ca34d35';
+import { openEventMsg } from './event.js?v=5ca34d35';
+import * as CP from '../core/coupon.js?v=5ca34d35'; // 设计39 再来 10 件
+import { refillHtml, bindRefill } from './coupon.js?v=5ca34d35'; // 设计39 事件券（开发2）
+import { todayCount } from '../core/bizevents.js?v=5ca34d35';
 
 /** 页签那一排放不下时，把选中的滑到中间 */
 function showOn(row) { const b = row.querySelector('.seg.on'); if (!b || row.scrollWidth <= row.clientWidth) return; const r = row.getBoundingClientRect(), x = b.getBoundingClientRect(); if (x.left >= r.left && x.right <= r.right) return; row.scrollLeft += x.left - r.left - (r.width - x.width) / 2; }

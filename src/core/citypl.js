@@ -1,10 +1,10 @@
 // 利润表按城市看（设计20 第二节 5）：按现在的规模估一个游戏月 —— 门店 / 网点按各城市家数 × 系数分；地产按项目所在城市（在做的项目的建安月均摊不算，只算回款在当月的）；科技、传媒在总部
-import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=e379aa95';
-import * as E from './economy.js?v=e379aa95';
-import { establishment, wage, PAY, lookOf, estTotal } from './staff.js?v=e379aa95';
-import { lineCities, lineK, cityK, CITY_IDS, CITY_CFG } from './cities.js?v=e379aa95';
-import { MONTH_MS } from './gametime.js?v=e379aa95';
-import { storeOther } from './calib.js?v=e379aa95';
+import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=5ca34d35';
+import * as E from './economy.js?v=5ca34d35';
+import { establishment, wage, PAY, lookOf, estTotal } from './staff.js?v=5ca34d35';
+import { lineCities, lineK, cityK, CITY_IDS, CITY_CFG } from './cities.js?v=5ca34d35';
+import { MONTH_MS } from './gametime.js?v=5ca34d35';
+import { storeOther } from './calib.js?v=5ca34d35';
 
 const SOC = 1 + Object.values(PAY.social).reduce((a, b) => a + b, 0);
 export function cityPL(s) {

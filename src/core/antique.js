@@ -3,17 +3,17 @@
 // 拍卖：跟车同一个拍卖会（core/auction.js）；这里算古董成交的佣金和海外进口税、收藏顾问代拍提成
 // 私洽：达·芬奇 救世主只给大藏家（人脉 90 + 藏品 10 件），名额 1，等 30 分钟
 // 估价每小时随机走；再拍卖卖出扣 10% 佣金，赚了交 20%；算身价（估价），加眼光 + 人脉；不送人
-import { YEAR_MS } from './gametime.js?v=e379aa95'; // V0.2.10
-import { profitMul } from './calib.js?v=e379aa95'; // 设计38
-import CFG from '../config/antique.json?v=e379aa95' with { type: 'json' };
-import { pay, receive } from './ledger.js?v=e379aa95';
-import { addContract } from './contracts.js?v=e379aa95';
-import { premium, addAssetHook } from './assets.js?v=e379aa95';
-import { addAttrHook, bossAttrs } from './boss.js?v=e379aa95';
-import { holder, isSec, attrs as secAttrs, OUT } from './posts.js?v=e379aa95';
-import { SEC_BY_ID } from '../config/secretaries.js?v=e379aa95';
-import { taxRec } from './fiscal.js?v=e379aa95';
-import { payerOfPost } from './fiscal.js?v=e379aa95';
+import { YEAR_MS } from './gametime.js?v=5ca34d35'; // V0.2.10
+import { profitMul } from './calib.js?v=5ca34d35'; // 设计38
+import CFG from '../config/antique.json?v=5ca34d35' with { type: 'json' };
+import { pay, receive } from './ledger.js?v=5ca34d35';
+import { addContract } from './contracts.js?v=5ca34d35';
+import { premium, addAssetHook } from './assets.js?v=5ca34d35';
+import { addAttrHook, bossAttrs } from './boss.js?v=5ca34d35';
+import { holder, isSec, attrs as secAttrs, OUT } from './posts.js?v=5ca34d35';
+import { SEC_BY_ID } from '../config/secretaries.js?v=5ca34d35';
+import { taxRec } from './fiscal.js?v=5ca34d35';
+import { payerOfPost } from './fiscal.js?v=5ca34d35';
 
 export const ACFG = CFG;
 export const ITEMS = CFG.items.map((x) => ({ ...x, kind: 'antique' }));

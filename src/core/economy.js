@@ -1,24 +1,24 @@
 // 经济：产钱、升级、分店、派驻、身价、离线收益（纯函数，node 测试能跑）
-import { YEAR_MS } from './gametime.js?v=e379aa95'; // V0.2.10 一个月 = 现实 12 小时
-import { whyCushion } from './cashflow.js?v=e379aa95'; // V0.2.3 留够两个月工资（设计35）
-import { INDUSTRIES, IND_BY_ID, SEC_BONUS_PER_POINT, BRANCH_CAP, LOOK3_TITLE } from '../config/industries.js?v=e379aa95';
-import * as CB from './calib.js?v=e379aa95';
-import CAP from '../config/capital.json?v=e379aa95' with { type: 'json' };
-import { TITLES } from '../config/titles.js?v=e379aa95';
-import { pay, receive, accrue, canPay } from './ledger.js?v=e379aa95';
-import { staffFactor, staffUp, PAY, estTotal } from './staff.js?v=e379aa95';
-import { track } from './companytax.js?v=e379aa95';
-import { payables } from './accrual.js?v=e379aa95';
-import { visionIncome } from './boss.js?v=e379aa95';
-import { managerRevMult, managerCostMult, stat } from './posts.js?v=e379aa95';
-import { reValue } from './realestate.js?v=e379aa95';
-import { logiRevPerSec, linkCogsMult, fleetValue } from './logistics.js?v=e379aa95';
-import { techRevPerSec, techLink } from './tech.js?v=e379aa95';
-import { liveRevPerSec, mediaLink } from './media.js?v=e379aa95';
-import { lineK, lineCities, cityOpen, cityK, cityName, CITY_CFG } from './cities.js?v=e379aa95';
-import { revK, debt } from './rivalry.js?v=e379aa95';
-import { depositTotal, loanDebt, setNW } from './bank.js?v=e379aa95';
-import { equityOwed } from './equity.js?v=e379aa95';
+import { YEAR_MS } from './gametime.js?v=5ca34d35'; // V0.2.10 一个月 = 现实 12 小时
+import { whyCushion } from './cashflow.js?v=5ca34d35'; // V0.2.3 留够两个月工资（设计35）
+import { INDUSTRIES, IND_BY_ID, SEC_BONUS_PER_POINT, BRANCH_CAP, LOOK3_TITLE } from '../config/industries.js?v=5ca34d35';
+import * as CB from './calib.js?v=5ca34d35';
+import CAP from '../config/capital.json?v=5ca34d35' with { type: 'json' };
+import { TITLES } from '../config/titles.js?v=5ca34d35';
+import { pay, receive, accrue, canPay } from './ledger.js?v=5ca34d35';
+import { staffFactor, staffUp, PAY, estTotal } from './staff.js?v=5ca34d35';
+import { track } from './companytax.js?v=5ca34d35';
+import { payables } from './accrual.js?v=5ca34d35';
+import { visionIncome } from './boss.js?v=5ca34d35';
+import { managerRevMult, managerCostMult, stat } from './posts.js?v=5ca34d35';
+import { reValue } from './realestate.js?v=5ca34d35';
+import { logiRevPerSec, linkCogsMult, fleetValue } from './logistics.js?v=5ca34d35';
+import { techRevPerSec, techLink } from './tech.js?v=5ca34d35';
+import { liveRevPerSec, mediaLink } from './media.js?v=5ca34d35';
+import { lineK, lineCities, cityOpen, cityK, cityName, CITY_CFG } from './cities.js?v=5ca34d35';
+import { revK, debt } from './rivalry.js?v=5ca34d35';
+import { depositTotal, loanDebt, setNW } from './bank.js?v=5ca34d35';
+import { equityOwed } from './equity.js?v=5ca34d35';
 
 /** 存档里的产业：{ store: { level, branches, spent, sec, staff, agency, openedAt } } */
 export function newIndustry(t = Date.now()) { return { level: 1, branches: 1, spent: 0, sec: null, staff: {}, agency: {}, openedAt: t }; }
@@ -153,12 +153,19 @@ export const needMet = (s, need) => { if (s.flags && s.flags.noNeed) return true
 const unit = (need) => (need.line === 'logistics' ? '个网点' : '家');
 /** 条件的说法：「便利店开到 3 家」「三种门店加起来 20 家」 */
 export const needName = (need) => (need.retailTotal ? `三种门店加起来 ${need.retailTotal} 家` : `${IND_BY_ID[need.line].name}开到 ${need.n} ${unit(need)}`);
-/** 不够时的提示：「便利店开到 3 家才能开餐饮分店（现在 1 家）」 */
-export function whyNeed(s, id, which) {
-  const cfg = IND_BY_ID[id]; const need = cfg[which]; if (needMet(s, need)) return null; const p = needProgress(s, need);
-  const what = which === 'needBranch' ? `开${cfg.name}分店` : cfg.retail ? `开第一家${cfg.name}` : `开${cfg.name}`;
-  return `${needName(need)}才能${what}（现在 ${p.cur} ${need.retailTotal ? '家' : unit(need)}）`;
+/** 设计58：条件现在几家、要几家，主语放前面：{ who: '便利店现在 1 家', n: '3 家' } */
+export function needNow(s, need) {
+  const p = needProgress(s, need); const u = need.retailTotal ? '家' : unit(need);
+  return { who: `${need.retailTotal ? '三种门店加起来' : IND_BY_ID[need.line].name}现在 ${p.cur} ${u}`, n: `${p.n} ${u}`, total: !!need.retailTotal };
 }
+/** 不够时的提示（设计58）：「便利店现在 1 家，开到 3 家才能开第一家服装店」「三种门店加起来现在 12 家，到 20 家才能开物流」 */
+export function whyNeed(s, id, which) {
+  const cfg = IND_BY_ID[id]; const need = cfg[which]; if (needMet(s, need)) return null; const w = needNow(s, need);
+  const what = which === 'needBranch' ? `开${cfg.name}分店` : cfg.retail ? `开第一家${cfg.name}店` : `开${cfg.name}`;
+  return `${w.who}，${w.total ? '到' : '开到'} ${w.n}才能${what}`;
+}
+/** 设计58：还没开的线（餐饮、服装这种空着起步的，0 家） */
+export const notOpened = (s, id) => !!(IND_BY_ID[id] && IND_BY_ID[id].startEmpty && s.inds[id] && !(s.inds[id].branches > 0));
 export const isUnlocked = (s, id) => s.title >= IND_BY_ID[id].unlockTitle || !!(s.flags && s.flags.earlyUnlock && s.flags.earlyUnlock[id]);
 
 export function unlockIfReady(s) {
@@ -206,6 +213,7 @@ export function openBranch(s, id, t = Date.now(), by = '', city = CITY_CFG.hq) {
 }
 /** 第一轮的派驻：现在就是任命店长 */
 export function assign(s, id, secId) {
+  if (secId && notOpened(s, id)) return false; /* 设计58：还没开店不能派店长 */
   s.positions = s.positions || {};
   for (const [k, v] of Object.entries(s.positions)) if (v === secId) delete s.positions[k];
   if (secId) s.positions['manager_' + id] = secId; else delete s.positions['manager_' + id];
@@ -255,5 +263,5 @@ export function canPromote(s) {
 }
 
 // 资产的验资要看身价（避免互相 import）
-import { setNetWorthFn } from './assets.js?v=e379aa95';
+import { setNetWorthFn } from './assets.js?v=5ca34d35';
 setNetWorthFn(netWorth); setNW(netWorth);

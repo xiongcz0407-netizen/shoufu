@@ -1,15 +1,15 @@
 // 通用谈判界面（V2-06，设计29 第二节）：对方是谁 + 耐心条 + 现在要价；一来一回的对话；出价滑条 + 「出价」「按对方的价成交」「不谈了」；筹码一次
 // 接进来的：房东涨租（经营事件「谈」）、拍卖私洽（拍卖会每件的「私洽」）。开发1 的收购、融资、谈地也可以用 openNegotiate
-import * as NG from '../core/negotiate.js?v=e379aa95';
-import * as AU from '../core/auction.js?v=e379aa95';
-import * as BE from '../core/bizevents.js?v=e379aa95';
-import * as INB from './inbox.js?v=e379aa95';
-import { bigBonus, useBig } from '../core/manage.js?v=e379aa95';
-import { SEC_BY_ID } from '../config/secretaries.js?v=e379aa95';
-import { fmtMoney } from '../core/format.js?v=e379aa95';
-import { game } from '../game.js?v=e379aa95';
-import { now } from '../core/clock.js?v=e379aa95';
-import { h, openPanel, toast } from './dom.js?v=e379aa95';
+import * as NG from '../core/negotiate.js?v=5ca34d35';
+import * as AU from '../core/auction.js?v=5ca34d35';
+import * as BE from '../core/bizevents.js?v=5ca34d35';
+import * as INB from './inbox.js?v=5ca34d35';
+import { bigBonus, useBig } from '../core/manage.js?v=5ca34d35';
+import { SEC_BY_ID } from '../config/secretaries.js?v=5ca34d35';
+import { fmtMoney } from '../core/format.js?v=5ca34d35';
+import { game } from '../game.js?v=5ca34d35';
+import { now } from '../core/clock.js?v=5ca34d35';
+import { h, openPanel, toast } from './dom.js?v=5ca34d35';
 
 const C = NG.NEGO_CFG;
 /**

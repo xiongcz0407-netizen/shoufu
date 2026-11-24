@@ -1,19 +1,19 @@
 // 「公司 → 职位」（设计16 第六节、设计18 第四节 1）：组织架构图（你在最上，下面一排职位卡：头像 / 空缺 / 外包），
 // 点职位卡 → 底部抽屉：选人（最适合的打星）、外包、撤职、授权额度、店长托管（月预算 + 回本期）、资产管家出租、看她的月报
-import * as ADS from '../core/ads.js?v=e379aa95'; // V0.2.5 自动升级广告
-import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=e379aa95';
-import { IND_BY_ID } from '../config/industries.js?v=e379aa95';
-import * as PO from '../core/posts.js?v=e379aa95';
-import * as MG from '../core/manage.js?v=e379aa95';
-import { noteUp } from '../core/upnote.js?v=e379aa95'; // V0.2.5 升级框
-import * as PW from '../core/postwork.js?v=e379aa95';
-import * as T from '../core/training.js?v=e379aa95';
-import { fmtMoney } from '../core/format.js?v=e379aa95';
-import { asset, hasAsset } from '../platform/assets.js?v=e379aa95';
-import { now } from '../core/clock.js?v=e379aa95';
-import { game } from '../game.js?v=e379aa95';
-import { h, openPanel, toast, liveRender } from './dom.js?v=e379aa95';
-import { avatarKey } from './main-screen.js?v=e379aa95';
+import * as ADS from '../core/ads.js?v=5ca34d35'; // V0.2.5 自动升级广告
+import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=5ca34d35';
+import { IND_BY_ID } from '../config/industries.js?v=5ca34d35';
+import * as PO from '../core/posts.js?v=5ca34d35';
+import * as MG from '../core/manage.js?v=5ca34d35';
+import { noteUp } from '../core/upnote.js?v=5ca34d35'; // V0.2.5 升级框
+import * as PW from '../core/postwork.js?v=5ca34d35';
+import * as T from '../core/training.js?v=5ca34d35';
+import { fmtMoney } from '../core/format.js?v=5ca34d35';
+import { asset, hasAsset } from '../platform/assets.js?v=5ca34d35';
+import { now } from '../core/clock.js?v=5ca34d35';
+import { game } from '../game.js?v=5ca34d35';
+import { h, openPanel, toast, liveRender } from './dom.js?v=5ca34d35';
+import { avatarKey } from './main-screen.js?v=5ca34d35';
 
 const AN = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 const icon = (k, cls = 'pc-ic') => (hasAsset(`assets/ui/${k}.webp`) ? `<img class="${cls}" src="${asset(`assets/ui/${k}.webp`)}" alt="">` : '');
@@ -84,6 +84,7 @@ export function openPost(key) {
     const ob = h('button', 'pick' + (who === PO.OUT ? ' on' : ''), `${icon('icon_outsource', 'ic')}<div><b>外包：${out.name}</b><small>${kind === 'cfo' ? `每月 ${fmtMoney(out.fee)}，只报税不节税` : kind === 'biz' || kind === 'ipo' ? `每月 ${fmtMoney(out.fee)}，按本事 30 算` : kind === 'manager' ? '按管理 50 算，每月拿这条线利润的 10%' : kind === 'collector' ? `每月 ${fmtMoney(out.fee)}，掌眼按 50 算，不代拍` : kind === 'invest' ? `每月 ${fmtMoney(out.fee)}，按智慧 50 算，不看盘提醒` : '维护费不打折、不帮你出租'}</small></div>`);
     ob.onclick = () => { const b0 = effSnap(s, key); PO.assign(s, key, PO.OUT, now()); noteUp(s, effNote(s, key, PO.OUT, b0), now()); game.changed(); game.save(); render(); };
     list.appendChild(ob);
+    { const lk = PO.postLocked(s, key); if (lk) { list.querySelectorAll('button').forEach((b) => { b.disabled = true; b.classList.add('locked'); }); list.before(h('div', 'tr-gain neg', `${lk}：${kind === 'manager' ? '开了第一家店才能派店长' : '现在还不能安排'}`)); } } /* 设计58：还没开店，选人框灰掉 */
     p.body.appendChild(list);
     if (who) { const x = h('button', 'btn', '撤职（空着）'); x.onclick = () => { PO.assign(s, key, null, now()); game.changed(); game.save(); render(); }; p.body.appendChild(x); }
     // 授权额度

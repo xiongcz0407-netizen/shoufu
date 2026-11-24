@@ -1,11 +1,12 @@
 // 只有一个存档，自动存；带存档版本号，新版本必须能读旧存档
-import { APP_V } from '../version.js?v=e379aa95';
-import { mkt, fillNew } from './stocks.js?v=e379aa95';
+import { APP_V } from '../version.js?v=5ca34d35';
+import { mkt, fillNew } from './stocks.js?v=5ca34d35';
 
 export const SAVE_KEY = 'shoufu_save';
 export const SAVE_VERSION = 2; // 第一次发布（V0.1）是 1；2：V0.2 取消境外账户（设计30，core/migrate.js v1to2）
-import { v1to2 } from './migrate.js?v=e379aa95';
-import { dropOrphans } from './orphans.js?v=e379aa95';
+import { v1to2 } from './migrate.js?v=5ca34d35';
+import { dropOrphans } from './orphans.js?v=5ca34d35';
+import { recallEmpty } from './posts.js?v=5ca34d35';
 
 /** 局号：每开一局一个 */
 export const newGid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -79,6 +80,7 @@ export function upgrade(raw, t = Date.now()) {
   fillDefaults(s, defaultState(t));
   if (Array.isArray(s.inbox)) s.inbox = s.inbox.filter((m) => m.type !== 'stock_ws');
   if (isObj(s.mkt)) { dropOrphans(s.mkt); fillNew(s.mkt); }   // 设计54：老存档补新股票（按起始价，从这一跳开始跳）   // V0.2.16：老版本看盘留下的孤儿止盈止损（买单没了、组里也没股票）撤掉   // 设计48：看盘提示不进消息了，老存档里的删掉
+  if (isObj(s.positions) && isObj(s.inds)) recallEmpty(s, t); /* 设计58（开发1）：还没开的线上的店长撤回 */
   s.appV = APP_V;
   return s;
 }

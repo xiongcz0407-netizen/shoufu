@@ -1,11 +1,11 @@
 // 秘书职位（设计16）和秘书工资（设计17 第二节）：数据、任免、效率、加成、工资、谈加薪
 // 注意：不 import economy（economy 要用这里的店长加成）
-import P from '../config/posts.json?v=e379aa95' with { type: 'json' };
-import { SEC_BY_ID } from '../config/secretaries.js?v=e379aa95';
-import { IND_BY_ID } from '../config/industries.js?v=e379aa95';
-import { MONTH_MS } from './gametime.js?v=e379aa95';
-import { addMsg } from './inbox.js?v=e379aa95';
-import { POST_LINES } from '../config/post-lines.js?v=e379aa95';
+import P from '../config/posts.json?v=5ca34d35' with { type: 'json' };
+import { SEC_BY_ID } from '../config/secretaries.js?v=5ca34d35';
+import { IND_BY_ID } from '../config/industries.js?v=5ca34d35';
+import { MONTH_MS } from './gametime.js?v=5ca34d35';
+import { addMsg } from './inbox.js?v=5ca34d35';
+import { POST_LINES } from '../config/post-lines.js?v=5ca34d35';
 export { P as POSTS_CFG };
 
 export const OUT = 'outsource';
@@ -19,7 +19,21 @@ export const postName = (key) => (kindOf(key) === 'manager' ? `店长·${(IND_BY
 export function postKeys(s) {
   return ['cfo', 'biz', 'ipo', 'steward', 'invest', 'collector', ...Object.keys(s.inds).map((id) => 'manager_' + id)]; // 总监类放上面，店长按产业排在下面（验收：商务总监要一眼看到）
 }
-export const postLocked = (s, key) => (s.title < P.posts[kindOf(key)].unlockTitle ? `升到「${['打工人', '小老板', '老板', '企业家'][P.posts[kindOf(key)].unlockTitle]}」开放` : null);
+export const postLocked = (s, key) => (s.title < P.posts[kindOf(key)].unlockTitle ? `升到「${['打工人', '小老板', '老板', '企业家'][P.posts[kindOf(key)].unlockTitle]}」开放` : noStore(s, indOf(key)) ? '还没开店' : null);
+/** 设计58：还没开的线（空着起步、0 家）不能派店长。不 import economy，这里自己看 */
+export const noStore = (s, id) => !!(id && IND_BY_ID[id] && IND_BY_ID[id].startEmpty && s.inds && s.inds[id] && !(s.inds[id].branches > 0));
+/** 设计58：老存档里派到还没开的线上的店长撤回「没职位」，秘书说一句；返回撤回的秘书 id */
+export function recallEmpty(s, t = nowOf(s)) {
+  const back = [];
+  for (const [key, who] of Object.entries(s.positions || {})) {
+    const id = indOf(key); if (!id || !noStore(s, id)) continue;
+    delete s.positions[key]; if (s.inds[id]) s.inds[id].sec = null;
+    if (!isSec(who) || !s.secs || !s.secs[who] || !SEC_BY_ID[who]) continue;
+    const nm = SEC_BY_ID[who].name; back.push(who);
+    addMsg(s, { kind: 'system', type: 'post_recall', from: who, title: `${nm}回来陪着你了`, body: `${nm}：「老板，${IND_BY_ID[id].name}还没开店，我先回来陪着你，开了店再派我去～」` }, t);
+  }
+  return back;
+}
 export const holder = (s, key) => (s.positions || {})[key] || null;
 export const isSec = (who) => !!who && who !== OUT;
 /** 她担任的职位 key，没有返回 null */

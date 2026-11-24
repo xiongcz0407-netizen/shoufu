@@ -1,10 +1,11 @@
 // V2-12 前置条件（设计31）：第一次满足某个条件时，秘书在消息里说一句（同一个条件只说一次；已经开了的不说）
-import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=e379aa95';
-import { TITLES } from '../config/titles.js?v=e379aa95';
-import { SEC_BY_ID } from '../config/secretaries.js?v=e379aa95';
-import * as E from './economy.js?v=e379aa95';
-import { addMsg } from './inbox.js?v=e379aa95';
-import * as MG from './manage.js?v=e379aa95';
+import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=5ca34d35';
+import { TITLES } from '../config/titles.js?v=5ca34d35';
+import { SEC_BY_ID } from '../config/secretaries.js?v=5ca34d35';
+import * as E from './economy.js?v=5ca34d35';
+import { addMsg } from './inbox.js?v=5ca34d35';
+import * as MG from './manage.js?v=5ca34d35';
+import * as PO from './posts.js?v=5ca34d35';
 
 const keyOf = (need) => (need.retailTotal ? `retail:${need.retailTotal}` : `${need.line}:${need.n}`);
 /** 这个条件放开的事：{ acts 现在就能做的, wait 还差称号的 } */
@@ -42,7 +43,7 @@ export function checkNeeds(s, t) {
 /** 称号还不够时的灰卡说明：[{ text, ok }] */
 export function lockInfo(s, id) {
   const cfg = IND_BY_ID[id]; const out = [{ text: `「${TITLES[cfg.unlockTitle].name}」称号`, ok: (s.title || 0) >= cfg.unlockTitle }];
-  if (cfg.needFirst) { const p = E.needProgress(s, cfg.needFirst); out.push({ text: `${E.needName(cfg.needFirst)}（现在 ${p.cur}）`, ok: p.cur >= p.n }); }
+  if (cfg.needFirst) { const p = E.needProgress(s, cfg.needFirst); const w = E.needNow(s, cfg.needFirst); out.push({ text: `${w.who}，要 ${w.n}`, ok: p.cur >= p.n }); } /* 设计58：「便利店现在 1 家，要 3 家」 */
   return out;
 }
-MG.onDay((s, d, at) => { checkNeeds(s, at); return []; });
+MG.onDay((s, d, at) => { checkNeeds(s, at); PO.recallEmpty(s, at); return []; }); /* 设计58：线关到 0 家时店长也撤回 */

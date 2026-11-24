@@ -1,43 +1,43 @@
 // 「公司」页签：产业（摘要卡 + 产业线卡 → 产业线详情）、人事（员工、招聘、裁员）；分红到个人
-import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=e379aa95';
-import { TITLES } from '../config/titles.js?v=e379aa95';
-import * as PQ from '../core/prereq.js?v=e379aa95'; // V2-12 前置条件
-import { SEC_BY_ID } from '../config/secretaries.js?v=e379aa95';
-import * as E from '../core/economy.js?v=e379aa95';
-import * as CB from '../core/calib.js?v=e379aa95';
-import * as ST from '../core/staff.js?v=e379aa95';
-import * as CT from '../core/companytax.js?v=e379aa95';
-import { MONTH_MS, monthIndex } from '../core/gametime.js?v=e379aa95';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=e379aa95';
-import { asset, hasAsset } from '../platform/assets.js?v=e379aa95';
-import { now } from '../core/clock.js?v=e379aa95';
-import { game } from '../game.js?v=e379aa95';
-import { h, openPanel, toast, liveRender } from './dom.js?v=e379aa95';
-import * as AC from '../core/accrual.js?v=e379aa95';
-import * as PO from '../core/posts.js?v=e379aa95';
-import { dividendAdvice } from '../core/postwork.js?v=e379aa95';
-import { openPost } from './posts.js?v=e379aa95';
-import { openRealEstate } from './realestate.js?v=e379aa95';
-import * as RE from '../core/realestate.js?v=e379aa95';
-import * as LGI from '../core/logistics.js?v=e379aa95';
-import * as TC from '../core/tech.js?v=e379aa95';
-import * as MD from '../core/media.js?v=e379aa95';
-import * as CY from '../core/cities.js?v=e379aa95';
-import * as RVY from '../core/rivalry.js?v=e379aa95';
-import { hintLater } from './guide2.js?v=e379aa95';
-import * as MG from '../core/manage.js?v=e379aa95'; // P-05 亲自经营
-import * as PK from '../core/pick.js?v=e379aa95'; // V2-03 进货挑品
-import * as LT from '../core/late.js?v=e379aa95'; // V3-01 后期不挂机
-import { isTraining } from '../core/training.js?v=e379aa95';
-import { bank } from '../core/bank.js?v=e379aa95'; // V0.2.1 资金页签：贷款限用途
-import { openTab } from './shell.js?v=e379aa95';
-import { askFill, doFill } from './fill.js?v=e379aa95';
-import * as CF from '../core/cashflow.js?v=e379aa95';
-import { lockState } from '../core/ledger.js?v=e379aa95'; // V0.2.9 照样花 // V0.2.3 资金链（设计35）
-import * as ADS from '../core/ads.js?v=e379aa95'; // V0.2.5 广告升级 // V0.2.2 开店补满人
-import { openSitePick, sitesBlockHtml, bindSitesBlock } from './sites.js?v=e379aa95'; // V2-08 选址（开发2）
-import { confirmBox } from './confirm.js?v=e379aa95'; // 设计37 第一节：游戏样式确认框
-import { autoHtml, bindAuto, potionHtml, bindPotion } from './coupon.js?v=e379aa95'; // 设计39 自动上阵、精力药水（开发2）
+import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=5ca34d35';
+import { TITLES } from '../config/titles.js?v=5ca34d35';
+import * as PQ from '../core/prereq.js?v=5ca34d35'; // V2-12 前置条件
+import { SEC_BY_ID } from '../config/secretaries.js?v=5ca34d35';
+import * as E from '../core/economy.js?v=5ca34d35';
+import * as CB from '../core/calib.js?v=5ca34d35';
+import * as ST from '../core/staff.js?v=5ca34d35';
+import * as CT from '../core/companytax.js?v=5ca34d35';
+import { MONTH_MS, monthIndex } from '../core/gametime.js?v=5ca34d35';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=5ca34d35';
+import { asset, hasAsset } from '../platform/assets.js?v=5ca34d35';
+import { now } from '../core/clock.js?v=5ca34d35';
+import { game } from '../game.js?v=5ca34d35';
+import { h, openPanel, toast, liveRender } from './dom.js?v=5ca34d35';
+import * as AC from '../core/accrual.js?v=5ca34d35';
+import * as PO from '../core/posts.js?v=5ca34d35';
+import { dividendAdvice } from '../core/postwork.js?v=5ca34d35';
+import { openPost } from './posts.js?v=5ca34d35';
+import { openRealEstate } from './realestate.js?v=5ca34d35';
+import * as RE from '../core/realestate.js?v=5ca34d35';
+import * as LGI from '../core/logistics.js?v=5ca34d35';
+import * as TC from '../core/tech.js?v=5ca34d35';
+import * as MD from '../core/media.js?v=5ca34d35';
+import * as CY from '../core/cities.js?v=5ca34d35';
+import * as RVY from '../core/rivalry.js?v=5ca34d35';
+import { hintLater } from './guide2.js?v=5ca34d35';
+import * as MG from '../core/manage.js?v=5ca34d35'; // P-05 亲自经营
+import * as PK from '../core/pick.js?v=5ca34d35'; // V2-03 进货挑品
+import * as LT from '../core/late.js?v=5ca34d35'; // V3-01 后期不挂机
+import { isTraining } from '../core/training.js?v=5ca34d35';
+import { bank } from '../core/bank.js?v=5ca34d35'; // V0.2.1 资金页签：贷款限用途
+import { openTab } from './shell.js?v=5ca34d35';
+import { askFill, doFill } from './fill.js?v=5ca34d35';
+import * as CF from '../core/cashflow.js?v=5ca34d35';
+import { lockState } from '../core/ledger.js?v=5ca34d35'; // V0.2.9 照样花 // V0.2.3 资金链（设计35）
+import * as ADS from '../core/ads.js?v=5ca34d35'; // V0.2.5 广告升级 // V0.2.2 开店补满人
+import { openSitePick, sitesBlockHtml, bindSitesBlock } from './sites.js?v=5ca34d35'; // V2-08 选址（开发2）
+import { confirmBox } from './confirm.js?v=5ca34d35'; // 设计37 第一节：游戏样式确认框
+import { autoHtml, bindAuto, potionHtml, bindPotion } from './coupon.js?v=5ca34d35'; // 设计39 自动上阵、精力药水（开发2）
 
 const sum = (o) => Object.values(o || {}).reduce((a, b) => a + b, 0);
 /** 本月到现在：营收、进货、预估人工和房租、利润（月底才真正扣人工、房租、税） */
@@ -159,6 +159,7 @@ function drawIndustry(body, ctx) {
       body.appendChild(h('div', 'ind-card locked', `${hasAsset(lk) ? `<img class="ind-img gray" src="${asset(lk)}" alt="">` : ''}<div class="ind-info"><div class="ind-name">${cfg.name}</div><div class="ind-lock">${PQ.lockInfo(s, cfg.id).map((x) => `${x.ok ? '✓' : '○'} ${x.text}`).join('　')}<br><small>或者收购同行提前解锁</small></div></div>`));
       continue;
     }
+    if (E.notOpened(s, cfg.id)) { body.appendChild(emptyCard(s, cfg, ctx)); continue; } /* 设计58：还没开的线灰着，写条件 */
     if (cfg.id === 'realestate') { body.appendChild(reCard(s, cfg)); continue; } // 地产是项目制，卡片和详情另做
     const look = E.lookIndex(cfg, ind.level); const lm = lineMonth(s, cfg.id);
     const est = ST.estTotal(s, cfg.id), on = ST.onDuty(s, cfg.id), f = ST.staffFactor(s, cfg.id);
@@ -177,6 +178,14 @@ function drawIndustry(body, ctx) {
   /* V0.2.1：注资 / 分红挪到「资金」页签 */ void dv; void ij;
 }
 
+// 设计58：还没开的线（空着起步、0 家）：灰卡写「服装 · 还没开」和条件；条件够了写开店费，点了进详情开店
+function emptyCard(s, cfg, ctx) {
+  const lk = `assets/ind/${cfg.img[0]}.webp`; const why = E.whyNotBranch(s, cfg.id); const ok = !why;
+  const line = ok ? `<div class="ind-line pos">可以开第一家了 · 开店费 ${fmtMoney(E.brCostOf(s, cfg.id))}</div>` : `<div class="ind-line">${why}</div>`;
+  const card = h(ok ? 'button' : 'div', `ind-card line locked empty-line${ok ? ' ready' : ''}`, `${hasAsset(lk) ? `<img class="ind-img gray" src="${asset(lk)}" alt="">` : `<div class="ind-img ph">${cfg.name}</div>`}<div class="ind-info"><div class="ind-name">${cfg.name} · 还没开</div>${line}</div>`);
+  if (ok) card.onclick = () => openLine(cfg.id, ctx);
+  return card;
+}
 // 地产卡：在做项目、楼市、本月回款
 function reCard(s, cfg) {
   const act = RE.activeProjects(s); const k = 'assets/ind/ind_realestate_1.webp';
@@ -277,7 +286,7 @@ function openCityPick(id, done) {
 /** 产业线详情（底部抽屉）：门店、升级、开分店、编制和招聘 */
 export function openLine(id, ctx) {
   const p = openPanel(IND_BY_ID[id].name);
-  if (['logistics', 'tech', 'media'].includes(id)) setTimeout(() => import('./guide.js?v=e379aa95').then((G) => G.hint(id)), 400);
+  if (['logistics', 'tech', 'media'].includes(id)) setTimeout(() => import('./guide.js?v=5ca34d35').then((G) => G.hint(id)), 400);
   const render = () => {
     const s = game.state; const cfg = IND_BY_ID[id]; const ind = s.inds[id];
     const upC = E.upCostOf(s, id); const brWhy = E.whyNotBranch(s, id); const upWhy = E.whyNotUpgrade(s, id); const brC = brWhy ? null : E.brCostOf(s, id);
@@ -291,7 +300,7 @@ export function openLine(id, ctx) {
       <div class="sd-rec-title">编制和在岗（${id === 'logistics' ? '全部网点' : cfg.kind ? '全公司' : '全部门店'}）</div>
       <div class="staff-tbl">${Object.entries(est).map(([r, n]) => `<div><span>${ST.PAY.roles[r].name}</span><b class="${ST.onDutyRole(s, id, r) < n ? 'neg' : ''}">${ST.onDutyRole(s, id, r)}</b>/${n}<small>${fmtMoney(ST.wage(r))}/月</small></div>`).join('')}</div>
       ${id === 'media' ? mediaBlock(s) : id === 'tech' ? techBlock(s) : id === 'logistics' ? logiBlock(s) : `<div class="tr-gain">房租 ${fmtMoney(cfg.rent[look] * ind.branches)}/月　进货占营收 ${Math.round(E.baseCogs(s, id) * 100)}%${cfg.retail ? `　水电杂费 ${fmtMoney(CB.storeOther(cfg, ind.level) * ind.branches)}/月` : ''}</div>`}
-      <button class="btn mgr" style="width:100%;margin-top:8px">店长：${PO.holder(s, 'manager_' + id) ? (PO.isSec(PO.holder(s, 'manager_' + id)) ? SEC_BY_ID[PO.holder(s, 'manager_' + id)].name : '职业经理人') : '空缺'} ›（任命、托管、授权）</button>
+      <button class="btn mgr" style="width:100%;margin-top:8px"${E.notOpened(s, id) ? ' disabled' : ''}>店长：${E.notOpened(s, id) ? '还没开店' : PO.holder(s, 'manager_' + id) ? (PO.isSec(PO.holder(s, 'manager_' + id)) ? SEC_BY_ID[PO.holder(s, 'manager_' + id)].name : '职业经理人') : '空缺'} ›（任命、托管、授权）</button>
       <div class="ind-btns" style="margin-top:10px">
         <button class="btn up">升级<br><small>${upWhy ? upWhy : `${fmtMoney(upC)}${shortText(s, upC)}`}</small></button>
         <button class="btn br">${brC == null ? `开分店<br><small>${brWhy}</small>` : `开分店（${ind.branches}/${E.maxBranches(s, id)}）<br><small>${fmtMoney(brC)}${shortText(s, brC)}</small>`}</button>
@@ -365,7 +374,7 @@ export function openHire(id, done, pre) {
     p.body.querySelector('.m').onclick = () => { n = Math.max(1, n - 1); render(); };
     p.body.querySelector('.p').onclick = () => { n += 1; render(); };
     const go = p.body.querySelector('.go'); go.disabled = !!why;
-    go.onclick = () => { const r = ST.hire(s, id, role, n, ch, now()); if (!r.ok) { toast(r.why); return; } import('../core/daily.js?v=e379aa95').then((D) => D.bump(s, now(), 'hire')); toast(ch === 'agency' ? '派遣员工已到岗' : `${Math.ceil((r.at - now()) / 60000)} 分钟后到岗`); game.changed(); game.save(); p.close(); done && done(); };
+    go.onclick = () => { const r = ST.hire(s, id, role, n, ch, now()); if (!r.ok) { toast(r.why); return; } import('../core/daily.js?v=5ca34d35').then((D) => D.bump(s, now(), 'hire')); toast(ch === 'agency' ? '派遣员工已到岗' : `${Math.ceil((r.at - now()) / 60000)} 分钟后到岗`); game.changed(); game.save(); p.close(); done && done(); };
   };
   render();
 }
@@ -437,7 +446,7 @@ export function openInject(ctx, preset) {
 
 export function openDividend(ctx) {
   const s = game.state; let pct = 30;
-  setTimeout(() => import('./guide.js?v=e379aa95').then((g) => g.hint('wallets')), 400);
+  setTimeout(() => import('./guide.js?v=5ca34d35').then((g) => g.hint('wallets')), 400);
   const p = openPanel('分红到个人');
   const render = () => {
     const av = CF.divMax(s); /* V0.2.9 留够工资 */
