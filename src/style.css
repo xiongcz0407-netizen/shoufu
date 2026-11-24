@@ -1139,3 +1139,6 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 
 /* 设计60 看盘单倒计时 */
 .eta .eta-main { font-weight: 700; color: #ffd27a; } .eta .eta-main.late { color: #f0a35e; } .eta .eta-sub { display: block; font-style: normal; font-size: 10px; opacity: .7; }
+
+/* 设计61 炒股赚了多少 */
+.pl-card .pl-row { display: flex; align-items: baseline; gap: 10px; font-size: 13px; margin: 3px 0; } .pl-card .pl-row > span { width: 34px; opacity: .7; } .pl-card .pl-row b { font-size: 15px; } .pl-card .pl-row small { font-size: 11px; opacity: .75; margin-left: 4px; } .pl-card em { font-style: normal; opacity: .6; } .pl-note { font-size: 10px; opacity: .55; margin-top: 4px; }

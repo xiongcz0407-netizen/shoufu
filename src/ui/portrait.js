@@ -1,5 +1,5 @@
 // 秘书立绘：按人物外框缩放、下边对齐；呼吸、眨眼、点一下弹一下
-import { asset, getSecMeta } from '../platform/assets.js?v=691ed83a';
+import { asset, getSecMeta } from '../platform/assets.js?v=701206f7';
 
 export function createPortrait(stage) {
   const wrap = document.createElement('div');

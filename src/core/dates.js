@@ -1,12 +1,12 @@
 // 约会：地点、花钱、爱慕 / 好感、记录、次数解锁、同一天陪别人
-import { whyEnergy, doEnergy, E_COST } from './manage.js?v=691ed83a'; // 设计39 约会花精力
-import { DATE_PLACES, PLACE_BY_ID, DATES_PER_DAY, CAR_TIER_LOVE, OTHER_SAME_DAY_LOVE, DATE_MILESTONES } from '../config/dates.js?v=691ed83a';
-import { ensureSec } from './secretary.js?v=691ed83a';
-import { addFavor, addLove, daily, markWith, favorMult } from './affection.js?v=691ed83a';
-import { isTraining } from './training.js?v=691ed83a';
-import { bump } from './daily.js?v=691ed83a';
-import { afterDate } from './love.js?v=691ed83a';   // 设计56 定情信物
-import { pay, receive, accrue, canPay } from './ledger.js?v=691ed83a';
+import { whyEnergy, doEnergy, E_COST } from './manage.js?v=701206f7'; // 设计39 约会花精力
+import { DATE_PLACES, PLACE_BY_ID, DATES_PER_DAY, CAR_TIER_LOVE, OTHER_SAME_DAY_LOVE, DATE_MILESTONES } from '../config/dates.js?v=701206f7';
+import { ensureSec } from './secretary.js?v=701206f7';
+import { addFavor, addLove, daily, markWith, favorMult } from './affection.js?v=701206f7';
+import { isTraining } from './training.js?v=701206f7';
+import { bump } from './daily.js?v=701206f7';
+import { afterDate } from './love.js?v=701206f7';   // 设计56 定情信物
+import { pay, receive, accrue, canPay } from './ledger.js?v=701206f7';
 
 /** 地点的调整（第 2-11 项：自己有游艇就不花租船钱、按档次多加）：fn(s, placeId) → null 或 { price, love, favor, note } */
 const ADJ = [];

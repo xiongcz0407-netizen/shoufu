@@ -1,11 +1,11 @@
 // 秘书职位（设计16）和秘书工资（设计17 第二节）：数据、任免、效率、加成、工资、谈加薪
 // 注意：不 import economy（economy 要用这里的店长加成）
-import P from '../config/posts.json?v=691ed83a' with { type: 'json' };
-import { SEC_BY_ID } from '../config/secretaries.js?v=691ed83a';
-import { IND_BY_ID } from '../config/industries.js?v=691ed83a';
-import { MONTH_MS } from './gametime.js?v=691ed83a';
-import { addMsg } from './inbox.js?v=691ed83a';
-import { POST_LINES } from '../config/post-lines.js?v=691ed83a';
+import P from '../config/posts.json?v=701206f7' with { type: 'json' };
+import { SEC_BY_ID } from '../config/secretaries.js?v=701206f7';
+import { IND_BY_ID } from '../config/industries.js?v=701206f7';
+import { MONTH_MS } from './gametime.js?v=701206f7';
+import { addMsg } from './inbox.js?v=701206f7';
+import { POST_LINES } from '../config/post-lines.js?v=701206f7';
 export { P as POSTS_CFG };
 
 export const OUT = 'outsource';

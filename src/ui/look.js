@@ -1,19 +1,19 @@
 // 设计41 / 46 / 47 看盘界面（开发2）：看盘那一块（开始 / 现在看一眼 / 结束）、看盘消息弹框（⅓仓 / 半仓 / 全仓）、照她说的挂单（条件单表）、消息「重要」里的按钮
-import * as SK from '../core/stocks.js?v=691ed83a';
-import * as TR from '../core/trade.js?v=691ed83a';
-import * as LK from '../core/look.js?v=691ed83a';
-import * as I from '../core/inbox.js?v=691ed83a';
-import { SEC_BY_ID } from '../config/secretaries.js?v=691ed83a';
-import { fmtMoney } from '../core/format.js?v=691ed83a';
-import { asset, hasAsset } from '../platform/assets.js?v=691ed83a';
-import { game } from '../game.js?v=691ed83a';
-import { now } from '../core/clock.js?v=691ed83a';
-import { h, openPanel, toast } from './dom.js?v=691ed83a';
-import { addActionUi } from './inbox.js?v=691ed83a';
-import * as WSM from '../core/ws.js?v=691ed83a';   // 设计47
-import { attrs as secAttrs } from '../core/posts.js?v=691ed83a';
-import { isTraining } from '../core/training.js?v=691ed83a';
-import { itemIcon, goBuyHtml, bindGoBuy } from './coupon.js?v=691ed83a';   // 设计53 投资券
+import * as SK from '../core/stocks.js?v=701206f7';
+import * as TR from '../core/trade.js?v=701206f7';
+import * as LK from '../core/look.js?v=701206f7';
+import * as I from '../core/inbox.js?v=701206f7';
+import { SEC_BY_ID } from '../config/secretaries.js?v=701206f7';
+import { fmtMoney } from '../core/format.js?v=701206f7';
+import { asset, hasAsset } from '../platform/assets.js?v=701206f7';
+import { game } from '../game.js?v=701206f7';
+import { now } from '../core/clock.js?v=701206f7';
+import { h, openPanel, toast } from './dom.js?v=701206f7';
+import { addActionUi } from './inbox.js?v=701206f7';
+import * as WSM from '../core/ws.js?v=701206f7';   // 设计47
+import { attrs as secAttrs } from '../core/posts.js?v=701206f7';
+import { isTraining } from '../core/training.js?v=701206f7';
+import { itemIcon, goBuyHtml, bindGoBuy } from './coupon.js?v=701206f7';   // 设计53 投资券
 
 const W = SK.SCFG.watch; const WSC = W.ws;
 const WS_wit = (s, id) => secAttrs(s, id).wit;

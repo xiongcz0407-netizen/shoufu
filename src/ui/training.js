@@ -1,14 +1,14 @@
 // 培养（设计35 第八节）：选人 → 选课；付钱属性立刻加上（一句台词 + 飘字），可以「再上一节」或「上到 N」一次买多节
-import { SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=691ed83a';
-import { GRAD_LINES } from '../config/courses.js?v=691ed83a';
-import * as T from '../core/training.js?v=691ed83a';
-import { fmtMoney } from '../core/format.js?v=691ed83a';
-import { asset, hasAsset } from '../platform/assets.js?v=691ed83a';
-import { now } from '../core/clock.js?v=691ed83a';
-import { game } from '../game.js?v=691ed83a';
-import { h, openPanel, toast } from './dom.js?v=691ed83a';
-import { effectsOf, diffOf } from '../core/secfx.js?v=691ed83a'; // 设计37 第三节：属性管什么
-import { upgradeBox } from './upgradebox.js?v=691ed83a';
+import { SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=701206f7';
+import { GRAD_LINES } from '../config/courses.js?v=701206f7';
+import * as T from '../core/training.js?v=701206f7';
+import { fmtMoney } from '../core/format.js?v=701206f7';
+import { asset, hasAsset } from '../platform/assets.js?v=701206f7';
+import { now } from '../core/clock.js?v=701206f7';
+import { game } from '../game.js?v=701206f7';
+import { h, openPanel, toast } from './dom.js?v=701206f7';
+import { effectsOf, diffOf } from '../core/secfx.js?v=701206f7'; // 设计37 第三节：属性管什么
+import { upgradeBox } from './upgradebox.js?v=701206f7';
 
 const AN = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 const gainText = (g) => Object.entries(g).filter(([, v]) => v > 0).map(([k, v]) => `${AN[k]}+${v}`).join(' ');

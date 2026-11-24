@@ -1,7 +1,7 @@
 // 开局起名：老板名字 + 公司名（默认「XX商贸有限公司」，XX = 名字前两个字）
-import { game } from '../game.js?v=691ed83a';
-import { h } from './dom.js?v=691ed83a';
-import { asset, hasAsset } from '../platform/assets.js?v=691ed83a';
+import { game } from '../game.js?v=701206f7';
+import { h } from './dom.js?v=701206f7';
+import { asset, hasAsset } from '../platform/assets.js?v=701206f7';
 
 // 默认公司名：名字去掉姓（「陈志远」→「志远」）；两个字的用全名；没填用「鸿运」
 export function defaultCompany(boss) {

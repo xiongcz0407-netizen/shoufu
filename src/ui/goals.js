@@ -1,11 +1,11 @@
 // 第 P-06 项：主页顶上「当前目标」条 + 整条链面板 + 做完的剧情（设计25 第四节）
-import * as G from '../core/goals.js?v=691ed83a';
-import { fmtMoney } from '../core/format.js?v=691ed83a';
-import { game } from '../game.js?v=691ed83a';
-import { now } from '../core/clock.js?v=691ed83a';
-import { onTap } from '../platform/input.js?v=691ed83a';
-import { h, openPanel, toast } from './dom.js?v=691ed83a';
-import { playStory, isStoryPlaying } from './story.js?v=691ed83a';
+import * as G from '../core/goals.js?v=701206f7';
+import { fmtMoney } from '../core/format.js?v=701206f7';
+import { game } from '../game.js?v=701206f7';
+import { now } from '../core/clock.js?v=701206f7';
+import { onTap } from '../platform/input.js?v=701206f7';
+import { h, openPanel, toast } from './dom.js?v=701206f7';
+import { playStory, isStoryPlaying } from './story.js?v=701206f7';
 
 const fmtN = (n) => (n >= 1e8 ? `${+(n / 1e8).toFixed(2)}亿` : n >= 1e4 ? `${+(n / 1e4).toFixed(1)}万` : `${Math.round(n)}`);
 function barHtml(s) {

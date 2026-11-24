@@ -3,16 +3,16 @@
 // 每跳 ln P += β·M（大盘，牛 / 熊 / 震荡）+ B（板块）+ σ·ε + κ·(ln F − ln P) + 新闻跳空；随机数 = hash(名字, 跳数)，固定种子
 // 只能用个人现金买；佣金、过户费、卖出印花税、大单滑点；交割单进档案柜；分红按持有时间扣个税；持股 5% 举牌公告，30% 进度
 // 投资经理（秘书职位）：你划一笔钱 + 风格（稳健 / 平衡 / 进取）+ 止损线，按大盘走 + 她的超额（智慧）；新闻前一跳有概率提前给判断
-import CFG from '../config/stocks.json?v=691ed83a' with { type: 'json' };
-import { pay, receive } from './ledger.js?v=691ed83a';
-import { addContract } from './contracts.js?v=691ed83a';
-import { addAssetHook } from './assets.js?v=691ed83a';
-import { holder, isSec, attrs as secAttrs, efficiency, OUT } from './posts.js?v=691ed83a';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=691ed83a';
+import CFG from '../config/stocks.json?v=701206f7' with { type: 'json' };
+import { pay, receive } from './ledger.js?v=701206f7';
+import { addContract } from './contracts.js?v=701206f7';
+import { addAssetHook } from './assets.js?v=701206f7';
+import { holder, isSec, attrs as secAttrs, efficiency, OUT } from './posts.js?v=701206f7';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=701206f7';
 const YEAR_H = YEAR_MS / 3600e3; // 游戏一年 = 现实多少小时（V0.2.10：144）
-import { taxRec, payerOfPost } from './fiscal.js?v=691ed83a';
-import { profitMul } from './calib.js?v=691ed83a';
-import { TITLES } from '../config/titles.js?v=691ed83a';
+import { taxRec, payerOfPost } from './fiscal.js?v=701206f7';
+import { profitMul } from './calib.js?v=701206f7';
+import { TITLES } from '../config/titles.js?v=701206f7';
 
 export const SCFG = CFG;
 export const STOCKS = CFG.stocks;
@@ -240,6 +240,19 @@ export function buy(s, code, n, t = Date.now()) {
   flow(m, code, 'buy', q.total); m.bought = (m.bought || 0) + 1;   // 第 P-06 项：周报、新手目标
   return { ok: true, quote: q, slip: ct, stake: stake(s, code) };
 }
+// ---------- 设计61 炒股今天和累计赚了多少（只算卖掉的；投资经理在自己的账上，不走这里）----------
+const plDay = (t) => { const d = new Date(t); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
+/** m.pl = { day, today, todayN, total, win, lose, n }（老存档从这一版开始记） */
+function plAdd(m, gain, t) {
+  const p = (m.pl = m.pl || { day: plDay(t), today: 0, todayN: 0, total: 0, win: 0, lose: 0, n: 0 }); const k = plDay(t);
+  if (p.day !== k) { p.day = k; p.today = 0; p.todayN = 0; }
+  p.today = r2(p.today + gain); p.todayN += 1; p.total = r2(p.total + gain); p.n += 1; if (gain > 0) p.win += 1; else if (gain < 0) p.lose += 1;
+}
+/** 卡片用：今天的过了 0 点算 0（只看不改） */
+export function plView(s, t = Date.now()) {
+  const p = s.mkt && s.mkt.pl; if (!p) return { today: 0, todayN: 0, total: 0, win: 0, lose: 0, n: 0 };
+  const same = p.day === plDay(t); return { today: same ? p.today : 0, todayN: same ? p.todayN : 0, total: p.total, win: p.win, lose: p.lose, n: p.n || p.win + p.lose };
+}
 export function sell(s, code, n, t = Date.now()) {
   const m = mkt(s, t); const h = m.hold[code]; n = Math.floor(n); if (!h || h.n < n || n < 1) return { ok: false, why: '没有这么多股' };
   if (onBoard(m, code) === 'down') return { ok: false, why: '封在跌停，卖不出（等开板）' };   // 设计41 第九节
@@ -250,7 +263,7 @@ export function sell(s, code, n, t = Date.now()) {
   pay(s, { wallet: 'personal', cat: 'stock_fee', amount: q.fees, ref: ct.no, party: '华太正券', note: `${BY[code].name} 佣金、过户费、印花税`, force: true }, t);
   const gain = r2(q.total - h.cost * n);
   h.n -= n; if (!h.n) delete m.hold[code];
-  flow(m, code, 'sell', q.total, gain);
+  flow(m, code, 'sell', q.total, gain); plAdd(m, gain, t);   // 设计61：每卖一笔记今天 / 累计赚多少
   return { ok: true, quote: q, slip: ct, gain };
 }
 /** 第 P-06 项：这一周（周报）每只股票的买入 / 卖出金额、卖出的盈亏 */

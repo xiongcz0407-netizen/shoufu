@@ -1,31 +1,31 @@
 // 「财富 → 投资」股票（第 2-09 项，设计12 第八节）：行情 | 持仓 | 投资经理；点一只 → 个股（分时、指标、买卖、新闻、持仓）
-import * as SK from '../core/stocks.js?v=691ed83a';
-import * as AS from '../core/assets.js?v=691ed83a';
-import * as INB from '../core/inbox.js?v=691ed83a';
-import { bossAttrs } from '../core/boss.js?v=691ed83a';
-import { holder, isSec } from '../core/posts.js?v=691ed83a';
-import { SEC_BY_ID } from '../config/secretaries.js?v=691ed83a';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=691ed83a';
-import { asset, hasAsset } from '../platform/assets.js?v=691ed83a';
-import { game } from '../game.js?v=691ed83a';
-import { now } from '../core/clock.js?v=691ed83a';
-import { h, openPanel, toast, liveRender } from './dom.js?v=691ed83a';
-import { say } from './main-screen.js?v=691ed83a';
-import { renderFunds } from './funds.js?v=691ed83a';
-import { hintLater } from './guide2.js?v=691ed83a';
-import * as LSC from '../core/listing.js?v=691ed83a';
-import { selfCard } from './listing.js?v=691ed83a';
-import * as TKO from '../core/takeover.js?v=691ed83a';
-import * as TR from '../core/trade.js?v=691ed83a';
-import { renderTradeTab, orderBlock, ipoLogo } from './trade.js?v=691ed83a';
-import { watchBlock, openWsMsg, setSay, setShowDone, wsTipBar, setGotoTip } from './look.js?v=691ed83a';
-import { registerBadge, registerSegBadge, openTab } from './shell.js?v=691ed83a'; // 设计47 看盘改成时间段（开发2）
-import * as WSM from '../core/ws.js?v=691ed83a';
-import * as LK from '../core/look.js?v=691ed83a';
-import { canPay } from '../core/ledger.js?v=691ed83a';
-import * as MG from '../core/mgr.js?v=691ed83a'; // 设计44 投资经理自动炒股
-import { upgradeBox } from './upgradebox.js?v=691ed83a';
-import { makeLive, toNextSub } from '../core/live.js?v=691ed83a';   // 设计55 行情 3 秒刷新
+import * as SK from '../core/stocks.js?v=701206f7';
+import * as AS from '../core/assets.js?v=701206f7';
+import * as INB from '../core/inbox.js?v=701206f7';
+import { bossAttrs } from '../core/boss.js?v=701206f7';
+import { holder, isSec } from '../core/posts.js?v=701206f7';
+import { SEC_BY_ID } from '../config/secretaries.js?v=701206f7';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=701206f7';
+import { asset, hasAsset } from '../platform/assets.js?v=701206f7';
+import { game } from '../game.js?v=701206f7';
+import { now } from '../core/clock.js?v=701206f7';
+import { h, openPanel, toast, liveRender } from './dom.js?v=701206f7';
+import { say } from './main-screen.js?v=701206f7';
+import { renderFunds } from './funds.js?v=701206f7';
+import { hintLater } from './guide2.js?v=701206f7';
+import * as LSC from '../core/listing.js?v=701206f7';
+import { selfCard } from './listing.js?v=701206f7';
+import * as TKO from '../core/takeover.js?v=701206f7';
+import * as TR from '../core/trade.js?v=701206f7';
+import { renderTradeTab, orderBlock, ipoLogo } from './trade.js?v=701206f7';
+import { watchBlock, openWsMsg, setSay, setShowDone, wsTipBar, setGotoTip } from './look.js?v=701206f7';
+import { registerBadge, registerSegBadge, openTab } from './shell.js?v=701206f7'; // 设计47 看盘改成时间段（开发2）
+import * as WSM from '../core/ws.js?v=701206f7';
+import * as LK from '../core/look.js?v=701206f7';
+import { canPay } from '../core/ledger.js?v=701206f7';
+import * as MG from '../core/mgr.js?v=701206f7'; // 设计44 投资经理自动炒股
+import { upgradeBox } from './upgradebox.js?v=701206f7';
+import { makeLive, toNextSub } from '../core/live.js?v=701206f7';   // 设计55 行情 3 秒刷新
 
 let tab = 'market', sector = '全部', sortBy = 'chg';
 const logo = (c, cls = 'sk-logo') => (SK.BY[c] && SK.BY[c].ipo ? ipoLogo(c, cls) : hasAsset(`assets/stock/logo_${c}.webp`) ? `<img class="${cls}" src="${asset(`assets/stock/logo_${c}.webp`)}" alt="">` : `<i class="${cls} ph">${c}</i>`);
@@ -104,6 +104,11 @@ const sgnPct = (v) => `${v >= 0 ? '+' : '−'}${Math.abs(v * 100).toFixed(Math.a
 function hold(s, wrap, redraw) {
   const t = now(); const V = LK.holdView(s, t);
   const done = (msg) => { toast(msg); AS.recalc(s); game.changed(); game.save(); redraw(); };
+  { const P = SK.plView(s, t); const amt = (v) => `${v >= 0 ? '赚' : '亏'} <b class="${cls(v)}">${sgnMoney(v)}</b>`;   // 设计61：炒股今天和累计赚了多少
+    wrap.appendChild(h('div', 'fn-card pl-card', `<div class="sd-rec-title" style="margin:0 0 4px">炒股赚了多少</div>
+      <div class="pl-row"><span>今天</span><div>${P.todayN ? `${amt(P.today)}<small>（卖了 ${P.todayN} 笔）</small>` : '<em>今天还没卖过</em>'}</div></div>
+      <div class="pl-row"><span>累计</span><div>${P.n ? `${amt(P.total)}<small>（赚 ${P.win} 笔 · 亏 ${P.lose} 笔）</small>` : '<em>还没卖过</em>'}</div></div>
+      <div class="pl-note">从 V0.2.21 开始统计（只算已经卖掉的；投资经理的不算）</div>`)); }
   // 一、等着买入
   if (V.buys.length) {
     const box = h('div', 'fn-card hv-buys'); const nb = V.buys.reduce((a, g) => a + g.rows.length, 0);
