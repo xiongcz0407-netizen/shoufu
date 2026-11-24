@@ -1,7 +1,7 @@
 // 城市和分公司（设计20 第二节 5）：总部上海；新城市先注册分公司（5 分钟 + 代办费）；门店按城市分，工资、房租、收入、开店费乘城市系数
 // 只依赖 ledger（staff / economy / realestate 都要用这里）
-import C from '../config/cities.json?v=47e8f1b5' with { type: 'json' };
-import { pay, canPay } from './ledger.js?v=47e8f1b5';
+import C from '../config/cities.json?v=d17576a6' with { type: 'json' };
+import { pay, canPay } from './ledger.js?v=d17576a6';
 export { C as CITY_CFG };
 export const CITY_IDS = Object.keys(C.cities);
 export const cityName = (c) => C.cities[c].name;

@@ -1,12 +1,12 @@
 // V2-13 每周经营会 / 董事会界面（设计29 第五节）：消息「开经营会」→ 上周各线 → 秘书汇报 → 分预算（每格 10%）→ 董事会三选一 → 拍板
-import * as MT from '../core/meeting.js?v=47e8f1b5';
-import * as INB from './inbox.js?v=47e8f1b5';
-import { SEC_BY_ID } from '../config/secretaries.js?v=47e8f1b5';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=47e8f1b5';
-import { asset } from '../platform/assets.js?v=47e8f1b5';
-import { game } from '../game.js?v=47e8f1b5';
-import { now } from '../core/clock.js?v=47e8f1b5';
-import { openPanel, toast } from './dom.js?v=47e8f1b5';
+import * as MT from '../core/meeting.js?v=d17576a6';
+import * as INB from './inbox.js?v=d17576a6';
+import { SEC_BY_ID } from '../config/secretaries.js?v=d17576a6';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=d17576a6';
+import { asset } from '../platform/assets.js?v=d17576a6';
+import { game } from '../game.js?v=d17576a6';
+import { now } from '../core/clock.js?v=d17576a6';
+import { openPanel, toast } from './dom.js?v=d17576a6';
 
 const C = MT.MEET_CFG; const DIRS = Object.keys(C.dirs);
 const pct = (x, d = 1) => `${(x * 100).toFixed(d)}%`;

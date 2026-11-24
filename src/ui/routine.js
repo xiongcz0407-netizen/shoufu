@@ -1,24 +1,26 @@
 // 首页「今日日常」（设计39 第六节，开发2）：今天还剩什么，做完划掉，点一项直接跳过去
 // 开发1 挂钩：setRoutineHooks({ actions(s, t) → '便利店 4 个生效中、餐饮 2 个已到期' })
-import * as DL from '../core/daily.js?v=47e8f1b5';
-import * as MG from '../core/manage.js?v=47e8f1b5';
-import * as CP from '../core/coupon.js?v=47e8f1b5';
-import * as A2 from '../core/affection.js?v=47e8f1b5';
-import * as I from '../core/inbox.js?v=47e8f1b5';
-import * as TR from '../core/trade.js?v=47e8f1b5';
-import * as LK from '../core/look.js?v=47e8f1b5'; // 设计41
-import { todayCount } from '../core/bizevents.js?v=47e8f1b5';
-import { talksLeft, dayKey, DAILY_TALKS } from '../core/affection.js?v=47e8f1b5';
-import { SEC_BY_ID } from '../config/secretaries.js?v=47e8f1b5';
-import { now } from '../core/clock.js?v=47e8f1b5';
-import { game } from '../game.js?v=47e8f1b5';
-import { h, openPanel } from './dom.js?v=47e8f1b5';
-import { openDaily } from './daily.js?v=47e8f1b5';
-import { openInbox } from './inbox.js?v=47e8f1b5';
-import { asset, hasAsset } from '../platform/assets.js?v=47e8f1b5';
-import { openWallet, couponIcon, itemIcon, walletIcon } from './coupon.js?v=47e8f1b5';
-import { openDetail } from './secretary.js?v=47e8f1b5';
-import { openTab } from './shell.js?v=47e8f1b5';
+import * as DL from '../core/daily.js?v=d17576a6';
+import * as MG from '../core/manage.js?v=d17576a6';
+import * as CP from '../core/coupon.js?v=d17576a6';
+import * as A2 from '../core/affection.js?v=d17576a6';
+import * as I from '../core/inbox.js?v=d17576a6';
+import * as TR from '../core/trade.js?v=d17576a6';
+import * as SK from '../core/stocks.js?v=d17576a6';
+import * as WSM from '../core/ws.js?v=d17576a6'; // 设计47 看盘改成时间段
+const wsLeft = (ms) => { const m = Math.max(0, Math.round(ms / 60e3)); return `${Math.floor(Math.round(ms / 60e3) * 60e3 / TR.DAY + 1e-9)} 天（${m >= 60 ? `${Math.floor(m / 60)} 小时 ${m % 60} 分` : `${m} 分钟`}）`; };
+import { todayCount } from '../core/bizevents.js?v=d17576a6';
+import { talksLeft, dayKey, DAILY_TALKS } from '../core/affection.js?v=d17576a6';
+import { SEC_BY_ID } from '../config/secretaries.js?v=d17576a6';
+import { now } from '../core/clock.js?v=d17576a6';
+import { game } from '../game.js?v=d17576a6';
+import { h, openPanel } from './dom.js?v=d17576a6';
+import { openDaily } from './daily.js?v=d17576a6';
+import { openInbox } from './inbox.js?v=d17576a6';
+import { asset, hasAsset } from '../platform/assets.js?v=d17576a6';
+import { openWallet, couponIcon, itemIcon, walletIcon } from './coupon.js?v=d17576a6';
+import { openDetail } from './secretary.js?v=d17576a6';
+import { openTab } from './shell.js?v=d17576a6';
 
 const H = { actions: null };
 export const setRoutineHooks = (o) => Object.assign(H, o);
@@ -38,7 +40,7 @@ export function routine(s, t = now()) {
   const secs = Object.keys(s.secs || {});
   const dated = secs.filter((id) => (A2.daily(s, t).dates || {})[id]);
   out.push({ key: 'date', name: '约会', text: `今天约了 ${dated.length} / ${secs.length} 人`, done: dated.length >= secs.length, go: () => openDetail(secs.find((id) => !dated.includes(id)) || s.current, 'info') });
-  if (s.mkt && TR.watcher(s)) { const lu = LK.luCount(s, t); const n = LK.looksToday(s, t); out.push({ key: 'look', name: '看盘', text: `今天看了 ${n} 次（今天的涨停：已出 ${lu.out} 只${lu.left ? ` / 还有 ${lu.left} 只` : ''}）`, done: n > 0, go: () => import('./look.js?v=47e8f1b5').then((u) => u.doLook()) }); } // 设计41 第五节
+  if (s.mkt) { const w = WSM.ws(s, t); const d = (s.mkt.wsLast && dayKey(s.mkt.wsLast.at) === dayKey(t)) || (w && dayKey(w.start) === dayKey(t)); out.push({ key: 'look', name: '看盘', text: w ? `${SEC_BY_ID[w.who] ? SEC_BY_ID[w.who].name : ''}看盘中 · 还剩 ${wsLeft(w.end - t)}` : `点一下让秘书盯 ${SK.SCFG.watch.ws.hours} 小时（${SK.SCFG.watch.look.energy} 精力）`, done: !!(w || d), go: () => import('./look.js?v=d17576a6').then((u) => (w ? u.lookNowUi() : u.pickAndStart())) }); } // 设计47：看盘 = 一个时间段
   out.push({ key: 'talk', name: '互动', text: secs.map((id) => `${SEC_BY_ID[id].name} ${DAILY_TALKS - Math.min(DAILY_TALKS, talksLeft(s, id, t))}/${DAILY_TALKS}`).join('、'), done: secs.every((id) => talksLeft(s, id, t) <= 0), go: () => openDetail(secs.find((id) => talksLeft(s, id, t) > 0) || s.current, 'info') });
   return out;
 }

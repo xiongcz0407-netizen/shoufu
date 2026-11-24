@@ -1,12 +1,12 @@
-// 设计41 秘书看盘给价（开发2）：新闻提醒给价 + 玩家点「看盘」；进消息「重要」、过期直接删；她的战绩
-// 新闻提醒：core/stocks.js hint() 提前 3 跳出 → tipMsg 变成一条「重要」消息（带三张联动单）
+// 设计41 秘书看盘给价（开发2）：价钱算法（bestRun / priceRow / lookRows / tipPlan）、她的战绩、设计46 仓位、设计45 持仓页数据。
+// 设计47 起：秘书主动的新闻提醒、一次性「看盘」都去掉了，看盘改成时间段（core/ws.js 用这里的算法发消息）
 // 看盘：lookNow 用 SK.future 把接下来 240 跳先算出来（跟真实走的一样），挑真实会到的低点 L、之后的高点 H 定价，一定能成交
-import * as SK from './stocks.js?v=47e8f1b5';
-import * as TR from './trade.js?v=47e8f1b5';
-import { addMsg } from './inbox.js?v=47e8f1b5';
-import { attrs as secAttrs } from './posts.js?v=47e8f1b5';
-import { whyEnergy, doEnergy } from './manage.js?v=47e8f1b5';
-import { SEC_BY_ID } from '../config/secretaries.js?v=47e8f1b5';
+import * as SK from './stocks.js?v=d17576a6';
+import * as TR from './trade.js?v=d17576a6';
+import { addMsg } from './inbox.js?v=d17576a6';
+import { attrs as secAttrs } from './posts.js?v=d17576a6';
+import { whyEnergy, doEnergy } from './manage.js?v=d17576a6';
+import { SEC_BY_ID } from '../config/secretaries.js?v=d17576a6';
 
 const W = SK.SCFG.watch; const TICK = SK.SCFG.tickSec * 1000;
 const up2 = (v) => Math.ceil(v * 100 - 1e-7) / 100;     // 买入价往上取整到分
@@ -14,7 +14,16 @@ const dn2 = (v) => Math.floor(v * 100 + 1e-7) / 100;    // 卖出价往下取整
 const fmt = (n) => (Math.abs(n) >= 1e8 ? `${+(n / 1e8).toFixed(2)}亿` : Math.abs(n) >= 1e4 ? `${+(n / 1e4).toFixed(1)}万` : `${Math.round(n)}`);
 const nm = (c) => SK.BY[c].name;
 const lineOf = (who, k, v) => { const t = (SEC_BY_ID[who] || {}).type; const L = W.lines[t] || W.lines['知性']; return (L[k] || '').replace(/\{(\w+)\}/g, (_, x) => (v[x] != null ? v[x] : '')); };
-const sharesFor = (s, px, share) => { const amt = Math.max(0, TR.availCash(s)) * share; return amt >= px ? Math.floor(amt / px) : 0; };   // 设计43：按个人现金算（挂单的钱已经扣走了）
+// ---------- 设计46 看盘选仓位：⅓仓 / 半仓 / 全仓（按点的那一刻的个人现金算；挂单的钱已经划走了，设计43）----------
+export const POS = [{ k: 'third', name: '⅓仓', sell: '⅓', f: 1 / 3 }, { k: 'half', name: '半仓', sell: '一半', f: 1 / 2 }, { k: 'all', name: '全仓', sell: '全部', f: 1 }];
+export const POS_BY = Object.fromEntries(POS.map((x) => [x.k, x]));
+/** 这么多钱按挂单价最多买几股（连买入费用一起不超过 amt） */
+export function nFor(s, code, px, amt) { if (!(px > 0) || !(amt >= px)) return 0; let n = Math.floor(amt / px); while (n > 0 && TR.buyCost(s, code, px, n) > amt + 1e-9) n = Math.min(n - 1, Math.floor(n * amt / TR.buyCost(s, code, px, n))); return Math.max(0, n); }
+/** 某个仓位买几股：金额 = 现金 × f（⅓ / ½ / 全部），股数 = 金额 ÷ 买价往下取整，连买入费用一起不超过金额（钱不能超；三只各 ⅓ 一定都挂得上） */
+export function posShares(s, code, px, k, cash = Math.max(0, TR.availCash(s))) { return nFor(s, code, px, cash * POS_BY[k].f); }
+/** 三个按钮：[{ k, name, n, amt }]（n = 0 = 不够 1 股） */
+export const posOptions = (s, code, px) => POS.map((x) => { const n = posShares(s, code, px, x.k); return { k: x.k, name: x.name, n, amt: Math.round(n * px * 100) / 100 }; });
+const sharesFor = (s, code, px) => posShares(s, code, px, 'third');   // 默认 ⅓ 仓（设计46：固定 30% 不用了）
 
 // ---------- 战绩（本周看盘几次、抓到涨停几次、照她挂的单赚多少；每 7 个游戏天跟周报一起清零）----------
 export function lk(s) { const m = TR.tr(s); if (!m.look) m.look = { day: null, n: 0 }; const w = m.wk; if (!w.look) w.look = { n: 0, lu: 0, pnl: 0 }; return m.look; }
@@ -41,29 +50,17 @@ export function purge(s, t = Date.now()) {
   return n;
 }
 
-// ---------- 新闻提醒给价（第二节）----------
+// ---------- 新闻前给价（设计41 第二节的价钱算法；设计47 看盘中新闻前 30 跳用）----------
 /** hint → 单子：要涨 买 / 止盈 / 止损；要跌且手里有 先卖 / 抄底；要跌没有 只提醒 */
 export function tipPlan(s, h) {
   const T = W.tip; const B = SK.band(s.mkt, h.code); const cl = (v) => (B.up != null ? Math.min(B.up, Math.max(B.dn, v)) : v); /* 设计41 第九节：给的价夹在涨跌停之间 */ const P = h.P; const k = T.tpBase + T.tpK * Math.min(100, h.wit) / 100; const hold = (s.mkt.hold[h.code] || { n: 0 });
   if (h.up) {
-    const buy = cl(up2(P * T.buyK)); const n = Math.max(1, sharesFor(s, buy, T.cashShare));
-    return { kind: 'up', legs: [{ code: h.code, kind: 'buy', px: buy, n, role: 'in' }, { code: h.code, kind: 'tp', px: cl(dn2(P * (1 + h.J2 * k))), n, role: 'out' }, { code: h.code, kind: 'sl', px: cl(dn2(P * T.slK)), n, role: 'out' }], amt: n * buy };
+    const buy = cl(up2(P * T.buyK)); const n = Math.max(1, sharesFor(s, h.code, buy));
+    return { kind: 'up', legs: [{ code: h.code, kind: 'buy', px: buy, n, role: 'in' }, { code: h.code, kind: 'tp', px: cl(dn2(P * (1 + h.J2 * k))), n, role: 'out' }, { code: h.code, kind: 'sl', px: Math.min(dn2(P * T.slK), dn2(buy * T.slK)), n, role: 'out' }], amt: n * buy };
   }
   const free = hold.n - (hold.pledged || 0); if (free < 1) return { kind: 'warn', legs: [] };
   return { kind: 'down', legs: [{ code: h.code, kind: 'sl', px: cl(dn2(P * T.sellK)), n: free, role: 'in' }, { code: h.code, kind: 'buy', px: cl(up2(P * (1 - Math.abs(h.J2) * k))), n: free, role: 'out' }], amt: free * P };
 }
-export function tipMsg(s, h, t = Date.now()) {
-  const p = tipPlan(s, h); const L = p.legs; const v = { name: nm(h.code) };
-  if (p.kind === 'up') Object.assign(v, { buy: L[0].px, tp: L[1].px, sl: L[2].px }); else if (p.kind === 'down') Object.assign(v, { sell: L[0].px, back: L[1].px });
-  const say = lineOf(h.who, p.kind, v);
-  const body = p.kind === 'up' ? `${say}\n买入 ¥${L[0].px} 以内 · 涨到 ¥${L[1].px} 卖 · 跌破 ¥${L[2].px} 走 · 买 ${L[0].n.toLocaleString()} 股（约 ¥${fmt(p.amt)}）`
-    : p.kind === 'down' ? `${say}\n¥${L[0].px} 以下先卖掉 ${L[0].n.toLocaleString()} 股 · 跌到 ¥${L[1].px} 再接回来` : say;
-  const msg = addMsg(s, { kind: 'request', type: 'stock_tip', from: h.who, title: `${SEC_BY_ID[h.who] ? SEC_BY_ID[h.who].name : ''}：${nm(h.code)}${p.kind === 'up' ? '要有好消息' : '不太妙'}`, body,
-    actions: p.legs.length ? [{ key: 'place', label: '照她说的挂单' }, { key: 'no', label: '不用了' }] : [{ key: 'no', label: '好，不碰' }],
-    data: { code: h.code, kind: p.kind, legs: p.legs, newsTick: h.newsTick, say } }, t);
-  return msg;
-}
-
 // ---------- 看盘（第七节）----------
 /** 一只股票接下来 n 跳里：低点 L（第 i 跳）→ 之后高点 H（j > i）涨得最多的那段；lo 是整段最低价 */
 export function bestRun(path) {
@@ -76,24 +73,9 @@ export function priceRow(run, wit, limit = null, dnBand = null) {
   const K = W.look; const w = Math.min(100, Math.max(0, wit)); const e = K.eBase + K.eK * (1 - w / 100); const c = K.cBase + K.cK * w / 100;
   const X = up2(run.L + (run.H - run.L) * e);
   let Y = limit != null ? X + (limit - X) * c : Math.min(X + (run.H - X) * c, X * (1 + K.gBase + w * K.gK));
-  Y = dn2(Math.min(Y, run.H)); const Z = Math.max(dn2(run.min * K.slK), dnBand || 0);   // 设计41 第九节：止损不低于跌停价
+  Y = dn2(Math.min(Y, run.H)); const Z = Math.min(dn2(run.min * K.slK), dn2(X * K.slK));   // V0.2.14 小修：止损一定低于买价，不按跌停价夹（原来夹在跌停价会出现「¥990 买 → 止损 ¥990」）
+  void dnBand;
   return { X, Y, Z, g: Y / X - 1 };
-}
-/** 现在看一眼：返回 { rows: [{ code, X, Y, Z, g, n, lu }], who } 或 { why }。会扣 5 精力、记战绩、进「重要」 */
-export function lookNow(s, t = Date.now(), rnd = Math.random, { free = false } = {}) {
-  const who = TR.watcher(s); if (!who) return { why: '先派人看盘' };
-  const K = W.look; if (!free) { const w = whyEnergy(s, K.energy, t); if (w) return { why: w }; }
-  SK.advance(s, t); const m = TR.tr(s, t);
-  const rows = lookRows(s, who, rnd);
-  if (!free) doEnergy(s, K.energy, t);
-  const L = lk(s); const d = dayKey(t); if (L.day !== d) { L.day = d; L.n = 0; } L.n += 1; weekLook(s).n += 1;
-  const v = { name: rows[0] ? nm(rows[0].code) : '' }; const say = lineOf(who, rows.length ? (rows[0].lu ? 'lu' : 'look') : 'none', v);
-  const exp = t + K.ticks * TICK;
-  const msg = addMsg(s, { kind: 'request', type: 'stock_look', from: who, title: `${SEC_BY_ID[who].name} · 看盘（接下来 2 小时内都能成交）`,
-    body: rows.length ? `${rows.map((r) => `${r.lu ? '🔥 ' : ''}${nm(r.code)}：¥${r.X} 以内买进，涨到 ¥${r.Y} 卖（+${(r.g * 100).toFixed(1)}%${r.lu ? '，要涨停了！' : ''}）`).join('\n')}\n「${say}」` : `「${say}」`,
-    actions: rows.length ? [{ key: 'open', label: '看 / 挂单' }, { key: 'no', label: '不用了' }] : [{ key: 'no', label: '好' }],
-    data: { rows, exp, say, at: t } }, t);
-  return { rows, who, say, msg, exp };
 }
 /** 挑哪几只（纯计算，给测试用）：看得到 5 + 智慧/4 只；今天的涨停在窗口里、又在看得到的里，排第一；其余按赚头凑够 3 只 */
 export function lookRows(s, who, rnd = Math.random, wit = secAttrs(s, who).wit) {
@@ -103,49 +85,57 @@ export function lookRows(s, who, rnd = Math.random, wit = secAttrs(s, who).wit) 
   const see = pool.slice(0, Math.min(30, Math.floor(K.seeBase + Math.min(100, wit) / K.seeDiv)));
   const F = SK.future(m, K.ticks); const end = m.tick + K.ticks;
   const luIn = {}; for (const p of (F.lu ? F.lu.act : [])) if (p.limit && p.at + W.lu.pullTicks - 1 > m.tick && p.at + W.lu.pullTicks - 1 <= end) luIn[p.code] = p.limit;
-  const share = K.cashShare; const out = [];
+  const out = [];
   for (const c of see) {
     const run = bestRun(F.path[c]); const lu = luIn[c] != null && run.H >= luIn[c] - 1e-9;
     const pr = priceRow(run, wit, lu ? luIn[c] : null, SK.band(m, c).dn); if (!lu && pr.g < K.minG) continue;
-    out.push({ code: c, ...pr, n: sharesFor(s, pr.X, share), lu });
+    out.push({ code: c, ...pr, n: sharesFor(s, c, pr.X), lu });
   }
   out.sort((a, b) => (b.lu - a.lu) || (b.g - a.g));
   return out.slice(0, K.show);
 }
-/** 挂一行（玩家改过的 legs 可以传进来）：成了这行写「已挂」，都挂了 / 不用了 删消息 */
+/** 一行 → 三张联动单（买、止盈、止损） */
 export function legsOfRow(r) { return [{ code: r.code, kind: 'buy', px: r.X, n: r.n, role: 'in' }, { code: r.code, kind: 'tp', px: r.Y, n: r.n, role: 'out' }, { code: r.code, kind: 'sl', px: r.Z, n: r.n, role: 'out' }]; }
-export function placeLegs(s, msg, idx, legs, t = Date.now()) {
-  const look = msg.type === 'stock_look'; const r = look ? msg.data.rows[idx] : null;
-  if (look && !(r.n >= 1) && !(legs && legs[0].n >= 1)) return { ok: false, why: '钱不够' };
-  const res = TR.addGroup(s, legs || (look ? legsOfRow(r) : msg.data.legs), { src: look ? 'watch' : 'tip', exp: look ? msg.data.exp : null, lu: !!(r && r.lu) }, t);
-  if (!res.ok) return res;
-  if (look) { r.placed = true; if (msg.data.rows.every((x) => x.placed || !(x.n >= 1))) delMsg(s, msg.id); } else delMsg(s, msg.id);
-  return res;
-}
-/** 一键全挂：能挂的都挂上（不再一张张确认） */
-export function placeAll(s, msg, t = Date.now()) {
-  let n = 0; const why = []; for (let i = 0; i < msg.data.rows.length; i++) { const r = msg.data.rows[i]; if (r.placed || !(r.n >= 1)) continue; const x = placeLegs(s, msg, i, null, t); if (x.ok) n++; else why.push(x.why); }
-  if (n && (s.inbox || []).includes(msg)) delMsg(s, msg.id);
-  return { n, why: why[0] };
-}
 TR.addTickHook((s, t) => purge(s, t));
-import './mgr.js?v=47e8f1b5'; // 设计44：投资经理每天 4 轮（挂进 stocks.js advance）
 
-// ---------- 设计45 持仓显示卖价（第三版：只显示挂着的卖单，秘书不给没看盘的股票预测，开发2）----------
-/** 这只挂着的卖单（含联动组买入成交后那组）：{ tp, sl, gain（按成本）, end（最近到期）, more（还有几组）, src 看盘 / 提醒 / 自己挂 } 或 null */
-const SRC_NAME = { watch: '看盘', tip: '提醒' };
-export function sellInfo(s, code, t = Date.now()) {
-  const m = s.mkt; if (!m || !m.orders) return null; const boxes = new Map();
-  for (const o of m.orders) {
-    if (o.code !== code || o.kind === 'buy' || o.on === false) continue;
-    const k = o.grp ? 'g' + o.grp : 'o' + o.id; const g0 = o.grp && m.grps ? m.grps[o.grp] : null; const b = boxes.get(k) || { tp: null, sl: null, end: Infinity, cost: null, src: SRC_NAME[(g0 || {}).src] || '自己挂' };
-    if (o.kind === 'tp') b.tp = o.px; else b.sl = o.px;
-    b.end = Math.min(b.end, o.exp || o.at + SK.SCFG.orders.expireDays * TR.DAY);
-    const g = o.grp && m.grps ? m.grps[o.grp] : null; const sh = (g && g.sh) || o.sh; if (sh) b.cost = sh.cost;
-    boxes.set(k, b);
+// ---------- 设计45 第五版 持仓页整理（开发2）：「等着买入」按股票分组、「我的持仓」一只一块（股数真实、现价 / 成本 / 盈亏 / 每组卖价）----------
+const SRC_NAME = { watch: '看盘', tip: '看盘' };   // 设计47：「提醒」并进「看盘」
+const endOf = (o) => o.exp || o.at + SK.SCFG.orders.expireDays * TR.DAY;
+/** 持仓页要的数据（纯计算）：{ buys: [{ code, px, rows: [{ id, X, n, tp, sl, gain, src, left }] }], cash, hold: [{ code, n, free, cost, px, value, pnl, pct, sells: [{ ids, tp, sl, n, cost, gain, pct, src, left }] }] } */
+export function holdView(s, t = Date.now()) {
+  const m = s.mkt; const out = { buys: [], cash: 0, hold: [] }; if (!m) return out; const orders = m.orders || []; const grps = m.grps || {};
+  const srcOf = (o) => SRC_NAME[(grps[o.grp] || {}).src] || '自己挂';
+  // 等着买入
+  const byCode = new Map();
+  for (const o of orders) {
+    if (o.kind !== 'buy' || o.on === false) continue;
+    const mates = o.grp && o.role === 'in' ? orders.filter((x) => x.grp === o.grp && x.role === 'out') : [];
+    const tpO = mates.find((x) => x.kind === 'tp'); const slO = mates.find((x) => x.kind === 'sl');
+    const row = { id: o.id, X: o.px, n: o.n, tp: tpO ? tpO.px : null, sl: slO ? slO.px : null, gain: tpO ? Math.round((tpO.px - o.px) * o.n * 100) / 100 : null, slGain: slO ? Math.round((slO.px - o.px) * o.n * 100) / 100 : null, src: srcOf(o), left: Math.max(0, endOf(o) - t), hold: o.hold || 0 };
+    out.cash += o.hold || 0; (byCode.get(o.code) || byCode.set(o.code, []).get(o.code)).push(row);
   }
-  if (!boxes.size) return null;
-  const bs = [...boxes.values()].sort((a, b) => a.end - b.end); const b = bs[0]; const h = m.hold[code];
-  const cost = b.cost != null ? b.cost : h ? h.cost : null;
-  return { src: b.src, tp: b.tp, sl: b.sl, gain: b.tp != null && cost ? b.tp / cost - 1 : null, end: b.end, left: Math.max(0, b.end - t), more: bs.length - 1 };
+  out.buys = [...byCode.entries()].map(([code, rows]) => ({ code, px: m.px[code], rows: rows.sort((a, b) => b.X - a.X) })).sort((a, b) => Math.min(...a.rows.map((r) => r.left)) - Math.min(...b.rows.map((r) => r.left)));
+  out.cash = Math.round(out.cash * 100) / 100;
+  // 我的持仓：持仓里的 + 卖单里的（同一只合一块，成本按股数加权）
+  const boxes = new Map();
+  for (const o of orders) {
+    if (o.kind === 'buy' || o.on === false) continue;
+    const g = o.grp ? grps[o.grp] : null; const k = o.grp ? 'g' + o.grp : 'o' + o.id; const sh = (g && g.sh) || o.sh;
+    const b = boxes.get(k) || { code: o.code, ids: [], tp: null, sl: null, n: sh ? sh.n : o.n, cost: sh ? sh.cost : null, src: srcOf(o), end: Infinity };
+    b.ids.push(o.id); if (o.kind === 'tp') b.tp = o.px; else b.sl = o.px; b.end = Math.min(b.end, endOf(o)); boxes.set(k, b);
+  }
+  const codes = new Set([...Object.keys(m.hold || {}).filter((c) => m.hold[c].n > 0), ...[...boxes.values()].map((b) => b.code)]);
+  for (const code of codes) {
+    const h = m.hold[code] || { n: 0, cost: 0 }; const px = m.px[code] || 0; const bs = [...boxes.values()].filter((b) => b.code === code).sort((a, b) => a.end - b.end);
+    let n = h.n, c = h.cost * h.n; for (const b of bs) { n += b.n; c += (b.cost != null ? b.cost : h.cost) * b.n; }
+    const cost = n ? c / n : 0; const pnl = Math.round((px - cost) * n * 100) / 100;
+    const sells = bs.map((b) => { const bc = b.cost != null ? b.cost : cost; return { ids: b.ids, tp: b.tp, sl: b.sl, n: b.n, cost: bc, gain: b.tp != null ? Math.round((b.tp - bc) * b.n * 100) / 100 : null, pct: b.tp != null && bc ? b.tp / bc - 1 : null, slGain: b.sl != null ? Math.round((b.sl - bc) * b.n * 100) / 100 : null, slPct: b.sl != null && bc ? b.sl / bc - 1 : null, src: b.src, left: Math.max(0, b.end - t) }; });
+    out.hold.push({ code, n, free: TR.sellable(s, code), cost, px, value: Math.round(px * n * 100) / 100, pnl, pct: cost ? px / cost - 1 : 0, sells });
+  }
+  out.hold.sort((a, b) => b.value - a.value);
+  return out;
 }
+/** 撤一组卖单（同组的止盈止损一起撤，股票回到持仓） */
+export function cancelSell(s, ids, t = Date.now()) { let n = 0; for (const id of ids) { const o = (s.mkt.orders || []).find((x) => x.id === id); if (TR.cancelOrder(s, id, false, t)) n = Math.max(n, (o && o.backN) || 0); } return n; }
+import './ws.js?v=d17576a6'; // 设计47：看盘改成时间段（挂进 stocks.js advance）
+import './mgr.js?v=d17576a6'; // 设计44：投资经理每天 4 轮（挂进 stocks.js advance）

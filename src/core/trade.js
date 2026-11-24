@@ -1,16 +1,16 @@
 // 第 P-06 项（设计25 第五节）：前期炒股 —— 条件单、打新股、融资融券、看盘、炒股周报
 // 条件单和两融的平仓线每跳检查（挂在 stocks.js 的 addStepHook 上，离线补算一样走）；打新、利息、周报按时间走 tick()（在线 ticker 和 core/offcap.js 都叫）
-import * as SK from './stocks.js?v=47e8f1b5';
-import { pay, receive } from './ledger.js?v=47e8f1b5';
-import { addContract } from './contracts.js?v=47e8f1b5';
-import { addMsg } from './inbox.js?v=47e8f1b5';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=47e8f1b5';
-import { profitMul } from './calib.js?v=47e8f1b5';
-import { isTraining } from './training.js?v=47e8f1b5';
-import { attrs as secAttrs } from './posts.js?v=47e8f1b5';
-import { SEC_BY_ID } from '../config/secretaries.js?v=47e8f1b5';
-import { netWorth } from './economy.js?v=47e8f1b5';
-import { addAssetHook } from './assets.js?v=47e8f1b5';
+import * as SK from './stocks.js?v=d17576a6';
+import { pay, receive } from './ledger.js?v=d17576a6';
+import { addContract } from './contracts.js?v=d17576a6';
+import { addMsg } from './inbox.js?v=d17576a6';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=d17576a6';
+import { profitMul } from './calib.js?v=d17576a6';
+import { isTraining } from './training.js?v=d17576a6';
+import { attrs as secAttrs } from './posts.js?v=d17576a6';
+import { SEC_BY_ID } from '../config/secretaries.js?v=d17576a6';
+import { netWorth } from './economy.js?v=d17576a6';
+import { addAssetHook } from './assets.js?v=d17576a6';
 
 const C = SK.SCFG; const O = C.orders, I = C.ipo, MG = C.margin, W = C.weekly;
 export const DAY = MONTH_MS / 30;
@@ -111,6 +111,15 @@ export function sellMine(s, code, n, t = Date.now()) {
   return SK.sell(s, code, n, t);
 }
 
+/** 设计45 第五版「止盈红、止损绿」：卖单按实际赚亏上色（'up' 红 / 'down' 绿）。比的是这份股票的成本（联动组没成交时比买入价）；不知道成本就按单子种类（止盈红、止损绿） */
+export function sellBase(s, o) {
+  const m = s.mkt; const g = o.grp && m.grps ? m.grps[o.grp] : null; const sh = (g && g.sh) || o.sh; if (sh) return sh.cost;
+  if (o.grp) { const b = m.orders.find((x) => x.grp === o.grp && x.role === 'in' && x.kind === 'buy'); if (b) return b.px; }
+  const h = m.hold[o.code]; return h && h.n ? h.cost : null;
+}
+export const toneOf = (px, base, kind) => (base != null && Math.abs(px - base) > 1e-9 ? (px > base ? 'up' : 'down') : kind === 'sl' ? 'down' : kind === 'tp' ? 'up' : '');
+export const sellTone = (s, o) => (o.kind === 'buy' ? '' : toneOf(o.px, sellBase(s, o), o.kind));
+
 // ---------- 条件单 ----------
 export const KIND = { buy: '到价买入', tp: '止盈卖出', sl: '止损卖出' };
 export function whyNotOrder(s, o) {
@@ -118,7 +127,7 @@ export function whyNotOrder(s, o) {
   if (!(m.px[o.code] > 0)) return '还没上市';
   if (m.orders.length >= O.max) return `最多同时挂 ${O.max} 张`;
   if (!(o.n >= 1)) return '最少 1 股'; if (!(o.px > 0)) return '填一个价格';
-  { const B = SK.band(m, o.code); if (B.up != null && (o.px > B.up + 1e-9 || o.px < B.dn - 1e-9)) return `挂单价要在今天跌停 ${B.dn} 和涨停 ${B.up} 之间`; }   // 设计41 第九节
+  { const B = SK.band(m, o.code); if (B.up != null && (o.px > B.up + 1e-9 || (o.kind !== 'sl' && o.px < B.dn - 1e-9))) return `挂单价要在今天跌停 ${B.dn} 和涨停 ${B.up} 之间`; }   // 设计41 第九节；V0.2.14 小修：止损可以挂在跌停价下面（一定低于买价）
   if (o.kind !== 'buy' && o.on !== false) { const k = sellable(s, o.code); if (k < o.n) return `持股只有 ${k.toLocaleString()} 股`; }   // 设计43：卖单挂上就把股票划走
   if (o.kind === 'buy' && o.on !== false) { const need = o.margin ? Math.max(0, buyCost(s, o.code, o.px, o.n) - room(s)) : buyCost(s, o.code, o.px, o.n); if (availCash(s) < need - 1e-9) return `钱不够（个人现金 ¥${fmt(Math.max(0, availCash(s)))}，要 ¥${fmt(need)}）`; }   // 设计43：买单挂上就扣钱
   return null;

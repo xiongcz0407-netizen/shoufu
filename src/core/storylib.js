@@ -3,8 +3,8 @@
 //   设计的格式（台词_s09_xia.json 的 _说明）：条目是字符串或 { t, fav }（好感到第 fav 段才说）；greet_am / greet_pm / greet_night 按时间并进 greet（深夜再加 overtime）；
 //   tap_head / tap_hand / tap_cloth 并进 tap；trip_ask = 出差前；schedule = 日程带她出席前；battle_win / battle_lose = 商战赢 / 输；其余用 lineOf(id, 场合) 取；不连着重复
 // 出差：出差_<秘书id>.json = { who, stages: { 1..5: { open: [[句子…]×8], mid, end } } }；用过的记存档 s.storyUsed，全部用完才轮回
-import { LINES } from '../config/lines.js?v=47e8f1b5';
-import { TRIP_LIB, LINE_PACKS } from '../config/story/index.js?v=47e8f1b5';
+import { LINES } from '../config/lines.js?v=d17576a6';
+import { TRIP_LIB, LINE_PACKS } from '../config/story/index.js?v=d17576a6';
 export { TRIP_LIB, LINE_PACKS };
 
 const MERGE = { tap: ['tap_head', 'tap_hand', 'tap_cloth'], happy: ['gift'] };

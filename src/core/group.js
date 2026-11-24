@@ -1,16 +1,16 @@
 // 集团架构和节税（第 3-06 项，设计23 第六节）：控股公司 + 子公司、个人持股平台、高新技术企业、境外红筹架构、集团合并报表
 // 企业所得税按子公司各算（companytax.quarterTax 的挂钩 setCitHook；年度汇算 fiscal.setAnnualHook）
-import CFG from '../config/group.json?v=47e8f1b5' with { type: 'json' };
-import { pay, receive, canPay } from './ledger.js?v=47e8f1b5';
-import { addContract } from './contracts.js?v=47e8f1b5';
-import { MONTH_MS, YEAR_MS, monthIndex } from './gametime.js?v=47e8f1b5';
-import { TAX, setCitHook } from './companytax.js?v=47e8f1b5';
-import { taxRec, setAnnualHook } from './fiscal.js?v=47e8f1b5';
-import { gm } from './calib.js?v=47e8f1b5';
-import { addMsg } from './inbox.js?v=47e8f1b5';
-import { holder, isSec } from './posts.js?v=47e8f1b5';
-import { IND_BY_ID } from '../config/industries.js?v=47e8f1b5';
-import { liveProducts } from './tech.js?v=47e8f1b5';
+import CFG from '../config/group.json?v=d17576a6' with { type: 'json' };
+import { pay, receive, canPay } from './ledger.js?v=d17576a6';
+import { addContract } from './contracts.js?v=d17576a6';
+import { MONTH_MS, YEAR_MS, monthIndex } from './gametime.js?v=d17576a6';
+import { TAX, setCitHook } from './companytax.js?v=d17576a6';
+import { taxRec, setAnnualHook } from './fiscal.js?v=d17576a6';
+import { gm } from './calib.js?v=d17576a6';
+import { addMsg } from './inbox.js?v=d17576a6';
+import { holder, isSec } from './posts.js?v=d17576a6';
+import { IND_BY_ID } from '../config/industries.js?v=d17576a6';
+import { liveProducts } from './tech.js?v=d17576a6';
 
 export const GCFG = CFG;
 const r2 = (v) => Math.round(v * 100) / 100;

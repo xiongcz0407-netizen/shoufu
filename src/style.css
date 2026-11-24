@@ -1017,8 +1017,6 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 .ub-gains li > span { flex: 1 1 40%; min-width: 7em; } .ub-gains li b { white-space: normal; text-align: right; max-width: 62%; } /* 设计42：值很长的（看盘 100% 准）换行，不把名字挤成一列 */
 .msg img.msg-gift { width: 44px; height: 44px; object-fit: contain; border-radius: 0; border: 0; background: none; } /* V0.2.12 第 1b 项：奖励邮件用礼物图标 */
 /* 设计43 挂单冻结（开发2） */
-.pend-box { margin-bottom: 8px; } .pend-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(255, 255, 255, .06); font-size: 12px; } .pend-row.in { padding-left: 16px; opacity: .85; }
-.pend-main { flex: 1; } .pend-main small { display: block; font-size: 11px; opacity: .7; } .pend-box .sd-rec-title small { font-size: 11px; opacity: .7; font-weight: 400; }
 .cash-line b { color: #f6d67a; }
 
 /* 设计44 投资经理 */
@@ -1030,10 +1028,51 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 .mg-row{display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.06)}
 .mg-row span:first-child{min-width:80px}
 
-/* 设计45 持仓卖价 */
-.sell-line{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;margin:-4px 0 8px;padding:6px 10px;border-radius:0 0 10px 10px;background:rgba(255,215,120,.07);color:#e9d9a8}
-.sell-line small{opacity:.7}
 .mg-row .mg-back{min-width:76px;text-align:right;color:#e9d9a8}
 .mg-give .ind-btns{flex-wrap:wrap;gap:6px}
 .mg-give .ind-btns .btn{flex:1 0 30%;white-space:nowrap}
 .mg-give .ind-btns .btn small{display:block;font-size:10px;opacity:.8}
+
+/* 设计45 第五版 持仓页 */
+.hv-buys .hv-grp{margin-top:8px}
+.hv-head{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+.hv-head span{font-size:12px;opacity:.85}
+.hv-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;padding:6px 0 6px 10px;border-bottom:1px solid rgba(255,255,255,.05)}
+.hv-row small{display:block;font-size:11px;opacity:.75;margin-top:2px}
+.hv-row .btn{flex:0 0 auto}
+.hv-hold{cursor:pointer;margin-top:8px}
+.hv-top{display:flex;align-items:center;gap:8px}
+.hv-top .sk-logo{width:28px;height:28px}
+.hv-top span{margin-left:auto;font-size:13px}
+.hv-line{font-size:13px;padding:3px 0 0 36px}
+.hv-line.dim{opacity:.6}
+.hv-hold .hv-row{padding-left:36px}
+.hv-row .nw{white-space:nowrap}
+
+/* 设计46 看盘选仓位 */
+.lk-pos{display:flex;gap:6px;margin:6px 0 2px}
+.lk-pos .btn{flex:1;padding:4px 2px;line-height:1.2}
+.lk-pos .btn small{display:block;font-size:10px;opacity:.85}
+.lk-pos .lk-none{font-size:12px;opacity:.7}
+.lk-done{color:#e9d9a8;font-size:12px}
+.hv-dim{color:#8a93a6}
+.hv-line.hv-dim{opacity:1}
+.lk-pos .lk-edit{flex:0 0 auto;padding:4px 10px}
+.lk-pos .lk-none{flex:1;align-self:center}
+.lk-all small{display:block;font-size:10px;opacity:.85}
+
+/* 设计47 看盘时间段 */
+.ws-box{margin-bottom:8px}
+.ws-top{display:flex;align-items:center;gap:10px}
+.ws-top > div{flex:1;min-width:0}
+.ws-top b{display:block}
+.ws-top small{display:block;font-size:11px;opacity:.75;margin-top:2px}
+.ws-top .ws-go{flex:0 0 auto;white-space:nowrap}
+.ws-top .ws-go small{display:block;font-size:10px;opacity:.85}
+.ws-face{width:44px;height:44px;border-radius:50%;object-fit:cover;object-position:top}
+.ws-btns{margin-top:8px}
+.ws-btns .btn small{display:block;font-size:10px;opacity:.85}
+.ws-tip{position:absolute;left:12px;right:12px;top:96px;z-index:90;display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;border:1px solid rgba(233,217,168,.5);background:rgba(20,26,40,.95);color:#f3e7c4;font-size:13px;text-align:left;box-shadow:0 6px 18px rgba(0,0,0,.4);transform:translateY(-140%);opacity:0;transition:transform .2s,opacity .2s;pointer-events:none}
+.ws-tip.show{transform:none;opacity:1;pointer-events:auto}
+.ws-tip img{width:30px;height:30px;border-radius:50%;object-fit:cover;object-position:top}
+.ws-tip span{flex:1}.ws-tip i{font-style:normal;opacity:.7}

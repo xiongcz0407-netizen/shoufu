@@ -1,9 +1,9 @@
 // 培养：课程价格、立刻学完（设计35 第八节：不再等时间、没有培训位；存档里正在上的课读档时直接结业）
-import { COURSES, COURSE_BY_ID, BASE_SLOTS, PRICE_BASE, PRICE_GROW, TIME_BASE_SEC, TIME_GROW, BEST_DISCOUNT } from '../config/courses.js?v=47e8f1b5';
-import { SEC_BY_ID } from '../config/secretaries.js?v=47e8f1b5';
-import { ensureSec } from './secretary.js?v=47e8f1b5';
-import { bump } from './daily.js?v=47e8f1b5';
-import { pay, canPay } from './ledger.js?v=47e8f1b5';
+import { COURSES, COURSE_BY_ID, BASE_SLOTS, PRICE_BASE, PRICE_GROW, TIME_BASE_SEC, TIME_GROW, BEST_DISCOUNT } from '../config/courses.js?v=d17576a6';
+import { SEC_BY_ID } from '../config/secretaries.js?v=d17576a6';
+import { ensureSec } from './secretary.js?v=d17576a6';
+import { bump } from './daily.js?v=d17576a6';
+import { pay, canPay } from './ledger.js?v=d17576a6';
 
 export const ATTR_MAX = 100;
 /** 设计35 第八节：没有培训位了（留着给老代码 / 测试，不再用来限制） */
