@@ -1,16 +1,17 @@
 // 第 P-06 项（设计25 第五节）：前期炒股 —— 条件单、打新股、融资融券、看盘、炒股周报
 // 条件单和两融的平仓线每跳检查（挂在 stocks.js 的 addStepHook 上，离线补算一样走）；打新、利息、周报按时间走 tick()（在线 ticker 和 core/offcap.js 都叫）
-import * as SK from './stocks.js?v=6993e46b';
-import { pay, receive } from './ledger.js?v=6993e46b';
-import { addContract } from './contracts.js?v=6993e46b';
-import { addMsg } from './inbox.js?v=6993e46b';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=6993e46b';
-import { profitMul } from './calib.js?v=6993e46b';
-import { isTraining } from './training.js?v=6993e46b';
-import { attrs as secAttrs } from './posts.js?v=6993e46b';
-import { SEC_BY_ID } from '../config/secretaries.js?v=6993e46b';
-import { netWorth } from './economy.js?v=6993e46b';
-import { addAssetHook } from './assets.js?v=6993e46b';
+import { dropOrphans } from './orphans.js?v=451b6719';
+import * as SK from './stocks.js?v=451b6719';
+import { pay, receive } from './ledger.js?v=451b6719';
+import { addContract } from './contracts.js?v=451b6719';
+import { addMsg } from './inbox.js?v=451b6719';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=451b6719';
+import { profitMul } from './calib.js?v=451b6719';
+import { isTraining } from './training.js?v=451b6719';
+import { attrs as secAttrs } from './posts.js?v=451b6719';
+import { SEC_BY_ID } from '../config/secretaries.js?v=451b6719';
+import { netWorth } from './economy.js?v=451b6719';
+import { addAssetHook } from './assets.js?v=451b6719';
 
 const C = SK.SCFG; const O = C.orders, I = C.ipo, MG = C.margin, W = C.weekly;
 export const DAY = MONTH_MS / 30;
@@ -103,6 +104,7 @@ export function inOrders(s) {
   out.cash = r2(out.cash); out.value = r2(out.cash + Object.entries(out.shares).reduce((a, [c, n]) => a + n * (m.px[c] || 0), 0)); return out;
 }
 export const orderValue = (s) => inOrders(s).value;
+export const { myShares, myShareValue, myHoldings } = SK;   // V0.2.16：放在 stocks.js（分红也要用），这里转一下
 addAssetHook({ value: (s) => orderValue(s) });
 /** 玩家自己卖（个股页的卖出 / 全部卖出）：只卖持仓里剩下的 */
 export function sellMine(s, code, n, t = Date.now()) {
@@ -222,7 +224,7 @@ export const mg = (s) => tr(s).margin || null;
 export function whyNotOpen(s) {
   if (mg(s)) return '已经开通了';
   if (netWorth(s) < MG.openAt) return `身价到 ${fmt(MG.openAt)} 才能开（照现实：账户资产 ≥ 50 万）`;
-  if (s.cash + SK.holdValue(s) < MG.openAt) return `账户资产（个人现金 + 持仓市值）要 ≥ ${fmt(MG.openAt)}`;
+  if (s.cash + myShareValue(s) < MG.openAt) return `账户资产（个人现金 + 持仓市值）要 ≥ ${fmt(MG.openAt)}`;   // V0.2.16：卖单里的股票也算
   return null;
 }
 export function openMargin(s, t = Date.now()) {
@@ -231,7 +233,7 @@ export function openMargin(s, t = Date.now()) {
   tr(s, t).margin = { debt: 0, intAt: t, call: null, warned: false, no: ct.no };
   return { ok: true, contract: ct };
 }
-const shareVal = (s) => SK.holdValue(s) + inOrders(s).value - inOrders(s).cash;   // 设计43：挂在卖单里的股票也算担保
+const shareVal = (s) => myShareValue(s);   // 设计43 / V0.2.16：挂在卖单里的股票也算担保
 export const ratio = (s) => { const g = mg(s); return g && g.debt > 0 ? shareVal(s) / g.debt : Infinity; };
 /** 还能借多少：maxLever × (持仓市值 − 已借) − 已借 */
 export const room = (s) => { const g = mg(s); if (!g) return 0; return Math.max(0, r2(MG.maxLever * (shareVal(s) - g.debt) - g.debt)); };
@@ -252,7 +254,7 @@ export function repay(s, amount, t = Date.now()) {
 /** 平仓：从市值大的卖起，卖到维持担保比例回到 restore 或者还清 */
 export function liquidate(s, t, why) {
   const g = mg(s); if (!g || g.debt <= 0) return 0;
-  let H = SK.holdValue(s), D = g.debt; const R = MG.restore;
+  let H = myShareValue(s), D = g.debt; const R = MG.restore;   // V0.2.16：跟担保比例一样算上卖单里的（卖的时候只卖持仓里能卖的）
   let need = H <= D ? Infinity : Math.max(0, (R * D - H) / (R - 1)); let got = 0; const sold = [];
   for (const h of SK.holdings(s).sort((a, b) => b.value - a.value)) {
     if (got >= need || got >= D) break;
@@ -306,7 +308,8 @@ const popOf = (code) => { const u = SK.hu('IPO' + code, 1); const v = SK.hu('IPO
 export const ipoInfo = (code) => SK.BY[code];
 function ipoTick(s, t, rnd) {
   const m = s.mkt; const ip = m.ipo;
-  while (t - ip.dayAt >= DAY) { ip.dayAt += DAY; ip.daily.push(r2(SK.holdValue(s))); if (ip.daily.length > I.avgDays) ip.daily.shift(); }
+  while (t - ip.dayAt >= DAY) { ip.dayAt += DAY; ip.daily.push(r2(myShareValue(s)));   // V0.2.16：日均持股含卖单里的
+    if (ip.daily.length > I.avgDays) ip.daily.shift(); }
   for (let k = 0; k < 20; k++) {
     if (!ip.cur) {
       if (ip.idx >= I.list.length || t < ip.next) return;
@@ -340,10 +343,10 @@ function ipoTick(s, t, rnd) {
 }
 
 // ---------- 炒股周报 ----------
-function snapWeek(s, t) { const v0 = {}; for (const h of SK.holdings(s)) v0[h.code] = h.value; return { start: t, v0, f: {}, sells: [] }; }
+function snapWeek(s, t) { const v0 = {}; for (const h of myHoldings(s)) v0[h.code] = h.value; return { start: t, v0, f: {}, sells: [] }; }
 /** 这一周到现在：{ pnl, rate（没卖过是 null）, best, worst, rows } */
 export function weekStat(s) {
-  const m = tr(s); const w = m.wk; const now = {}; for (const h of SK.holdings(s)) now[h.code] = h.value;
+  const m = tr(s); const w = m.wk; const now = {}; for (const h of myHoldings(s)) now[h.code] = h.value;
   const codes = new Set([...Object.keys(w.v0), ...Object.keys(now), ...Object.keys(w.f)]);
   const rows = [...codes].map((c) => { const f = w.f[c] || { buy: 0, sell: 0 }; return { code: c, pnl: r2((now[c] || 0) - (w.v0[c] || 0) + f.sell - f.buy) }; }).sort((a, b) => b.pnl - a.pnl);
   const pnl = r2(rows.reduce((a, x) => a + x.pnl, 0)); const rate = w.sells.length ? w.sells.filter((g) => g > 0).length / w.sells.length : null;
@@ -367,4 +370,4 @@ export function tick(s, t, rnd = Math.random) {
   if (!s.mkt) return null;
   tr(s, t); ipoTick(s, t, rnd); interest(s, t); for (const fn of TICK_HOOKS) fn(s, t); return weekly(s, t);
 }
-SK.addStepHook((s, tk) => { if (!s.mkt) return; checkOrders(s, tk); timeUp(s, tk); checkMargin(s, tk); });
+SK.addStepHook((s, tk) => { if (!s.mkt) return; checkOrders(s, tk); timeUp(s, tk); dropOrphans(s.mkt); checkMargin(s, tk); });   // V0.2.16：每跳清孤儿卖单

@@ -1,11 +1,11 @@
 // V0.2.5（设计37 第三节）开发1 这边的升级框：core 里攒的 s.upq（店铺升级、换样子、开分店、广告、上任、升称号、托管汇总）
 // 每秒倒进开发2 的 upgradeBox（ui/upgradebox.js 负责排队、剧情开着先等）。托管汇总回到首页才弹。
 // note = { title, what, fx: [行], next, img?, big?, opened?: [行], auto? }
-import { takeUp, flushAuto } from '../core/upnote.js?v=6993e46b';
-import { asset, hasAsset } from '../platform/assets.js?v=6993e46b';
-import { upgradeBox } from './upgradebox.js?v=6993e46b';
-import { game } from '../game.js?v=6993e46b';
-import { now } from '../core/clock.js?v=6993e46b';
+import { takeUp, flushAuto } from '../core/upnote.js?v=451b6719';
+import { asset, hasAsset } from '../platform/assets.js?v=451b6719';
+import { upgradeBox } from './upgradebox.js?v=451b6719';
+import { game } from '../game.js?v=451b6719';
+import { now } from '../core/clock.js?v=451b6719';
 
 export function pump(s, t) {
   flushAuto(s, t);

@@ -3,21 +3,21 @@
 // 股票列表里的公司：公司持股每 5% 举牌公告（core/stocks.js stake）；二级市场最多买到 30%，再往上要发要约（价格 ≥ 最近 3 个游戏天均价 = 现实 30 天 ÷ profitMul），
 // 要约期 3 个游戏天，股东按溢价决定卖多少；到 50% 以上 = 控股（并进集团，资本页、集团页显示）
 // 换股：上市以后收购对手（battle.acquire 的挂钩），最多 50% 用你公司的新股付，按你的股价算，你的持股被稀释
-import CFG from '../config/takeover.json?v=6993e46b' with { type: 'json' };
-import SCFG from '../config/stocks.json?v=6993e46b' with { type: 'json' };
-import * as SK from './stocks.js?v=6993e46b';
-import { pay, receive, canPay } from './ledger.js?v=6993e46b';
-import { taxRec } from './fiscal.js?v=6993e46b';
-import { addCompanyAssetHook } from './economy.js?v=6993e46b';
-import { maMax, whyNotMa, maLoan } from './bank.js?v=6993e46b';
-import { holder, isSec } from './posts.js?v=6993e46b';
-import { addContract } from './contracts.js?v=6993e46b';
-import { MONTH_MS } from './gametime.js?v=6993e46b';
-import { addMsg } from './inbox.js?v=6993e46b';
-import { addAttrHook } from './boss.js?v=6993e46b';
-import { setSwapHook } from './battle.js?v=6993e46b';
-import { cap } from './capital.js?v=6993e46b';
-import { listed, marketCap } from './listing.js?v=6993e46b';
+import CFG from '../config/takeover.json?v=451b6719' with { type: 'json' };
+import SCFG from '../config/stocks.json?v=451b6719' with { type: 'json' };
+import * as SK from './stocks.js?v=451b6719';
+import { pay, receive, canPay } from './ledger.js?v=451b6719';
+import { taxRec } from './fiscal.js?v=451b6719';
+import { addCompanyAssetHook } from './economy.js?v=451b6719';
+import { maMax, whyNotMa, maLoan } from './bank.js?v=451b6719';
+import { holder, isSec } from './posts.js?v=451b6719';
+import { addContract } from './contracts.js?v=451b6719';
+import { MONTH_MS } from './gametime.js?v=451b6719';
+import { addMsg } from './inbox.js?v=451b6719';
+import { addAttrHook } from './boss.js?v=451b6719';
+import { setSwapHook } from './battle.js?v=451b6719';
+import { cap } from './capital.js?v=451b6719';
+import { listed, marketCap } from './listing.js?v=451b6719';
 
 export const TCFG = CFG;
 const r2 = (v) => Math.round(v * 100) / 100;
@@ -32,7 +32,7 @@ export const coHold = (s) => { const m = SK.mkt(s); m.coHold = m.coHold || {}; r
 /** s.takeover：{ offers: { code: { target, price, start, end, frozen } }, ctrl: { code: { at, pct } } } */
 export function tk(s) { const d = (s.takeover = s.takeover || {}); d.offers = d.offers || {}; d.ctrl = d.ctrl || {}; return d; }
 export const pctOf = (s, code) => { const h = coHold(s)[code]; return h ? h.n / total(code) : 0; };
-export const myPct = (s, code) => { const h = SK.mkt(s).hold[code]; return h ? h.n / total(code) : 0; };
+export const myPct = (s, code) => { SK.mkt(s); const h = SK.myShares(s)[code]; return h ? h.n / total(code) : 0; };   // V0.2.16：卖单里的也是我的
 export const coValue = (s) => (s.mkt && s.mkt.coHold ? Object.entries(s.mkt.coHold).reduce((a, [c, h]) => a + (SK.BY[c] ? h.n * SK.price(s, c) : 0), 0) : 0);
 addCompanyAssetHook(coValue);   // 公司持有的股票算公司资产（进公司估值）
 
@@ -116,7 +116,7 @@ export const acceptRate = (s, code, price) => Math.max(CFG.accept.min, Math.min(
 /** 要约期满：按接受比例成交；到 50% 以上控股 */
 export function settle(s, code, t) {
   const o = tk(s).offers[code]; const x = SK.BY[code]; const m = SK.mkt(s); void canPay;
-  const CH = coHold(s); const mine = (CH[code] || { n: 0 }).n; const others = total(code) - mine - ((m.hold[code] || { n: 0 }).n); const want = Math.max(0, Math.round(o.target * total(code)) - mine);
+  const CH = coHold(s); const mine = (CH[code] || { n: 0 }).n; const others = total(code) - mine - ((SK.myShares(s)[code] || { n: 0 }).n); const want = Math.max(0, Math.round(o.target * total(code)) - mine);
   let n = Math.min(want, Math.round(Math.max(0, others) * acceptRate(s, code, o.price)));
   let loanAmt = 0; if (o.loan && n > 0) { const g0 = n * o.price; const mx = Math.floor(maMax(s, g0, g0)); if (mx > 0 && !whyNotMa(s, LOAN_BANK, g0, g0, mx)) loanAmt = mx; }
   n = Math.min(n, Math.floor(Math.max(0, freeCo(s) + loanAmt) / o.price));

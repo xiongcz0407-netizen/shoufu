@@ -1,18 +1,18 @@
 // 设计37 第三节：通用升级框 upgradeBox —— 顶上金光「升级！」，三行：升了什么 / 带来什么（前 → 后）/ 下一步；一个「好」，点框外不关。
 // 同一时间只放一个，其余排队；剧情、小场景开着时先等（跟设计35 第五节第 4 条的队列一个规矩）。
 // 开发2 这边接：秘书上课（ui/training.js）、好感升阶、老板属性涨（下面两个看守，每秒比一次）。开发1 的店铺 / 广告 / 分店直接调 upgradeBox。
-import { SEC_BY_ID } from '../config/secretaries.js?v=6993e46b';
-import { OUTFITS } from '../config/outfits.js?v=6993e46b';
-import { LINES } from '../config/lines.js?v=6993e46b';
-import { FAVOR_STAGES, favorStage } from '../core/secretary.js?v=6993e46b';
-import { bossAttrs, auraBattle, networkAcquire, visionIncome, visionBattle } from '../core/boss.js?v=6993e46b';
-import { favorMult } from '../core/affection.js?v=6993e46b';
-import { nameOf } from '../core/styles.js?v=6993e46b';
-import { RIVALS } from '../config/rivals.js?v=6993e46b';
-import P from '../config/posts.json?v=6993e46b' with { type: 'json' };
-import { game } from '../game.js?v=6993e46b';
-import { h } from './dom.js?v=6993e46b';
-import { isStoryPlaying } from './story.js?v=6993e46b';
+import { SEC_BY_ID } from '../config/secretaries.js?v=451b6719';
+import { OUTFITS } from '../config/outfits.js?v=451b6719';
+import { LINES } from '../config/lines.js?v=451b6719';
+import { FAVOR_STAGES, favorStage } from '../core/secretary.js?v=451b6719';
+import { bossAttrs, auraBattle, networkAcquire, visionIncome, visionBattle } from '../core/boss.js?v=451b6719';
+import { favorMult } from '../core/affection.js?v=451b6719';
+import { nameOf } from '../core/styles.js?v=451b6719';
+import { RIVALS } from '../config/rivals.js?v=451b6719';
+import P from '../config/posts.json?v=451b6719' with { type: 'json' };
+import { game } from '../game.js?v=451b6719';
+import { h } from './dom.js?v=451b6719';
+import { isStoryPlaying } from './story.js?v=451b6719';
 
 const esc = (x) => String(x == null ? '' : x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const Q = []; let showing = false;

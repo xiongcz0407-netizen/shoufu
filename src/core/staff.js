@@ -1,12 +1,12 @@
 // 员工（设计17 第一节）：只是数字。按产业线 → 岗位记在岗人数；编制跟门店样子走
-import PAY from '../config/payroll.json?v=6993e46b' with { type: 'json' };
-import ECO from '../config/economy.json?v=6993e46b' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=6993e46b';
-import { pay, canPay, canPayMust, post } from './ledger.js?v=6993e46b';
-import { YEAR_MS } from './gametime.js?v=6993e46b';
-import { salaryOf, isSec } from './posts.js?v=6993e46b';
-import { lineK } from './cities.js?v=6993e46b';
-import { payerOfSec, satisfaction, turnoverMult } from './fiscal.js?v=6993e46b';
+import PAY from '../config/payroll.json?v=451b6719' with { type: 'json' };
+import ECO from '../config/economy.json?v=451b6719' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=451b6719';
+import { pay, canPay, canPayMust, post } from './ledger.js?v=451b6719';
+import { YEAR_MS } from './gametime.js?v=451b6719';
+import { salaryOf, isSec } from './posts.js?v=451b6719';
+import { lineK } from './cities.js?v=451b6719';
+import { payerOfSec, satisfaction, turnoverMult } from './fiscal.js?v=451b6719';
 export { PAY };
 
 const look = (ind) => { const c = IND_BY_ID[ind.id]; let i = 0; c.looks.forEach((lv, k) => { if (ind.level >= lv) i = k; }); return i; };

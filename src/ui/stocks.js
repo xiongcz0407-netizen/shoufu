@@ -1,30 +1,31 @@
 // 「财富 → 投资」股票（第 2-09 项，设计12 第八节）：行情 | 持仓 | 投资经理；点一只 → 个股（分时、指标、买卖、新闻、持仓）
-import * as SK from '../core/stocks.js?v=6993e46b';
-import * as AS from '../core/assets.js?v=6993e46b';
-import * as INB from '../core/inbox.js?v=6993e46b';
-import { bossAttrs } from '../core/boss.js?v=6993e46b';
-import { holder, isSec } from '../core/posts.js?v=6993e46b';
-import { SEC_BY_ID } from '../config/secretaries.js?v=6993e46b';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=6993e46b';
-import { asset, hasAsset } from '../platform/assets.js?v=6993e46b';
-import { game } from '../game.js?v=6993e46b';
-import { now } from '../core/clock.js?v=6993e46b';
-import { h, openPanel, toast, liveRender } from './dom.js?v=6993e46b';
-import { say } from './main-screen.js?v=6993e46b';
-import { renderFunds } from './funds.js?v=6993e46b';
-import { hintLater } from './guide2.js?v=6993e46b';
-import * as LSC from '../core/listing.js?v=6993e46b';
-import { selfCard } from './listing.js?v=6993e46b';
-import * as TKO from '../core/takeover.js?v=6993e46b';
-import * as TR from '../core/trade.js?v=6993e46b';
-import { renderTradeTab, orderBlock, ipoLogo } from './trade.js?v=6993e46b';
-import { watchBlock, openWsMsg, setSay, setShowDone, wsTipBar, setGotoTip } from './look.js?v=6993e46b';
-import { registerBadge, registerSegBadge, openTab } from './shell.js?v=6993e46b'; // 设计47 看盘改成时间段（开发2）
-import * as WSM from '../core/ws.js?v=6993e46b';
-import * as LK from '../core/look.js?v=6993e46b';
-import { canPay } from '../core/ledger.js?v=6993e46b';
-import * as MG from '../core/mgr.js?v=6993e46b'; // 设计44 投资经理自动炒股
-import { upgradeBox } from './upgradebox.js?v=6993e46b';
+import * as SK from '../core/stocks.js?v=451b6719';
+import * as AS from '../core/assets.js?v=451b6719';
+import * as INB from '../core/inbox.js?v=451b6719';
+import { bossAttrs } from '../core/boss.js?v=451b6719';
+import { holder, isSec } from '../core/posts.js?v=451b6719';
+import { SEC_BY_ID } from '../config/secretaries.js?v=451b6719';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=451b6719';
+import { asset, hasAsset } from '../platform/assets.js?v=451b6719';
+import { game } from '../game.js?v=451b6719';
+import { now } from '../core/clock.js?v=451b6719';
+import { h, openPanel, toast, liveRender } from './dom.js?v=451b6719';
+import { say } from './main-screen.js?v=451b6719';
+import { renderFunds } from './funds.js?v=451b6719';
+import { hintLater } from './guide2.js?v=451b6719';
+import * as LSC from '../core/listing.js?v=451b6719';
+import { selfCard } from './listing.js?v=451b6719';
+import * as TKO from '../core/takeover.js?v=451b6719';
+import * as TR from '../core/trade.js?v=451b6719';
+import { renderTradeTab, orderBlock, ipoLogo } from './trade.js?v=451b6719';
+import { watchBlock, openWsMsg, setSay, setShowDone, wsTipBar, setGotoTip } from './look.js?v=451b6719';
+import { registerBadge, registerSegBadge, openTab } from './shell.js?v=451b6719'; // 设计47 看盘改成时间段（开发2）
+import * as WSM from '../core/ws.js?v=451b6719';
+import * as LK from '../core/look.js?v=451b6719';
+import { canPay } from '../core/ledger.js?v=451b6719';
+import * as MG from '../core/mgr.js?v=451b6719'; // 设计44 投资经理自动炒股
+import { upgradeBox } from './upgradebox.js?v=451b6719';
+import { makeLive, toNextSub } from '../core/live.js?v=451b6719';   // 设计55 行情 3 秒刷新
 
 let tab = 'market', sector = '全部', sortBy = 'chg';
 const logo = (c, cls = 'sk-logo') => (SK.BY[c] && SK.BY[c].ipo ? ipoLogo(c, cls) : hasAsset(`assets/stock/logo_${c}.webp`) ? `<img class="${cls}" src="${asset(`assets/stock/logo_${c}.webp`)}" alt="">` : `<i class="${cls} ph">${c}</i>`);
@@ -39,24 +40,42 @@ export function spark(values, w = 340, hgt = 90) {
   return `<svg class="sk-spark" viewBox="0 0 ${w} ${hgt}" width="100%" height="${hgt}" preserveAspectRatio="none"><polyline fill="none" stroke="${col}" stroke-width="2" points="${pts}"/></svg>`;
 }
 /** 涨跌幅：照 A 股跟昨收比（设计41 第九节，跟涨跌停对得上）；没有昨收的按最近一段走势 */
-const chg = (s, code) => { const B = SK.band(s.mkt, code); if (B.close > 0) return SK.price(s, code) / B.close - 1; const a = s.mkt.hist[code]; return a.length > 1 ? a.at(-1) / a[0] - 1 : 0; };
+const chgOf = (s, code, v) => { const B = SK.band(s.mkt, code); if (B.close > 0) return v / B.close - 1; const a = s.mkt.hist[code]; return a.length > 1 ? v / a[0] - 1 : 0; };
+/** 显示价（设计55：3 秒一小步）；买卖一律 SK.price */
+const dpx = (s, code) => SK.showPx(s.mkt, code, now());
+const chg = (s, code) => { const B = SK.band(s.mkt, code); if (B.close > 0) return dpx(s, code) / B.close - 1; const a = s.mkt.hist[code]; return a.length > 1 ? a.at(-1) / a[0] - 1 : 0; };
 
 export function renderInvest(body, ctx) {
   const wrap = h('div'); body.appendChild(wrap); hintLater('stocks');
   const draw = () => {
     const s = game.state; const t = now(); SK.advance(s, t); wrap.innerHTML = '';
     const m = s.mkt; const idx = SK.index(s); const ih = m.hist.IDX; const ic = ih.length > 1 ? idx / ih[0] - 1 : 0;
-    wrap.appendChild(h('div', 'sk-head', `<div><small>大盘指数</small><b class="${cls(ic)}">${idx.toFixed(2)}</b><small class="${cls(ic)}">近 1 小时 ${pct(ic)}</small></div><div><small>行情</small><b>${SK.SCFG.model.regimeName[m.regime.kind]}</b><small>每 30 秒一跳，一直开盘</small></div>${spark(ih, 340, 60)}`));
+    wrap.appendChild(h('div', 'sk-head', `<div><small>大盘指数</small><b class="${cls(ic)}" data-idx>${SK.showIndex(s, t).toFixed(2)}</b><small class="${cls(ic)}">近 1 小时 ${pct(ic)}</small></div><div><small>行情</small><b>${SK.SCFG.model.regimeName[m.regime.kind]}</b><small>3 秒刷新，一直开盘</small></div>${spark(ih, 340, 60)}`));
     if (LSC.listed(s)) wrap.appendChild(selfCard(s));   // 第 3-04 项：上市以后你自己的股票在最上面
     const nw = m.news.slice(-3).reverse();
     if (nw.length) wrap.appendChild(h('div', 'sk-news', nw.map((n) => `<span class="${n.good ? 'up' : 'down'}">${n.title} ${pct(n.jump)}</span>`).join('　')));
     const tb = h('div', 'tabs');
-    for (const [k, n] of [['market', `股票${WSM.unseen(s) ? `<i class="tab-cnt">${WSM.unseen(s)}</i>` : ''}`], ['fund', '基金'], ['hold', `持仓 ${SK.holdings(s).length}`], ['trade', `打新 · 两融${TR.curIpo(s) && !TR.curIpo(s).sub ? ' ●' : ''}`], ['mgr', '投资经理']]) { const b = h('button', 'tab' + (k === tab ? ' on' : ''), n); b.onclick = () => { tab = k; draw(); }; tb.appendChild(b); }
+    for (const [k, n] of [['market', `股票${WSM.unseen(s) ? `<i class="tab-cnt">${WSM.unseen(s)}</i>` : ''}`], ['fund', '基金'], ['hold', `持仓 ${Object.keys(SK.myShares(s)).length}`], ['trade', `打新 · 两融${TR.curIpo(s) && !TR.curIpo(s).sub ? ' ●' : ''}`], ['mgr', '投资经理']]) { const b = h('button', 'tab' + (k === tab ? ' on' : ''), n); b.onclick = () => { tab = k; draw(); }; tb.appendChild(b); }
     wrap.appendChild(tb);
     if (tab === 'market') market(s, wrap, draw); else if (tab === 'trade') renderTradeTab(s, wrap, draw); else if (tab === 'fund') renderFunds(s, wrap, draw); else if (tab === 'hold') hold(s, wrap, draw); else mgr(s, wrap, draw, t);
+    wrap.classList.toggle('sk-live', tab === 'market' || tab === 'hold'); if (tab === 'market' || tab === 'hold') setTimeout(() => live.start(), 0);   // 设计55：行情 / 持仓开着才跑 3 秒刷新
   };
   ctx.onCleanup(liveRender(wrap, draw, (fn) => game.onChange(fn), body));
 }
+
+// ---------- 设计55 行情 3 秒刷新：只在股票页（行情 / 个股 / 持仓）开着时跑；就地改数字、按比上一小步高 / 低闪红 / 绿 ----------
+const flash = (el, nv) => { const ov = +el.dataset.v; el.dataset.v = nv; if (!(ov > 0) || ov === nv) return; el.classList.remove('fl-up', 'fl-dn'); void el.offsetWidth; el.classList.add(nv > ov ? 'fl-up' : 'fl-dn'); };
+function liveUpdate() {
+  const s = game.state; const m = s.mkt; if (!m) return; const t = now(); const P = {};
+  const px = (c) => (P[c] != null ? P[c] : (P[c] = SK.showPx(m, c, t)));
+  document.querySelectorAll('.sk-live [data-px]').forEach((el) => { const c = el.dataset.px; const v = px(c); el.textContent = el.dataset.f === 'y' ? yuan(v) : v.toFixed(2); flash(el, v); if (el.dataset.col != null) el.className = cls(chgOf(s, c, v)); else if (el.dataset.cost) el.className = cls(v - +el.dataset.cost); });
+  document.querySelectorAll('.sk-live [data-chg]').forEach((el) => { const c = chgOf(s, el.dataset.chg, px(el.dataset.chg)); el.textContent = pct(c); el.className = cls(c); });
+  document.querySelectorAll('.sk-live [data-pnl]').forEach((el) => { const v = px(el.dataset.pnl); const n = +el.dataset.n, cost = +el.dataset.cost; const g = (v - cost) * n; el.textContent = `${sgnMoney(g)}（${sgnPct(cost > 0 ? v / cost - 1 : 0)}）`; el.className = cls(g); });
+  document.querySelectorAll('.sk-live [data-idx]').forEach((el) => { const v = SK.showIndex(s, t); el.textContent = v.toFixed(2); flash(el, v); });
+  document.querySelectorAll('.sk-live [data-spark]').forEach((el) => { const c = el.dataset.spark; el.innerHTML = spark(m.hist[c].concat(SK.subPath(m, c, t))); });
+}
+const live = makeLive({ hasRoot: () => [...document.querySelectorAll('.sk-live')].some((e) => e.isConnected && e.offsetParent !== null), update: liveUpdate, schedule: (f, d) => setTimeout(f, d), cancel: (x) => clearTimeout(x), delay: () => toNextSub(now(), SK.SCFG.display.subSec * 1000) });
+export const liveRunning = () => live.running();
 
 function market(s, wrap, draw) {
   wrap.appendChild(watchBlock(s, draw));   // 设计47：看盘 = 一个时间段
@@ -65,9 +84,10 @@ function market(s, wrap, draw) {
   const sb = h('button', 'tab', sortBy === 'chg' ? '按涨跌幅 ↓' : '按市值 ↓'); sb.onclick = () => { sortBy = sortBy === 'chg' ? 'cap' : 'chg'; draw(); }; st.appendChild(sb);
   wrap.appendChild(st);
   const list = SK.live(s.mkt).filter((x) => sector === '全部' || x.sector === sector).sort((a, b) => (sortBy === 'chg' ? chg(s, b.code) - chg(s, a.code) : SK.marketCap(s, b.code) - SK.marketCap(s, a.code)));
+  const MY = SK.myShares(s);
   for (const x of list) {
-    const c = chg(s, x.code); const hd = s.mkt.hold[x.code];
-    const r = h('button', 'sk-row', `${logo(x.code)}<div class="sk-name"><b>${x.name}${{ up: '<i class="lu-tag">涨停</i>', down: '<i class="lu-tag dn">跌停</i>' }[SK.onBoard(s.mkt, x.code)] || ''}</b><small>${x.code} · ${x.sector}${hd ? `　持 ${hd.n.toLocaleString()} 股` : ''}</small></div><div class="sk-px"><b>${SK.price(s, x.code).toFixed(2)}</b><small class="${cls(c)}">${pct(c)}</small></div>`);
+    const c = chg(s, x.code); const hd = MY[x.code];   // V0.2.16：含卖单里的
+    const r = h('button', 'sk-row', `${logo(x.code)}<div class="sk-name"><b>${x.name}${{ up: '<i class="lu-tag">涨停</i>', down: '<i class="lu-tag dn">跌停</i>' }[SK.onBoard(s.mkt, x.code)] || ''}</b><small>${x.code} · ${x.sector}${hd ? `　持 ${hd.n.toLocaleString()} 股` : ''}</small></div><div class="sk-px"><b data-px="${x.code}">${dpx(s, x.code).toFixed(2)}</b><small class="${cls(c)}" data-chg="${x.code}">${pct(c)}</small></div>`);
     r.onclick = () => openStock(x.code); wrap.appendChild(r);
   }
 }
@@ -98,8 +118,8 @@ function hold(s, wrap, redraw) {
     const st = SK.stake(s, x.code);
     const card = h('div', 'fn-card hv-hold');
     card.innerHTML = `<div class="hv-top">${logo(x.code)}<b>${SK.BY[x.code].name}</b><span>${x.n.toLocaleString()} 股${x.free < x.n ? `<small>（能卖 ${x.free.toLocaleString()}）</small>` : ''}${st.pct >= 0.001 ? `<small>　占 ${(st.pct * 100).toFixed(2)}%</small>` : ''}</span></div>
-      <div class="hv-line">现价 <b class="${cls(x.px - x.cost)}">${yuan(x.px)}</b>　成本 ${yuan(x.cost)}</div>
-      <div class="hv-line">盈亏 <b class="${cls(x.pnl)}">${sgnMoney(x.pnl)}（${sgnPct(x.pct)}）</b></div>
+      <div class="hv-line">现价 <b class="${cls(dpx(s, x.code) - x.cost)}" data-px="${x.code}" data-f="y" data-cost="${x.cost}">${yuan(dpx(s, x.code))}</b>　成本 ${yuan(x.cost)}</div>
+      <div class="hv-line">盈亏 <b class="${cls((dpx(s, x.code) - x.cost) * x.n)}" data-pnl="${x.code}" data-n="${x.n}" data-cost="${x.cost}">${sgnMoney((dpx(s, x.code) - x.cost) * x.n)}（${sgnPct(x.cost > 0 ? dpx(s, x.code) / x.cost - 1 : 0)}）</b></div>
       ${x.sells.length ? x.sells.map((r, i) => `<div class="hv-row sell"><div>${r.tp != null ? `卖价 <b class="${TR.toneOf(r.tp, r.cost, 'tp')}">${yuan(r.tp)}</b> 卖 ${r.n.toLocaleString()} 股（${earn(r.gain, r.pct)}）` : `止损 <b class="${TR.toneOf(r.sl, r.cost, 'sl')}">${yuan(r.sl)}</b> 卖 ${r.n.toLocaleString()} 股（${earn(r.slGain, r.slPct)}）`}<small>${[r.tp != null && r.sl != null ? `止损 <span class="${TR.toneOf(r.sl, r.cost, 'sl')}">${yuan(r.sl)}</span>（${earn(r.slGain, r.slPct)}）` : '', r.src, r.quick ? `还剩 ${Math.max(1, Math.ceil(r.left / 60e3))} 分` : `还剩 ${left(r.left)}`].filter(Boolean).join(' · ')}</small></div><button class="btn sm" data-s="${i}">撤单</button></div>`).join('') : '<div class="hv-line hv-dim">卖价 没挂</div>'}`;
     card.onclick = (e) => { if (e.target.closest('button')) return; openStock(x.code); };
     card.querySelectorAll('[data-s]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); const n = LK.cancelSell(s, x.sells[+b.dataset.s].ids, now()); done(n ? `撤了，${n.toLocaleString()} 股回到能卖的` : '撤了'); }));
@@ -140,26 +160,26 @@ function mgr(s, wrap, draw, t) {   // 设计44：投资经理自动炒股（每�
 
 /** 个股 */
 export function openStock(code) {
-  const s = game.state; const x = SK.BY[code]; const p = openPanel(`${x.name}（${code}）`);
+  const s = game.state; const x = SK.BY[code]; const p = openPanel(`${x.name}（${code}）`); p.body.classList.add('sk-live'); setTimeout(() => live.start(), 0);   // 设计55
   let range = 'recent', n = 100;
   const render = () => {
     SK.advance(s, now());
-    const m = s.mkt; const px = SK.price(s, code); const c = chg(s, code); const hd = m.hold[code]; const vis = bossAttrs(s).vision;
+    const m = s.mkt; const px = SK.price(s, code); const c = chg(s, code); const hd = m.hold[code]; const my = SK.myShares(s)[code]; const vis = bossAttrs(s).vision;
     const ind = SK.indicators(s, code, vis); const st = SK.stake(s, code);
     const qb = SK.quote(s, code, n, 'buy'), qs = hd ? SK.quote(s, code, Math.min(n, hd.n), 'sell') : null;
-    p.body.innerHTML = `<div class="sk-top">${logo(code, 'sk-logo big')}<div><b class="${cls(c)}" style="font-size:24px">${px.toFixed(2)}</b> <small class="${cls(c)}">${pct(c)}</small>${x.desc ? `<div class="tr-gain">${x.desc}（新股）</div>` : ''}<div class="tr-gain">${x.sector} · 市值 ${fmtMoney(SK.marketCap(s, code))} · 股息率 ${(x.div * 100).toFixed(1)}% / 年</div>${(() => { const B = SK.band(m, code); const bd = SK.onBoard(m, code); return B.up != null ? `<div class="tr-gain band-row">今天涨停 <b class="up">${B.up.toFixed(2)}</b>　跌停 <b class="down">${B.dn.toFixed(2)}</b>　昨收 ${B.close.toFixed(2)}${bd ? `　<i class="lu-tag ${bd === 'down' ? 'dn' : ''}">${bd === 'up' ? '涨停' : '跌停'}</i>` : ''}</div>` : ''; })()}</div></div>
+    p.body.innerHTML = `<div class="sk-top">${logo(code, 'sk-logo big')}<div><b class="${cls(c)}" style="font-size:24px" data-px="${code}" data-col>${dpx(s, code).toFixed(2)}</b> <small class="${cls(c)}" data-chg="${code}">${pct(c)}</small>${x.desc ? `<div class="tr-gain">${x.desc}（新股）</div>` : ''}<div class="tr-gain">${x.sector} · 市值 ${fmtMoney(SK.marketCap(s, code))} · 股息率 ${(x.div * 100).toFixed(1)}% / 年</div>${(() => { const B = SK.band(m, code); const bd = SK.onBoard(m, code); return B.up != null ? `<div class="tr-gain band-row">今天涨停 <b class="up">${B.up.toFixed(2)}</b>　跌停 <b class="down">${B.dn.toFixed(2)}</b>　昨收 ${B.close.toFixed(2)}${bd ? `　<i class="lu-tag ${bd === 'down' ? 'dn' : ''}">${bd === 'up' ? '涨停' : '跌停'}</i>` : ''}</div>` : ''; })()}</div></div>
       <div class="tabs"><button class="tab ${range === 'recent' ? 'on' : ''}" data-r="recent">1 小时</button><button class="tab ${range === 'long' ? 'on' : ''}" data-r="long">全部</button></div>
-      ${spark(range === 'recent' ? m.hist[code] : m.long[code])}
+      ${range === 'recent' ? `<div data-spark="${code}">${spark(m.hist[code].concat(SK.subPath(m, code, now())))}</div>` : spark(m.long[code])}
       <div class="tr-gain">${ind.length ? ind.map(([k, v]) => `${k} <b>${v}</b>`).join('　') : '技术指标：老板眼光每 10 点多看一档（均线 → 成交活跃度 → 资金流向）'}</div>
       ${cashLine(s)}
-      ${hd ? `<div class="tr-course"><div><b>持股 ${hd.n.toLocaleString()} 股${TR.lockedShares(s, code) ? `（另有 ${TR.lockedShares(s, code).toLocaleString()} 股在卖单里）` : ''}</b><div class="tr-gain">成本 ${hd.cost.toFixed(2)}　市值 ${fmtMoney(hd.n * px)}　盈亏 <span class="${cls(px - hd.cost)}">${fmtMoney((px - hd.cost) * hd.n)}</span>${st.pct >= 0.0001 ? `　占总股本 ${(st.pct * 100).toFixed(3)}%（举牌 5%、要约收购进度 ${(st.toTender * 100).toFixed(0)}%）` : ''}</div></div></div>` : ''}
+      ${my ? `<div class="tr-course"><div><b>持股 ${my.n.toLocaleString()} 股${TR.lockedShares(s, code) ? `（其中 ${TR.lockedShares(s, code).toLocaleString()} 股在卖单里）` : ''}</b><div class="tr-gain">成本 ${my.cost.toFixed(2)}　市值 ${fmtMoney(my.n * px)}　盈亏 <span class="${cls(px - my.cost)}">${fmtMoney((px - my.cost) * my.n)}</span>${st.pct >= 0.0001 ? `　占总股本 ${(st.pct * 100).toFixed(3)}%（举牌 5%、要约收购进度 ${(st.toTender * 100).toFixed(0)}%）` : ''}</div></div></div>` : ''}
       <div class="sd-rec-title">股数</div><div class="tabs">${[100, 1000, 10000, 100000, 1000000].map((k) => `<button class="tab ${k === n ? 'on' : ''}" data-n="${k}">${k >= 10000 ? k / 10000 + ' 万' : k} 股</button>`).join('')}</div>
       <div class="tr-gain">买 ${n.toLocaleString()} 股：成交价 ${qb.exec}${qb.impact ? `（大单滑点 +${(qb.impact * 100).toFixed(2)}%）` : ''}，佣金过户费 ${fmtMoney(qb.fees)}，共 <b>${fmtMoney(qb.total)}</b>${qs ? `<br>卖 ${Math.min(n, hd.n).toLocaleString()} 股：到手 <b>${fmtMoney(qs.total)}</b>（含印花税 ${fmtMoney(qs.stamp)}）` : ''}</div>
       <div class="ind-btns"><button class="btn gold buy">买入</button>${hd ? '<button class="btn sell">卖出</button>' : ''}</div>
       ${allBtns(s, code)}
       <div class="tr-orders"></div>
       <div class="sd-rec-title">相关新闻</div>${m.news.filter((y) => y.target === code || y.target === x.sector || y.kind === 'market').slice(-5).reverse().map((y) => `<div class="tr-gain ${y.good ? 'up' : 'down'}">${y.title} ${pct(y.jump)}</div>`).join('') || '<div class="tr-gain">最近没有</div>'}`;
-    if (SK.unlocked(s) || (m.hold[code])) { const ib = p.body.querySelector('.ind-btns'); if (ib) ib.after(takeoverBlock(s, code, render)); }   // 第 3-05 项
+    if (SK.unlocked(s) || SK.myShares(s)[code]) { const ib = p.body.querySelector('.ind-btns'); if (ib) ib.after(takeoverBlock(s, code, render)); }   // 第 3-05 项
     const ob = p.body.querySelector('.tr-orders'); if (ob) ob.replaceWith(orderBlock(s, code, n, render));   // 第 P-06 项：条件单、融资买入
     p.body.querySelectorAll('[data-r]').forEach((b) => (b.onclick = () => { range = b.dataset.r; render(); }));
     p.body.querySelectorAll('[data-n]').forEach((b) => (b.onclick = () => { n = +b.dataset.n; render(); }));

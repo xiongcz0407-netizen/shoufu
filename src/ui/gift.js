@@ -1,13 +1,13 @@
 // 送礼（商场「礼物」分段、秘书详情「送礼」直达）：36 件按 4 档分，她最喜欢的 3 样排前面带 ♥；走个人现金、出发票
-import { GIFTS, GIFT_TIERS } from '../config/gifts.js?v=6993e46b';
-import { SEC_BY_ID } from '../config/secretaries.js?v=6993e46b';
-import * as A from '../core/affection.js?v=6993e46b';
-import { fmtMoney } from '../core/format.js?v=6993e46b';
-import { asset, hasAsset } from '../platform/assets.js?v=6993e46b';
-import { now } from '../core/clock.js?v=6993e46b';
-import { game } from '../game.js?v=6993e46b';
-import { h, openPanel, toast } from './dom.js?v=6993e46b';
-import { say } from './main-screen.js?v=6993e46b';
+import { GIFTS, GIFT_TIERS } from '../config/gifts.js?v=451b6719';
+import { SEC_BY_ID } from '../config/secretaries.js?v=451b6719';
+import * as A from '../core/affection.js?v=451b6719';
+import { fmtMoney } from '../core/format.js?v=451b6719';
+import { asset, hasAsset } from '../platform/assets.js?v=451b6719';
+import { now } from '../core/clock.js?v=451b6719';
+import { game } from '../game.js?v=451b6719';
+import { h, openPanel, toast } from './dom.js?v=451b6719';
+import { say } from './main-screen.js?v=451b6719';
 
 let lastTier = 0; // 0 = 她喜欢的
 export function openGift(secId, host) {

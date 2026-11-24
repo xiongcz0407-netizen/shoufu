@@ -1097,3 +1097,8 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 .ws-follow-s { font-size: 12px; margin: 8px 0 4px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; } .ws-follow-s small { opacity: .7; }
 .ws-follow-s.coupon { color: var(--gold, #e7c77a); } .ws-follow-s.none { color: #c9b9a0; } .ws-follow-s.none .cp-go { margin-left: auto; }
 .ws-inv-big { width: 22px; height: 22px; margin-right: 2px; }
+
+/* 设计55 行情 3 秒刷新：每一小步比上一小步高 / 低闪红 / 绿 */
+@keyframes flUp { 0% { background: rgba(229, 72, 77, .45); } 100% { background: transparent; } }
+@keyframes flDn { 0% { background: rgba(47, 179, 122, .45); } 100% { background: transparent; } }
+.fl-up { animation: flUp .8s ease-out; border-radius: 3px; } .fl-dn { animation: flDn .8s ease-out; border-radius: 3px; }

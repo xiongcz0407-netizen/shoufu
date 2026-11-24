@@ -1,19 +1,19 @@
 // 设计41 / 46 / 47 看盘界面（开发2）：看盘那一块（开始 / 现在看一眼 / 结束）、看盘消息弹框（⅓仓 / 半仓 / 全仓）、照她说的挂单（条件单表）、消息「重要」里的按钮
-import * as SK from '../core/stocks.js?v=6993e46b';
-import * as TR from '../core/trade.js?v=6993e46b';
-import * as LK from '../core/look.js?v=6993e46b';
-import * as I from '../core/inbox.js?v=6993e46b';
-import { SEC_BY_ID } from '../config/secretaries.js?v=6993e46b';
-import { fmtMoney } from '../core/format.js?v=6993e46b';
-import { asset, hasAsset } from '../platform/assets.js?v=6993e46b';
-import { game } from '../game.js?v=6993e46b';
-import { now } from '../core/clock.js?v=6993e46b';
-import { h, openPanel, toast } from './dom.js?v=6993e46b';
-import { addActionUi } from './inbox.js?v=6993e46b';
-import * as WSM from '../core/ws.js?v=6993e46b';   // 设计47
-import { attrs as secAttrs } from '../core/posts.js?v=6993e46b';
-import { isTraining } from '../core/training.js?v=6993e46b';
-import { itemIcon, goBuyHtml, bindGoBuy } from './coupon.js?v=6993e46b';   // 设计53 投资券
+import * as SK from '../core/stocks.js?v=451b6719';
+import * as TR from '../core/trade.js?v=451b6719';
+import * as LK from '../core/look.js?v=451b6719';
+import * as I from '../core/inbox.js?v=451b6719';
+import { SEC_BY_ID } from '../config/secretaries.js?v=451b6719';
+import { fmtMoney } from '../core/format.js?v=451b6719';
+import { asset, hasAsset } from '../platform/assets.js?v=451b6719';
+import { game } from '../game.js?v=451b6719';
+import { now } from '../core/clock.js?v=451b6719';
+import { h, openPanel, toast } from './dom.js?v=451b6719';
+import { addActionUi } from './inbox.js?v=451b6719';
+import * as WSM from '../core/ws.js?v=451b6719';   // 设计47
+import { attrs as secAttrs } from '../core/posts.js?v=451b6719';
+import { isTraining } from '../core/training.js?v=451b6719';
+import { itemIcon, goBuyHtml, bindGoBuy } from './coupon.js?v=451b6719';   // 设计53 投资券
 
 const W = SK.SCFG.watch; const WSC = W.ws;
 const WS_wit = (s, id) => secAttrs(s, id).wit;
@@ -34,7 +34,7 @@ export function openOrderSheet(legs, title, onPlace) {
   const p = openPanel(title || '照她说的挂单'); const L = legs.map((x) => ({ ...x }));
   const draw = () => {
     p.body.innerHTML = `<div class="tr-gain">这几张连在一起：${L[0].kind === 'buy' ? '买进成交以后，止盈、止损才生效；一张成交，另一张自动撤' : '卖出成交以后，抄底那张才生效'}。价和股数都能改。</div>
-      ${L.map((x, i) => `<div class="lk-leg"><span class="${x.kind === 'buy' ? '' : TR.toneOf(x.px, L[0].kind === 'buy' ? L[0].px : ((game.state.mkt.hold[x.code] || {}).cost ?? null), x.kind)}">${TR.KIND[x.kind]}${x.role === 'out' ? '<small>（等前面成交）</small>' : ''}</span><input type="number" step="0.01" data-p="${i}" value="${x.px.toFixed(2)}"><span>元</span><input type="number" step="1" data-n="${i}" value="${x.n}"><span>股</span></div>${i === 0 ? `<div class="lk-pos">${LK.POS.map((q) => `<button class="btn sm" data-q="${q.k}">${x.kind === 'buy' ? q.name : q.sell}</button>`).join('')}</div>` : ''}`).join('')}
+      ${L.map((x, i) => `<div class="lk-leg"><span class="${x.kind === 'buy' ? '' : TR.toneOf(x.px, L[0].kind === 'buy' ? L[0].px : ((SK.myShares(game.state)[x.code] || {}).cost ?? null), x.kind)}">${TR.KIND[x.kind]}${x.role === 'out' ? '<small>（等前面成交）</small>' : ''}</span><input type="number" step="0.01" data-p="${i}" value="${x.px.toFixed(2)}"><span>元</span><input type="number" step="1" data-n="${i}" value="${x.n}"><span>股</span></div>${i === 0 ? `<div class="lk-pos">${LK.POS.map((q) => `<button class="btn sm" data-q="${q.k}">${x.kind === 'buy' ? q.name : q.sell}</button>`).join('')}</div>` : ''}`).join('')}
       <div class="tr-gain">约 ${fmtMoney(L[0].px * L[0].n)}${L[0].kind === 'buy' ? `（挂上就从个人现金扣 ${fmtMoney(TR.buyCost(game.state, L[0].code, L[0].px, L[0].n))}，现在 ${fmtMoney(TR.availCash(game.state))}）` : ''}</div>
       <button class="btn gold lk-go" style="width:100%">挂单</button>`;
     p.body.querySelectorAll('[data-p]').forEach((el) => (el.onchange = () => { L[+el.dataset.p].px = +el.value; }));
@@ -125,7 +125,7 @@ export function openWsMsg(msg) {
     if (d.kind === 'fall') {
       const have = TR.sellable(s, d.code);
       p.body.innerHTML = `${head(msg.from, titleOf(msg))}<div class="lk-look"><div class="lk-l1"><b>${SK.BY[d.code].name}</b><em class="down">要跌</em></div>
-        <div class="lk-l2"><span>现在卖 <b class="${TR.toneOf(d.X, (s.mkt.hold[d.code] || {}).cost ?? null, 'sl')}">${yuan(d.X)}</b>（1 分钟内卖掉）</span><span>不卖还要跌 ${Math.abs(d.g * 100).toFixed(1)}%</span><span>你手里能卖 ${have.toLocaleString()} 股</span></div>
+        <div class="lk-l2"><span>现在卖 <b class="${TR.toneOf(d.X, (SK.myShares(s)[d.code] || {}).cost ?? null, 'sl')}">${yuan(d.X)}</b>（1 分钟内卖掉）</span><span>不卖还要跌 ${Math.abs(d.g * 100).toFixed(1)}%</span><span>你手里能卖 ${have.toLocaleString()} 股</span></div>
         <div class="lk-pos">${LK.POS.map((q) => { const n = Math.floor(have * q.f); return `<button class="btn sm ${n >= 1 ? 'gold' : ''}" data-s="${q.k}" ${n >= 1 ? '' : 'disabled'}>卖${q.sell}<small>${n >= 1 ? `${n.toLocaleString()}股` : '没有能卖的'}</small></button>`; }).join('')}</div></div>
         <div class="ind-btns"><button class="btn lk-no">不用了</button></div>`;
       p.body.querySelectorAll('[data-s]').forEach((b) => (b.onclick = () => { const r = WSM.sellWs(s, msg, b.dataset.s, now()); if (!r.ok) { toast(r.why); return; } p.close(); done(`挂好了：${SK.BY[d.code].name} 现在卖 ¥${d.X} · ${r.n.toLocaleString()} 股`); }));

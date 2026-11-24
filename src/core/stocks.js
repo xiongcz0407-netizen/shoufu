@@ -1,26 +1,34 @@
 // 股票 + 投资经理（第 2-09 项，设计12、设计14 第二节 6、设计16 投资经理）
-// 30 只，每 30 秒一跳，一直开盘；跳数按服务器时间算（同一跳谁算都一样），离线回来一跳一跳补（最多 7 天）
+// 50 只（设计54），每 30 秒一跳，一直开盘；跳数按服务器时间算（同一跳谁算都一样），离线回来一跳一跳补（最多 7 天）
 // 每跳 ln P += β·M（大盘，牛 / 熊 / 震荡）+ B（板块）+ σ·ε + κ·(ln F − ln P) + 新闻跳空；随机数 = hash(名字, 跳数)，固定种子
 // 只能用个人现金买；佣金、过户费、卖出印花税、大单滑点；交割单进档案柜；分红按持有时间扣个税；持股 5% 举牌公告，30% 进度
 // 投资经理（秘书职位）：你划一笔钱 + 风格（稳健 / 平衡 / 进取）+ 止损线，按大盘走 + 她的超额（智慧）；新闻前一跳有概率提前给判断
-import CFG from '../config/stocks.json?v=6993e46b' with { type: 'json' };
-import { pay, receive } from './ledger.js?v=6993e46b';
-import { addContract } from './contracts.js?v=6993e46b';
-import { addAssetHook } from './assets.js?v=6993e46b';
-import { holder, isSec, attrs as secAttrs, efficiency, OUT } from './posts.js?v=6993e46b';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=6993e46b';
+import CFG from '../config/stocks.json?v=451b6719' with { type: 'json' };
+import { pay, receive } from './ledger.js?v=451b6719';
+import { addContract } from './contracts.js?v=451b6719';
+import { addAssetHook } from './assets.js?v=451b6719';
+import { holder, isSec, attrs as secAttrs, efficiency, OUT } from './posts.js?v=451b6719';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=451b6719';
 const YEAR_H = YEAR_MS / 3600e3; // 游戏一年 = 现实多少小时（V0.2.10：144）
-import { taxRec, payerOfPost } from './fiscal.js?v=6993e46b';
-import { profitMul } from './calib.js?v=6993e46b';
-import { TITLES } from '../config/titles.js?v=6993e46b';
+import { taxRec, payerOfPost } from './fiscal.js?v=451b6719';
+import { profitMul } from './calib.js?v=451b6719';
+import { TITLES } from '../config/titles.js?v=451b6719';
 
 export const SCFG = CFG;
 export const STOCKS = CFG.stocks;
 export const BY = Object.fromEntries(STOCKS.map((x) => [x.code, x]));
 for (const x of (CFG.ipo && CFG.ipo.list) || []) BY[x.code] = { ...x, ipo: true };   // 第 P-06 项：新股（上市以后才进 s.mkt.px、才跳）
-/** 现在在跳的全部股票：30 只 + 已经上市的新股（大盘指数只算 30 只） */
+/** 现在在跳的全部股票：50 只（设计54）+ 已经上市的新股（大盘指数只算这 50 只） */
 export const live = (m) => (m.ipoOn && m.ipoOn.length ? [...STOCKS, ...m.ipoOn.map((c) => BY[c])] : STOCKS);
 export const SECTORS = [...new Set(STOCKS.map((x) => x.sector))];
+/** 设计54：秘书（看盘 / 投资经理）看得到几只 = seeBase + 智慧 × seeK，最多 seeMax（50 只全看） */
+export const seeCount = (wit) => { const L = CFG.watch.look; return Math.min(L.seeMax, STOCKS.length, Math.floor(L.seeBase + Math.min(100, Math.max(0, wit)) * L.seeK + 1e-9)); };
+/** 设计54：老存档里没有的新股票按起始价补上（现价、合理价、走势），从这一跳开始跳 */
+export function fillNew(m) {
+  if (!m || !m.px) return 0; let n = 0;
+  for (const x of STOCKS) if (!(m.px[x.code] > 0)) { m.px[x.code] = x.price; if (!m.fv) m.fv = {}; m.fv[x.code] = x.price; if (m.hist) m.hist[x.code] = [x.price]; if (m.long) m.long[x.code] = [x.price]; n++; }
+  return n;
+}
 const M = CFG.model, N = CFG.news;
 const TICK = CFG.tickSec * 1000;
 export const tickOf = (t) => Math.floor(t / TICK);
@@ -45,7 +53,7 @@ export function mkt(s, t = Date.now()) {
   return s.mkt;
 }
 const cap0 = STOCKS.reduce((a, x) => a + x.price * x.shares, 0);
-/** 大盘指数：30 只按市值加权，起点 1000 */
+/** 大盘指数：50 只按市值加权（基数按起始市值），起点 1000 */
 export function index(s) { const m = s.mkt; return r2(STOCKS.reduce((a, x) => a + m.px[x.code] * x.shares, 0) / cap0 * 1000); }
 export const price = (s, code) => mkt(s).px[code];
 export const marketCap = (s, code) => price(s, code) * BY[code].shares * 1e8;
@@ -92,9 +100,24 @@ export function onBoard(m, code) { const B = band(m, code); const p = m.px[code]
 /** 今天的涨停：[{ code, at, limit, sealed, pulling }]（界面、看盘用） */
 export function luToday(m, tick = m.tick) { const L = m.lu && m.lu.key === dayOfTick(tick).key ? m.lu : null; return L ? L.act.map((p) => ({ ...p, pulling: tick >= p.at && !p.sealed })) : []; }
 export const isSealed = (m, code) => !!(m.lu && m.lu.act.some((p) => p.code === code && p.sealed));
+// ---------- 设计55 行情 3 秒刷新（只改显示，底层仍 30 秒一跳）----------
+const DSP = () => CFG.display;
+/** 这一跳里第几个小步（0～steps−1；0 = 刚跳完，显示真实价） */
+export const subOf = (m, t = Date.now()) => Math.max(0, Math.min(DSP().steps - 1, Math.floor((t - m.tick * TICK) / (DSP().subSec * 1000))));
+/** 显示价：这一跳真实价 × (1 + 每跳波动 × k × 标准正态)，按（股票 + 跳 + 小步）定种子；不看下一跳；夹在涨跌停之间；封板 / 在板上的不抖。只给界面用，买卖一律 price() */
+export function showPx(m, code, t = Date.now(), sub = null) {
+  const p = m.px[code]; if (!(p > 0)) return p; const k = sub == null ? subOf(m, t) : sub; if (k <= 0 || isSealed(m, code) || onBoard(m, code)) return p;
+  const x = BY[code]; let v = r2(p * (1 + M.sigma[(x && x.vol) || 'mid'] * DSP().k * hn('SUB' + code, m.tick * 16 + k)));
+  const B = band(m, code); if (B.up != null) v = Math.min(B.up, Math.max(B.dn, v)); return v > 0 ? v : p;
+}
+/** 显示的大盘指数（按显示价算） */
+export function showIndex(s, t = Date.now()) { const m = s.mkt; return r2(STOCKS.reduce((a, x) => a + showPx(m, x.code, t) * x.shares, 0) / cap0 * 1000); }
+/** 这一跳到现在的小步显示价（分时图最后一段；第 1～现在这一步） */
+export function subPath(m, code, t = Date.now()) { const n = subOf(m, t); const out = []; for (let k = 1; k <= n; k++) out.push(showPx(m, code, t, k)); return out; }
 
 /** 走一跳（纯计算，改 m） */
 export function step(m, tick) {
+  if (!(m.px[STOCKS[STOCKS.length - 1].code] > 0)) fillNew(m);   // 设计54：老存档补新股票
   if (tick >= m.regime.until) { const ks = Object.keys(M.regimes); const kind = ks[Math.floor(hu('R', tick) * ks.length)]; m.regime = { kind, until: tick + M.regimeTicks[0] + Math.floor(hu('RS', tick) * (M.regimeTicks[1] - M.regimeTicks[0])) }; }
   const mk = M.regimes[m.regime.kind] + M.marketSigma * hn('M', tick);
   const sec = {}; for (const sc of SECTORS) sec[sc] = M.sectorSigma * hn('S' + sc, tick);
@@ -244,13 +267,26 @@ export function stake(s, code) {
 }
 export const holdings = (s) => Object.entries(mkt(s).hold).map(([code, h]) => ({ code, ...h, value: r2(h.n * price(s, code)), pnl: r2(h.n * price(s, code) - h.n * h.cost) }));
 export const holdValue = (s) => holdings(s).reduce((a, h) => a + h.value, 0);
+/** V0.2.16「我的股票（含挂在卖单里的）」：{ code: { n, cost, at } }——持仓 m.hold + 卖单组 g.sh / 卖单 o.sh（联动组的出场单放组里，同一组只算一份），同一只合并、成本按股数加权、at 取最早。
+ *  规矩 18：数持仓、算持股市值一律用这个；只看能卖多少的用 trade.js sellable。身价 / 资产负债表另外加了挂单（orderValue），那里不要用这个 */
+export function myShares(s) {
+  const m = s.mkt; const out = {}; if (!m) return out;
+  const add = (code, x) => { if (!x || !(x.n > 0)) return; const o = out[code]; if (!o) { out[code] = { n: x.n, cost: x.cost || 0, at: x.at }; return; } o.cost = r2((o.cost * o.n + (x.cost || 0) * x.n) / (o.n + x.n)); o.n += x.n; if (x.at != null) o.at = o.at == null ? x.at : Math.min(o.at, x.at); };
+  for (const [code, h] of Object.entries(m.hold || {})) add(code, h);
+  const seen = new Set(); for (const o of m.orders || []) { const g = o.grp && m.grps ? m.grps[o.grp] : null; const box = g && o.role === 'out' ? g : o; if (seen.has(box) || !box.sh) continue; seen.add(box); add(o.code, box.sh); }
+  return out;
+}
+/** 我的股票一只一行（跟 holdings 一样：code n cost at value pnl；含卖单里的） */
+export const myHoldings = (s) => Object.entries(myShares(s)).map(([code, x]) => { const p = price(s, code); return { code, ...x, value: r2(x.n * p), pnl: r2(x.n * p - x.n * x.cost) }; });
+/** 我的股票按现价算的市值（含卖单里的；不含买单里的钱） */
+export const myShareValue = (s) => r2(myHoldings(s).reduce((a, h) => a + h.value, 0));
 
 /** 分红：每真实 1 小时按「年股息率 ÷ 游戏一年的小时数」发；个税按持有时间（游戏时间） */
 export function dividends(s, t) {
   const m = mkt(s, t); const D = CFG.dividend; const per = D.everyMin * 60e3;
   const n = Math.floor((t - m.divAt) / per); if (n <= 0) return [];
   m.divAt += n * per; const out = [];
-  for (const h of holdings(s)) {
+  for (const h of myHoldings(s)) {   // V0.2.16：挂在卖单里的股票也分红
     const x = BY[h.code]; if (!x.div) continue;
     const amt = r2(h.value * x.div * profitMul() / YEAR_H * n * (D.everyMin / 60)); if (amt < 0.01) continue;
     const held = t - h.at; const rate = held >= YEAR_MS ? 0 : held >= MONTH_MS ? D.taxMid : D.taxShort; const tax = r2(amt * rate);

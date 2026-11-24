@@ -3,14 +3,14 @@
 // 买卖点从真实走势里挑，所以一定成交、一定赚；到了买那一跳记「买进」、卖那一跳记「卖出」，都卖完结算：赚的 10% 是她的提成（照 payerOfPost 谁付；外包也收「投顾服务费」）。
 // 她的账在 s.mkt.mgr：不进玩家持仓、不用条件单、不动玩家现金、不改股价。第二版：她最多管 SK.mgrCap（下一个称号门槛 × 10%），每轮卖完超出的转回个人现金。
 // 每一步只看「这一跳」和固定种子（种子带存档的 gid，每局不一样）：离线补算一跳一跳走过来，跟在线一模一样。
-import * as SK from './stocks.js?v=6993e46b';
-import { bestRun, priceRow } from './look.js?v=6993e46b';
-import { addMsg } from './inbox.js?v=6993e46b';
-import { pay, receive } from './ledger.js?v=6993e46b';
-import { addUpHook } from './upnote.js?v=6993e46b';
-import { payerOfPost } from './fiscal.js?v=6993e46b';
-import { isSec } from './posts.js?v=6993e46b';
-import { SEC_BY_ID } from '../config/secretaries.js?v=6993e46b';
+import * as SK from './stocks.js?v=451b6719';
+import { bestRun, priceRow } from './look.js?v=451b6719';
+import { addMsg } from './inbox.js?v=451b6719';
+import { pay, receive } from './ledger.js?v=451b6719';
+import { addUpHook } from './upnote.js?v=451b6719';
+import { payerOfPost } from './fiscal.js?v=451b6719';
+import { isSec } from './posts.js?v=451b6719';
+import { SEC_BY_ID } from '../config/secretaries.js?v=451b6719';
 
 const C = SK.SCFG; const G = C.mgr; const K = C.watch.look; const LU = C.watch.lu; const F = C.fees;
 const TICK = C.tickSec * 1000;
@@ -28,7 +28,7 @@ export function nextRound(t) {
 }
 const buyFee = (gross) => r2(Math.max(F.minCommission, gross * F.commission) + gross * F.transfer);
 const sellFee = (gross) => r2(Math.max(F.minCommission, gross * F.commission) + gross * F.transfer + gross * F.stamp);
-export const seeOf = (wit) => Math.min(30, Math.floor(K.seeBase + Math.min(100, wit) / K.seeDiv));
+export const seeOf = (wit) => SK.seeCount(wit);   // 设计54
 export const captureOf = (wit) => K.cBase + K.cK * Math.min(100, Math.max(0, wit)) / 100;
 
 /** 挑这一轮的股票（纯计算）：看得到 5 + 智慧/4 只（种子打乱）；窗口里会封涨停的排第一；其余按赚头；最多 3 只。返回 [{ code, X, Y, g, lu, bi, si, bp, sp }]（bi / si 第几跳买 / 卖，bp / sp 成交价） */
