@@ -1,38 +1,38 @@
 // 「秘书」页签（设计18 第四节 2）：上面一条培训位、两列卡片（没来的剪影 + 条件）；
 // 秘书详情全屏：上半立绘、下半面板（资料 | 培养 | 衣柜 | 职位工资），底部动作条（互动 · 送礼 · 约会 · 陪着我）
-import * as LV from '../core/love.js?v=4306ebaa';   // 设计56
-import { tokenCard, jewelBoxHtml } from './gift.js?v=4306ebaa';
-import * as CP from '../core/capital.js?v=4306ebaa';
-import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=4306ebaa';
-import { COURSE_BY_ID } from '../config/courses.js?v=4306ebaa';
-import { outfitsOf, priceOf } from '../config/outfits.js?v=4306ebaa';
-import { IND_BY_ID } from '../config/industries.js?v=4306ebaa';
-import * as S from '../core/secretary.js?v=4306ebaa';
-import * as T from '../core/training.js?v=4306ebaa';
-import { isScouting } from '../core/busy.js?v=4306ebaa'; // V2-08
-import * as STY from '../core/styles.js?v=4306ebaa'; // 设计36 第 4 条：衣柜写衣服名字 + 款式
-import * as O from '../core/outfits.js?v=4306ebaa';
-import * as A from '../core/affection.js?v=4306ebaa';
-import { query } from '../core/ledger.js?v=4306ebaa';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=4306ebaa';
-import { asset } from '../platform/assets.js?v=4306ebaa';
-import { now } from '../core/clock.js?v=4306ebaa';
-import { game } from '../game.js?v=4306ebaa';
-import { h, toast, liveRender } from './dom.js?v=4306ebaa';
-import { openFull, closeTab, goHome } from './shell.js?v=4306ebaa';
-import { switchSecretary, dressUp } from './main-screen.js?v=4306ebaa';
-import { pickSec, renderCourses } from './training.js?v=4306ebaa';
-import { openMall } from './mall.js?v=4306ebaa';
-import { openDate } from './date.js?v=4306ebaa';
-import { createPortrait } from './portrait.js?v=4306ebaa';
-import { openSecFull } from './secfull.js?v=4306ebaa';   // 设计66 全屏看她
-import { bgKeyFor } from './main-screen.js?v=4306ebaa';
-import * as PO from '../core/posts.js?v=4306ebaa';
-import { openTab } from './shell.js?v=4306ebaa';
-import { addFavor } from '../core/affection.js?v=4306ebaa';
-import { gameDate, dateText } from '../core/gametime.js?v=4306ebaa'; // 送礼明细的日期
-import * as COUP from '../core/coupon.js?v=4306ebaa'; // 设计39 再聊 5 次（开发2）
-import { openWallet } from './coupon.js?v=4306ebaa'; // 设计39 去卡包买互动券（开发2）
+import * as LV from '../core/love.js?v=ab0bf094';   // 设计56
+import { tokenCard, jewelBoxHtml } from './gift.js?v=ab0bf094';
+import * as CP from '../core/capital.js?v=ab0bf094';
+import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=ab0bf094';
+import { COURSE_BY_ID } from '../config/courses.js?v=ab0bf094';
+import { outfitsOf, priceOf } from '../config/outfits.js?v=ab0bf094';
+import { IND_BY_ID } from '../config/industries.js?v=ab0bf094';
+import * as S from '../core/secretary.js?v=ab0bf094';
+import * as T from '../core/training.js?v=ab0bf094';
+import { isScouting } from '../core/busy.js?v=ab0bf094'; // V2-08
+import * as STY from '../core/styles.js?v=ab0bf094'; // 设计36 第 4 条：衣柜写衣服名字 + 款式
+import * as O from '../core/outfits.js?v=ab0bf094';
+import * as A from '../core/affection.js?v=ab0bf094';
+import { query } from '../core/ledger.js?v=ab0bf094';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=ab0bf094';
+import { asset } from '../platform/assets.js?v=ab0bf094';
+import { now } from '../core/clock.js?v=ab0bf094';
+import { game } from '../game.js?v=ab0bf094';
+import { h, toast, liveRender } from './dom.js?v=ab0bf094';
+import { openFull, closeTab, goHome } from './shell.js?v=ab0bf094';
+import { switchSecretary, dressUp } from './main-screen.js?v=ab0bf094';
+import { pickSec, renderCourses } from './training.js?v=ab0bf094';
+import { openMall } from './mall.js?v=ab0bf094';
+import { openDate } from './date.js?v=ab0bf094';
+import { createPortrait } from './portrait.js?v=ab0bf094';
+import { openSecFull } from './secfull.js?v=ab0bf094';   // 设计66 全屏看她
+import { bgKeyFor } from './main-screen.js?v=ab0bf094';
+import * as PO from '../core/posts.js?v=ab0bf094';
+import { openTab } from './shell.js?v=ab0bf094';
+import { addFavor } from '../core/affection.js?v=ab0bf094';
+import { gameDate, dateText } from '../core/gametime.js?v=ab0bf094'; // 送礼明细的日期
+import * as COUP from '../core/coupon.js?v=ab0bf094'; // 设计39 再聊 5 次（开发2）
+import { openWallet } from './coupon.js?v=ab0bf094'; // 设计39 去卡包买互动券（开发2）
 
 const BEST_NAME = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 /** 她现在的职位名：没有返回 '' */
@@ -189,10 +189,12 @@ function drawTrain(el, id) {
 
 function drawWardrobe(el, id, show, portrait) {
   const s = game.state; const r = s.secs[id];
-  el.appendChild(h('div', 'tr-gain', '点一套让她换上；没买的去商场买（个人现金）'));
+  // 设计70：衣柜只放买了的；顶上「已有 N / M 套」，最后一格去商场（买齐了不放）
+  const all = outfitsOf(id); const mine = all.filter((o) => O.owns(s, id, o.id));
+  el.appendChild(h('div', 'tr-gain', `已有 <b>${mine.length} / ${all.length}</b> 套，点一套让她换上`));
   const grid = h('div', 'cloth-grid sd-cloth');
-  for (const o of outfitsOf(id)) {   // 设计66：按人几套
-    const own = O.owns(s, id, o.id); const ok = O.canWear(s, id, o.id); const on = r.outfit === o.id;
+  for (const o of mine) {   // 设计66：按人几套
+    const own = true; const ok = O.canWear(s, id, o.id); const on = r.outfit === o.id;
     const card = h('button', 'cloth' + (own && ok ? '' : ' dim') + (on ? ' on' : ''), `<img src="${asset(`assets/sec/${id}/${o.id}.webp`)}" alt="">
       <div class="cloth-meta">${STY.nameOf(id, o.id)}${STY.styleOf(id, o.id) ? `<em class="cloth-st">${STY.styleOf(id, o.id)}</em>` : ''}${on ? ' · 穿着' : ''}</div>${!own ? `<div class="cloth-need">🔒 ${fmtMoney(priceOf(id, o.id))}</div>` : ok ? '' : `<div class="cloth-need">${O.needText(o.id)}</div>`}`);
     card.onclick = () => {
@@ -204,8 +206,11 @@ function drawWardrobe(el, id, show, portrait) {
     };
     grid.appendChild(card);
   }
+  if (mine.length < all.length) grid.appendChild(mallCell(() => openMall(id, 'clothes')));
   el.appendChild(grid);
 }
+/** 设计70：衣柜最后一格「去商场买衣服 ›」（虚线框，跟衣服卡一样大） */
+export function mallCell(go) { const b = h('button', 'cloth cloth-mall', '<div class="cloth-mall-in">去商场<br>买衣服 ›</div>'); b.onclick = go; return b; }
 
 function drawPost(el, id) {
   const s = game.state; const key = PO.postOfSec(s, id); const kind = key ? PO.kindOf(key) : null;

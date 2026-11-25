@@ -1,11 +1,11 @@
 // V0.2.3 资金链预警（设计35 第二节 3）：首页红条 + 财务总监急报，4 个选项直达
-import * as CF from '../core/cashflow.js?v=4306ebaa';
-import { available } from '../core/accrual.js?v=4306ebaa';
-import { fmtMoney } from '../core/format.js?v=4306ebaa';
-import { game } from '../game.js?v=4306ebaa';
-import { openPanel, h } from './dom.js?v=4306ebaa';
-import { openTab } from './shell.js?v=4306ebaa';
-import * as INB from './inbox.js?v=4306ebaa';
+import * as CF from '../core/cashflow.js?v=ab0bf094';
+import { available } from '../core/accrual.js?v=ab0bf094';
+import { fmtMoney } from '../core/format.js?v=ab0bf094';
+import { game } from '../game.js?v=ab0bf094';
+import { openPanel, h } from './dom.js?v=ab0bf094';
+import { openTab } from './shell.js?v=ab0bf094';
+import * as INB from './inbox.js?v=ab0bf094';
 
 /** 直达：注资 → 资金页签；经营贷 → 银行；卖股票 / 资产 → 投资；裁员 / 关店 → 人事 */
 export function goFund(key) {

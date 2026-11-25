@@ -1,13 +1,13 @@
 // 香港和海外房产（第 2-14 项，设计20 第五节、设计19 第三节）
 // 设计30（11-22）：取消境外账户、个人购汇、ODI；游戏里只有一种钱。称号到「老板」就能买，跟国内一样用个人现金；
 // 各地对外国买家的税费照旧（按游戏里的钱算）；新加坡、澳洲、瑞士的当地审批照旧。旧档的境外余额在存档迁移里转回个人现金（core/migrate.js）
-import CFG from '../config/offshore.json?v=4306ebaa' with { type: 'json' };
-import { pay, accrue } from './ledger.js?v=4306ebaa';
-import { addContract } from './contracts.js?v=4306ebaa';
-import { ITEM, recalc, freeCash } from './assets.js?v=4306ebaa';
-import { addAttrHook, bossAttrs } from './boss.js?v=4306ebaa';
-import { YEAR_MS } from './gametime.js?v=4306ebaa';
-import { taxRec } from './fiscal.js?v=4306ebaa';
+import CFG from '../config/offshore.json?v=ab0bf094' with { type: 'json' };
+import { pay, accrue } from './ledger.js?v=ab0bf094';
+import { addContract } from './contracts.js?v=ab0bf094';
+import { ITEM, recalc, freeCash } from './assets.js?v=ab0bf094';
+import { addAttrHook, bossAttrs } from './boss.js?v=ab0bf094';
+import { YEAR_MS } from './gametime.js?v=ab0bf094';
+import { taxRec } from './fiscal.js?v=ab0bf094';
 
 export const OCFG = CFG;
 const r2 = (v) => Math.round(v * 100) / 100;

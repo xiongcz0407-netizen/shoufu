@@ -2,16 +2,16 @@
 // 每一项：attrs 看哪几项（多项取平均）、name 名字、post 在什么职位才生效（null = 任何时候都算）、need 没生效时写的「当上 X 后」、
 // val(A, ctx) → 显示的值（A = 假设的属性，ctx = { eff 职位效率 }）。升级框拿「前 → 后」，培养页「?」列整张表。
 // 改了游戏里的公式，这里要跟着改（test/secfx.test.mjs 拿真函数对过几项）。
-import { attrs as secAttrs, postOfSec, kindOf, efficiency } from './posts.js?v=4306ebaa';
-import { MANAGE_CFG } from './manage.js?v=4306ebaa';
-import { WAR } from './war.js?v=4306ebaa';
-import { AGENDA_CFG, scheduler } from './agenda.js?v=4306ebaa';
-import { TECH_CFG } from './tech.js?v=4306ebaa';
-import P from '../config/posts.json?v=4306ebaa' with { type: 'json' };
-import LX from '../config/luxury.json?v=4306ebaa' with { type: 'json' };
-import AU from '../config/auction.json?v=4306ebaa' with { type: 'json' };
-import NG from '../config/negotiate.json?v=4306ebaa' with { type: 'json' };
-import { SCFG as STK_CFG, seeCount as seeN } from './stocks.js?v=4306ebaa';   // 设计54 看得到几只
+import { attrs as secAttrs, postOfSec, kindOf, efficiency } from './posts.js?v=ab0bf094';
+import { MANAGE_CFG } from './manage.js?v=ab0bf094';
+import { WAR } from './war.js?v=ab0bf094';
+import { AGENDA_CFG, scheduler } from './agenda.js?v=ab0bf094';
+import { TECH_CFG } from './tech.js?v=ab0bf094';
+import P from '../config/posts.json?v=ab0bf094' with { type: 'json' };
+import LX from '../config/luxury.json?v=ab0bf094' with { type: 'json' };
+import AU from '../config/auction.json?v=ab0bf094' with { type: 'json' };
+import NG from '../config/negotiate.json?v=ab0bf094' with { type: 'json' };
+import { SCFG as STK_CFG, seeCount as seeN } from './stocks.js?v=ab0bf094';   // 设计54 看得到几只
 
 export const ATTR_NAME = { charm: '魅力', wit: '智慧', social: '交际', manage: '管理' };
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));

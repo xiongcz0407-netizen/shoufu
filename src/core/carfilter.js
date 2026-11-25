@@ -1,6 +1,6 @@
 // 设计27：车行 / 车库的分类和筛选（纯函数，界面在 ui/assets.js）
 // 类型 body：sedan 轿车 / suv SUV / sports 跑车 / hyper 超跑；品牌按国家分组；渠道 spot / order / invite / auction / custom
-import * as AS from './assets.js?v=4306ebaa';
+import * as AS from './assets.js?v=ab0bf094';
 
 /** 车行里的全部车（带 carmeta 的限量台数和渠道） */
 export const allCars = () => Object.values(AS.ITEM).filter((it) => it.kind === 'car');

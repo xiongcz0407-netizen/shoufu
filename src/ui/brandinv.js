@@ -1,14 +1,14 @@
 // 设计35 第九、十节（开发2）：品牌邀请 / 订单到了 / 定制接受了 = 要你签字的事，不过期。
 // 一直挂在消息「邀请」和「待处理」里，直到签了（买了）或者点「婉拒」；同一款只留一张。
-import * as I from '../core/inbox.js?v=4306ebaa';
-import * as AS from '../core/assets.js?v=4306ebaa';
-import * as LX from '../core/luxury.js?v=4306ebaa';
-import * as YT from '../core/yacht.js?v=4306ebaa';
-import { fmtMoney } from '../core/format.js?v=4306ebaa';
-import { now } from '../core/clock.js?v=4306ebaa';
-import { game } from '../game.js?v=4306ebaa';
-import { toast } from './dom.js?v=4306ebaa';
-import { addActionUi } from './inbox.js?v=4306ebaa';
+import * as I from '../core/inbox.js?v=ab0bf094';
+import * as AS from '../core/assets.js?v=ab0bf094';
+import * as LX from '../core/luxury.js?v=ab0bf094';
+import * as YT from '../core/yacht.js?v=ab0bf094';
+import { fmtMoney } from '../core/format.js?v=ab0bf094';
+import { now } from '../core/clock.js?v=ab0bf094';
+import { game } from '../game.js?v=ab0bf094';
+import { toast } from './dom.js?v=ab0bf094';
+import { addActionUi } from './inbox.js?v=ab0bf094';
 
 // src：car（车 / 飞机，s.orders）· lux（表 / 西装 / 包，luxury 的 orders）· yacht（s.yachtOrders）
 const SRC = {
@@ -42,10 +42,10 @@ I.onAction('brand_invite', (s, m, a) => { if (a !== 'reject') return false; cons
 addActionUi((s, m, a) => {
   if (m.type !== 'brand_invite' || a !== 'go') return false;
   I.markRead(s, m.id); const { src, id } = m.data; const x = SRC[src].item(id);
-  if (src === 'car') import('./assets.js?v=4306ebaa').then((u) => u.openShop(x.kind, () => game.changed()));
-  else if (src === 'yacht') import('./yacht.js?v=4306ebaa').then((u) => u.openYachtShop(() => game.changed()));
+  if (src === 'car') import('./assets.js?v=ab0bf094').then((u) => u.openShop(x.kind, () => game.changed()));
+  else if (src === 'yacht') import('./yacht.js?v=ab0bf094').then((u) => u.openYachtShop(() => game.changed()));
   else if (x.kind === 'bag') toast('名包不用排队了：去「商场 → 奢侈品」直接买了送她', 2600);   // 设计56
-  else import('./luxury.js?v=4306ebaa').then((u) => u.openLuxShop(x.kind, () => game.changed()));
+  else import('./luxury.js?v=ab0bf094').then((u) => u.openLuxShop(x.kind, () => game.changed()));
   return true;
 });
 /** 签了 / 撤了：对应的邀请消息关掉（不留在待处理） */

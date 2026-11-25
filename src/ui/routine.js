@@ -1,27 +1,27 @@
 // 首页「今日日常」（设计39 第六节，开发2）：今天还剩什么，做完划掉，点一项直接跳过去
 // 开发1 挂钩：setRoutineHooks({ actions(s, t) → '便利店 4 个生效中、餐饮 2 个已到期' })
-import * as LV from '../core/love.js?v=4306ebaa';   // 设计56
-import * as DL from '../core/daily.js?v=4306ebaa';
-import * as MG from '../core/manage.js?v=4306ebaa';
-import * as CP from '../core/coupon.js?v=4306ebaa';
-import * as A2 from '../core/affection.js?v=4306ebaa';
-import * as I from '../core/inbox.js?v=4306ebaa';
-import * as TR from '../core/trade.js?v=4306ebaa';
-import * as SK from '../core/stocks.js?v=4306ebaa';
-import * as WSM from '../core/ws.js?v=4306ebaa'; // 设计47 看盘改成时间段
+import * as LV from '../core/love.js?v=ab0bf094';   // 设计56
+import * as DL from '../core/daily.js?v=ab0bf094';
+import * as MG from '../core/manage.js?v=ab0bf094';
+import * as CP from '../core/coupon.js?v=ab0bf094';
+import * as A2 from '../core/affection.js?v=ab0bf094';
+import * as I from '../core/inbox.js?v=ab0bf094';
+import * as TR from '../core/trade.js?v=ab0bf094';
+import * as SK from '../core/stocks.js?v=ab0bf094';
+import * as WSM from '../core/ws.js?v=ab0bf094'; // 设计47 看盘改成时间段
 const wsLeft = (ms) => { const m = Math.max(0, Math.round(ms / 60e3)); return `${Math.floor(Math.round(ms / 60e3) * 60e3 / TR.DAY + 1e-9)} 天（${m >= 60 ? `${Math.floor(m / 60)} 小时 ${m % 60} 分` : `${m} 分钟`}）`; };
-import { todayCount } from '../core/bizevents.js?v=4306ebaa';
-import { talksLeft, dayKey, DAILY_TALKS } from '../core/affection.js?v=4306ebaa';
-import { SEC_BY_ID } from '../config/secretaries.js?v=4306ebaa';
-import { now } from '../core/clock.js?v=4306ebaa';
-import { game } from '../game.js?v=4306ebaa';
-import { h, openPanel } from './dom.js?v=4306ebaa';
-import { openDaily } from './daily.js?v=4306ebaa';
-import { openInbox } from './inbox.js?v=4306ebaa';
-import { asset, hasAsset } from '../platform/assets.js?v=4306ebaa';
-import { openWallet, couponIcon, itemIcon, walletIcon } from './coupon.js?v=4306ebaa';
-import { openDetail } from './secretary.js?v=4306ebaa';
-import { openTab } from './shell.js?v=4306ebaa';
+import { todayCount } from '../core/bizevents.js?v=ab0bf094';
+import { talksLeft, dayKey, DAILY_TALKS } from '../core/affection.js?v=ab0bf094';
+import { SEC_BY_ID } from '../config/secretaries.js?v=ab0bf094';
+import { now } from '../core/clock.js?v=ab0bf094';
+import { game } from '../game.js?v=ab0bf094';
+import { h, openPanel } from './dom.js?v=ab0bf094';
+import { openDaily } from './daily.js?v=ab0bf094';
+import { openInbox } from './inbox.js?v=ab0bf094';
+import { asset, hasAsset } from '../platform/assets.js?v=ab0bf094';
+import { openWallet, couponIcon, itemIcon, walletIcon } from './coupon.js?v=ab0bf094';
+import { openDetail } from './secretary.js?v=ab0bf094';
+import { openTab } from './shell.js?v=ab0bf094';
 
 const H = { actions: null };
 export const setRoutineHooks = (o) => Object.assign(H, o);
@@ -29,7 +29,7 @@ export const setRoutineHooks = (o) => Object.assign(H, o);
 /** 今天的清单：[{ key, name, text, done, go }] */
 export function routine(s, t = now()) {
   const out = []; const si = DL.signInfo(s, t);
-  for (const id of LV.birthdaysOn(s, t)) out.push({ key: 'bday_' + id, name: `给${SEC_BY_ID[id].name}过生日`, text: LV.giftedToday(s, id, t) ? '✓ 送过了' : '🎂 今天送礼 ×3', done: LV.giftedToday(s, id, t), go: () => import('./mall.js?v=4306ebaa').then((u) => u.openMall(id, 'gift')) });   // 设计56 秘书生日
+  for (const id of LV.birthdaysOn(s, t)) out.push({ key: 'bday_' + id, name: `给${SEC_BY_ID[id].name}过生日`, text: LV.giftedToday(s, id, t) ? '✓ 送过了' : '🎂 今天送礼 ×3', done: LV.giftedToday(s, id, t), go: () => import('./mall.js?v=ab0bf094').then((u) => u.openMall(id, 'gift')) });   // 设计56 秘书生日
   out.push({ key: 'sign', name: '签到', text: si.signed ? '✓' : `第 ${si.day} 天`, done: si.signed, go: openDaily });
   const ts = DL.tasksFor(s); const tk = s.daily && s.daily.day === dayKey(t) ? s.daily.tasks || {} : {}; const claimed = ts.filter((x) => tk[x.id]).length;
   out.push({ key: 'tasks', name: '每日任务', text: `${claimed}/${ts.length}`, done: ts.length > 0 && claimed >= ts.length, go: openDaily });
@@ -42,7 +42,7 @@ export function routine(s, t = now()) {
   const secs = Object.keys(s.secs || {});
   const dated = secs.filter((id) => (A2.daily(s, t).dates || {})[id]);
   out.push({ key: 'date', name: '约会', text: `今天约了 ${dated.length} / ${secs.length} 人`, done: dated.length >= secs.length, go: () => openDetail(secs.find((id) => !dated.includes(id)) || s.current, 'info') });
-  if (s.mkt) { const w = WSM.ws(s, t); const d = (s.mkt.wsLast && dayKey(s.mkt.wsLast.at) === dayKey(t)) || (w && dayKey(w.start) === dayKey(t)); out.push({ key: 'look', name: '看盘', text: w ? `${SEC_BY_ID[w.who] ? SEC_BY_ID[w.who].name : ''}看盘中 · 还剩 ${wsLeft(w.end - t)}` : `点一下让秘书盯 ${SK.SCFG.watch.ws.hours} 小时（${SK.SCFG.watch.look.energy} 精力）`, done: !!(w || d), go: () => (w ? openTab('wealth', 'invest') : import('./look.js?v=4306ebaa').then((u) => u.pickAndStart())) }); } // 设计47：看盘 = 一个时间段；设计63：看盘中点了去股票页（不再「现在看一眼」）
+  if (s.mkt) { const w = WSM.ws(s, t); const d = (s.mkt.wsLast && dayKey(s.mkt.wsLast.at) === dayKey(t)) || (w && dayKey(w.start) === dayKey(t)); out.push({ key: 'look', name: '看盘', text: w ? `${SEC_BY_ID[w.who] ? SEC_BY_ID[w.who].name : ''}看盘中 · 还剩 ${wsLeft(w.end - t)}` : `点一下让秘书盯 ${SK.SCFG.watch.ws.hours} 小时（${SK.SCFG.watch.look.energy} 精力）`, done: !!(w || d), go: () => (w ? openTab('wealth', 'invest') : import('./look.js?v=ab0bf094').then((u) => u.pickAndStart())) }); } // 设计47：看盘 = 一个时间段；设计63：看盘中点了去股票页（不再「现在看一眼」）
   out.push({ key: 'talk', name: '互动', text: secs.map((id) => `${SEC_BY_ID[id].name} ${DAILY_TALKS - Math.min(DAILY_TALKS, talksLeft(s, id, t))}/${DAILY_TALKS}`).join('、'), done: secs.every((id) => talksLeft(s, id, t) <= 0), go: () => openDetail(secs.find((id) => talksLeft(s, id, t) > 0) || s.current, 'info') });
   return out;
 }

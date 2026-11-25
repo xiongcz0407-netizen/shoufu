@@ -1,15 +1,15 @@
 // 设计56 商场「礼物」「奢侈品」两页（秘书详情「送礼」直达）：礼物只加好感（价钱 ÷ 500），奢侈品只加爱慕（价钱 ÷ 1 万）；走个人现金、出发票
 // 卡片写实际能加多少（到门口 / 要信物 / 好感已满写清楚）；一点都加不上还点送 → 游戏自己的确认框；奢侈品页最上面一栏「定情信物」
-import { SEC_BY_ID } from '../config/secretaries.js?v=4306ebaa';
-import * as A from '../core/affection.js?v=4306ebaa';
-import * as LV from '../core/love.js?v=4306ebaa';
-import { fmtMoney } from '../core/format.js?v=4306ebaa';
-import { asset, hasAsset } from '../platform/assets.js?v=4306ebaa';
-import { now } from '../core/clock.js?v=4306ebaa';
-import { game } from '../game.js?v=4306ebaa';
-import { h, openPanel, toast } from './dom.js?v=4306ebaa';
-import { say } from './main-screen.js?v=4306ebaa';
-import { confirmBox } from './confirm.js?v=4306ebaa';
+import { SEC_BY_ID } from '../config/secretaries.js?v=ab0bf094';
+import * as A from '../core/affection.js?v=ab0bf094';
+import * as LV from '../core/love.js?v=ab0bf094';
+import { fmtMoney } from '../core/format.js?v=ab0bf094';
+import { asset, hasAsset } from '../platform/assets.js?v=ab0bf094';
+import { now } from '../core/clock.js?v=ab0bf094';
+import { game } from '../game.js?v=ab0bf094';
+import { h, openPanel, toast } from './dom.js?v=ab0bf094';
+import { say } from './main-screen.js?v=ab0bf094';
+import { confirmBox } from './confirm.js?v=ab0bf094';
 
 const num = (v) => (Math.round(v * 100) / 100).toString();
 const pic = (img, name, cls = '') => (hasAsset(img) ? `<img class="${cls}" src="${asset(img)}" alt="">` : `<div class="gift-ph ${cls}">${name}</div>`);

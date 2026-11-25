@@ -1198,3 +1198,6 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 .ag-item .btn small{display:block;font-size:10px;opacity:.85;font-weight:400}
 .ag-away{color:#9fd0ff}
 .ag-item .btn.gold small{color:#5a3a0e;opacity:1}
+/* 设计70：衣柜最后一格「去商场买衣服 ›」 */
+.cloth.cloth-mall { border-style: dashed; border-color: #5a6c8c; background: transparent; display: flex; align-items: center; justify-content: center; padding: 4px; color: var(--gold); font-size: 13px; line-height: 1.5; }
+.cloth-mall-in { aspect-ratio: 2/3; width: 100%; display: flex; align-items: center; justify-content: center; }

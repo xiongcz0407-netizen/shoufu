@@ -1,7 +1,7 @@
 // 剧情播放：全屏、立绘淡入、点一下下一句；多段排队
-import { SEC_BY_ID } from '../config/secretaries.js?v=4306ebaa';
-import { h } from './dom.js?v=4306ebaa';
-import { storyPortrait } from './portrait.js?v=4306ebaa';   // 设计66：立绘跟主页同一个 layout
+import { SEC_BY_ID } from '../config/secretaries.js?v=ab0bf094';
+import { h } from './dom.js?v=ab0bf094';
+import { storyPortrait } from './portrait.js?v=ab0bf094';   // 设计66：立绘跟主页同一个 layout
 
 const queue = [];
 let playing = false;

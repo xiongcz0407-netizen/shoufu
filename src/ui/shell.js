@@ -1,8 +1,8 @@
 // 界面框架（设计18）：首页层 + 页面层叠加；底部 5 页签；二级分段；记住上次分段；逐步开放和锁；红点
-import { asset, hasAsset } from '../platform/assets.js?v=4306ebaa';
-import { onTap } from '../platform/input.js?v=4306ebaa';
-import { game } from '../game.js?v=4306ebaa';
-import { h, toast } from './dom.js?v=4306ebaa';
+import { asset, hasAsset } from '../platform/assets.js?v=ab0bf094';
+import { onTap } from '../platform/input.js?v=ab0bf094';
+import { game } from '../game.js?v=ab0bf094';
+import { h, toast } from './dom.js?v=ab0bf094';
 
 export const TABS = [
   { key: 'company', name: '公司', icon: 'icon_industry' },

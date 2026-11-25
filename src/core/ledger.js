@@ -31,7 +31,7 @@ export const CATS = {
   transfer_in: ['转入', 'personal'], transfer_out: ['转出', 'personal'], // 设计62：个人 ↔ 投资账户转账（两头各记一笔，wallet 写明是哪个账户）
 };
 export const KEEP_GAME_YEARS = 3;
-import BANKCFG from '../config/bank.json?v=4306ebaa' with { type: 'json' };
+import BANKCFG from '../config/bank.json?v=ab0bf094' with { type: 'json' };
 const USE_CATS = BANKCFG.useCats;
 
 const bal = (s, w) => (w === 'company' ? s.company : w === 'offshore' ? (s.offshore || 0) : w === 'invest' ? (s.invest || 0) : s.cash);

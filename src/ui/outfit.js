@@ -1,15 +1,15 @@
 // 服装店（按秘书分页）和衣柜；换装出场
-import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=4306ebaa';
-import { outfitsOf, priceOf } from '../config/outfits.js?v=4306ebaa';
-import { LINES } from '../config/lines.js?v=4306ebaa';
-import * as STY from '../core/styles.js?v=4306ebaa'; // V3-05 衣服名字和款式
-import * as O from '../core/outfits.js?v=4306ebaa';
-import { fmtMoney } from '../core/format.js?v=4306ebaa';
-import { asset } from '../platform/assets.js?v=4306ebaa';
-import { game } from '../game.js?v=4306ebaa';
-import { now } from '../core/clock.js?v=4306ebaa';
-import { h, openPanel, toast } from './dom.js?v=4306ebaa';
-import { say, dressUp } from './main-screen.js?v=4306ebaa';
+import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=ab0bf094';
+import { outfitsOf, priceOf } from '../config/outfits.js?v=ab0bf094';
+import { LINES } from '../config/lines.js?v=ab0bf094';
+import * as STY from '../core/styles.js?v=ab0bf094'; // V3-05 衣服名字和款式
+import * as O from '../core/outfits.js?v=ab0bf094';
+import { fmtMoney } from '../core/format.js?v=ab0bf094';
+import { asset } from '../platform/assets.js?v=ab0bf094';
+import { game } from '../game.js?v=ab0bf094';
+import { now } from '../core/clock.js?v=ab0bf094';
+import { h, openPanel, toast } from './dom.js?v=ab0bf094';
+import { say, dressUp } from './main-screen.js?v=ab0bf094';
 
 export function openShop(secId, host) {
   const s = game.state;
@@ -65,16 +65,14 @@ export function openWardrobe(id) {
   const s = game.state;
   const p = openPanel(`${SEC_BY_ID[id].name} 的衣柜`);
   const grid = h('div', 'cloth-grid');
-  for (const o of outfitsOf(id)) {
-    if (!O.owns(s, id, o.id)) continue;
+  const all = outfitsOf(id); const mine = all.filter((o) => O.owns(s, id, o.id));   // 设计70：只放买了的
+  for (const o of mine) {
     const ok = O.canWear(s, id, o.id);
     const card = h('div', 'cloth' + (ok ? '' : ' dim') + (s.secs[id].outfit === o.id ? ' on' : ''), `<img src="${asset(`assets/sec/${id}/${o.id}.webp`)}" alt="">
       <div class="cloth-meta">${STY.nameOf(id, o.id)}${STY.styleOf(id, o.id) ? `<em class="cloth-st">${STY.styleOf(id, o.id)}</em>` : ''}${s.secs[id].outfit === o.id ? ' · 穿着' : ''}</div>${ok ? '' : `<div class="cloth-need">${O.needText(o.id)}</div>`}`);
-    if (ok) card.onclick = () => { O.chooseOutfit(s, id, o.id); p.close(); if (id === s.current) dressUp(id, o.id); game.changed(); game.save(); };
+    card.onclick = ok ? () => { O.chooseOutfit(s, id, o.id); p.close(); if (id === s.current) dressUp(id, o.id); game.changed(); game.save(); } : () => toast(O.needText(o.id));
     grid.appendChild(card);
   }
-  const shop = h('button', 'btn', '去商场买衣服');
-  shop.style.marginTop = '10px'; shop.style.width = '100%';
-  shop.onclick = () => { p.close(); import('./mall.js?v=4306ebaa').then((m) => m.openMall(id, 'clothes')); };
-  p.body.append(grid, shop);
+  if (mine.length < all.length) { const b = h('button', 'cloth cloth-mall', '<div class="cloth-mall-in">去商场<br>买衣服 ›</div>'); b.onclick = () => { p.close(); import('./mall.js?v=ab0bf094').then((m) => m.openMall(id, 'clothes')); }; grid.appendChild(b); }
+  p.body.append(h('div', 'tr-gain', `已有 <b>${mine.length} / ${all.length}</b> 套，点一套让她换上`), grid);
 }

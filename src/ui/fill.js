@@ -1,10 +1,10 @@
 // V0.2.2 开店那一刻问招不招人（设计34 第五节）：补满（立刻到岗）/ 先不招
-import * as ST from '../core/staff.js?v=4306ebaa';
-import { PAY } from '../core/staff.js?v=4306ebaa';
-import { IND_BY_ID } from '../config/industries.js?v=4306ebaa';
-import { now } from '../core/clock.js?v=4306ebaa';
-import { game } from '../game.js?v=4306ebaa';
-import { openPanel, toast, h } from './dom.js?v=4306ebaa';
+import * as ST from '../core/staff.js?v=ab0bf094';
+import { PAY } from '../core/staff.js?v=ab0bf094';
+import { IND_BY_ID } from '../config/industries.js?v=ab0bf094';
+import { now } from '../core/clock.js?v=ab0bf094';
+import { game } from '../game.js?v=ab0bf094';
+import { openPanel, toast, h } from './dom.js?v=ab0bf094';
 
 /** 一键补满，弹一句结果 */
 export function doFill(id) {
