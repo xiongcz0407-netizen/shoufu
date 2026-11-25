@@ -2,22 +2,23 @@
 // 会上：看各线上周营收 / 利润 / 增长；负责的秘书汇报一句（按她的属性给建议）；把预算（上周利润 10%）分到广告 / 扩张 / 研发 / 人才，到这个游戏周结束都有加成
 // （原来不开会到点按平均分、七折——设计69 作废）。大亨起改「董事会」，多一项分红 / 回购 / 并购三选一
 // 存档 s.meet = { wk 上次结算到第几周, acc 累计营收进货, base 本周开始时的累计, prev 上周各线营收, cur 这一周的会, fx 这一周的加成, hist 最近几次 }
-import { setMeetAdHook } from './ads.js?v=ab0bf094'; // V0.2.3
-import { credit } from './credit.js?v=ab0bf094'; // V3-01 亲自拍板攒投入度
-import C from '../config/meeting.json?v=ab0bf094' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=ab0bf094';
-import { SEC_BY_ID } from '../config/secretaries.js?v=ab0bf094';
-import { setMeetingHooks, lineNetMonth, industryRevenue } from './economy.js?v=ab0bf094';
-import { staffFactor, setTurnoverHook } from './staff.js?v=ab0bf094';
-import { setAcquireHook } from './battle.js?v=ab0bf094';
-import { setTrackHook, dividend } from './companytax.js?v=ab0bf094';
-import { pay } from './ledger.js?v=ab0bf094';
-import { available } from './accrual.js?v=ab0bf094';
-import { addMsg } from './inbox.js?v=ab0bf094';
-import { holder, isSec, attrs } from './posts.js?v=ab0bf094';
-import { DAY_MS } from './manage.js?v=ab0bf094';
-import { MONTH_MS } from './gametime.js?v=ab0bf094';
-import { pushEvent, closeEvent } from './agenda.js?v=ab0bf094'; // V3-02 经营会也进日程
+import { capAdd } from './cap.js?v=c60d881c';   // 设计79：有上限的列表（config/caps.js）
+import { setMeetAdHook } from './ads.js?v=c60d881c'; // V0.2.3
+import { credit } from './credit.js?v=c60d881c'; // V3-01 亲自拍板攒投入度
+import C from '../config/meeting.json?v=c60d881c' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=c60d881c';
+import { SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
+import { setMeetingHooks, lineNetMonth, industryRevenue } from './economy.js?v=c60d881c';
+import { staffFactor, setTurnoverHook } from './staff.js?v=c60d881c';
+import { setAcquireHook } from './battle.js?v=c60d881c';
+import { setTrackHook, dividend } from './companytax.js?v=c60d881c';
+import { pay } from './ledger.js?v=c60d881c';
+import { available } from './accrual.js?v=c60d881c';
+import { addMsg } from './inbox.js?v=c60d881c';
+import { holder, isSec, attrs } from './posts.js?v=c60d881c';
+import { DAY_MS } from './manage.js?v=c60d881c';
+import { MONTH_MS } from './gametime.js?v=c60d881c';
+import { pushEvent, closeEvent } from './agenda.js?v=c60d881c'; // V3-02 经营会也进日程
 export { C as MEET_CFG };
 
 const DIRS = Object.keys(C.dirs);
@@ -108,7 +109,7 @@ export function decide(s, alloc, t, opts = {}) {
   if (c.board && !auto && opts.board) boardRes = boardAct(s, opts.board, c, t, fx);
   m.fx = fx; m.now = Math.max(m.now || 0, t); c.done = true; closeEvent(s, 'meeting', c.wk, auto ? 'expired' : 'done'); c.auto = auto; c.alloc = al; c.spend = spend; c.boardChoice = boardRes && boardRes.ok ? opts.board : null;
   const msg = (s.inbox || []).find((x) => x.id === c.msgId); if (msg && msg.status === 'open') { msg.status = 'done'; msg.choice = auto ? '没开，按平均分（七折）' : '开过了'; }
-  m.hist.unshift({ wk: c.wk, auto, alloc: al, spend, fx: { ...fx }, board: c.boardChoice, profit: c.stats.profit }); if (m.hist.length > 12) m.hist.length = 12;
+  capAdd(s, 'meet.hist', m.hist, { wk: c.wk, auto, alloc: al, spend, fx: { ...fx }, board: c.boardChoice, profit: c.stats.profit });
   return { ok: true, fx, spend, board: boardRes };
 }
 /** 董事会三选一 */

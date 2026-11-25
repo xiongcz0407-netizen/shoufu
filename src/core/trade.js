@@ -1,20 +1,22 @@
-// 第 P-06 项（设计25 第五节）：前期炒股 —— 条件单、打新股、融资融券、看盘、炒股周报
-// 条件单和两融的平仓线每跳检查（挂在 stocks.js 的 addStepHook 上，离线补算一样走）；打新、利息、周报按时间走 tick()（在线 ticker 和 core/offcap.js 都叫）
-import { shortWhy } from './invest.js?v=ab0bf094';   // 设计62
-import { dropOrphans } from './orphans.js?v=ab0bf094';
-import * as SK from './stocks.js?v=ab0bf094';
-import { pay, receive } from './ledger.js?v=ab0bf094';
-import { addContract } from './contracts.js?v=ab0bf094';
-import { addMsg } from './inbox.js?v=ab0bf094';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=ab0bf094';
-import { profitMul } from './calib.js?v=ab0bf094';
-import { isTraining } from './training.js?v=ab0bf094';
-import { attrs as secAttrs } from './posts.js?v=ab0bf094';
-import { SEC_BY_ID } from '../config/secretaries.js?v=ab0bf094';
-import { netWorth } from './economy.js?v=ab0bf094';
-import { addAssetHook } from './assets.js?v=ab0bf094';
+// 第 P-06 项（设计25 第五节）：前期炒股 —— 条件单、打新股、看盘、炒股周报
+// 条件单每跳检查（挂在 stocks.js 的 addStepHook 上，离线补算一样走）；打新、利息、周报按时间走 tick()（在线 ticker 和 core/offcap.js 都叫）
+import { capAdd } from './cap.js?v=c60d881c';   // 设计79：有上限的列表（config/caps.js）
+import * as IDLE from './idle.js?v=c60d881c';   // 设计72
+import { shortWhy } from './invest.js?v=c60d881c';   // 设计62
+import { dropOrphans } from './orphans.js?v=c60d881c';
+import * as SK from './stocks.js?v=c60d881c';
+import { pay, receive } from './ledger.js?v=c60d881c';
+import { addContract } from './contracts.js?v=c60d881c';
+import { addMsg } from './inbox.js?v=c60d881c';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=c60d881c';
+import { profitMul } from './calib.js?v=c60d881c';
+import { isTraining } from './training.js?v=c60d881c';
+import { attrs as secAttrs } from './posts.js?v=c60d881c';
+import { SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
+import { netWorth } from './economy.js?v=c60d881c';
+import { addAssetHook } from './assets.js?v=c60d881c';
 
-const C = SK.SCFG; const O = C.orders, I = C.ipo, MG = C.margin, W = C.weekly;
+const C = SK.SCFG; const O = C.orders, I = C.ipo, W = C.weekly;
 export const DAY = MONTH_MS / 30;
 const TICK = C.tickSec * 1000;
 const r2 = (v) => Math.round(v * 100) / 100;
@@ -30,7 +32,7 @@ export function tr(s, t = Date.now()) {
   if (!m.wk) m.wk = snapWeek(s, t);
   return m;
 }
-/** 智慧最高的秘书（周报、两融提醒） */
+/** 智慧最高的秘书（周报） */
 export function wisest(s) { let best = null; for (const id of Object.keys(s.secs || {})) { const w = secAttrs(s, id).wit; if (!best || w > best.w) best = { id, w }; } return best && best.id; }
 
 // ---------- 看盘 ----------
@@ -60,8 +62,8 @@ export function buyCost(s, code, px, n) {
 }
 /** 投资账户里能花的（设计62；挂单的钱已经扣走了） */
 export const availCash = (s) => SK.availCash(s);
-/** 这张买单要扣多少：融资买入只扣自己出的那部分 */
-const needHold = (s, o) => { const c = buyCost(s, o.code, o.px, o.n); return o.margin ? Math.max(0, r2(c - room(s))) : c; };
+/** 这张买单要扣多少 */
+const needHold = (s, o) => buyCost(s, o.code, o.px, o.n);
 function holdCash(s, o, t) {
   if (o.kind !== 'buy' || o.on === false || o.hold != null) return true;
   const amt = needHold(s, o); if (availCash(s) < amt - 1e-9) return false;
@@ -155,6 +157,22 @@ export function sellMine(s, code, n, t = Date.now()) {
   return SK.sell(s, code, n, t);
 }
 
+// ---------- 设计73 持仓一键卖出：这只的全部（可卖持仓 + 挂在卖单里的）按现价（30 秒那一跳）马上卖；没成交的买单、联动组还没买进的那组不动 ----------
+const activeOuts = (s, code) => ((s.mkt && s.mkt.orders) || []).filter((o) => o.code === code && o.kind !== 'buy' && o.on !== false);
+/** 卖之前给弹框看的：{ n 卖几股, px 现价, total 到手, gain 赚（负 = 亏）, outs 要撤几张卖单, why 卖不了的原因 } */
+export function sellAllInfo(s, code) {
+  const my = SK.myShares(s)[code]; const h = s.mkt && s.mkt.hold[code]; const pledged = (h && h.pledged) || 0; const n = my ? my.n - pledged : 0;
+  if (!my || n < 1) return { n: 0, why: pledged ? '都质押在银行，不能卖' : '没有这只的持仓' };
+  const q = SK.quote(s, code, n, 'sell'); const why = SK.onBoard(s.mkt, code) === 'down' ? '封在跌停，卖不出（等开板）' : null;   // 跌停照个股页卖出原来的规则
+  return { n, px: SK.price(s, code), total: q.total, gain: r2(q.total - my.cost * n), outs: activeOuts(s, code).length, pledged, why, quote: q };
+}
+export function sellAll(s, code, t = Date.now()) {
+  const I = sellAllInfo(s, code); if (I.why) return { ok: false, why: I.why };
+  for (const o of activeOuts(s, code)) cancelOrder(s, o.id, false, t);   // 卖单先撤、股票并回来
+  const n = sellable(s, code); const r = SK.sell(s, code, n, t, { note: '持仓卖出' });
+  return r.ok ? { ...r, n, total: r.quote.total } : r;
+}
+
 /** 设计45 第五版「止盈红、止损绿」：卖单按实际赚亏上色（'up' 红 / 'down' 绿）。比的是这份股票的成本（联动组没成交时比买入价）；不知道成本就按单子种类（止盈红、止损绿） */
 export function sellBase(s, o) {
   const m = s.mkt; const g = o.grp && m.grps ? m.grps[o.grp] : null; const sh = (g && g.sh) || o.sh; if (sh) return sh.cost;
@@ -173,12 +191,12 @@ export function whyNotOrder(s, o) {
   if (!(o.n >= 1)) return '最少 1 股'; if (!(o.px > 0)) return '填一个价格';
   { const B = SK.band(m, o.code); if (B.up != null && (o.px > B.up + 1e-9 || (o.kind !== 'sl' && o.px < B.dn - 1e-9))) return `挂单价要在今天跌停 ${B.dn} 和涨停 ${B.up} 之间`; }   // 设计41 第九节；V0.2.14 小修：止损可以挂在跌停价下面（一定低于买价）
   if (o.kind !== 'buy' && o.on !== false) { const k = sellable(s, o.code); if (k < o.n) return `持股只有 ${k.toLocaleString()} 股`; }   // 设计43：卖单挂上就把股票划走
-  if (o.kind === 'buy' && o.on !== false) { const need = o.margin ? Math.max(0, buyCost(s, o.code, o.px, o.n) - room(s)) : buyCost(s, o.code, o.px, o.n); if (availCash(s) < need - 1e-9) return shortWhy(need - Math.max(0, availCash(s))); }   // 设计43：买单挂上就扣钱
+  if (o.kind === 'buy' && o.on !== false) { const need = buyCost(s, o.code, o.px, o.n); if (availCash(s) < need - 1e-9) return shortWhy(need - Math.max(0, availCash(s))); }   // 设计43：买单挂上就扣钱
   return null;
 }
 export function addOrder(s, o, t = Date.now()) {
   const why = whyNotOrder(s, o); if (why) return { ok: false, why };
-  const m = tr(s, t); const x = { id: ++m.ordSeq, code: o.code, kind: o.kind, px: r2(o.px), n: Math.floor(o.n), at: t }; if (o.margin) x.margin = true;
+  const m = tr(s, t); const x = { id: ++m.ordSeq, code: o.code, kind: o.kind, px: r2(o.px), n: Math.floor(o.n), at: t };
   if (!holdCash(s, x, t)) return { ok: false, why: shortWhy(Math.max(0, needHold(s, x) - availCash(s))), short: Math.max(0, needHold(s, x) - availCash(s)) };
   if (!holdShares(s, x)) return { ok: false, why: `持股只有 ${sellable(s, x.code).toLocaleString()} 股` };
   m.orders.push(x); return { ok: true, order: x, held: x.hold || 0 };
@@ -220,7 +238,7 @@ function timeUp(s, tk) {
     const r = SK.sell(s, g.code, n, t); if (!r.ok) continue;
     const pnl = r2(r.quote.total - g.cost * Math.min(1, n / (g.n || n)));
     addMsg(s, { kind: 'system', type: 'stock_order', title: `到时间按现价卖出：${name(g.code)} ${n.toLocaleString()} 股 ${pnl >= 0 ? '+' : '−'}¥${fmt(Math.abs(pnl))}`, body: `到了最晚卖出的时间（看盘单从挂单起 ${Math.ceil(SK.SCFG.watch.ws.win / 2)} 分钟），止盈止损都没碰到，按现价 ${r.quote.exec} 卖掉，止盈止损撤了；交割单 ${r.slip.no}` }, t);
-    (m.soldQ = m.soldQ || []).push({ code: g.code, n, px: r.quote.exec, pnl, t }); if (m.soldQ.length > 10) m.soldQ.shift();
+    capAdd(s, 'mkt.soldQ', (m.soldQ = m.soldQ || []), { code: g.code, n, px: r.quote.exec, pnl, t });
     for (const fn of GROUP_HOOKS) fn(s, { grp: gid, kind: 'out', pnl, lu: g.lu, src: g.src, timeUp: true });
     delete m.grps[id];
   }
@@ -235,8 +253,7 @@ function checkOrders(s, tk) {
     const p = m.px[o.code]; if (!(p > 0) || !hit(o, p)) continue;
     const bd = SK.onBoard(m, o.code); if ((o.kind === 'buy' && bd === 'up') || (o.kind !== 'buy' && bd === 'down')) continue;   // 设计41 第九节：封在板上这一跳不成交
     const held = o.hold || 0; cancelOrder(s, o.id, true, t);   // 设计43：划款转付股款 / 股票放回持仓，再按实际成交价买卖
-    let r = o.kind === 'buy' ? (o.margin ? marginBuy(s, o.code, o.n, t) : SK.buy(s, o.code, o.n, t)) : SK.sell(s, o.code, Math.min(o.n, (m.hold[o.code] || { n: 0 }).n), t);
-    if (!r.ok && o.kind === 'buy' && o.margin) r = SK.buy(s, o.code, o.n, t);
+    let r = o.kind === 'buy' ? SK.buy(s, o.code, o.n, t) : SK.sell(s, o.code, Math.min(o.n, (m.hold[o.code] || { n: 0 }).n), t);
     if (r.ok && o.kind === 'buy' && held) r.diff = r2(held - r.quote.total);
     if (o.grp && r.ok) linked(s, o, r, t);
     addMsg(s, { kind: 'system', type: 'stock_order', title: r.ok ? `条件单成交：${KIND[o.kind]} ${name(o.code)} ${o.n.toLocaleString()} 股，成交价 ${r.quote.exec}` : `条件单没成交：${name(o.code)} ${KIND[o.kind]}`, body: r.ok ? `触发价 ${o.px}，交割单 ${r.slip.no}${r.diff > 0.005 ? `，挂单多扣的 ¥${fmt(r.diff)} 退回个人现金` : ''}${r.gain != null ? `，这笔${r.gain >= 0 ? '赚' : '亏'} ${fmt(Math.abs(r.gain))}` : ''}` : r.why }, t);
@@ -259,74 +276,6 @@ function linked(s, o, r, t) {
   let pnl = null; if (g && g.side === 'buy' && g.n) pnl = r2(r.quote.total - g.cost * Math.min(1, o.n / g.n));
   for (const fn of GROUP_HOOKS) fn(s, { grp: o.grp, kind: 'out', pnl, lu: g && g.lu, src: g && g.src });
   if (g) delete m.grps[o.grp];
-}
-
-// ---------- 融资融券（只做融资买入） ----------
-export const mg = (s) => tr(s).margin || null;
-export function whyNotOpen(s) {
-  if (mg(s)) return '已经开通了';
-  if (netWorth(s) < MG.openAt) return `身价到 ${fmt(MG.openAt)} 才能开（照现实：账户资产 ≥ 50 万）`;
-  if ((s.invest || 0) + myShareValue(s) < MG.openAt) return `账户资产（投资账户现金 + 持仓市值）要 ≥ ${fmt(MG.openAt)}`;   // V0.2.16：卖单里的股票也算
-  return null;
-}
-export function openMargin(s, t = Date.now()) {
-  const why = whyNotOpen(s); if (why) return { ok: false, why };
-  const ct = addContract(s, { prefix: 'RZ', kind: 'margin', title: '融资融券合同', parties: [['客户', s.bossName || '老板'], ['券商', '华太正券']], subject: `用证券账户里的持仓作担保融资买入：最多借持仓净值的 ${MG.maxLever} 倍，年利率 ${(MG.yearRate * 100).toFixed(0)}%（游戏口径 × ${profitMul()}）按小时计；维持担保比例低于 ${Math.round(MG.call * 100)}% 追加保证金（${MG.callDays} 个游戏天内补足），低于 ${Math.round(MG.force * 100)}% 强制平仓`, rows: [['授信额度', 0, '按持仓净值随时变'], ['年利率（游戏口径）', 0, `${(MG.yearRate * profitMul() * 100).toFixed(0)}%`]], total: 0, wallet: 'personal' }, t);
-  tr(s, t).margin = { debt: 0, intAt: t, call: null, warned: false, no: ct.no };
-  return { ok: true, contract: ct };
-}
-const shareVal = (s) => myShareValue(s);   // 设计43 / V0.2.16：挂在卖单里的股票也算担保
-export const ratio = (s) => { const g = mg(s); return g && g.debt > 0 ? shareVal(s) / g.debt : Infinity; };
-/** 还能借多少：maxLever × (持仓市值 − 已借) − 已借 */
-export const room = (s) => { const g = mg(s); if (!g) return 0; return Math.max(0, r2(MG.maxLever * (shareVal(s) - g.debt) - g.debt)); };
-export function marginBuy(s, code, n, t = Date.now()) {
-  const g = mg(s); if (!g) return { ok: false, why: '先开通融资融券' };
-  const q = SK.quote(s, code, Math.floor(n), 'buy'); if (q.total > room(s)) return { ok: false, why: `融资额度不够（还能借 ${fmt(room(s))}）` };
-  receive(s, { wallet: 'invest', cat: 'margin_in', amount: q.total, party: '华太正券', note: `融资买入 ${name(code)} ${Math.floor(n)} 股（借款直接付股款）` }, t);
-  const r = SK.buy(s, code, n, t);
-  if (!r.ok) { pay(s, { wallet: 'invest', cat: 'margin_repay', amount: q.total, party: '华太正券', note: '融资买入没成交，借款退回', force: true }, t); return r; }
-  g.debt = r2(g.debt + q.total); return { ...r, borrowed: q.total };
-}
-export function repay(s, amount, t = Date.now()) {
-  const g = mg(s); if (!g || g.debt <= 0) return { ok: false, why: '没有融资负债' };
-  amount = Math.min(r2(amount), g.debt); if (!(amount > 0)) return { ok: false, why: '还多少？' };
-  if (!pay(s, { wallet: 'invest', cat: 'margin_repay', amount, party: '华太正券', note: '归还融资' }, t)) return { ok: false, why: shortWhy(amount - (s.invest || 0)), short: amount - (s.invest || 0) };
-  g.debt = r2(g.debt - amount); if (ratio(s) >= MG.call) g.call = null; return { ok: true, amount };
-}
-/** 平仓：从市值大的卖起，卖到维持担保比例回到 restore 或者还清 */
-export function liquidate(s, t, why) {
-  const g = mg(s); if (!g || g.debt <= 0) return 0;
-  let H = myShareValue(s), D = g.debt; const R = MG.restore;   // V0.2.16：跟担保比例一样算上卖单里的（卖的时候只卖持仓里能卖的）
-  let need = H <= D ? Infinity : Math.max(0, (R * D - H) / (R - 1)); let got = 0; const sold = [];
-  for (const h of SK.holdings(s).sort((a, b) => b.value - a.value)) {
-    if (got >= need || got >= D) break;
-    const p = SK.price(s, h.code); const free = h.n - (h.pledged || 0); if (free <= 0) continue;
-    const k = Math.min(free, Math.ceil((Math.min(need, D) - got) / p / (1 - 0.002)));
-    const r = SK.sell(s, h.code, k, t); if (r.ok) { got += r.quote.total; sold.push(`${name(h.code)} ${k.toLocaleString()} 股`); }
-  }
-  const back = Math.min(D, got, s.invest || 0); if (back > 0) pay(s, { wallet: 'invest', cat: 'margin_repay', amount: r2(back), party: '华太正券', note: `强制平仓还融资（${why}）`, force: true }, t);
-  g.debt = r2(D - back); g.call = null; g.warned = false;
-  addMsg(s, { kind: 'system', type: 'margin', title: `融资强制平仓（${why}）`, body: `券商卖了 ${sold.join('、') || '—'}，还了 ${fmt(back)}；剩下负债 ${fmt(g.debt)}` }, t);
-  return back;
-}
-function checkMargin(s, tk) {
-  const g = s.mkt.margin; if (!g || g.debt <= 0) return;
-  const t = tk * TICK; const r = ratio(s);
-  if (r < MG.force) { liquidate(s, t, `维持担保比例 ${(r * 100).toFixed(0)}% 低于 ${Math.round(MG.force * 100)}%`); return; }
-  if (g.call && r >= MG.call) g.call = null;
-  if (g.call && t >= g.call.until) { liquidate(s, t, `追加保证金到期，比例还是 ${(r * 100).toFixed(0)}%`); return; }
-  if (!g.call && r < MG.call) { g.call = { at: t, until: t + MG.callDays * DAY }; addMsg(s, { kind: 'request', type: 'margin_call', title: `追加保证金通知：维持担保比例 ${(r * 100).toFixed(0)}%`, body: `低于 ${Math.round(MG.call * 100)}%。${MG.callDays} 个游戏天内还一部分融资或者补仓位，让比例回到 ${Math.round(MG.call * 100)}% 以上，不然券商强制平仓。财富 → 投资 → 持仓 → 融资融券` }, t); }
-  if (!g.warned && r < MG.warn) { g.warned = true; const w = wisest(s); addMsg(s, { kind: 'system', type: 'margin_warn', from: w || '', title: `${w ? SEC_BY_ID[w].name : '券商'}：维持担保比例 ${(r * 100).toFixed(0)}% 了`, body: '老板，融资那块快到警戒线了，要不要先还一点？' }, t); g.warnNew = true; }
-  if (g.warned && r > MG.warn * 1.07) g.warned = false;
-}
-function interest(s, t) {
-  const g = s.mkt.margin; if (!g) return;
-  const n = Math.floor((t - g.intAt) / 3600e3); if (n <= 0) return; g.intAt += n * 3600e3;
-  if (g.debt <= 0) return;
-  const amt = r2(g.debt * MG.yearRate * profitMul() / (YEAR_MS / 3600e3) * n); /* 每真实 1 小时 = 一年的 1 / 144 */
-  if (amt < 0.01) return;
-  if ((s.invest || 0) >= amt) pay(s, { wallet: 'invest', cat: 'margin_interest', amount: amt, party: '华太正券', note: `融资利息（${n} 小时）` }, t);
-  else { g.debt = r2(g.debt + amt); g.capInt = r2((g.capInt || 0) + amt); }   // 现金不够：利息记进负债
 }
 
 // ---------- 打新股 ----------
@@ -376,7 +325,7 @@ function ipoTick(s, t, rnd) {
       m.hist[c.code] = [x.price, m.px[c.code]]; m.long[c.code] = [m.px[c.code]]; m.ipoOn.push(c.code);
       if (c.paid) { m.hold[c.code] = { n: c.paid, cost: x.price, at }; const f = m.wk.f[c.code] || (m.wk.f[c.code] = { buy: 0, sell: 0 }); f.buy = r2(f.buy + c.paid * x.price); }
       addMsg(s, { kind: 'system', type: 'ipo', title: `${x.name} 上市，首日 ${pop >= 0 ? '+' : ''}${(pop * 100).toFixed(0)}%${pop < 0 ? '（破发）' : ''}`, body: c.paid ? `你中的 ${c.paid} 股现在值 ${fmt(c.paid * m.px[c.code])}（成本 ${fmt(c.paid * x.price)}）` : '已经进股票列表，可以买卖' }, at);
-      ip.done.push({ code: c.code, sub: c.sub ? c.sub.lots : 0, win: c.win || 0, paid: c.paid || 0, pop: r2(pop) });
+      capAdd(s, 'mkt.ipo.done', ip.done, { code: c.code, sub: c.sub ? c.sub.lots : 0, win: c.win || 0, paid: c.paid || 0, pop: r2(pop) });
       const [lo, hi] = I.everyMonths; ip.next = c.open + (lo + (hi - lo) * SK.hu('IPON' + c.code, 3)) * MONTH_MS; ip.cur = null; ip.idx++;
       continue;
     }
@@ -406,10 +355,10 @@ function weekly(s, t) {
   return { ...st, line, who };
 }
 
-/** 按时间走的部分（在线 ticker、离线补算都叫）：打新、两融利息、周报 */
+/** 按时间走的部分（在线 ticker、离线补算都叫）：打新、周报 */
 const TICK_HOOKS = []; export const addTickHook = (fn) => { TICK_HOOKS.push(fn); };   // 设计41：看盘消息过期删（core/look.js）
 export function tick(s, t, rnd = Math.random) {
   if (!s.mkt) return null;
-  tr(s, t); ipoTick(s, t, rnd); interest(s, t); for (const fn of TICK_HOOKS) fn(s, t); return weekly(s, t);
+  tr(s, t); ipoTick(s, t, rnd); for (const fn of TICK_HOOKS) fn(s, t); return weekly(s, t);
 }
-SK.addStepHook((s, tk) => { if (!s.mkt) return; checkOrders(s, tk); timeUp(s, tk); dropOrphans(s.mkt); checkMargin(s, tk); });   // V0.2.16：每跳清孤儿卖单
+SK.addStepHook((s, tk) => { if (!s.mkt) return; checkOrders(s, tk); timeUp(s, tk); dropOrphans(s.mkt); IDLE.step(s, tk); });   // V0.2.16：每跳清孤儿卖单；设计72：投资账户闲钱生息

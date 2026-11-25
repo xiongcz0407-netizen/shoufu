@@ -1,9 +1,11 @@
 // 秘书：加入条件、存档记录、好感 / 爱慕阶段
-import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=ab0bf094';
-import { netWorth } from './economy.js?v=ab0bf094';
+import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
+import { netWorth } from './economy.js?v=c60d881c';
 
 export const FAVOR_STAGES = ['陌生', '熟悉', '信任', '亲密', '知己']; // 每段 100 点
 export const FAVOR_MAX = 499;
+export const FAVOR_FULL_AT = 400;   // 设计76：好感一到「知己」（400）就直接满
+export const favorFull = (f) => f >= FAVOR_MAX;
 export const LOVE_STAGES = [[0, '还没心动'], [20, '心动'], [40, '暧昧'], [60, '喜欢'], [80, '恋人'], [100, '唯一']];
 
 export function newSecRecord(t = Date.now()) {

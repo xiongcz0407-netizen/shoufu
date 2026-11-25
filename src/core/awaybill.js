@@ -1,13 +1,14 @@
 // 离开期间账单（第 2-16a 项）：秘书替你做了什么（从流水的经手人和消息中心数出来）
-import { CATS } from './ledger.js?v=ab0bf094';
-import { SEC_BY_ID } from '../config/secretaries.js?v=ab0bf094';
-import { postOfSec, postName } from './posts.js?v=ab0bf094';
+import { CATS } from './ledger.js?v=c60d881c';
+import { SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
+import { postOfSec, postName } from './posts.js?v=c60d881c';
 
 /** 离开这段时间（bill.from ～ bill.to）每个秘书经手的事：按类别合计 + 发来的月报 / 请示 */
-export function secWork(s, b) {
+export function secWork(s, b, acc = null) {   // acc：离线这段的临时累加器（设计79）
   const out = {};
   const one = (id) => (out[id] = out[id] || { id, name: SEC_BY_ID[id].name, post: postOfSec(s, id) ? postName(postOfSec(s, id)) : '', cats: {}, msgs: [] });
-  for (const r of s.ledger || []) {
+  if (acc) for (const [id, cs] of Object.entries(acc.sec)) for (const [k, c] of Object.entries(cs)) one(id).cats[k] = { name: (CATS[c.cat] || [c.cat])[0], dir: c.dir, wallet: c.wallet, n: c.n, amount: c.amount };
+  for (const r of acc ? [] : s.ledger || []) {
     if (r.memo || !r.by || !SEC_BY_ID[r.by] || r.t < b.from || r.t > b.to) continue;
     const c = one(r.by).cats; const k = `${r.dir}|${r.cat}`;
     const x = (c[k] = c[k] || { name: (CATS[r.cat] || [r.cat])[0], dir: r.dir, wallet: r.wallet, n: 0, amount: 0 }); x.n += 1; x.amount += r.amount;

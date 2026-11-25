@@ -5,13 +5,13 @@
       - 云端能用：记住了名字口令直接登录，本机和云端取新的；没记住弹「登录」卡片（名字 + 6 位口令）
       - 云端不能用（开发版、本地文件、令牌为空）：直接用本机存档
    4. 定好存档写进本机 → 读游戏本体 main.js（它从本机读档、开局起名、开场剧情）→ 加载页淡出 */
-import { APP_V, versionText } from './version.js?v=ab0bf094';
-import { fitPhone } from './platform/screen.js?v=ab0bf094';
-import * as AD from './platform/assetdb.js?v=ab0bf094';
-import { loadList, devFetch, finishLoad, LOAD } from './platform/assets.js?v=ab0bf094';
-import * as CL from './core/cloud.js?v=ab0bf094';
-import { syncTime, setFloor, server } from './core/clock.js?v=ab0bf094';
-import { checkUpdate, upd, watch, whatsNew } from './ui/update.js?v=ab0bf094';
+import { APP_V, versionText } from './version.js?v=c60d881c';
+import { fitPhone } from './platform/screen.js?v=c60d881c';
+import * as AD from './platform/assetdb.js?v=c60d881c';
+import { loadList, devFetch, finishLoad, LOAD } from './platform/assets.js?v=c60d881c';
+import * as CL from './core/cloud.js?v=c60d881c';
+import { syncTime, setFloor, server } from './core/clock.js?v=c60d881c';
+import { checkUpdate, upd, watch, whatsNew } from './ui/update.js?v=c60d881c';
 
 const $ = (s) => document.querySelector(s);
 const mb = (b) => (b / 1048576).toFixed(1);
@@ -117,7 +117,7 @@ export function cloudNote() {
   const show = CL.onCloud() && CL.cloudState.ok === false;
   if (!show) { if (el) el.remove(); return; }
   if (!el) { el = document.createElement('div'); el.id = 'sf-cloud'; el.style.cssText = 'position:absolute;left:50%;transform:translateX(-50%);top:calc(var(--safe-t, 0px) + 46px);z-index:80;padding:2px 10px;border-radius:10px;background:rgba(15,29,51,.85);border:1px solid rgba(176,138,69,.6);white-space:nowrap;font-size:11px;color:#f2d593;pointer-events:none'; $('#phone').appendChild(el); }
-  el.textContent = CL.cloudState.err === 'token' ? CL.errTxt('token') : '云端没连上，进度先存在手机里';
+  el.textContent = CL.stateTxt();   // 设计79：size 写「存档太大，云端没存上」，断网才写「没连上」
 }
 
 /* ---------- 入口 ---------- */
@@ -140,21 +140,21 @@ async function main() {
   if (!server.synced && r.text) { try { setFloor(JSON.parse(r.text).lastSeen || 0); } catch (e) { /* */ } }   // 没取到服务器时间：不让时间倒退
   $('.bt-txt').textContent = '开门营业…';
   // 存档：本机马上存，云端隔 1 分钟传一次
-  const { game } = await import('./game.js?v=ab0bf094');
+  const { game } = await import('./game.js?v=c60d881c');
   const save0 = game.save;
   game.save = function () { if (CL.lock.on) return; save0.call(this); CL.onSave(); };   // 重新开始 / 换名字时，刷新前不再存
-  const [E, { TITLES }, { fmtMoney }] = await Promise.all([import('./core/economy.js?v=ab0bf094'), import('./config/titles.js?v=ab0bf094'), import('./core/format.js?v=ab0bf094')]);
+  const [E, { TITLES }, { fmtMoney }] = await Promise.all([import('./core/economy.js?v=c60d881c'), import('./config/titles.js?v=c60d881c'), import('./core/format.js?v=c60d881c')]);
   CL.bind(() => game.state, (s) => `${(TITLES[s.title] || {}).name || ''}　身价 ${fmtMoney(E.netWorth(s))}　${s.companyName || ''}`);
   CL.onState(cloudNote); CL.startRetry();
   upd.beforeUpdate = () => { game.save(); return CL.push(true); };
   clearInterval(tipT);
-  await import('./main.js?v=ab0bf094');
-  const { addDebugInfo } = await import('./debug.js?v=ab0bf094');
+  await import('./main.js?v=c60d881c');
+  const { addDebugInfo } = await import('./debug.js?v=c60d881c');
   addDebugInfo(() => { const a = AD.stat; return `素材：${AD.dbOK() ? '库能用' : '库不能用（' + (a.why || LOAD.mode) + '）'}　存了 ${a.have + a.got} 个 ${(a.storedBytes / 1048576).toFixed(1)} MB　这次本机拿 ${a.have} 个、新下 ${a.got} 个（${mb(a.gotBytes)} MB）`; });
   addDebugInfo(() => `云端：${CL.onCloud() ? CL.acct.name + '　' + (CL.cloudState.ok === false ? '没连上 ' + CL.cloudState.err : CL.cloudState.at ? '已传' : '待传') : '只用本机'}　服务器时间 ${server.synced ? '已对' : '没取到'}`);
   cloudNote(); watch();
   // 礼物信箱（V0.2.8；设计42 改成奖励邮件）：开着每 2 分钟、回到前台时看一眼；新礼物变成「重要」里的邮件，玩家点「领取」才到手；存档上传后删信箱
-  const GF = await import('./core/gift.js?v=ab0bf094'); await import('./ui/giftmail.js?v=ab0bf094'); let giftBusy = false;
+  const GF = await import('./core/gift.js?v=c60d881c'); await import('./ui/giftmail.js?v=c60d881c'); let giftBusy = false;
   const pollGift = async () => {
     if (giftBusy || !CL.onCloud() || CL.lock.on || !game.state) return; giftBusy = true;
     try {
@@ -168,7 +168,7 @@ async function main() {
   document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(pollGift, 1500); });
   const items = whatsNew();
   if (items.length) setTimeout(async () => {
-    const { openPanel, h } = await import('./ui/dom.js?v=ab0bf094');
+    const { openPanel, h } = await import('./ui/dom.js?v=c60d881c');
     const p = openPanel('这一版新加了什么');
     p.body.appendChild(h('div', 'tr-gain', items.map((x) => '· ' + esc(x)).join('<br>')));
   }, 2500);

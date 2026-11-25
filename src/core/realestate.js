@@ -1,17 +1,18 @@
 // 地产（设计20 第二节 1）：拿地（挂牌竞价）→ 四证 → 开工 → 分 3 批预售（监管账户）→ 交房清算（增值税、土地增值税、所得税）；商业综合体可以持有收租
 // 不 import economy（economy 要用这里的 reValue 算身价）
-import { whyCushion } from './cashflow.js?v=ab0bf094'; // V0.2.3 留够两个月工资
-import { credit } from './credit.js?v=ab0bf094'; // V3-01 亲自拍板攒投入度
-import C from '../config/realestate.json?v=ab0bf094' with { type: 'json' };
-import { pay, receive, canPay } from './ledger.js?v=ab0bf094';
-import { payTaxItem, TAX } from './companytax.js?v=ab0bf094';
-import { addContract } from './contracts.js?v=ab0bf094';
-import { staffFactor, establishment, fire, PAY } from './staff.js?v=ab0bf094';
-import { addMsg, onAction } from './inbox.js?v=ab0bf094';
-import { cityOpen, cityName as cityNm } from './cities.js?v=ab0bf094';
-import { managerRevMult, holder, isSec } from './posts.js?v=ab0bf094';
-import { MONTH_MS, monthIndex } from './gametime.js?v=ab0bf094';
-import { gm } from './calib.js?v=ab0bf094';
+import { capAdd, capPush, capOf } from './cap.js?v=c60d881c';   // 设计79
+import { whyCushion } from './cashflow.js?v=c60d881c'; // V0.2.3 留够两个月工资
+import { credit } from './credit.js?v=c60d881c'; // V3-01 亲自拍板攒投入度
+import C from '../config/realestate.json?v=c60d881c' with { type: 'json' };
+import { pay, receive, canPay } from './ledger.js?v=c60d881c';
+import { payTaxItem, TAX } from './companytax.js?v=c60d881c';
+import { addContract } from './contracts.js?v=c60d881c';
+import { staffFactor, establishment, fire, PAY } from './staff.js?v=c60d881c';
+import { addMsg, onAction } from './inbox.js?v=c60d881c';
+import { cityOpen, cityName as cityNm } from './cities.js?v=c60d881c';
+import { managerRevMult, holder, isSec } from './posts.js?v=c60d881c';
+import { MONTH_MS, monthIndex } from './gametime.js?v=c60d881c';
+import { gm } from './calib.js?v=c60d881c';
 export { C as RE_CFG };
 
 const MIN = 60e3;
@@ -243,7 +244,7 @@ function deliver(s, p, t) {
   const profit = rev - cost - other;
   p.result = { sales: S, rev: r2(rev), vat: r2(vatAll), surcharge, lat: L.tax, latRate: L.rate, latRatio: L.ratio, latExempt: L.exempt, cost: r2(cost), other: r2(other), profit: r2(profit), citEst: r2(Math.max(0, profit) * TAX.cit.rate), net: r2(profit - Math.max(0, profit) * TAX.cit.rate), invest: totalInvest(p) };
   p.stage = 'done'; p.doneAt = t; syncTeams(s); teamDone(s, p, t);
-  (re(s).log).unshift({ t, id: p.id, name: p.name, net: p.result.net }); re(s).log.length = Math.min(re(s).log.length, 30);
+  capAdd(s, 're.log', re(s).log, { t, id: p.id, name: p.name, net: p.result.net });
 }
 
 /** 每秒 / 离线：到点的往下走（一次可以走好几步） */
@@ -349,7 +350,7 @@ export function decide(s, pid, kind, key, t) {
     if (fx.chance != null && !hit) text += '，这回运气好，没出事';
   }
   if (m) { m.status = 'done'; m.read = true; m.result = text; }
-  (p.decLog = p.decLog || []).push({ t, kind, key, text }); if (key != null) credit(s, 're', 1, t);
+  capPush((p.decLog = p.decLog || []), { t, kind, key, text }, capOf('re.projects[].decLog')); if (key != null) credit(s, 're', 1, t);
   return { ok: true, text };
 }
 /** 停工 / 复工：停着的时候记下起点；拍完板把 at、batchAt、buildEnd、evAt 一起往后挪停掉的时间 */

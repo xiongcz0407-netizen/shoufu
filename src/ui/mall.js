@@ -1,16 +1,18 @@
 // 商场（首页右侧浮动；秘书详情「送礼」直达）：礼物 | 衣服，都按秘书分页，走个人现金
-import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=ab0bf094';
-import { fmtMoney } from '../core/format.js?v=ab0bf094';
-import { game } from '../game.js?v=ab0bf094';
-import { h } from './dom.js?v=ab0bf094';
-import { asset, hasAsset } from '../platform/assets.js?v=ab0bf094';
-import { openFull } from './shell.js?v=ab0bf094';
-import { openGift, openLux } from './gift.js?v=ab0bf094';   // 设计56：礼物 / 奢侈品
-import { openShop } from './outfit.js?v=ab0bf094';
+import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
+import { fmtMoney } from '../core/format.js?v=c60d881c';
+import { game } from '../game.js?v=c60d881c';
+import { h } from './dom.js?v=c60d881c';
+import { asset, hasAsset } from '../platform/assets.js?v=c60d881c';
+import { openFull } from './shell.js?v=c60d881c';
+import { openGift, openLux } from './gift.js?v=c60d881c';   // 设计56：礼物 / 奢侈品
+import { openShop } from './outfit.js?v=c60d881c';
 
 export function openMall(secId, seg = 'gift') {
   const s = game.state;
   let who = secId && s.secs[secId] ? secId : s.current;
+  const full = (id) => !!(id && s.secs[id] && s.secs[id].favor >= 499);   // 设计76：好感满了默认落在奢侈品
+  if (seg === 'gift' && full(who)) seg = 'lux';
   const p = openFull('商场');
   const segBar = h('div', 'seg-bar'); const top = h('div', 'mall-top'); const body = h('div', 'page-body');
   p.body.append(segBar, top, body);
@@ -27,11 +29,11 @@ export function openMall(secId, seg = 'gift') {
     if (seg === 'bag') seg = 'lux';
     if (seg === 'gift' || seg === 'lux') {
       const tabs = h('div', 'tabs');
-      for (const c of SECRETARIES.filter((x) => s.secs[x.id])) { const b = h('button', 'tab' + (c.id === who ? ' on' : ''), c.name); b.onclick = () => { who = c.id; render(); }; tabs.appendChild(b); }
+      for (const c of SECRETARIES.filter((x) => s.secs[x.id])) { const b = h('button', 'tab' + (c.id === who ? ' on' : ''), c.name); b.onclick = () => { who = c.id; if (seg === 'gift' && full(who)) seg = 'lux'; render(); }; tabs.appendChild(b); }
       body.appendChild(tabs);
       const inner = h('div'); body.appendChild(inner);
       if (seg === 'lux') openLux(who, { el: inner, body: inner }); // 设计56：奢侈品（名包 + 首饰 / 表 / 酒）只加爱慕
-      else openGift(who, { el: inner, body: inner, close: () => render() });
+      else openGift(who, { el: inner, body: inner, close: () => render(), toLux: () => { seg = 'lux'; render(); } });
     } else openShop(who, host);
   };
   render();

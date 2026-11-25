@@ -1,20 +1,20 @@
 // V3-03 出差（设计33 第四之三节）：日程里的「去 X 签约 / 看地 / 见投资人 / 考察」，占 1～3 个游戏日
 // 出发前选带谁 → 交通（私人飞机 / 头等舱）、住（自己的房子 / 地标酒店 / 按档次订一间套房）→ 白天办事（她的属性 + 你的选择）→ 晚上 → 过夜剧情（按爱慕阶段拼片段）→ 早上收尾
 // 存档 s.trip = { rec: { 秘书id: { n, cities: [] } }, n }；片段用过的记 s.storyUsed（core/storylib.js）
-import C from '../config/trips.json?v=ab0bf094' with { type: 'json' };
-import { SEC_BY_ID } from '../config/secretaries.js?v=ab0bf094';
-import { ITEM } from './assets.js?v=ab0bf094';
-import { LM, mine as lmMine } from './landmark.js?v=ab0bf094';
-import { attrs } from './posts.js?v=ab0bf094';
-import { ensureSec, loveStage } from './secretary.js?v=ab0bf094';
-import { addFavor, addLove } from './affection.js?v=ab0bf094';
-import { pay } from './ledger.js?v=ab0bf094';
-import { addFx, isShop } from './manage.js?v=ab0bf094';
-import { isTraining } from './training.js?v=ab0bf094';
-import { isScouting } from './busy.js?v=ab0bf094';
-import * as AG from './agenda.js?v=ab0bf094';
-import * as SL from './storylib.js?v=ab0bf094';
-import * as STY from './styles.js?v=ab0bf094'; // V3-05 出差按场合换衣服
+import C from '../config/trips.json?v=c60d881c' with { type: 'json' };
+import { SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
+import { ITEM } from './assets.js?v=c60d881c';
+import { LM, mine as lmMine } from './landmark.js?v=c60d881c';
+import { attrs } from './posts.js?v=c60d881c';
+import { ensureSec, loveStage } from './secretary.js?v=c60d881c';
+import { addFavor, addLove } from './affection.js?v=c60d881c';
+import { pay } from './ledger.js?v=c60d881c';
+import { addFx, isShop } from './manage.js?v=c60d881c';
+import { isTraining } from './training.js?v=c60d881c';
+import { isScouting } from './busy.js?v=c60d881c';
+import * as AG from './agenda.js?v=c60d881c';
+import * as SL from './storylib.js?v=c60d881c';
+import * as STY from './styles.js?v=c60d881c'; // V3-05 出差按场合换衣服
 export { C as TRIP_CFG };
 
 const pick = (a, r) => a[Math.floor(r() * a.length)];

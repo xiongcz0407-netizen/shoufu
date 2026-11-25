@@ -1,16 +1,16 @@
 // 资产（第 12 项）：车库 / 房产 / 机库。只能个人现金全款，不能贷款、不能抵押
 // 渠道（设计09 第三节）：现货 / 订单（排队）/ 邀请（品牌来电）/ 拍卖 / 定制委托；房子按设计19（验资冻结、四合院拍卖、境外锁）
 // 税费（设计14、设计19）：车辆购置税 + 超豪华车附加 + 上牌；房子契税；飞机关税 + 进口增值税；每年维护 / 物业 / 房产税按秒扣
-import { CARS, PLANES } from '../config/vehicles.js?v=ab0bf094';
-import EST from '../config/estates.json?v=ab0bf094' with { type: 'json' };
-import { CAR_META, TIER_SPEC } from '../config/carmeta.js?v=ab0bf094';
-import { TAX } from './companytax.js?v=ab0bf094';
-import { pay, receive, accrue } from './ledger.js?v=ab0bf094';
-import { YEAR_MS } from './gametime.js?v=ab0bf094';
-import { addContract } from './contracts.js?v=ab0bf094';
-import { stewardSellRate, stewardUpkeepMult, stewardQueueMult } from './posts.js?v=ab0bf094';
-import { bossAttrs } from './boss.js?v=ab0bf094';
-import { taxRec } from './fiscal.js?v=ab0bf094';
+import { CARS, PLANES } from '../config/vehicles.js?v=c60d881c';
+import EST from '../config/estates.json?v=c60d881c' with { type: 'json' };
+import { CAR_META, TIER_SPEC } from '../config/carmeta.js?v=c60d881c';
+import { TAX } from './companytax.js?v=c60d881c';
+import { pay, receive, accrue } from './ledger.js?v=c60d881c';
+import { YEAR_MS } from './gametime.js?v=c60d881c';
+import { addContract } from './contracts.js?v=c60d881c';
+import { stewardSellRate, stewardUpkeepMult, stewardQueueMult } from './posts.js?v=c60d881c';
+import { bossAttrs } from './boss.js?v=c60d881c';
+import { taxRec } from './fiscal.js?v=c60d881c';
 
 export const HOUSES = EST.houses;
 const ALL = {};

@@ -1,7 +1,8 @@
 // 财务报表（第 13 项，设计15 第三节 + 设计17 第三节）：从流水算利润表、个人收支、纳税、资产清单
-import { CATS } from './ledger.js?v=ab0bf094';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=ab0bf094';
-import { INDUSTRIES } from '../config/industries.js?v=ab0bf094';
+import * as BK from './books.js?v=c60d881c';   // 设计79 第三版：报表数字从累加器拿
+import { CATS } from './ledger.js?v=c60d881c';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=c60d881c';
+import { INDUSTRIES } from '../config/industries.js?v=c60d881c';
 
 export const PERIODS = [['day', '今天'], ['month', '本月'], ['year', '本年'], ['all', '全部']];
 /** 时间段起点（游戏日 / 月 / 年，从开局算） */
@@ -15,15 +16,22 @@ export function periodFrom(s, p, t) {
 /** 流水 + 还没写进流水的按秒累计（营收、进货、持有成本） */
 export function allRows(s, t) {
   const v = Object.entries(s.accruals || {}).filter(([, x]) => x.amount >= 0.01).map(([k, x]) => ({ id: 'acc_' + k, t, wallet: x.wallet, dir: x.dir || 'in', cat: x.cat, amount: x.amount, note: x.note || k, by: '', party: '', ref: '', pending: true }));
-  return [...(s.ledger || []), ...v];
+  return [...(s.ledger || []), ...v];   // 明细（最近 300 条，流水页给人看）
+}
+/** 设计79：from 到现在的「假流水」（累加器格子变的，字段跟明细一样）+ 还没写进流水的按秒累计。报表都用这个 */
+export function periodRows(s, from, t) {
+  const v = Object.entries(s.accruals || {}).filter(([, x]) => x.amount >= 0.01).map(([k, x]) => ({ t, wallet: x.wallet, dir: x.dir || 'in', cat: x.cat, amount: x.amount, note: x.note || k, by: '', party: '', ref: '', pending: true }));
+  return [...BK.rowsOf(BK.cellsSince(s, from, t), from), ...v];
 }
 export const inPeriod = (rows, from) => rows.filter((r) => r.t >= from);
 const sum = (rows) => rows.reduce((a, r) => a + r.amount, 0);
 const net = (rows) => rows.reduce((a, r) => a + (r.dir === 'in' ? -r.amount : r.amount), 0); /* 支出类别里的冲回（备货卖掉冲回进货成本）算负数 */
 const byCat = (rows, cats) => rows.filter((r) => !r.memo && cats.includes(r.cat));
 /** 公司利润表 */
-export function companyPL(s, from, t) {
-  const rows = inPeriod(allRows(s, t), from).filter((r) => r.wallet === 'company' && !r.memo);
+export const companyPL = (s, from, t) => plOf(periodRows(s, from, t));
+/** 利润表：给一段时间的流水（假流水或明细都行）就能算（设计79：测试拿完整明细对数也用这个） */
+export function plOf(all) {
+  const rows = all.filter((r) => r.wallet === 'company' && !r.memo);
   const revRows = byCat(rows, ['revenue', 'acquired_revenue', 'presale', 'rent_co']);
   const byInd = INDUSTRIES.map((c) => ({ id: c.id, name: c.name, rev: sum(revRows.filter((r) => r.note.startsWith(c.name))), cogs: net(byCat(rows, ['cogs', 'land', 'construction']).filter((r) => r.note.startsWith(c.name))) })).filter((x) => x.rev || x.cogs);
   const L = {
@@ -34,28 +42,31 @@ export function companyPL(s, from, t) {
   L.total = L.staff + L.sec + L.bonus + L.social + L.hire;
   const rev = sum(revRows), other = sum(byCat(rows, ['battle_bonus', 'refund']));
   const cogs = net(byCat(rows, ['cogs', 'land', 'construction'])), rent = sum(byCat(rows, ['rent'])), opex = sum(byCat(rows, ['opex'])), tax = sum(byCat(rows, ['tax_company'])) - sum(byCat(rows, ['tax_refund']));
-  const dep = sum(inPeriod(allRows(s, t), from).filter((r) => r.cat === 'depreciation')); // 折旧是备忘行（不动钱），利润表要扣
+  const dep = sum(all.filter((r) => r.cat === 'depreciation')); // 折旧是备忘行（不动钱），利润表要扣
   const misc = sum(byCat(rows, ['training', 'outsource', 'loss', 'welfare', 're_cost', 'rnd', 'film_cost', 'filing', 'interest'])) + dep;
   const profit = rev + other - cogs - L.total - rent - opex - tax - misc;
   return { rev, other, cogs, labor: L, rent, opex, tax, misc, profit, byInd, capex: sum(byCat(rows, ['expand', 'acquire', 'fleet'])), dep };
 }
 /** 个人收支 */
-export function personal(s, from, t) {
-  const rows = inPeriod(allRows(s, t), from).filter((r) => r.wallet === 'personal' && !r.memo && !['debug', 'deposit_in', 'deposit_out', 'transfer_in', 'transfer_out'].includes(r.cat)); // 存取款是转账，不算收支（设计62：个人 ↔ 投资账户转账也不算）
+export const personal = (s, from, t) => personalOf(periodRows(s, from, t));
+export function personalOf(all) {
+  const rows = all.filter((r) => r.wallet === 'personal' && !r.memo && !['debug', 'deposit_in', 'deposit_out', 'transfer_in', 'transfer_out'].includes(r.cat)); // 存取款是转账，不算收支（设计62：个人 ↔ 投资账户转账也不算）
   const group = (dir) => { const o = {}; for (const r of rows.filter((x) => x.dir === dir)) o[r.cat] = (o[r.cat] || 0) + r.amount; return Object.entries(o).map(([k, v]) => [CATS[k] ? CATS[k][0] : k, v]).sort((a, b) => b[1] - a[1]); };
   const inc = group('in'), out = group('out');
   return { inc, out, incTotal: inc.reduce((a, x) => a + x[1], 0), outTotal: out.reduce((a, x) => a + x[1], 0) };
 }
 /** 纳税：按税种、个人 / 公司；代扣个税；税负率 */
 export function taxes(s, from, t) {
-  const list = (s.taxes || []).filter((x) => x.t >= from);
-  const kinds = {}; for (const x of list) { const k = `${x.kind}（${x.payer === 'personal' ? '个人' : '公司'}）`; kinds[k] = (kinds[k] || 0) + x.amount; }
-  const rows = inPeriod(allRows(s, t), from);
+  const list = (s.taxes || []).filter((x) => x.t >= from);   // 完税凭证明细（最近 100 张，给人看）
+  const kinds = {}; for (const [kk, v] of Object.entries(BK.taxSince(s, from, t))) { const [kind, p] = kk.split('|'); const k = `${kind}（${p === 'p' ? '个人' : '公司'}）`; kinds[k] = (kinds[k] || 0) + v; }   // 设计79：合计从 books.tax
+  return { ...taxesOf(periodRows(s, from, t)), kinds: Object.entries(kinds).sort((a, b) => b[1] - a[1]), list, due: (s.taxDue || []).reduce((a, x) => a + x.amount, 0) };
+}
+export function taxesOf(rows) {
   const personalTax = sum(rows.filter((r) => r.cat === 'tax_personal'));
   const withheld = sum(rows.filter((r) => r.cat === 'iit_withheld'));
-  const pl = companyPL(s, from, t);
+  const pl = plOf(rows);
   const company = sum(rows.filter((r) => r.cat === 'tax_company' && !r.memo));
-  return { kinds: Object.entries(kinds).sort((a, b) => b[1] - a[1]), list, personalTax, withheld, company, burden: pl.rev ? company / pl.rev : 0, due: (s.taxDue || []).reduce((a, x) => a + x.amount, 0) };
+  return { personalTax, withheld, company, burden: pl.rev ? company / pl.rev : 0 };
 }
 /** 流水筛选 */
 export function ledgerView(s, { wallet, cat, by, from }, t) {
@@ -63,24 +74,23 @@ export function ledgerView(s, { wallet, cat, by, from }, t) {
 }
 
 // ---------- 第 2-15 项：资产负债表、资产清单 ----------
-import * as EC from './economy.js?v=ab0bf094';
-import { depositTotal, loanDebt } from './bank.js?v=ab0bf094';
-import { debt as bridgeDebt } from './rivalry.js?v=ab0bf094';
-import { equityOwed } from './equity.js?v=ab0bf094';
-import { payables } from './accrual.js?v=ab0bf094';
-import { fleetValue } from './logistics.js?v=ab0bf094';
-import { reValue } from './realestate.js?v=ab0bf094';
-import * as AS from './assets.js?v=ab0bf094';
-import * as YT from './yacht.js?v=ab0bf094';
-import * as LX from './luxury.js?v=ab0bf094';
-import * as AQ from './antique.js?v=ab0bf094';
-import * as OF from './offshore.js?v=ab0bf094';
-import * as SK from './stocks.js?v=ab0bf094';
-import * as TR from './trade.js?v=ab0bf094'; // 设计43 第二版：挂单中
-import * as FD from './funds.js?v=ab0bf094';
-import { SEC_BY_ID } from '../config/secretaries.js?v=ab0bf094';
-import * as LMK from './landmark.js?v=ab0bf094';
-import { paidIn as paidInOf } from './companytax.js?v=ab0bf094';
+import * as EC from './economy.js?v=c60d881c';
+import { depositTotal, loanDebt } from './bank.js?v=c60d881c';
+import { debt as bridgeDebt } from './rivalry.js?v=c60d881c';
+import { equityOwed } from './equity.js?v=c60d881c';
+import { payables } from './accrual.js?v=c60d881c';
+import { fleetValue } from './logistics.js?v=c60d881c';
+import { reValue } from './realestate.js?v=c60d881c';
+import * as AS from './assets.js?v=c60d881c';
+import * as YT from './yacht.js?v=c60d881c';
+import * as LX from './luxury.js?v=c60d881c';
+import * as AQ from './antique.js?v=c60d881c';
+import * as OF from './offshore.js?v=c60d881c';
+import * as SK from './stocks.js?v=c60d881c';
+import * as TR from './trade.js?v=c60d881c'; // 设计43 第二版：挂单中
+import { SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
+import * as LMK from './landmark.js?v=c60d881c';
+import { paidIn as paidInOf } from './companytax.js?v=c60d881c';
 
 const r2b = (v) => Math.round(v * 100) / 100;
 const tot = (rows) => r2b(rows.reduce((a, r) => a + r[1], 0));
@@ -93,7 +103,7 @@ export function balanceSheet(s) {
   const g = s.garage || { cars: [], houses: [], planes: [] }; const byKind = (k, f = () => true) => ((g[k] || []).filter((id) => AS.ITEM[id] && f(AS.ITEM[id])).reduce((a, id) => a + AS.sellPrice(s, id), 0));
   const kindSum = (kind) => LX.mine(s, kind).reduce((a, id) => a + LX.sellPrice(s, id), 0);
   const mgr = s.mkt && s.mkt.mgr ? s.mkt.mgr.value : 0;
-  const pA = [['个人现金', s.cash || 0], ['投资账户现金', s.invest || 0], ['银行存款（个人）', depositTotal(s, 'personal')], ['车', byKind('cars')], ['房产（国内）', byKind('houses', (it) => !OF.isAbroad(it))], ['房产（香港、海外）', byKind('houses', (it) => OF.isAbroad(it))], ['飞机', byKind('planes')], ['游艇', YT.value(s)], ['名表', kindSum('watch')], ['西装', kindSum('suit')], ['古董藏品（估价）', AQ.value(s)], ['股票（现价）', s.mkt ? SK.holdValue(s) : 0], ['基金（含锁定、在途）', FD.value(s)], ['交给投资经理的', mgr], ['挂单中（股票条件单里的钱和股票）', s.mkt ? TR.orderValue(s) : 0], [`公司股权（你持股 ${+(company.stake * 100).toFixed(2)}%）`, r2b(company.equity * company.stake)], ['其他（上市市值等）', EC.netWorth(s) - (s.cash + (s.invest || 0) + (s.assetValue || 0) + depositTotal(s, 'personal') + (EC.companyEquity ? EC.companyEquity(s) : company.equity) * company.stake)]].filter((r) => Math.abs(r[1]) >= 0.01);
+  const pA = [['个人现金', s.cash || 0], ['投资账户现金', s.invest || 0], ['银行存款（个人）', depositTotal(s, 'personal')], ['车', byKind('cars')], ['房产（国内）', byKind('houses', (it) => !OF.isAbroad(it))], ['房产（香港、海外）', byKind('houses', (it) => OF.isAbroad(it))], ['飞机', byKind('planes')], ['游艇', YT.value(s)], ['名表', kindSum('watch')], ['西装', kindSum('suit')], ['古董藏品（估价）', AQ.value(s)], ['股票（现价）', s.mkt ? SK.holdValue(s) : 0], ['交给投资经理的', mgr], ['挂单中（股票条件单里的钱和股票）', s.mkt ? TR.orderValue(s) : 0], [`公司股权（你持股 ${+(company.stake * 100).toFixed(2)}%）`, r2b(company.equity * company.stake)], ['其他（上市市值等）', EC.netWorth(s) - (s.cash + (s.invest || 0) + (s.assetValue || 0) + depositTotal(s, 'personal') + (EC.companyEquity ? EC.companyEquity(s) : company.equity) * company.stake)]].filter((r) => Math.abs(r[1]) >= 0.01);
   const pL = [['股票质押、艺术品质押（阶段三）', 0]];
   const personal = { assets: pA, liabilities: pL, A: tot(pA), L: 0 }; personal.net = personal.A;
   return { company, personal, netWorth: EC.netWorth(s) };
@@ -108,7 +118,6 @@ export function assetList(s) {
   for (const [kind, name] of [['watch', '名表'], ['suit', '西装']]) add(name, LX.mine(s, kind).map((id) => { const x = LX.L[id]; const m = (s.lux && s.lux.meta[id]) || {}; return { name: LX.label(x), no: m.no ? `No.${String(m.no).padStart(3, '0')} / ${x.limit}` : '', buy: m.price || x.price, now: LX.sellPrice(s, id), at: m.at, upkeep: 0, ref: m.contract || m.inv || '', rare: x.limit ? (x.limit === 1 ? 'unique' : 'limited') : '' }; }));
   add('古董藏品', AQ.pieces(s).map((it) => { const x = AQ.AQ[it.id]; return { name: x.name + (it.fake ? '（仿品）' : ''), no: '', buy: it.paid, now: it.est, at: it.at, upkeep: 0, ref: it.contract || '', rare: x.limit === 1 ? 'unique' : x.limit ? 'limited' : '' }; }));
   if (s.mkt) add('股票', SK.holdings(s).map((h) => ({ name: `${SK.BY[h.code].name}（${h.code}）${h.n.toLocaleString()} 股`, no: '', buy: r2b(h.cost * h.n), now: h.value, at: h.at, upkeep: 0, ref: '' })));
-  if (s.fund) add('基金', [...FD.holdings(s).map((h) => ({ name: FD.FB[h.id].name, no: '', buy: h.cost, now: h.value, at: h.at, upkeep: 0, ref: '' })), ...s.fund.angel.map((a) => ({ name: `${FD.FB[a.id].name}（锁定中）`, no: '', buy: a.amount, now: a.amount, at: a.at, upkeep: 0, ref: '' }))]);
   if (s.mkt && s.mkt.mgr) add('交给投资经理的', [{ name: '投资经理代管', no: '', buy: s.mkt.mgr.principal, now: s.mkt.mgr.value, upkeep: 0, ref: '' }]);
   // 设计30：没有境外账户、香港子公司了
   if (s.landmark) add('地标（公司持有）', LMK.mine(s).map((id) => { const x = LMK.LM[id]; const o = LMK.lm(s).own[id]; return { name: `${x.name}（${x.city}）`, no: '', buy: o.price, now: LMK.valOf(o), at: o.at, upkeep: LMK.yearly(x, LMK.valOf(o)).opex + LMK.yearly(x, LMK.valOf(o)).tax, ref: o.contract, rare: 'unique' }; }));
@@ -118,8 +127,8 @@ export function assetList(s) {
 /** 送给秘书的：按秘书分（礼物、衣服、名包），件数和金额 */
 export function giftsBySec(s) {
   const out = {};
-  const put = (id, kind, amt) => { if (!SEC_BY_ID[id]) return; const o = (out[id] = out[id] || { gift: [0, 0], clothes: [0, 0], bag: [0, 0] }); o[kind][0] += 1; o[kind][1] += amt; };
-  for (const r of s.ledger || []) if ((r.cat === 'gift' || r.cat === 'clothes') && r.dir === 'out') { const id = SEC_BY_ID[r.party] ? r.party : Object.keys(SEC_BY_ID).find((k) => (r.note || '').includes(k)); if (id) put(id, r.cat, r.amount); }
+  const put = (id, kind, amt, n = 1) => { if (!SEC_BY_ID[id]) return; const o = (out[id] = out[id] || { gift: [0, 0], clothes: [0, 0], bag: [0, 0] }); o[kind][0] += n; o[kind][1] += amt; };   // n：汇总行记着几条（设计79）
+  for (const id of Object.keys(BK.books(s).sec)) { const b = BK.secBook(s, id); if (b.gift) put(id, 'gift', b.gift[1], b.gift[0]); if (b.cloth) put(id, 'clothes', b.cloth[1], b.cloth[0]); }   // 设计79：从 books.sec（记账时按秘书加好）
   for (const x of (s.lux && s.lux.given) || []) put(x.sec, 'bag', LX.L[x.id] ? LX.L[x.id].price : 0);
   return out;
 }

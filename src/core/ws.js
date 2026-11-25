@@ -3,14 +3,15 @@
 // 利好 / 利空新闻每跳检查、新闻前 30 跳就说（提前说 / 说准按「股票 + 新闻那一跳」定种子只掷一次，点几次都一样）。
 // 机会：要涨停 / 有利好 / 有一波 → 「重要」消息（⅓仓 / 半仓 / 全仓 一点就挂）；手里有的要跌 → 「¥X 以下先卖掉」（卖 ⅓ / 一半 / 全部）。
 // 设计48：提示不进消息，放在 s.mkt.wsTips（股票页看盘卡片下面列）；同一只不重复、最多 3 条；买入点过了收起；「不用了」这次看盘这只不再说。离线不补发：回来还在看盘时间里马上扫一次。结束弹战绩。不看盘就没有任何股票提示（规矩 9）。
-import * as SK from './stocks.js?v=ab0bf094';
-import * as TR from './trade.js?v=ab0bf094';
-import { attrs as secAttrs } from './posts.js?v=ab0bf094';
-import { whyEnergy, doEnergy } from './manage.js?v=ab0bf094';
-import { isTraining } from './training.js?v=ab0bf094';
-import { SEC_BY_ID } from '../config/secretaries.js?v=ab0bf094';
-import { posShares, POS_BY, nFor } from './look.js?v=ab0bf094';
-import { have as haveItem, useItem } from './coupon.js?v=ab0bf094';   // 设计53 投资券
+import { capAdd } from './cap.js?v=c60d881c';   // 设计79：有上限的列表（config/caps.js）
+import * as SK from './stocks.js?v=c60d881c';
+import * as TR from './trade.js?v=c60d881c';
+import { attrs as secAttrs } from './posts.js?v=c60d881c';
+import { whyEnergy, doEnergy } from './manage.js?v=c60d881c';
+import { isTraining } from './training.js?v=c60d881c';
+import { SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
+import { posShares, POS_BY, nFor } from './look.js?v=c60d881c';
+import { have as haveItem, useItem } from './coupon.js?v=c60d881c';   // 设计53 投资券
 
 const C = SK.SCFG; const W = C.watch; const WS = W.ws; const T = W.tip;
 const TICK = C.tickSec * 1000; const HOUR_TICKS = 3600e3 / TICK;
@@ -205,7 +206,7 @@ function refreshWrong(s, x, F) {
 /** 扫一次（自动 / 手动一样）：看得到的里 5 分钟内封涨停 / 能涨 ≥ 3% 的 + 手里有的要跌；没有好的就造一只（下一次扫一定有）；返回新发的提示 */
 export function scan(s, t = Date.now(), manual = false) {
   const w = ws(s); if (!w) return [];
-  const m = s.mkt; w.scans.push({ tk: m.tick, manual }); if (w.scans.length > 160) w.scans.shift(); const wv = wit(s, w);   // 设计67：6 小时 144 次，留得下
+  const m = s.mkt; capAdd(s, 'mkt.ws.scans', w.scans, { tk: m.tick, manual }); const wv = wit(s, w);   // 设计67：6 小时 144 次，留得下
   const F = fut(m); const LU = luIn(m, F); const see = visible(s, w); const out = [];
   const rows = see.map((code) => quick(m, code, F.path[code], wv, LU[code] != null ? LU[code] : null)).filter(Boolean).sort((a, b) => (b.lu - a.lu) || (b.g - a.g) || (a.hit - b.hit));
   const ex = new Set(rows.map((r) => r.code)); let wi = 0;
@@ -337,16 +338,31 @@ TR.addGroupHook((s, e) => {
   const w = s.mkt && (s.mkt.ws || s.mkt.wsLast); if (!w || e.kind !== 'out' || e.pnl == null || !w.grps.includes(e.grp)) return; w.pnl = r2((w.pnl || 0) + e.pnl);
   if (e.pnl < 0 && w.wrongGrps && w.wrongGrps[e.grp]) {   // 设计53：跟了她说错的那条、亏了 → 她说一句（按性格）
     const sec = SEC_BY_ID[w.who]; const L = (sec && WS.wrongLines[sec.type]) || WS.wrongLines._; const line = L[Math.floor(SK.hu(`WSL${s.gid || ''}`, e.grp) * L.length)];
-    (s.mkt.wrongQ = s.mkt.wrongQ || []).push({ who: w.who, line, pnl: e.pnl, grp: e.grp }); if (s.mkt.wrongQ.length > 5) s.mkt.wrongQ.shift();
+    capAdd(s, 'mkt.wrongQ', (s.mkt.wrongQ = s.mkt.wrongQ || []), { who: w.who, line, pnl: e.pnl, grp: e.grp });
   }
 });
 /** 说错亏了的台词（拿一次就清） */
 export const takeWrong = (s) => { const q = (s.mkt && s.mkt.wrongQ) || []; if (s.mkt) s.mkt.wrongQ = []; return q; };
-/** 设计67「还能跟 X 分钟」：离低点那一跳还有 ms 毫秒（现实时间）→ 30 秒一档往下取（1 分钟、1 分半、2 分钟…）；不到 1 分钟 soon（橙色）；到了 past */
+/** 设计75：剩下多少现实时间写到秒——1 小时以上「X 小时 Y 分」、1 分钟以上「X 分 YY 秒」（秒补两位）、不到 1 分钟「Y 秒」；秒往上取（还剩 0.3 秒写 1 秒），≤ 0 返回 null */
+export function secTxt(ms) {
+  if (!(ms > 0)) return null; const s = Math.ceil(ms / 1000 - 1e-9);
+  if (s >= 3600) return `${Math.floor(s / 3600)} 小时 ${Math.floor((s % 3600) / 60)} 分`;
+  if (s >= 60) return `${Math.floor(s / 60)} 分 ${String(s % 60).padStart(2, '0')} 秒`;
+  return `${s} 秒`;
+}
+/** 设计67 / 75「还能跟 X」：离低点那一跳还有 ms 毫秒（现实时间），写到秒；不到 1 分钟 soon（橙色）；到了 past */
 export function followTxt(ms) {
   if (ms == null) return { text: '', cls: '' };
   if (ms <= 0) return { text: '低点过了，等下一条', cls: 'past' };
-  if (ms < 60e3) return { text: '还能跟不到 1 分钟', cls: 'soon' };
-  const h = Math.floor(ms / 30e3); const mn = Math.floor(h / 2); return { text: `还能跟 ${mn} 分${h % 2 ? '半' : '钟'}`, cls: '' };
+  return { text: `还能跟 ${secTxt(ms)}`, cls: ms < 60e3 ? 'soon' : '' };
+}
+/** 设计60 / 75 看盘单的倒计时（持仓页「等着买入」、持仓卡卖单）：e = { kind 'buy' | 'sell', at 预计到低点买入 / 预计卖出, by 最晚按现价卖 }，都写到秒；
+ *  到了还没成交那一两秒写「正在买入… / 正在卖出…」，不出现负数；卖的过了预计时间写「还没涨到卖价 · 最晚 …」 */
+export function etaTxt(e, t) {
+  const a = e.at - t, b = secTxt(e.by - t); const late = b ? `最晚 ${b}后按现价卖` : '';
+  if (e.kind === 'buy') return { main: a > 0 ? `${a >= 60e3 ? '约 ' : ''}${secTxt(a)}后到低点买入` : '正在买入…', sub: late };
+  if (!b) return { main: '正在卖出…', sub: '' };
+  if (a <= 0) return { main: `还没涨到卖价 · ${late}`, sub: '', late: true };
+  return { main: `预计 ${secTxt(a)}后卖出`, sub: late };
 }
 export { nFor };

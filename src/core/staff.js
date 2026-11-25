@@ -1,12 +1,13 @@
 // 员工（设计17 第一节）：只是数字。按产业线 → 岗位记在岗人数；编制跟门店样子走
-import PAY from '../config/payroll.json?v=ab0bf094' with { type: 'json' };
-import ECO from '../config/economy.json?v=ab0bf094' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=ab0bf094';
-import { pay, canPay, canPayMust, post } from './ledger.js?v=ab0bf094';
-import { YEAR_MS } from './gametime.js?v=ab0bf094';
-import { salaryOf, isSec } from './posts.js?v=ab0bf094';
-import { lineK } from './cities.js?v=ab0bf094';
-import { payerOfSec, satisfaction, turnoverMult } from './fiscal.js?v=ab0bf094';
+import { capAdd } from './cap.js?v=c60d881c';   // 设计79：有上限的列表（config/caps.js）
+import PAY from '../config/payroll.json?v=c60d881c' with { type: 'json' };
+import ECO from '../config/economy.json?v=c60d881c' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=c60d881c';
+import { pay, canPay, canPayMust, post } from './ledger.js?v=c60d881c';
+import { YEAR_MS } from './gametime.js?v=c60d881c';
+import { salaryOf, isSec } from './posts.js?v=c60d881c';
+import { lineK } from './cities.js?v=c60d881c';
+import { payerOfSec, satisfaction, turnoverMult } from './fiscal.js?v=c60d881c';
 export { PAY };
 
 const look = (ind) => { const c = IND_BY_ID[ind.id]; let i = 0; c.looks.forEach((lv, k) => { if (ind.level >= lv) i = k; }); return i; };
@@ -175,7 +176,7 @@ export function monthEnd(s, t, rnd = Math.random, acc = null) {
     if (L.iit) post(s, { wallet: 'company', dir: 'out', cat: 'iit_withheld', amount: L.iit, memo: true, party: '税务局', note: '代扣员工个税（从工资里扣，不算公司成本）' }, t);
     p.arrears = 0; out.paid = true;
   } else { p.arrears += 1; p.owed += L.total; out.unpaidSecs = Object.keys(s.secs || {}); }
-  if (out.paid) (s.iitWithheld = s.iitWithheld || []).push({ t, amount: L.iit, who: 'staff' });
+  if (out.paid) capAdd(s, 'iitWithheld', (s.iitWithheld = s.iitWithheld || []), { t, amount: L.iit, who: 'staff' });
   if (rent) pay(s, { wallet: 'company', cat: 'rent', amount: rent, force: true, note: '门店房租' }, t);
   for (const id of Object.keys(s.secs || {})) if (payerOfSec(s, id) === 'personal') { const w = salaryOf(s, id) * (1 + socialRate()); if (w >= 0.01) pay(s, { wallet: 'personal', cat: 'family_office', amount: w, force: true, party: id, by: id, note: '家族办公室：秘书工资 + 社保（个人出）' }, t); }
   out.left = turnover(s, rnd);

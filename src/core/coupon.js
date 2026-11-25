@@ -2,15 +2,16 @@
 // 存档 s.coupon = { bal, log: [{ t, n, why }], seen: { title, goal, final: {}, favor: {}, win: {} }, day: { key, sign, tasks, refill, talks: { 秘书id: 用了几张 }, dates: { 秘书id: 用了几张 } } }
 // 怎么得：全在 tick 里看（签到、每日任务全领完、目标链、升称号、收购最终对手、好感升阶、第一次赢对手），不改别的模块；新开局时把「已经有的」记成看过，不补发。
 // 挂钩默认已经接开发1 的真函数；测试可以用 setCouponHooks 换掉：{ energyAdd, refill, refillState, auto }
-import C from '../config/coupon.json?v=ab0bf094' with { type: 'json' };
-import { daily, dayKey, talkExtra } from './affection.js?v=ab0bf094';
-import { tasksFor } from './daily.js?v=ab0bf094';
-import { gl } from './goals.js?v=ab0bf094';
-import { favorStage } from './secretary.js?v=ab0bf094';
-import { RIVALS } from '../config/rivals.js?v=ab0bf094';
-import { addEnergy, autoActLeft, useAutoTicket } from './manage.js?v=ab0bf094';
-import { whyNotMore, more as bizMore, moreLeft } from './bizevents.js?v=ab0bf094';
-import { datesWith, dateTickets, DATE_TICKET_MAX } from './dates.js?v=ab0bf094';
+import { capAdd } from './cap.js?v=c60d881c';   // 设计79：有上限的列表（config/caps.js）
+import C from '../config/coupon.json?v=c60d881c' with { type: 'json' };
+import { daily, dayKey, talkExtra } from './affection.js?v=c60d881c';
+import { tasksFor } from './daily.js?v=c60d881c';
+import { gl } from './goals.js?v=c60d881c';
+import { favorStage } from './secretary.js?v=c60d881c';
+import { RIVALS } from '../config/rivals.js?v=c60d881c';
+import { addEnergy, autoActLeft, useAutoTicket } from './manage.js?v=c60d881c';
+import { whyNotMore, more as bizMore, moreLeft } from './bizevents.js?v=c60d881c';
+import { datesWith, dateTickets, DATE_TICKET_MAX } from './dates.js?v=c60d881c';
 export { C as COUPON_CFG };
 export const ITEMS = C.items;
 export const ITEM_KEYS = C.order;
@@ -29,7 +30,7 @@ export function cp(s) {
   return s.coupon;
 }
 const today = (s, t) => { const c = cp(s); const k = dayKey(t); if (c.day.key !== k) c.day = { key: k, sign: false, tasks: false, talks: {} }; return c.day; };
-const log = (s, t, n, why) => { const c = cp(s); c.log.unshift({ t, n, why }); if (c.log.length > C.logKeep) c.log.length = C.logKeep; };
+const log = (s, t, n, why) => { const c = cp(s); capAdd(s, 'coupon.log', c.log, { t, n, why }); };
 export const balance = (s) => cp(s).bal;
 export function earn(s, n, why, t = Date.now()) { if (n <= 0) return; cp(s).bal += n; log(s, t, n, why); }
 export function spend(s, n, why, t = Date.now()) { const c = cp(s); if (c.bal < n) return false; c.bal -= n; log(s, t, -n, why); return true; }

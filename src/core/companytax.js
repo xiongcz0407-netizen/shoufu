@@ -1,8 +1,10 @@
 // 公司交税（设计15 第二节 1）：增值税 + 附加每游戏月；企业所得税每游戏季度预缴；分红代扣 20% 个税
-import TAX from '../config/tax.json?v=ab0bf094' with { type: 'json' };
-import { pay, receive, canPay } from './ledger.js?v=ab0bf094';
-import { MONTH_MS } from './gametime.js?v=ab0bf094';
-import { addContract } from './contracts.js?v=ab0bf094';
+import { capAdd } from './cap.js?v=c60d881c';   // 设计79：有上限的列表（config/caps.js）
+import * as BK from './books.js?v=c60d881c';   // 设计79 第三版
+import TAX from '../config/tax.json?v=c60d881c' with { type: 'json' };
+import { pay, receive, canPay } from './ledger.js?v=c60d881c';
+import { MONTH_MS } from './gametime.js?v=c60d881c';
+import { addContract } from './contracts.js?v=c60d881c';
 export { TAX };
 
 const sum = (o) => Object.values(o || {}).reduce((a, b) => a + b, 0);
@@ -24,7 +26,7 @@ export function isSmallVat(s) {
 function record(s, kind, period, base, rate, amount, t) {
   s.taxSeq = (s.taxSeq || 0) + 1;
   const cert = `完税-${String(s.taxSeq).padStart(5, '0')}`;
-  (s.taxes = s.taxes || []).push({ id: s.taxSeq, t, kind, period, base, rate, amount, payer: 'company', cert });
+  capAdd(s, 'taxes', (s.taxes = s.taxes || []), { id: s.taxSeq, t, kind, period, base, rate, amount, payer: 'company', cert });
   return cert;
 }
 // 申报（设计16 第二节 2）：有财务总监 / 代账公司 → 自动申报交上；没有 → 进消息中心等你点「申报」，15 个游戏日内交，过期每天万分之五滞纳金
@@ -79,8 +81,7 @@ export function monthTax(s, monthIdx, t) {
   s.qtr = s.qtr || {}; s.qtr.surcharge = (s.qtr.surcharge || 0) + surcharge; s.qtr.labor = (s.qtr.labor || 0) + ((s.period && s.period.labor) || 0); s.qtr.rent = (s.qtr.rent || 0) + ((s.period && s.period.rent) || 0);
   s.qtr.other = (s.qtr.other || 0) + ((s.period && s.period.other) || 0);
   const res = { vat, surcharge, small, rev, cogs: sum(p.cogs), profit: rev - sum(p.cogs) - (p.labor || 0) - (p.rent || 0) - vat - surcharge - (p.other || 0) };
-  (s.monthly = s.monthly || []).push({ m: monthIdx, rev, cogs: sum(p.cogs), labor: (p.labor || 0), rent: (p.rent || 0), tax: vat + surcharge, profit: res.profit });
-  if (s.monthly.length > 60) s.monthly.shift();
+  capAdd(s, 'monthly', (s.monthly = s.monthly || []), { m: monthIdx, rev, cogs: sum(p.cogs), labor: (p.labor || 0), rent: (p.rent || 0), tax: vat + surcharge, profit: res.profit });
   s.period = {};
   return res;
 }
@@ -109,7 +110,7 @@ export function yearEnd(s) { s.lastYear = s.yearAcc; s.yearAcc = {}; s.citYtd = 
 /** 实收资本：老档没有 s.paidIn 的，按开局注资（第一家店的开店费）算 */
 export function paidIn(s) {
   if (typeof s.paidIn === 'number') return s.paidIn;
-  const st = (s.ledger || []).filter((e) => e.wallet === 'company' && e.cat === 'capital').reduce((a, e) => a + (e.amount || 0), 0);
+  const st = BK.totalOf(s, 'company', 'capital', 'in') + BK.totalOf(s, 'company', 'capital', 'out');   // 设计79：累计注资从 books.total（原来不分进出，照旧）
   return st;
 }
 /** 个人能动的现金（扣掉冻结中的） */
@@ -138,7 +139,7 @@ export function dividend(s, amount, t, { to = 'personal' } = {}) {
   const tax = Math.round(amount * TAX.dividendIIT * 100) / 100;
   pay(s, { wallet: 'company', cat: 'dividend_out', amount, party: '老板', note: inv ? '分红给老板（税前，进投资账户）' : '分红给老板（税前）' }, t);
   s.taxSeq = (s.taxSeq || 0) + 1; const cert = `完税-${String(s.taxSeq).padStart(5, '0')}`;
-  (s.taxes = s.taxes || []).push({ id: s.taxSeq, t, kind: '分红个税', period: '', base: amount, rate: TAX.dividendIIT, amount: tax, payer: 'personal', cert });
+  capAdd(s, 'taxes', (s.taxes = s.taxes || []), { id: s.taxSeq, t, kind: '分红个税', period: '', base: amount, rate: TAX.dividendIIT, amount: tax, payer: 'personal', cert });
   const net = Math.round((amount - tax) * 100) / 100;
   receive(s, { wallet: to, cat: 'dividend', amount: net, tax, party: s.companyName || '公司', ref: cert, note: inv ? `分红 ${amount}（代扣个税 20%，进投资账户）` : `分红 ${amount}（代扣个税 20%）` }, t);
   return { ok: true, net, tax };

@@ -1,12 +1,17 @@
 // 只有一个存档，自动存；带存档版本号，新版本必须能读旧存档
-import { APP_V } from '../version.js?v=ab0bf094';
-import { mkt, fillNew } from './stocks.js?v=ab0bf094';
+import { APP_V } from '../version.js?v=c60d881c';
+import { mkt, fillNew } from './stocks.js?v=c60d881c';
 
 export const SAVE_KEY = 'shoufu_save';
 export const SAVE_VERSION = 2; // 第一次发布（V0.1）是 1；2：V0.2 取消境外账户（设计30，core/migrate.js v1to2）
-import { v1to2 } from './migrate.js?v=ab0bf094';
-import { dropOrphans } from './orphans.js?v=ab0bf094';
-import { recallEmpty } from './posts.js?v=ab0bf094';
+import { v1to2 } from './migrate.js?v=c60d881c';
+import { dropOrphans } from './orphans.js?v=c60d881c';
+import { recallEmpty } from './posts.js?v=c60d881c';
+import { trimAll } from './cap.js?v=c60d881c';   // 设计79：读档整理一次（列表封顶）
+import { buildBooks } from './books.js?v=c60d881c';
+import { replayHooks } from './ledger.js?v=c60d881c';
+import './slim.js?v=c60d881c';
+import './slimday.js?v=c60d881c';
 
 /** 局号：每开一局一个 */
 export const newGid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -21,7 +26,7 @@ export function defaultState(t = Date.now()) {
     lastSeen: t,      // 上次在线（算离线收益）
     cash: 0,          // 个人现金
     company: 0,       // 公司账户（开局由 core/start.js 注资开店）
-    invest: 0,        // 投资账户（设计62：股票、基金、两融、打新、投资经理；老存档从 0 开始）
+    invest: 0,        // 投资账户（设计62：股票、打新、投资经理；设计72：没在用的钱自动生息）
     bossName: '', companyName: '',
     ledger: [], ledgerSeq: 0, accruals: {},
     clock: { monthsDone: 0 },
@@ -81,9 +86,20 @@ export function upgrade(raw, t = Date.now()) {
   fillDefaults(s, defaultState(t));
   if (Array.isArray(s.inbox)) s.inbox = s.inbox.filter((m) => m.type !== 'stock_ws');
   if (isObj(s.mkt)) { dropOrphans(s.mkt); fillNew(s.mkt); }   // 设计54：老存档补新股票（按起始价，从这一跳开始跳）   // V0.2.16：老版本看盘留下的孤儿止盈止损（买单没了、组里也没股票）撤掉   // 设计48：看盘提示不进消息了，老存档里的删掉
+  delete s.fund; if (isObj(s.mkt)) delete s.mkt.margin;
+  if (isObj(s.secs)) for (const r of Object.values(s.secs)) if (isObj(r) && r.favor >= 400) r.favor = 499;   // 设计76：好感到知己就满   // 设计72：老存档里的这两项直接丢（不折现）
   if (isObj(s.positions) && isObj(s.inds)) recallEmpty(s, t); /* 设计58（开发1）：还没开的线上的店长撤回 */
+  if (isObj(s.mkt)) slimHist(s.mkt);
+  if (buildBooks(s)) replayHooks(s, (s.ledger || []).slice().sort((a, b) => a.t - b.t || a.id - b.id));   // 设计79 第三版：老存档没有 books，用现有全部明细算一遍（今日日常的计数也补上）
+  trimAll(s);   // 再把明细裁到 300、各列表封顶
   s.appV = APP_V;
   return s;
+}
+
+/** 设计79：老存档「长期」走势 400 个点 → 均匀抽成 120 个（画图就画这么多） */
+function slimHist(m) {
+  const L = m.long; if (!isObj(L)) return; const N = 120;
+  for (const k of Object.keys(L)) { const a = L[k]; if (Array.isArray(a) && a.length > N) L[k] = Array.from({ length: N }, (_, i) => a[Math.round(i * (a.length - 1) / (N - 1))]); }
 }
 
 export function serialize(s) { return JSON.stringify(s); }

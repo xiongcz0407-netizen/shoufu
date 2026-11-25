@@ -1,17 +1,17 @@
 // 「财富 → 资本」里的「上市」一节（第 3-04 项）+ 「投资」页最上面你自己的股票 + 敲钟剧情
-import * as LS from '../core/listing.js?v=ab0bf094';
-import { stakeOf } from '../core/economy.js?v=ab0bf094';
-import { SEC_BY_ID } from '../config/secretaries.js?v=ab0bf094';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=ab0bf094';
-import { game } from '../game.js?v=ab0bf094';
-import { now } from '../core/clock.js?v=ab0bf094';
-import { h, toast } from './dom.js?v=ab0bf094';
-import { MONTH_MS } from '../core/gametime.js?v=ab0bf094';
-import { playStory } from './story.js?v=ab0bf094';
-import { asset, hasAsset } from '../platform/assets.js?v=ab0bf094';
-import { CAPITAL_SECTIONS } from './capital.js?v=ab0bf094';
-import { HINTS } from './guide.js?v=ab0bf094';
-import { hintLater } from './guide2.js?v=ab0bf094';
+import * as LS from '../core/listing.js?v=c60d881c';
+import { stakeOf } from '../core/economy.js?v=c60d881c';
+import { SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=c60d881c';
+import { game } from '../game.js?v=c60d881c';
+import { now } from '../core/clock.js?v=c60d881c';
+import { h, toast } from './dom.js?v=c60d881c';
+import { MONTH_MS } from '../core/gametime.js?v=c60d881c';
+import { playStory } from './story.js?v=c60d881c';
+import { asset, hasAsset } from '../platform/assets.js?v=c60d881c';
+import { CAPITAL_SECTIONS } from './capital.js?v=c60d881c';
+import { HINTS } from './guide.js?v=c60d881c';
+import { hintLater } from './guide2.js?v=c60d881c';
 
 HINTS.ipo = '上市：选板块（主板、科创板、港股、纳斯达克，条件不一样）→ 选券商 → 股改 → 辅导 1 个游戏月 → 审核 1～2 个游戏月（可能问询，派财务总监回复）→ 选发行比例 → 路演 → 敲钟。募资进公司账户，你的持股被稀释；上市以后身价按市值 × 持股，锁定期过了才能减持。';
 const pct = (x, d = 1) => `${(x * 100).toFixed(d)}%`;

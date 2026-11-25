@@ -1,18 +1,18 @@
 // 约会：选地点 → 开车去 → 约会画面（背景、她的台词、加了多少）→ 次数解锁
-import * as MG from '../core/manage.js?v=ab0bf094'; // 设计39 约会花精力
-import { SEC_BY_ID } from '../config/secretaries.js?v=ab0bf094';
-import { DATE_PLACES, DATES_PER_DAY, DATE5_LINES, DATE50_TITLE, RARE_NARR, RARE_REACT, ROOFTOP_LINES } from '../config/dates.js?v=ab0bf094';
-import * as LMK from '../core/landmark.js?v=ab0bf094';
-import { FIRST_DATE_LINES, DATE50_LINES } from '../config/love-stories.js?v=ab0bf094';
-import { LINES } from '../config/lines.js?v=ab0bf094';
-import * as D from '../core/dates.js?v=ab0bf094';
-import { fmtMoney } from '../core/format.js?v=ab0bf094';
-import { now } from '../core/clock.js?v=ab0bf094';
-import { asset, hasAsset } from '../platform/assets.js?v=ab0bf094';
-import { game } from '../game.js?v=ab0bf094';
-import { h, openPanel, toast } from './dom.js?v=ab0bf094';
-import { playStory } from './story.js?v=ab0bf094';
-import { dateTicketHtml, bindDateTicket, potionHtml, bindPotion } from './coupon.js?v=ab0bf094'; // 设计39 约会券、精力药水（开发2）
+import * as MG from '../core/manage.js?v=c60d881c'; // 设计39 约会花精力
+import { SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
+import { DATE_PLACES, DATES_PER_DAY, DATE5_LINES, DATE50_TITLE, RARE_NARR, RARE_REACT, ROOFTOP_LINES } from '../config/dates.js?v=c60d881c';
+import * as LMK from '../core/landmark.js?v=c60d881c';
+import { FIRST_DATE_LINES, DATE50_LINES } from '../config/love-stories.js?v=c60d881c';
+import { LINES } from '../config/lines.js?v=c60d881c';
+import * as D from '../core/dates.js?v=c60d881c';
+import { fmtMoney } from '../core/format.js?v=c60d881c';
+import { now } from '../core/clock.js?v=c60d881c';
+import { asset, hasAsset } from '../platform/assets.js?v=c60d881c';
+import { game } from '../game.js?v=c60d881c';
+import { h, openPanel, toast } from './dom.js?v=c60d881c';
+import { playStory } from './story.js?v=c60d881c';
+import { dateTicketHtml, bindDateTicket, potionHtml, bindPotion } from './coupon.js?v=c60d881c'; // 设计39 约会券、精力药水（开发2）
 
 // 车：返回 { tier, name, rarity: 'normal'|'limited'|'unique', count }；没车就打车
 let carFor = () => ({ tier: 0, name: '' });

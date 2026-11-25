@@ -2,20 +2,20 @@
 // 每条门店线：人流等级 trafLv（每级营业额 +5%，最多 20 级）、口碑等级 repLv（每级口碑底线 +5，50 → 100）；存在 manage 的 line 上，分店共享，永久不掉。
 // 每个称号能升到多高：人流 5 / 10 / 15 / 20 级，口碑 2 / 4 / 7 / 10 级。价格 = 这一级每月多赚的 ×（1 + 0.1 × 第几级），没有折扣。
 // 店长托管「自动升级广告」（默认开）：钱够（留够两个月工资）就升，先升便宜的；外包经理人只升到 5 / 2 级。
-import C from '../config/ads.json?v=ab0bf094' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=ab0bf094';
-import { TITLES } from '../config/titles.js?v=ab0bf094';
-import { YEAR_MS } from './gametime.js?v=ab0bf094';
-import * as MG from './manage.js?v=ab0bf094';
-import { steadyRevenue, steadyCogs } from './economy.js?v=ab0bf094';
-import { pay, canPay } from './ledger.js?v=ab0bf094';
-import { holder, isSec, OUT } from './posts.js?v=ab0bf094';
-import { cushionShort } from './cashflow.js?v=ab0bf094';
-import { setAdsPayHook } from './accrual.js?v=ab0bf094';
-import { addMsg } from './inbox.js?v=ab0bf094';
-import { fmtMoney } from './format.js?v=ab0bf094';
-import { noteUp, noteAuto } from './upnote.js?v=ab0bf094';
-import { dayRevOf } from './upbuild.js?v=ab0bf094'; // V0.2.5 店铺升级、开分店的升级框挂进 economy
+import C from '../config/ads.json?v=c60d881c' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=c60d881c';
+import { TITLES } from '../config/titles.js?v=c60d881c';
+import { YEAR_MS } from './gametime.js?v=c60d881c';
+import * as MG from './manage.js?v=c60d881c';
+import { steadyRevenue, steadyCogs } from './economy.js?v=c60d881c';
+import { pay, canPay } from './ledger.js?v=c60d881c';
+import { holder, isSec, OUT } from './posts.js?v=c60d881c';
+import { cushionShort } from './cashflow.js?v=c60d881c';
+import { setAdsPayHook } from './accrual.js?v=c60d881c';
+import { addMsg } from './inbox.js?v=c60d881c';
+import { fmtMoney } from './format.js?v=c60d881c';
+import { noteUp, noteAuto } from './upnote.js?v=c60d881c';
+import { dayRevOf } from './upbuild.js?v=c60d881c'; // V0.2.5 店铺升级、开分店的升级框挂进 economy
 
 export { C as ADS_CFG };
 export const CATS = ['traffic', 'rep'];

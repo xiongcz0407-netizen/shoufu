@@ -1,11 +1,12 @@
 // 好感、爱慕、每天互动、送礼、台词触发规则（设计03 第五节）、吃醋 / 冷落
-import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=ab0bf094';
-import { GIFT_BY_ID } from '../config/gifts.js?v=ab0bf094';
-import { LINES } from '../config/lines.js?v=ab0bf094';
-import { ensureSec, favorStage, loveStage, FAVOR_MAX, LOVE_STAGES } from './secretary.js?v=ab0bf094';
-import { bump } from './daily.js?v=ab0bf094';
-import { pay, receive, accrue, canPay } from './ledger.js?v=ab0bf094';
-import LOVE from '../config/love.json?v=ab0bf094' with { type: 'json' };   // 设计56
+import { capAdd } from './cap.js?v=c60d881c';   // 设计79：有上限的列表（config/caps.js）
+import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=c60d881c';
+import { GIFT_BY_ID } from '../config/gifts.js?v=c60d881c';
+import { LINES } from '../config/lines.js?v=c60d881c';
+import { ensureSec, favorStage, loveStage, FAVOR_MAX, FAVOR_FULL_AT, LOVE_STAGES } from './secretary.js?v=c60d881c';
+import { bump } from './daily.js?v=c60d881c';
+import { pay, receive, accrue, canPay } from './ledger.js?v=c60d881c';
+import LOVE from '../config/love.json?v=c60d881c' with { type: 'json' };   // 设计56
 
 export const DAILY_TALKS = 10;      // 每人每天点她涨好感的次数
 export const TALK_FAVOR = 2;
@@ -35,7 +36,8 @@ export function addFavor(s, id, n) {
   if (n < 0 && isOnly(s, id)) return { from, to: from, stageUp: false };
   if (n > 0) n = r2(n * favorMult(s));
   r.favor = r2(Math.max(0, Math.min(FAVOR_MAX, r.favor + n)));
-  return { from, to: r.favor, stageUp: favorStage(r.favor) > favorStage(from) };
+  if (r.favor >= FAVOR_FULL_AT) r.favor = FAVOR_MAX;   // 设计76：进「知己」就直接满（礼物、互动、约会、出差、职位……都走这里）
+  return { from, to: r.favor, stageUp: favorStage(r.favor) > favorStage(from), full: r.favor >= FAVOR_MAX };
 }
 /** 设计56 门：20 / 40 / 60 / 80 / 100。加爱慕最多加到下一道门减 1；cross（约会）能跨 20 / 40 / 60 / 80，但最多 99（100 只靠定情信物） */
 export const LOVE_GATES = LOVE.gates;
@@ -117,7 +119,6 @@ export function invoice(s, { item, amount, seller, t, taxRate = 0.13 }) {
   const no = `发票-${String(s.invoiceSeq).padStart(6, '0')}`;
   const tax = Math.round(amount / (1 + taxRate) * taxRate * 100) / 100; // 价税合计里含的增值税
   const inv = { no, t, item, amount, tax, seller, buyer: s.bossName || '老板' };
-  (s.invoices = s.invoices || []).push(inv);
-  if (s.invoices.length > 500) s.invoices.shift();
+  capAdd(s, 'invoices', (s.invoices = s.invoices || []), inv);   // 设计79：留 100 张，更早的按年汇总进 invoiceSum
   return inv;
 }

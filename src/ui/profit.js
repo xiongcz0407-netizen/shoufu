@@ -1,18 +1,18 @@
 // 设计40 收益流水（开发2）：公司 →「收益」页签。顶上今天合计（进账、成本、赚），能按产业筛；
 // 下面一笔一笔往上冒（最新在上，最多 60 条）。数据在 core/flow.js，钱都是真实营收切出来的
-import * as FL from '../core/flow.js?v=ab0bf094';
-import { IND_BY_ID } from '../config/industries.js?v=ab0bf094';
-import { lookIndex } from '../core/economy.js?v=ab0bf094';
-import { fmtMoney } from '../core/format.js?v=ab0bf094';
-import { now } from '../core/clock.js?v=ab0bf094';
-import { asset, hasAsset } from '../platform/assets.js?v=ab0bf094';
-import { game } from '../game.js?v=ab0bf094';
-import { h } from './dom.js?v=ab0bf094';
+import * as FL from '../core/flow.js?v=c60d881c';
+import { IND_BY_ID } from '../config/industries.js?v=c60d881c';
+import { lookIndex } from '../core/economy.js?v=c60d881c';
+import { fmtMoney } from '../core/format.js?v=c60d881c';
+import { now } from '../core/clock.js?v=c60d881c';
+import { asset, hasAsset } from '../platform/assets.js?v=c60d881c';
+import { game } from '../game.js?v=c60d881c';
+import { h } from './dom.js?v=c60d881c';
 
 const icon = (s, id) => {
   const c = IND_BY_ID[id]; const x = s.inds && s.inds[id];
   const f = c && c.img ? `assets/ind/${c.img[c.looks && x ? Math.min(c.img.length - 1, lookIndex(c, x.level || 0)) : 0]}.webp` : '';
-  return f && hasAsset(f) ? `<img class="fl-ic" src="${asset(f)}" alt="">` : `<span class="fl-ic ph">${id === 'battle' ? '⚔️' : (c ? c.name[0] : '¥')}</span>`;
+  return f && hasAsset(f) ? `<img class="fl-ic" src="${asset(f)}" alt="">` : `<span class="fl-ic ph">${id === 'battle' ? '⚔️' : id === 'invest' ? '💰' : (c ? c.name[0] : '¥')}</span>`;
 };
 /** 进账、成本取整（不到 10 元一位小数），赚 = 两个相减（设计40 第二节第 6 条） */
 const money = (x, dec) => (dec ? `¥${x.toFixed(1)}` : fmtMoney(x));
@@ -39,10 +39,11 @@ export function renderProfit(body) {
     const key = ids.join(',') + '|' + filter;
     if (key !== tabsKey) {
       tabsKey = key;
-      tabsEl.innerHTML = [['all', '全部'], ...ids.map((id) => [id, id === 'battle' ? '商战' : (IND_BY_ID[id] || {}).name || '其他'])].map(([k, n]) => `<button class="tab ${filter === k ? 'on' : ''}" data-f="${k}">${n}</button>`).join('');
+      tabsEl.innerHTML = [['all', '全部'], ...ids.map((id) => [id, id === 'battle' ? '商战' : id === 'invest' ? '投资账户' : (IND_BY_ID[id] || {}).name || '其他'])].map(([k, n]) => `<button class="tab ${filter === k ? 'on' : ''}" data-f="${k}">${n}</button>`).join('');
       tabsEl.querySelectorAll('[data-f]').forEach((b) => (b.onclick = () => { filter = b.dataset.f; tabsKey = ''; draw(); full(); }));
     }
     if (seen < 0) { full(); return; }
+    for (const r of f.list) if (r.daily) { const el = listEl.querySelector(`[data-i="${r.i}"]`); if (el) { const n = h('div', ''); n.innerHTML = rowHtml(s, r); el.replaceWith(n.firstElementChild); } }   // 设计72：投资账户利息一天一行，原地更新
     if (f.seq === seen) return;
     // 只把新来的几条插到最上面，带一点往上冒的动画（照站柜台）
     const fresh = f.list.filter((r) => r.i > seen && shown(r)); seen = f.seq;

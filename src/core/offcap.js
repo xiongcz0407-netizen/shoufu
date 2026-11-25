@@ -1,17 +1,16 @@
-// 第 3-09 项：离线补算里的资本部分（股市、基金、上市、要约、集团费用、地标收租和估值）
+// 第 3-09 项：离线补算里的资本部分（股市、投资账户利息、上市、要约、集团费用、地标收租和估值）
 // main.js 的 settleAway 按游戏日一段段叫这些（跟在线 ticker 叫的是同一批函数，所以结果一样）；前后各拍一张快照，离开期间对账单里列出来
-import * as SK from './stocks.js?v=ab0bf094';
-import * as FD from './funds.js?v=ab0bf094';
-import * as LS from './listing.js?v=ab0bf094';
-import * as TKO from './takeover.js?v=ab0bf094';
-import * as GR from './group.js?v=ab0bf094';
-import * as LMK from './landmark.js?v=ab0bf094';
-import { recalc } from './assets.js?v=ab0bf094';
-import { addMsg } from './inbox.js?v=ab0bf094';
-import * as TR from './trade.js?v=ab0bf094';
-import * as MT from './meeting.js?v=ab0bf094'; // V2-13 每周经营会
-import * as RL from './richlist.js?v=ab0bf094'; // V2-14 财富榜：跨年发榜（只发最近一年的）
-import * as AGD from './agenda.js?v=ab0bf094'; // V3-02 日程表：离线时秘书替你推掉，不扣
+import * as SK from './stocks.js?v=c60d881c';
+import * as LS from './listing.js?v=c60d881c';
+import * as TKO from './takeover.js?v=c60d881c';
+import * as GR from './group.js?v=c60d881c';
+import * as LMK from './landmark.js?v=c60d881c';
+import { recalc } from './assets.js?v=c60d881c';
+import { addMsg } from './inbox.js?v=c60d881c';
+import * as TR from './trade.js?v=c60d881c';
+import * as MT from './meeting.js?v=c60d881c'; // V2-13 每周经营会
+import * as RL from './richlist.js?v=c60d881c'; // V2-14 财富榜：跨年发榜（只发最近一年的）
+import * as AGD from './agenda.js?v=c60d881c'; // V3-02 日程表：离线时秘书替你推掉，不扣
 
 const TICK_MS = SK.SCFG.tickSec * 1000;
 const r2 = (v) => Math.round(v * 100) / 100;
@@ -29,8 +28,7 @@ export function capitalTicks(to, ctx = { news: [] }) {
       const rep = SK.mgrReport(s, t); if (rep) addMsg(s, { kind: 'report', type: 'invest_report', from: rep.who && rep.who !== 'outsource' ? rep.who : '', title: '投资经理汇报', body: rep.text }, t);
       if (r.ticks) recalc(s);
     },
-    (s, t) => { if (s.mkt) TR.tick(s, t, ctx.rnd); },   // 第 P-06 项：打新、两融利息、炒股周报（条件单、平仓线在每跳里）
-    (s, t) => { if (!s.fund) return; for (const x of FD.tick(s, t)) addMsg(s, { kind: 'system', type: 'fund', title: x, body: '财富 → 投资 → 基金' }, t); },
+    (s, t) => { if (s.mkt) TR.tick(s, t, ctx.rnd); },   // 第 P-06 项：打新、炒股周报（条件单在每跳里）
     (s, t) => { if (s.listing) LS.tick(s, t, ctx.rnd); },
     (s, t) => { if (s.takeover) TKO.tick(s, t); },
     (s, t) => { if (s.group) GR.tick(s, t); },
@@ -47,12 +45,12 @@ export function finishNews(s, ctx, t) {
   addMsg(s, { kind: 'system', type: 'stock_news', title: '你不在的时候，股市里……', body: big.map((n) => `${n.title} ${n.jump > 0 ? '+' : ''}${(n.jump * 100).toFixed(1)}%`).join('\n') }, t);
 }
 
-/** 快照：大盘、个人股票基金、公司持股、自己公司的股价、地标、上市进度、要约、集团 */
+/** 快照：大盘、个人股票、投资账户利息、公司持股、自己公司的股价、地标、上市进度、要约、集团 */
 export function snap(s) {
   return {
     idx: s.mkt ? SK.index(s) : null,
     mine: s.mkt ? r2(SK.myShareValue(s) + ((s.mkt.mgr && s.mkt.mgr.value) || 0)) : 0,
-    fund: s.fund ? r2(FD.value(s)) : 0,
+    idle: (s.mkt && s.mkt.idle && s.mkt.idle.total) || 0,   // 设计72：投资账户闲钱利息累计
     co: r2(TKO.coValue(s)),
     self: LS.listed(s) ? { px: s.listing.listed.px, cap: LS.marketCap(s) } : null,
     stage: s.listing && s.listing.stage ? s.listing.stage : null,
@@ -70,7 +68,7 @@ export function diff(a, b) {
   const out = [];
   if (a.idx != null && b.idx != null && a.idx !== b.idx) out.push(['大盘指数', `${a.idx.toFixed(2)} → ${b.idx.toFixed(2)}（${pctTxt(a.idx, b.idx)}）`]);
   if (a.mine || b.mine) out.push(['你的股票（含投资经理）', `${fmt(a.mine)} → ${fmt(b.mine)}（${pctTxt(a.mine, b.mine)}）`]);
-  if (a.fund || b.fund) out.push(['你的基金', `${fmt(a.fund)} → ${fmt(b.fund)}`]);
+  if (b.idle - a.idle >= 0.01) out.push(['投资账户利息', `+${fmt(b.idle - a.idle)}`]);   // 设计72
   if (a.co || b.co) out.push(['公司持有的股票', `${fmt(a.co)} → ${fmt(b.co)}`]);
   if (b.self) out.push(['你公司的股价', a.self ? `${a.self.px.toFixed(2)} → ${b.self.px.toFixed(2)}（${pctTxt(a.self.px, b.self.px)}），市值 ${fmt(b.self.cap)}` : `上市了！市值 ${fmt(b.self.cap)}`]);
   if (a.stage !== b.stage && b.stage) out.push(['上市进度', `${LS.STAGE[a.stage] || '还没开始'} → ${LS.STAGE[b.stage]}`]);

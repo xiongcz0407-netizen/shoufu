@@ -1,10 +1,11 @@
 // 事件系统（设计20 第四节）：配置驱动。条件 → 消息中心（kind 'event'）→ 剧情 + 选择 → 花钱 / 好感 / 剧情标记
-import { EVENTS, EVENT_BY_ID, EVENT_GAP_MIN } from '../config/events.js?v=ab0bf094';
-import { addMsg } from './inbox.js?v=ab0bf094';
-import { pay, receive, canPay } from './ledger.js?v=ab0bf094';
-import { netWorth } from './economy.js?v=ab0bf094';
-import { totalStaff } from './staff.js?v=ab0bf094';
-import { addFavor } from './affection.js?v=ab0bf094';
+import { capAdd } from './cap.js?v=c60d881c';   // 设计79：有上限的列表（config/caps.js）
+import { EVENTS, EVENT_BY_ID, EVENT_GAP_MIN } from '../config/events.js?v=c60d881c';
+import { addMsg } from './inbox.js?v=c60d881c';
+import { pay, receive, canPay } from './ledger.js?v=c60d881c';
+import { netWorth } from './economy.js?v=c60d881c';
+import { totalStaff } from './staff.js?v=c60d881c';
+import { addFavor } from './affection.js?v=c60d881c';
 
 const MIN = 60e3;
 const ev = (s, id) => { s.events = s.events || {}; return (s.events[id] = s.events[id] || { done: false, msg: 0, snoozeUntil: 0, times: 0 }); };
@@ -71,7 +72,6 @@ export function choose(s, id, idx, t) {
   if (c.snoozeMin) st.snoozeUntil = t + c.snoozeMin * MIN; else st.done = !!cfg.once;
   const m = (s.inbox || []).find((x) => x.id === st.msg); if (m) { m.status = 'done'; m.read = true; m.body += `　→ ${c.label}`; }
   st.msg = 0; s.eventLastAt = t;
-  (s.eventLog = s.eventLog || []).unshift({ t, id, choice: idx, cost, refund });
-  if (s.eventLog.length > 50) s.eventLog.length = 50;
+  capAdd(s, 'eventLog', (s.eventLog = s.eventLog || []), { t, id, choice: idx, cost, refund });
   return { ok: true, then: c.then || [], refund, cost };
 }

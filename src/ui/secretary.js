@@ -1,38 +1,40 @@
 // 「秘书」页签（设计18 第四节 2）：上面一条培训位、两列卡片（没来的剪影 + 条件）；
 // 秘书详情全屏：上半立绘、下半面板（资料 | 培养 | 衣柜 | 职位工资），底部动作条（互动 · 送礼 · 约会 · 陪着我）
-import * as LV from '../core/love.js?v=ab0bf094';   // 设计56
-import { tokenCard, jewelBoxHtml } from './gift.js?v=ab0bf094';
-import * as CP from '../core/capital.js?v=ab0bf094';
-import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=ab0bf094';
-import { COURSE_BY_ID } from '../config/courses.js?v=ab0bf094';
-import { outfitsOf, priceOf } from '../config/outfits.js?v=ab0bf094';
-import { IND_BY_ID } from '../config/industries.js?v=ab0bf094';
-import * as S from '../core/secretary.js?v=ab0bf094';
-import * as T from '../core/training.js?v=ab0bf094';
-import { isScouting } from '../core/busy.js?v=ab0bf094'; // V2-08
-import * as STY from '../core/styles.js?v=ab0bf094'; // 设计36 第 4 条：衣柜写衣服名字 + 款式
-import * as O from '../core/outfits.js?v=ab0bf094';
-import * as A from '../core/affection.js?v=ab0bf094';
-import { query } from '../core/ledger.js?v=ab0bf094';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=ab0bf094';
-import { asset } from '../platform/assets.js?v=ab0bf094';
-import { now } from '../core/clock.js?v=ab0bf094';
-import { game } from '../game.js?v=ab0bf094';
-import { h, toast, liveRender } from './dom.js?v=ab0bf094';
-import { openFull, closeTab, goHome } from './shell.js?v=ab0bf094';
-import { switchSecretary, dressUp } from './main-screen.js?v=ab0bf094';
-import { pickSec, renderCourses } from './training.js?v=ab0bf094';
-import { openMall } from './mall.js?v=ab0bf094';
-import { openDate } from './date.js?v=ab0bf094';
-import { createPortrait } from './portrait.js?v=ab0bf094';
-import { openSecFull } from './secfull.js?v=ab0bf094';   // 设计66 全屏看她
-import { bgKeyFor } from './main-screen.js?v=ab0bf094';
-import * as PO from '../core/posts.js?v=ab0bf094';
-import { openTab } from './shell.js?v=ab0bf094';
-import { addFavor } from '../core/affection.js?v=ab0bf094';
-import { gameDate, dateText } from '../core/gametime.js?v=ab0bf094'; // 送礼明细的日期
-import * as COUP from '../core/coupon.js?v=ab0bf094'; // 设计39 再聊 5 次（开发2）
-import { openWallet } from './coupon.js?v=ab0bf094'; // 设计39 去卡包买互动券（开发2）
+import * as BK from '../core/books.js?v=c60d881c';   // 设计79 第三版
+import * as LV from '../core/love.js?v=c60d881c';   // 设计56
+import { tokenCard, jewelBoxHtml } from './gift.js?v=c60d881c';
+import * as CP from '../core/capital.js?v=c60d881c';
+import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=c60d881c';
+import { COURSE_BY_ID } from '../config/courses.js?v=c60d881c';
+import { outfitsOf, priceOf } from '../config/outfits.js?v=c60d881c';
+import { IND_BY_ID } from '../config/industries.js?v=c60d881c';
+import * as S from '../core/secretary.js?v=c60d881c';
+import * as T from '../core/training.js?v=c60d881c';
+import { isScouting } from '../core/busy.js?v=c60d881c'; // V2-08
+import * as STY from '../core/styles.js?v=c60d881c'; // 设计36 第 4 条：衣柜写衣服名字 + 款式
+import * as O from '../core/outfits.js?v=c60d881c';
+import * as A from '../core/affection.js?v=c60d881c';
+import { query } from '../core/ledger.js?v=c60d881c';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=c60d881c';
+import { asset } from '../platform/assets.js?v=c60d881c';
+import { now } from '../core/clock.js?v=c60d881c';
+import { game } from '../game.js?v=c60d881c';
+import { h, toast, liveRender } from './dom.js?v=c60d881c';
+import { openFull, closeTab, goHome } from './shell.js?v=c60d881c';
+import { switchSecretary, dressUp } from './main-screen.js?v=c60d881c';
+import { pickSec, renderCourses } from './training.js?v=c60d881c';
+import { openMall } from './mall.js?v=c60d881c';
+import { openDate } from './date.js?v=c60d881c';
+import { createPortrait } from './portrait.js?v=c60d881c';
+import { openSecFull } from './secfull.js?v=c60d881c';
+import * as DR from '../core/dress.js?v=c60d881c';   // 设计74   // 设计66 全屏看她
+import { bgKeyFor } from './main-screen.js?v=c60d881c';
+import * as PO from '../core/posts.js?v=c60d881c';
+import { openTab } from './shell.js?v=c60d881c';
+import { addFavor } from '../core/affection.js?v=c60d881c';
+import { gameDate, dateText } from '../core/gametime.js?v=c60d881c'; // 送礼明细的日期
+import * as COUP from '../core/coupon.js?v=c60d881c'; // 设计39 再聊 5 次（开发2）
+import { openWallet } from './coupon.js?v=c60d881c'; // 设计39 去卡包买互动券（开发2）
 
 const BEST_NAME = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 /** 她现在的职位名：没有返回 '' */
@@ -40,20 +42,20 @@ export function postOf(s, id) { const k = PO.postOfSec(s, id); return k ? PO.pos
 const requesting = (s, id) => (s.inbox || []).some((m) => m.kind === 'request' && m.status === 'open' && m.from === id);
 /** 给她花的钱：礼物 + 衣服（财富页「送给秘书的」用，件数、金额） */
 export function spentOn(s, id) {
-  const rows = (s.ledger || []).filter((r) => (r.cat === 'gift' || r.cat === 'clothes') && r.dir === 'out' && (r.party === id || (r.note || '').includes(id)));
-  return { n: rows.length, amount: rows.reduce((a, r) => a + r.amount, 0) };
+  const a = BK.secBook(s, id).any || [0, 0]; return { n: a[0], amount: a[1] };   // 设计79：books.sec 记账时按秘书加好
 }
 /** 送她的礼物（只算礼物，衣服在衣柜里看）：流水 cat 'gift'、收的人是她，note「送XX」。
  *  返回 { n 件数, amount 花了, list: [{ name, n }] 按礼物合并、最近送的在前, log: [{ t, name, amount, favor }] 每一次、新的在前 } */
-export function giftsTo(s, id) {
-  const rows = (s.ledger || []).filter((r) => r.cat === 'gift' && r.dir === 'out' && r.party === id).sort((a, b) => b.t - a.t || b.id - a.id);
-  const glog = ((s.secs[id] && s.secs[id].rec && s.secs[id].rec.giftLog) || []).slice();
-  const log = rows.map((r) => { const name = (r.note || '').replace(/^送/, ''); const i = glog.findIndex((x) => x.t === r.t && x.name === name); const g = i >= 0 ? glog.splice(i, 1)[0] : null; return { t: r.t, name, amount: r.amount, favor: g ? g.favor : null, love: g ? g.love : 0 }; });
+export const GIFT_SHOW = 50;
+export function giftsTo(s, id) {   // 设计79：总数、总额从流水（含汇总行，一分不差）；每一次的列表从她自己的送礼记录 rec.giftLog（最近 50 件：名字、日期、好感），不再翻明细
+  const tot = BK.secBook(s, id).giftP || [0, 0];
+  const glog = ((s.secs[id] && s.secs[id].rec && s.secs[id].rec.giftLog) || []).filter((g) => !(g.love > 0)).slice(-GIFT_SHOW).reverse();   // 奢侈品（加爱慕）那条不算礼物，跟原来一样
+  const log = glog.map((g) => ({ t: g.t, name: g.name, amount: g.price, favor: g.favor ?? null, love: g.love || 0 }));
   const by = new Map(); for (const x of log) by.set(x.name, (by.get(x.name) || 0) + 1); // Map 按第一次出现排 = 最近送的在前
-  return { n: rows.length, amount: rows.reduce((a, r) => a + r.amount, 0), list: [...by].map(([name, n]) => ({ name, n })), log };
+  return { n: tot[0], amount: tot[1], list: [...by].map(([name, n]) => ({ name, n })), log };
 }
 /** 她领过的工资（第 7 项记「秘书工资」，经手人 / 收款人是她） */
-export const salaryPaid = (s, id) => query(s, { cat: 'sec_salary' }).filter((r) => r.by === id || r.party === id).reduce((a, r) => a + r.amount, 0);
+export const salaryPaid = (s, id) => BK.secBook(s, id).sal || 0;   // 设计79：books.sec
 const hearts = (n, max = 5) => '♥'.repeat(n) + '<i class="off">' + '♥'.repeat(max - n) + '</i>';
 
 /** 培养条（设计35 第八节：没有培训位了，付钱立刻学完） */
@@ -137,15 +139,15 @@ export function openDetail(id, seg = 'info') {
     talkBtn.disabled = !n && !use && !buy; talkBtn.classList.add('two'); talkBtn.classList.toggle('gold', use || buy); };
   talkText(); const offTalk = game.onChange(() => { if (!document.body.contains(talkBtn)) { offTalk && offTalk(); return; } talkText(); });
   // 设计66：全屏看她。单击 = 互动（算每天 10 次）；左右滑换的衣服跟衣柜点一样记下；退出时衣柜刷新
-  const talkOnce = () => { const res = A.tapSec(game.state, id, now()); if (res.favor && res.favor.stageUp) game.emit('favorUp', id, res.favor); game.changed(); game.save(); return res.line || (res.favor && res.favor.to > res.favor.from ? '' : '今天聊够了，明天再来'); };
+  const talkOnce = () => { const res = A.tapSec(game.state, id, now()); if (res.favor && res.favor.stageUp) game.emit('favorUp', id, res.favor); game.changed(); game.save(); return res.line || (res.favor && (res.favor.to > res.favor.from || res.favor.full) ? '' : '今天聊够了，明天再来'); };
   hero.querySelector('.sd-fs').onclick = () => openSecFull(p.el, id, { bg: k ? asset(`assets/bg/${k}.webp`) : null, onTalk: talkOnce,
     onDress: (o) => { if (id === game.state.current) dressUp(id, o); game.changed(); game.save(); },
-    onExit: (o) => { portrait.show(id, o, { fade: false }); if (seg === 'wardrobe') show('wardrobe'); talkText(); } });
+    onExit: () => { portrait.show(id, game.state.secs[id].outfit, { fade: false }); if (seg === 'wardrobe') show('wardrobe'); talkText(); } });
   talkBtn.onclick = () => {
     if (!A.talksLeft(game.state, id, now())) { if (!COUP.have(game.state, 'talk')) { openWallet({ focus: 'talk', back: talkText }); return; } const r = COUP.useTalk(game.state, id, now()); toast(r.ok ? `今天能跟${SEC_BY_ID[id].name}再聊 ${r.n} 次` : r.why); game.changed(); game.save(); talkText(); return; }
     const res = A.tapSec(game.state, id, now());
     portrait.bounce(); bubble(res.line);
-    floatUp(hero, res.favor && res.favor.to > res.favor.from ? `好感 +${+(res.favor.to - res.favor.from).toFixed(2)}` : '今天聊够了，明天再来');
+    { const full = S.favorFull(game.state.secs[id].favor); const txt = res.favor && res.favor.to > res.favor.from ? `好感 +${+(res.favor.to - res.favor.from).toFixed(2)}` : res.favor && full ? '' : '今天聊够了，明天再来'; if (txt) floatUp(hero, txt); }   // 设计76：好感满了照样能点、照样说话，只是不写「好感 +x」
     if (res.favor && res.favor.stageUp) game.emit('favorUp', id, res.favor);
     game.changed(); game.save();
   };
@@ -162,7 +164,7 @@ function drawInfo(el, id) {
   const g = giftsTo(s, id); const places = Object.keys(r.rec.places || {}); const post = postOf(s, id);
   el.innerHTML = `
     <div class="sd-attrs">${ATTRS.map((a) => `<div class="sd-attr"><span>${a.name}${a.key === c.best ? '<i class="best">★</i>' : ''}</span><div class="bar"><i style="width:${r.attrs[a.key]}%"></i></div><b>${r.attrs[a.key]}</b></div>`).join('')}</div>
-    <div class="sd-rel">好感 <b>${S.FAVOR_STAGES[fs]}</b> <span class="fav">${hearts(fs + 1)}</span><div class="bar fav"><i style="width:${S.favorInStage(r.favor)}%"></i></div></div>
+    <div class="sd-rel">好感 <b>${S.FAVOR_STAGES[fs]}${S.favorFull(r.favor) ? ' · 已满' : ''}</b> <span class="fav">${hearts(fs + 1)}</span><div class="bar fav"><i style="width:${S.favorInStage(r.favor)}%"></i></div></div>
     <div class="sd-rel">爱慕 <span class="heart">♥</span> <b>${+(+r.love).toFixed(2)}</b>（${S.LOVE_STAGES[ls][1]}）<div class="bar love"><i style="width:${r.love}%"></i></div></div>
     <div class="sd-rel sd-bday">🎂 生日：每月 ${LV.birthdayOf(id)} 号${LV.isBirthday(s, id, now()) ? '　<b>就是今天！</b>' : ''}</div>
     <div class="sd-token"></div>
@@ -174,7 +176,7 @@ function drawInfo(el, id) {
       ${r.dateTitle ? '<div>称号<b>心上人</b></div>' : ''}${(() => { const x = s.trip && s.trip.rec && s.trip.rec[id]; return x ? `<div>一起出差<b>${x.n} 次</b></div><div>去过<b>${x.cities.join('、')}</b></div>` : ''; })()}<div>最近约会<b>${r.rec.lastDate ? new Date(r.rec.lastDate).toLocaleDateString('zh-CN') : '还没有'}</b></div>
     </div>
     <div class="sd-rec-title">送过的礼物</div>
-    <div class="sd-gifts">${g.list.length ? g.list.map((x) => `<span>${x.name}${x.n > 1 ? ` ×${x.n}` : ''}</span>`).join('') : '<em>还没送过礼物</em>'}</div>
+    <div class="sd-gifts">${g.list.length ? g.list.map((x) => `<span>${x.name}${x.n > 1 ? ` ×${x.n}` : ''}</span>`).join('') : '<em>还没送过礼物</em>'}${g.n > g.log.length ? `<small class="sd-gift-recent">最近 ${g.log.length} 件</small>` : ''}</div>
     <div class="sd-gift-log" hidden>${g.log.map((x) => `<div><span>${x.name}</span><small>${dateText(gameDate(s, x.t))}</small><b>${x.favor != null ? `${x.favor ? `好感 +${x.favor}` : ''}${x.love ? `　♥ +${x.love}` : ''}` || '—' : '—'}</b></div>`).join('')}</div>
     <div class="sd-places">去过：${places.length ? places.join('、') : '还没一起出去过'}</div>
     <div class="sd-rec-title">首饰盒</div><div class="sd-jbox">${jewelBoxHtml(s, id)}</div>`;
@@ -192,6 +194,7 @@ function drawWardrobe(el, id, show, portrait) {
   // 设计70：衣柜只放买了的；顶上「已有 N / M 套」，最后一格去商场（买齐了不放）
   const all = outfitsOf(id); const mine = all.filter((o) => O.owns(s, id, o.id));
   el.appendChild(h('div', 'tr-gain', `已有 <b>${mine.length} / ${all.length}</b> 套，点一套让她换上`));
+  el.appendChild(autoDressRow(s, id, () => show('wardrobe')));   // 设计74
   const grid = h('div', 'cloth-grid sd-cloth');
   for (const o of mine) {   // 设计66：按人几套
     const own = true; const ok = O.canWear(s, id, o.id); const on = r.outfit === o.id;
@@ -208,6 +211,13 @@ function drawWardrobe(el, id, show, portrait) {
   }
   if (mine.length < all.length) grid.appendChild(mallCell(() => openMall(id, 'clothes')));
   el.appendChild(grid);
+}
+/** 设计74：衣柜顶上的开关「让她自己换衣服」（每人一个，默认开） */
+export function autoDressRow(s, id, redraw) {
+  const on = DR.autoOn(s, id);
+  const row = h('label', 'auto-dress', `<span><b>让她自己换衣服</b><small>${on ? '每个游戏天从买给她的衣服里挑一套（不穿扮装）' : '关着：一直穿你选的那套'}</small></span><input type="checkbox" class="sw" ${on ? 'checked' : ''}>`);
+  row.querySelector('input').onchange = (e) => { DR.setAuto(s, id, e.target.checked); game.changed(); game.save(); redraw && redraw(); };
+  return row;
 }
 /** 设计70：衣柜最后一格「去商场买衣服 ›」（虚线框，跟衣服卡一样大） */
 export function mallCell(go) { const b = h('button', 'cloth cloth-mall', '<div class="cloth-mall-in">去商场<br>买衣服 ›</div>'); b.onclick = go; return b; }

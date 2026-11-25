@@ -1159,7 +1159,7 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 .lk-pct{font-size:12px;margin:-2px 0 6px 4px} /* 设计65 */
 .ord-pct{font-size:12px;margin:2px 0 6px;color:#9aa6c0} /* 设计65 */
 .fn-doc .fn-doc-pl{display:block;font-size:12px;margin-top:2px} /* 设计65 小改 */
-/* 设计67「还能跟 X 分钟」：不到 1 分钟橙色；低点过了灰 */
+/* 设计67 / 75「还能跟 X」：不到 60 秒橙色；低点过了灰 */
 .ws-cd { color: #ffd27a; font-weight: 700; opacity: 1; } .ws-cd.soon { color: #ff7a1a; } .ws-cd.past { color: #9a9a9a; font-weight: 400; }
 .ws-low .ws-cd { font-size: 11px; }
 .ws-cd-row { margin: 2px 0 4px; } .ws-cd.big { font-size: 15px; }
@@ -1201,3 +1201,46 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 /* 设计70：衣柜最后一格「去商场买衣服 ›」 */
 .cloth.cloth-mall { border-style: dashed; border-color: #5a6c8c; background: transparent; display: flex; align-items: center; justify-content: center; padding: 4px; color: var(--gold); font-size: 13px; line-height: 1.5; }
 .cloth-mall-in { aspect-ratio: 2/3; width: 100%; display: flex; align-items: center; justify-content: center; }
+
+/* 设计72 投资账户闲钱生息那一行 */
+.iv-bar { flex-wrap: wrap; }
+.iv-bar > .iv-idle { flex: 0 0 100%; flex-direction: row; display: block; font-size: 12px; color: #c9d3e8; padding-top: 6px; border-top: 1px dashed rgba(240,160,96,.3); }
+.iv-bar > .iv-idle b { font-size: 13px; color: #ff6b6b; }
+
+/* 设计73 持仓一键卖出 */
+.hv-top .hv-sellall { margin-left: 0; flex: none; }
+.sk-hold-btns { display: flex; gap: 6px; margin-left: 8px; } .sk-hold-btns .btn { flex: none; width: auto; margin: 0; }
+.hv-top .btn small, .sk-hold-btns .btn small { display: block; font-size: 10px; opacity: .8; }
+.cf-text .sa-line { font-size: 15px; line-height: 1.6; } .cf-text .sa-line .up { color: #ff5a5a; } .cf-text .sa-line .down { color: #3ccf7a; }
+.cf-text .sa-sub { font-size: 12px; opacity: .7; margin-top: 4px; } .cf-text .sa-warn { font-size: 12px; color: #f0a35e; margin-top: 6px; }
+/* 设计74：衣柜顶上「让她自己换衣服」开关 */
+.auto-dress { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 6px 0 10px; padding: 8px 10px; border: 1px solid #2c3a56; border-radius: 10px; background: #1a2438; }
+.auto-dress span { display: flex; flex-direction: column; } .auto-dress small { font-size: 11px; opacity: .7; margin-top: 2px; }
+.auto-dress input.sw { appearance: none; -webkit-appearance: none; width: 44px; height: 26px; border-radius: 13px; background: #3a465e; position: relative; flex: none; transition: background .2s; }
+.auto-dress input.sw::after { content: ''; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left .2s; }
+.auto-dress input.sw:checked { background: var(--gold); } .auto-dress input.sw:checked::after { left: 21px; }
+/* 设计74：全屏里「让她换上」 */
+.sf-wear { position: absolute; right: 12px; bottom: calc(var(--safe-b, 0px) + 44px); z-index: 2; padding: 6px 14px; font-size: 13px; }
+.sf-wear.hidden { display: none; }
+
+/* 设计76 好感满了：商场礼物页一行灰字 */
+.gift-full { display: block; width: 100%; margin: 14px 0; padding: 14px 12px; border: 1px dashed rgba(255,255,255,.18); border-radius: 12px; background: rgba(255,255,255,.04); color: #9aa6c0; font-size: 13px; text-align: left; }
+/* 设计80：个股页最上面的「看盘提示」卡 */
+.ws-card{margin:0 0 10px;padding:8px 10px 6px;border:1px solid rgba(233,217,168,.55);border-radius:12px;background:linear-gradient(180deg,rgba(233,217,168,.10),rgba(233,217,168,.03))}
+.ws-card.hide{display:none}
+.ws-card.lu{border-color:#e5484d}
+.ws-card-t{font-size:12px;color:var(--gold);margin-bottom:4px}
+.ws-card-t .lk-head{margin-bottom:2px}.ws-card-t .lk-head img{width:30px;height:30px}.ws-card-t .lk-head b{font-size:13px;color:var(--gold)}
+.ws-card .lk-look{margin-bottom:4px}
+.ws-card .lk-no{display:block;margin:2px 0 0 auto;padding:4px 6px;border:0;background:none;color:inherit;opacity:.55;font-size:12px}
+.ws-card-past{font-size:13px;opacity:.6;padding:4px 0}
+.ws-card.past{border-color:rgba(255,255,255,.15);background:rgba(255,255,255,.03)}
+.ws-card-done{font-size:15px;color:#5fd38d;font-weight:600;padding:2px 0}.ws-card-done small{display:block;font-size:12px;font-weight:400;color:inherit;opacity:.8;margin-top:2px}
+/* 设计81：投资账户总额 */
+.iv-bar > .iv-total { flex: 0 0 100%; display: block; font-size: 13px; color: #e6ecf8; padding-top: 6px; border-top: 1px dashed rgba(240,160,96,.3); }
+.iv-bar > .iv-total b { font-size: 15px; color: #f6d67a; }
+.iv-bar > .iv-total small { display: flex; flex-wrap: wrap; gap: 0 6px; margin-top: 2px; font-size: 11px; color: #9aa6c0; }
+.iv-bar > .iv-total small i { font-style: normal; opacity: .6; }
+.iv-bar > .iv-idle { border-top: 0; padding-top: 4px; }
+.iv-bar > div:first-child small:first-child { white-space: nowrap; }
+.sd-gift-recent{display:block;width:100%;font-size:11px;opacity:.6;margin-top:2px}

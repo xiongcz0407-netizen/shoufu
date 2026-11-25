@@ -1,36 +1,37 @@
 // 商战和收购：胜率、开战、赢满 3 次收购、收购效果、升称号
-import { whyCushion } from './cashflow.js?v=ab0bf094'; // V0.2.3 留够两个月工资
-import { credit } from './credit.js?v=ab0bf094'; // V3-01 亲自拍板攒投入度
-import { MONTH_MS, gameDate, dateText } from './gametime.js?v=ab0bf094';
-import { downRate, downOf, schedule, openDeal } from './equity.js?v=ab0bf094';
-import { gm } from './calib.js?v=ab0bf094';
-import { whyNotMa, maLoan } from './bank.js?v=ab0bf094';
-import { needsBoard } from './capital.js?v=ab0bf094';   // 设计64：董事会一律通过，只在协议上留一行
-import { live, onBattle } from './rivalgrow.js?v=ab0bf094'; // P-00 对手也在长大
-import { bigBonus, useBig, whyEnergy, doEnergy, energy, E_COST } from './manage.js?v=ab0bf094'; // P-05 老板亲自带队 / 亲自谈判
-import { ACQ_NEGO, RIVAL_BY_ID, RIVALS, PROJECTS, WINS_TO_ACQUIRE, TEAM_MAX, ACQ_DISC, INTEL_PER_LOSS, INTEL_MAX } from '../config/rivals.js?v=ab0bf094';
-import { TITLES } from '../config/titles.js?v=ab0bf094';
-import { fmtMoney } from './format.js?v=ab0bf094';
-import { addMsg } from './inbox.js?v=ab0bf094';   // 设计64 待签协议
-import { netWorth, unlockIfReady, earningsValue } from './economy.js?v=ab0bf094';
-import { ensureSec } from './secretary.js?v=ab0bf094';
-import { addFavor, daily } from './affection.js?v=ab0bf094';
-import { isTraining } from './training.js?v=ab0bf094';
-import { isScouting } from './busy.js?v=ab0bf094'; // V2-08 踩点占用（开发2）
-import { auraBattle, networkAcquire, visionBattle } from './boss.js?v=ab0bf094';
-import { bump } from './daily.js?v=ab0bf094';
-import { pay, receive, accrue, canPay } from './ledger.js?v=ab0bf094';
-import { TAX } from './companytax.js?v=ab0bf094';
-import { addContract } from './contracts.js?v=ab0bf094';
-import { IND_BY_ID } from '../config/industries.js?v=ab0bf094';
-import { establishment, staffUp } from './staff.js?v=ab0bf094';
-import { bizBattle, bizAcquire, grantBridge } from './rivalry.js?v=ab0bf094';
-import { logi, LOGI_CFG } from './logistics.js?v=ab0bf094';
-import { addAcquiredProject } from './realestate.js?v=ab0bf094';
-import { tech, TECH_CFG } from './tech.js?v=ab0bf094';
-import { lookOf } from './staff.js?v=ab0bf094';
-import { reValue } from './realestate.js?v=ab0bf094';
-import { fleetValue } from './logistics.js?v=ab0bf094';
+import { capAdd } from './cap.js?v=c60d881c';   // 设计79：有上限的列表（config/caps.js）
+import { whyCushion } from './cashflow.js?v=c60d881c'; // V0.2.3 留够两个月工资
+import { credit } from './credit.js?v=c60d881c'; // V3-01 亲自拍板攒投入度
+import { MONTH_MS, gameDate, dateText } from './gametime.js?v=c60d881c';
+import { downRate, downOf, schedule, openDeal } from './equity.js?v=c60d881c';
+import { gm } from './calib.js?v=c60d881c';
+import { whyNotMa, maLoan } from './bank.js?v=c60d881c';
+import { needsBoard } from './capital.js?v=c60d881c';   // 设计64：董事会一律通过，只在协议上留一行
+import { live, onBattle } from './rivalgrow.js?v=c60d881c'; // P-00 对手也在长大
+import { bigBonus, useBig, whyEnergy, doEnergy, energy, E_COST } from './manage.js?v=c60d881c'; // P-05 老板亲自带队 / 亲自谈判
+import { ACQ_NEGO, RIVAL_BY_ID, RIVALS, PROJECTS, WINS_TO_ACQUIRE, TEAM_MAX, ACQ_DISC, INTEL_PER_LOSS, INTEL_MAX } from '../config/rivals.js?v=c60d881c';
+import { TITLES } from '../config/titles.js?v=c60d881c';
+import { fmtMoney } from './format.js?v=c60d881c';
+import { addMsg } from './inbox.js?v=c60d881c';   // 设计64 待签协议
+import { netWorth, unlockIfReady, earningsValue } from './economy.js?v=c60d881c';
+import { ensureSec } from './secretary.js?v=c60d881c';
+import { addFavor, daily } from './affection.js?v=c60d881c';
+import { isTraining } from './training.js?v=c60d881c';
+import { isScouting } from './busy.js?v=c60d881c'; // V2-08 踩点占用（开发2）
+import { auraBattle, networkAcquire, visionBattle } from './boss.js?v=c60d881c';
+import { bump } from './daily.js?v=c60d881c';
+import { pay, receive, accrue, canPay } from './ledger.js?v=c60d881c';
+import { TAX } from './companytax.js?v=c60d881c';
+import { addContract } from './contracts.js?v=c60d881c';
+import { IND_BY_ID } from '../config/industries.js?v=c60d881c';
+import { establishment, staffUp } from './staff.js?v=c60d881c';
+import { bizBattle, bizAcquire, grantBridge } from './rivalry.js?v=c60d881c';
+import { logi, LOGI_CFG } from './logistics.js?v=c60d881c';
+import { addAcquiredProject } from './realestate.js?v=c60d881c';
+import { tech, TECH_CFG } from './tech.js?v=c60d881c';
+import { lookOf } from './staff.js?v=c60d881c';
+import { reValue } from './realestate.js?v=c60d881c';
+import { fleetValue } from './logistics.js?v=c60d881c';
 
 const PROJ = Object.fromEntries(PROJECTS.map((p) => [p.id, p]));
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -102,8 +103,7 @@ export function settleBattle(s, rivalId, team, win, t, o = {}) {
   } else { st.losses += 1; st.intel = (st.intel || 0) + 1; }
   useBig(s, 'battle'); onBattle(s, rivalId, win, t, o.auto ? null : o.rounds || 0); // P-05 亲自带队用掉；V2-05：每赢一回合对手利润 −3%，输了 +3%
   for (const f of SHARE_HOOKS) f(s, rivalId, o.rounds || 0, t); // V2-05 抢份额（core/war.js）
-  (s.battleLog = s.battleLog || []).unshift({ t, rival: rivalId, project: o.project || 'war', team: [...team], win, rate, reward, intel: !win, rounds: o.rounds || 0, cards: o.cards || null });
-  if (s.battleLog.length > 100) s.battleLog.length = 100;
+  capAdd(s, 'battleLog', (s.battleLog = s.battleLog || []), { t, rival: rivalId, project: o.project || 'war', team: [...team], win, rate, reward, intel: !win, rounds: o.rounds || 0, cards: o.cards || null });
   s.stats.battles = (s.stats.battles || 0) + 1; bump(s, t, 'battle');
   return { ok: true, win, rate, reward, intel: win ? 0 : intelBonus(s, rivalId), canAcquire: st.wins >= WINS_TO_ACQUIRE && !st.acquired, rounds: o.rounds || 0 };
 }
@@ -195,7 +195,7 @@ export function acquire(s, rivalId, team, t, rnd = Math.random, plan = 'full', l
   let swapped = null; if (sw > 0 && SWAP) { swapped = SWAP.issue(s, r, sw, t); ct.rows.push(SWAP.row(s, r, sw)); } // 第 3-05 项
   if (bigBonus(s, 'deal')) useBig(s, 'deal'); // P-05 老板亲自谈判：设计64 起已经并进收购价优惠（liveDeal），这里只把这次用掉
   const deal = plan === 'install' ? openDeal(s, rivalId, t, { down: now0, merged, av, boost: e.boost, contract: ct.no }) : null;
-  (s.battleLog = s.battleLog || []).unshift({ t, rival: rivalId, acquire: true, win: true, price: r.value, disc: r.disc.k, reward: 0, merged, contract: ct.no, plan });
+  capAdd(s, 'battleLog', (s.battleLog = s.battleLog || []), { t, rival: rivalId, acquire: true, win: true, price: r.value, disc: r.disc.k, reward: 0, merged, contract: ct.no, plan });
   return { ok: true, success: true, price: r.value, disc: r.disc, board, stamp, contract: ct, merged, deal, loan: maL, swapped };
 }
 

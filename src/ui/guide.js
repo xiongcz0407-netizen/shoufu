@@ -1,6 +1,6 @@
 // 新手引导：开场几句 + 每个功能第一次打开时的一句提示（只出一次，记在存档 flags.hints）
-import { game } from '../game.js?v=ab0bf094';
-import { h, openPanel } from './dom.js?v=ab0bf094';
+import { game } from '../game.js?v=c60d881c';
+import { h, openPanel } from './dom.js?v=c60d881c';
 
 export const HINTS = {
   start: '点底部「公司」，升级便利店多赚钱。',
@@ -31,7 +31,7 @@ export const HELP = {
   secretary: ['secretary', 'date', 'gift', 'posts'],
   battle: ['battle', 'installment', 'takeover'],
   assets: ['assets', 'contract', 'auction', 'offshore'],
-  wealth: ['wealth', 'payroll', 'stocks', 'funds', 'bank', 'privatebank', 'stockpledge', 'artpledge', 'capital', 'vam', 'incentive', 'group', 'family'],
+  wealth: ['wealth', 'payroll', 'stocks', 'bank', 'privatebank', 'stockpledge', 'artpledge', 'capital', 'vam', 'incentive', 'group', 'family'],
 };
 /** 页面右上角「?」：点了才看，原来 HINTS 那几句 */
 export function openHelp(page, title = '怎么玩') {

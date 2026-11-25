@@ -1,3 +1,4 @@
+import { capAdd } from './cap.js?v=c60d881c';   // 设计79：有上限的列表（config/caps.js）
 // 消息中心数据（设计18；设计39 改成「重要 | 经营 | 月报 | 邀请拍卖 | 系统」五个页签，消息自己的 kind 不变，按 tabOf 分页）
 // 消息：{ id, t, kind, title, body, from, read, status: 'open'|'approved'|'rejected'|'done', actions: [{key,label}], type, data }
 export const KINDS = { request: '请示', event: '事件', report: '月报', invite: '邀请拍卖', system: '系统' };
@@ -11,8 +12,7 @@ export function addMsg(s, m, t = Date.now()) {
   s.inboxSeq = (s.inboxSeq || 0) + 1;
   const msg = { id: s.inboxSeq, t, kind: m.kind || 'system', title: m.title || '', body: m.body || '', from: m.from || '', read: false,
     status: m.actions && m.actions.length ? 'open' : 'done', actions: m.actions || [], type: m.type || '', data: m.data || null };
-  (s.inbox = s.inbox || []).unshift(msg);
-  if (s.inbox.length > 300) s.inbox.length = 300;
+  capAdd(s, 'inbox', (s.inbox = s.inbox || []), msg);   // 设计79：照旧 300 条
   return msg;
 }
 export function act(s, id, action, t = Date.now()) {

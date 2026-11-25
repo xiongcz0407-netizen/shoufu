@@ -1,7 +1,7 @@
 // 每日：签到（7 天一轮）、每日任务。奖励小额（设计21：打工人几百到几千），跟着称号涨（economy.json rewards）
-import { daily, dayKey } from './affection.js?v=ab0bf094';
-import { receive } from './ledger.js?v=ab0bf094';
-import ECO from '../config/economy.json?v=ab0bf094' with { type: 'json' };
+import { daily, dayKey } from './affection.js?v=c60d881c';
+import { receive, addPostHook } from './ledger.js?v=c60d881c';
+import ECO from '../config/economy.json?v=c60d881c' with { type: 'json' };
 
 const R = ECO.rewards;
 export const rewardK = (title) => R.byTitle[Math.max(0, Math.min(R.byTitle.length - 1, title | 0))];
@@ -21,7 +21,7 @@ export const MORE_TASKS = [
   { id: 'land', name: '拿 1 块地', need: 1, minutes: 30, rows: (r) => r.cat === 'land' },
   { id: 'film', name: '投拍 1 部电影或剧', need: 1, minutes: 30, rows: (r) => r.cat === 'film_cost' && /制作/.test(r.note || '') },
   { id: 'tech', name: '科技立项 1 个', need: 1, minutes: 30, rows: (r) => r.cat === 'rnd' && /立项/.test(r.note || '') },
-  { id: 'invest', name: '买 1 次股票或基金', need: 1, minutes: 10, rows: (r) => r.cat === 'stock_buy' || r.cat === 'fund_buy' },
+  { id: 'invest', name: '买 1 次股票', need: 1, minutes: 10, rows: (r) => r.cat === 'stock_buy' },   // 设计72
   // 第 3-09 项：资本类
   { id: 'costock', name: '公司买卖 1 次股票', need: 1, minutes: 15, rows: (r) => r.cat === 'co_stock' || r.cat === 'co_stock_sell' },
 ];
@@ -31,6 +31,7 @@ export const CAP_TASKS = [
   { id: 'capview', name: '看 1 次股东名册或集团报表', need: 1, minutes: 10 },
 ];
 const ALL = Object.fromEntries([...TASKS, ...MORE_TASKS, ...CAP_TASKS].map((x) => [x.id, x]));
+export const ROW_TASKS = Object.values(ALL).filter((x) => x.rows);   // 设计79：要看流水的那几个（测试对数用）
 /** 每个称号的每日任务：打工人开摊招人、小老板开分店上课、老板拿地商战、企业家投拍立项 */
 export const BY_TITLE = [
   ['talk', 'gift', 'open', 'hire', 'report', 'date'],
@@ -50,8 +51,14 @@ export function bump(s, t, key, n = 1) {
   const d = daily(s, t); d.count = d.count || {};
   d.count[key] = (d.count[key] || 0) + n;
 }
+/** 设计79：要看流水的日常（开店、拿地、买股票…）记账时顺手数，按手机日期过天（s.books.rday = { k 哪天, t, n: { 任务: 次数 } }），不再翻明细 */
+addPostHook((s, r) => {
+  const k = dayKey(r.t); const B = (s.books = s.books || {}); let D = B.rday;
+  if (!D || D.k !== k) { if (D && r.t < D.t) return; D = B.rday = { k, t: r.t, n: {} }; }   // 以前那天补记的不算
+  for (const x of Object.values(ALL)) if (x.rows && x.rows(r)) D.n[x.id] = (D.n[x.id] || 0) + 1;
+}, true);
 export const progress = (s, t, id) => {
-  const x = ALL[id]; if (x && x.rows) { const k = dayKey(t); return (s.ledger || []).filter((r) => x.rows(r) && dayKey(r.t) === k).length; }
+  const x = ALL[id]; if (x && x.rows) { const D = s.books && s.books.rday; return D && D.k === dayKey(t) ? D.n[id] || 0 : 0; }
   return (daily(s, t).count || {})[id] || 0;
 };
 

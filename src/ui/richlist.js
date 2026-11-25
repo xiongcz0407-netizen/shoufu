@@ -1,14 +1,14 @@
 // V2-14 财富榜界面（设计32 第七节）：财富页「榜单」分段；两个页签「华夏」「全球」；你那一行金边；点人看简介（挂股票的能点进股票）；最下面「你身边的人」
-import * as RL from '../core/richlist.js?v=ab0bf094';
-import * as INB from './inbox.js?v=ab0bf094';
-import { BY as STOCK_BY } from '../core/stocks.js?v=ab0bf094';
-import { openStock } from './stocks.js?v=ab0bf094';
-import { fmtMoney } from '../core/format.js?v=ab0bf094';
-import { asset, hasAsset } from '../platform/assets.js?v=ab0bf094';
-import { game } from '../game.js?v=ab0bf094';
-import { now } from '../core/clock.js?v=ab0bf094';
-import { h, openPanel, toast } from './dom.js?v=ab0bf094';
-import { playStory, isStoryPlaying } from './story.js?v=ab0bf094';
+import * as RL from '../core/richlist.js?v=c60d881c';
+import * as INB from './inbox.js?v=c60d881c';
+import { BY as STOCK_BY } from '../core/stocks.js?v=c60d881c';
+import { openStock } from './stocks.js?v=c60d881c';
+import { fmtMoney } from '../core/format.js?v=c60d881c';
+import { asset, hasAsset } from '../platform/assets.js?v=c60d881c';
+import { game } from '../game.js?v=c60d881c';
+import { now } from '../core/clock.js?v=c60d881c';
+import { h, openPanel, toast } from './dom.js?v=c60d881c';
+import { playStory, isStoryPlaying, bgOf } from './story.js?v=c60d881c';
 
 const C = RL.RICH_CFG;
 let tab = 'cn';
@@ -54,5 +54,5 @@ let last = 0;
 game.addTicker((s) => {
   const t = now(); if (t - last < 5000) return; last = t;
   const r = RL.tick(s, t); if (r && r.published != null) toast(`第 ${r.published + 1} 年财富榜出炉了，去消息里看`, 3200);
-  const R = s.rich; if (R && R.story && R.story.length && !isStoryPlaying() && !document.querySelector('.story')) { const x = R.story.shift(); game.save(); playStory(x.lines, { title: x.k.startsWith('cn') ? '华夏财富榜' : '全球财富榜', sec: s.current && s.secs[s.current] ? s.current : Object.keys(s.secs || {})[0] }); }
+  const R = s.rich; if (R && R.story && R.story.length && !isStoryPlaying() && !document.querySelector('.story')) { const x = R.story.shift(); game.save(); playStory(x.lines, { title: x.k.startsWith('cn') ? '华夏财富榜' : '全球财富榜', sec: s.current && s.secs[s.current] ? s.current : Object.keys(s.secs || {})[0], bg: bgOf('bg_finance') }); }   /* 设计78 */
 });

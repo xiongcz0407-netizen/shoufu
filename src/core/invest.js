@@ -1,14 +1,14 @@
-// 设计62 投资账户（开发2）：股票、基金、两融、打新、投资经理的钱都在 s.invest
+// 设计62 投资账户（开发2）：股票、打新、投资经理的钱都在 s.invest；设计72：没在用的钱自动生息（core/idle.js）
 // 转账一律两头各记一笔流水：
 //   个人 ↔ 投资：免费、马上到（transfer_out / transfer_in）
 //   投资 → 公司：算注资（投资账户 capital_out + 公司 capital，不交税，记实收资本，出《增资确认书》）
 //   公司 → 投资：算分红（公司 dividend_out + 投资账户 dividend，代扣 20% 个税）
-// 只能转投资账户里的现金：挂单里冻着的、持仓、基金都不能转。
+// 只能转投资账户里的现金：挂单里冻着的、持仓都不能转。
 // 注资 / 分红那一头在 companytax.js（开发1），用 setCompanyBridge 挂在下面。
-import { pay, post, canPayMust } from './ledger.js?v=ab0bf094';
-import { addNetWorthHook } from './economy.js?v=ab0bf094';
-import * as CT from './companytax.js?v=ab0bf094';   // 开发1：注资 / 分红
-import { divMax } from './cashflow.js?v=ab0bf094';
+import { pay, post, canPayMust } from './ledger.js?v=c60d881c';
+import { addNetWorthHook } from './economy.js?v=c60d881c';
+import * as CT from './companytax.js?v=c60d881c';   // 开发1：注资 / 分红
+import { divMax } from './cashflow.js?v=c60d881c';
 
 const r2 = (v) => Math.round(v * 100) / 100;
 export const ACC = { personal: '个人账户', invest: '投资账户', company: '公司账户' };
@@ -66,4 +66,4 @@ export function shortOf(why) {
   const m = /投资账户不够，差 ¥([\d,]+(?:\.\d+)?)/.exec(why || ''); return m ? +m[1].replace(/,/g, '') : 0;
 }
 
-addNetWorthHook((s) => s.invest || 0);   // 身价含投资账户现金（持仓、挂单、基金照旧走资产挂钩）
+addNetWorthHook((s) => s.invest || 0);   // 身价含投资账户现金（持仓、挂单照旧走资产挂钩）

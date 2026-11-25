@@ -1,8 +1,8 @@
 // 开局（设计21 第四节）：打工几年攒了 20 万，拿 15 万注册公司、开第一家小店，老板自己看店
 // 钱全走记账：个人存款进来 → 注资到公司 → 公司付开店费
-import ECO from '../config/economy.json?v=ab0bf094' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=ab0bf094';
-import { receive, pay } from './ledger.js?v=ab0bf094';
+import ECO from '../config/economy.json?v=c60d881c' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=c60d881c';
+import { receive, pay } from './ledger.js?v=c60d881c';
 
 /** 新开局才做一次（s.flags.startFunds） */
 export function startFunds(s, t) {
@@ -21,4 +21,4 @@ export function startFunds(s, t) {
   return true;
 }
 /** 新档：还没有流水的才做（老的开发存档不动） */
-export const needsStart = (s) => !(s.flags && s.flags.startFunds) && !(s.ledger || []).length;
+export const needsStart = (s) => !(s.flags && s.flags.startFunds) && !(s.ledgerSeq || (s.ledger || []).length);   // 设计79：看记过几笔（ledgerSeq），不靠明细

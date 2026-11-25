@@ -2,16 +2,17 @@
 // 礼物（1 万以下）只加好感 = 价钱 ÷ 500（两位小数）；奢侈品（名包 + 1 万以上的首饰 / 表 / 酒，100 万以下）只加爱慕 = 价钱 ÷ 1 万（向下取整）
 // 加成：最喜欢的礼物 / 喜欢的牌子 / 最喜欢的奢侈品 ×2，讨厌的礼物 ×0.5，她生日 ×3，叠乘；爱慕到门口为止（affection.addLove）
 // 定情信物：爱慕 ≥ 80 后下一次约会她提起，价钱 = 身价 × 1%（最少 100 万）定死；送出爱慕直接 100（「唯一」）
-import CFG from '../config/love.json?v=ab0bf094' with { type: 'json' };
-import { GIFTS } from '../config/gifts.js?v=ab0bf094';
-import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=ab0bf094';
-import { LINES } from '../config/lines.js?v=ab0bf094';
-import { ensureSec, FAVOR_MAX } from './secretary.js?v=ab0bf094';
-import { addFavor, addLove, setOnly, loveCap, favorMult, markWith, invoice, dayKey } from './affection.js?v=ab0bf094';
-import { pay, canPay } from './ledger.js?v=ab0bf094';
-import { bump } from './daily.js?v=ab0bf094';
-import { BAGS, L as LX_L, label, payBag } from './luxury.js?v=ab0bf094';
-import { netWorth } from './economy.js?v=ab0bf094';
+import { capPush, capOf } from './cap.js?v=c60d881c';   // 设计79
+import CFG from '../config/love.json?v=c60d881c' with { type: 'json' };
+import { GIFTS } from '../config/gifts.js?v=c60d881c';
+import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
+import { LINES } from '../config/lines.js?v=c60d881c';
+import { ensureSec, FAVOR_MAX, FAVOR_FULL_AT } from './secretary.js?v=c60d881c';
+import { addFavor, addLove, setOnly, loveCap, favorMult, markWith, invoice, dayKey } from './affection.js?v=c60d881c';
+import { pay, canPay } from './ledger.js?v=c60d881c';
+import { bump } from './daily.js?v=c60d881c';
+import { BAGS, L as LX_L, label, payBag } from './luxury.js?v=c60d881c';
+import { netWorth } from './economy.js?v=c60d881c';
 
 export const LOVE_CFG = CFG;
 const G = CFG.gift, MU = CFG.mult, TK = CFG.token;
@@ -53,7 +54,8 @@ export function giftMult(s, id, g, t = Date.now()) {
 export function giftGain(s, id, giftId, t = Date.now()) {
   const g = giftOf(giftId); const r = ensureSec(s, id); if (!g || !r) return null; const m = giftMult(s, id, g, t);
   const raw = r2(r2(g.price / G.favorPer * m.mult) * favorMult(s)); const room = r2(Math.max(0, FAVOR_MAX - r.favor));
-  return { ...m, raw, favor: Math.min(raw, room), full: room <= 0 };
+  const favor = r.favor + raw >= FAVOR_FULL_AT ? room : Math.min(raw, room);   // 设计76：过 400 直接满
+  return { ...m, raw, favor, full: room <= 0 };
 }
 /** 奢侈品的加成：喜欢的牌子 / 最喜欢的奢侈品 ×2、生日 ×3 */
 export function luxMult(s, id, x, t = Date.now()) {
@@ -67,7 +69,7 @@ export function luxGain(s, id, luxId, t = Date.now()) {
   const why = love >= raw ? null : r.love >= 100 ? 'max' : r.love >= TK.askAt ? 'token' : 'gate';
   return { ...m, raw, love, why };
 }
-const logGift = (r, t, e) => { r.rec.giftLog = r.rec.giftLog || []; r.rec.giftLog.push({ t, ...e }); if (r.rec.giftLog.length > 300) r.rec.giftLog.shift(); };
+const logGift = (r, t, e) => { r.rec.giftLog = r.rec.giftLog || []; capPush(r.rec.giftLog, { t, ...e }, capOf('secs.*.rec.giftLog')); };
 const after = (s, id, r, t) => { r.rec.gifts += 1; r.rec.lastGiftDay = dayKey(t); s.stats.gifts = (s.stats.gifts || 0) + 1; bump(s, t, 'gift'); markWith(s, id, t); };
 
 // ---------- 送 ----------
@@ -91,7 +93,7 @@ export function giveLux(s, id, luxId, t = Date.now()) {
   if (x.kind === 'bag') { inv = payBag(s, LX_L[x.id], t, { party: LX_L[x.id].brand, note: `送${SEC_BY_ID[id].name} ${x.name}` }); if (!inv) return { ok: false, why: '个人现金不够' }; }
   else { inv = invoice(s, { item: x.name, amount: x.price, seller: '星光商场', t }); pay(s, { wallet: 'personal', cat: 'gift', amount: x.price, party: id, ref: inv.no, note: `送${x.name}` }, t); }
   const r = ensureSec(s, id); const love = addLove(s, id, Math.floor(x.price / G.lovePer) * gain.mult);
-  (r.rec.box = r.rec.box || []).push({ id: x.id, name: x.name, price: x.price, img: x.img, t });
+  capPush((r.rec.box = r.rec.box || []), { id: x.id, name: x.name, price: x.price, img: x.img, t });
   logGift(r, t, { name: x.name, price: x.price, favor: 0, love: r2(love.to - love.from) }); after(s, id, r, t);
   const line = gain.bday ? CFG.birthdayLines[id] : LINES[id] && LINES[id].happy;
   return { ok: true, love, gain, invoice: inv, line, favor: { from: r.favor, to: r.favor, stageUp: false } };
@@ -123,7 +125,7 @@ export function giveToken(s, id, t = Date.now()) {
   const inv = invoice(s, { item: k.name, amount: r.token.price, seller: '星光商场', t });
   if (!pay(s, { wallet: 'personal', cat: 'token', amount: r.token.price, party: id, ref: inv.no, note: `送${SEC_BY_ID[id].name}定情信物：${k.name}` }, t)) return { ok: false, why: '个人现金不够' };
   r.token.given = t; const love = setOnly(s, id);
-  (r.rec.box = r.rec.box || []).push({ id: `token_${id}`, name: k.name, price: r.token.price, img: `assets/gift/${k.img}.webp`, t, token: true });
+  capPush((r.rec.box = r.rec.box || []), { id: `token_${id}`, name: k.name, price: r.token.price, img: `assets/gift/${k.img}.webp`, t, token: true });
   after(s, id, r, t);
   return { ok: true, love, invoice: inv, line: k.accept };
 }

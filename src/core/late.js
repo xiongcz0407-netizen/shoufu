@@ -3,18 +3,19 @@
 // 2. 大项目节点：科技立项、传媒投拍、跨城市扩张中途要你拍板（限时 30 分钟，不选按默认），结果按决策和秘书属性浮动；地产在 realestate.js（V2-09）
 // 3. 对手主动进攻：老板起每游戏月有概率来一次，应对窗口 30 分钟：商战三回合 / 花钱摆平 / 不理（按比例掉营业额、做空掉股价）
 // 4. 日程：agenda() 列出要你去的事（经营会、项目节点、地产决策、对手进攻），onAgenda(fn) 新事件推给日程表（开发2）
-import { setCredit } from './credit.js?v=ab0bf094';
-import L from '../config/late.json?v=ab0bf094' with { type: 'json' };
-import * as E from './economy.js?v=ab0bf094';
-import { addMsg, onAction } from './inbox.js?v=ab0bf094';
-import { pay } from './ledger.js?v=ab0bf094';
-import { RIVALS, RIVAL_BY_ID } from '../config/rivals.js?v=ab0bf094';
-import { IND_BY_ID } from '../config/industries.js?v=ab0bf094';
-import * as B from './battle.js?v=ab0bf094';
-import * as W from './war.js?v=ab0bf094';
-import { holder, isSec, attrs } from './posts.js?v=ab0bf094';
-import * as MG from './manage.js?v=ab0bf094';
-import { isTraining } from './training.js?v=ab0bf094';
+import { capAdd } from './cap.js?v=c60d881c';   // 设计79：有上限的列表（config/caps.js）
+import { setCredit } from './credit.js?v=c60d881c';
+import L from '../config/late.json?v=c60d881c' with { type: 'json' };
+import * as E from './economy.js?v=c60d881c';
+import { addMsg, onAction } from './inbox.js?v=c60d881c';
+import { pay } from './ledger.js?v=c60d881c';
+import { RIVALS, RIVAL_BY_ID } from '../config/rivals.js?v=c60d881c';
+import { IND_BY_ID } from '../config/industries.js?v=c60d881c';
+import * as B from './battle.js?v=c60d881c';
+import * as W from './war.js?v=c60d881c';
+import { holder, isSec, attrs } from './posts.js?v=c60d881c';
+import * as MG from './manage.js?v=c60d881c';
+import { isTraining } from './training.js?v=c60d881c';
 
 export { L as LATE_CFG };
 const MIN = 60e3; const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -41,7 +42,7 @@ export function mult(s, valueMode = false) {
 /** 你亲自拍了一次板：投入度 + */
 export function credit(s, kind, w = 1, t = null) {
   if (!active(s)) return 0; const X = lt(s); const d = (L.credit[kind] || 0) * w; if (!d) return 0;
-  X.E = clamp(X.E + d, 0, L.eMax); X.log.unshift({ t, kind, d: r2(d) }); if (X.log.length > 50) X.log.length = 50; return d;
+  X.E = clamp(X.E + d, 0, L.eMax); capAdd(s, 'late.log', X.log, { t, kind, d: r2(d) }); return d;
 }
 /** 公司一天的利润（按现在的规模，不含临时效果） */
 export const dayProfit = (s) => Math.max(0, Object.keys(s.inds || {}).reduce((a, id) => a + (E.lineNetMonth(s, id) || 0), 0)) / 30;

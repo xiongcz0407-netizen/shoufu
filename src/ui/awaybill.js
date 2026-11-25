@@ -1,10 +1,10 @@
 // 离开期间账单（第 2-16a 项）：跟合同、交割单一样的纸张样式；公司 / 个人两段；下面是秘书替你做了什么
-import { secWork } from '../core/awaybill.js?v=ab0bf094';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=ab0bf094';
-import { asset, hasAsset } from '../platform/assets.js?v=ab0bf094';
-import { game } from '../game.js?v=ab0bf094';
-import { h } from './dom.js?v=ab0bf094';
-import { openFull } from './shell.js?v=ab0bf094';
+import { secWork } from '../core/awaybill.js?v=c60d881c';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=c60d881c';
+import { asset, hasAsset } from '../platform/assets.js?v=c60d881c';
+import { game } from '../game.js?v=c60d881c';
+import { h } from './dom.js?v=c60d881c';
+import { openFull } from './shell.js?v=c60d881c';
 
 const days = (d) => (d >= 30 ? `${Math.floor(d / 30)} 个月 ${Math.round(d % 30)} 天` : `${Math.max(1, Math.round(d))} 天`);
 const dt = (t) => new Date(t).toLocaleString('zh-CN', { hour12: false, month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -23,7 +23,7 @@ function part(b, w, title, inK, outK, range) {
 export function showAwayBill(b) {
   const s = game.state; const p = openFull('离开期间');
   const no = `ZD-${new Date(b.to).getFullYear()}-${String((s.awayNo = (s.awayNo || 0) + 1)).padStart(5, '0')}`;
-  const work = secWork(s, b);
+  const work = b.work || secWork(s, b);   // 设计79：新账单里已经算好
   const box = h('div', 'contract away-paper');
   if (hasAsset('assets/contract/contract_paper.webp')) box.style.backgroundImage = `url("${asset('assets/contract/contract_paper.webp')}")`;
   const nw0 = b.netWorth[1] - b.netWorth[0]; const nw = Math.abs(nw0) < 1 ? 0 : nw0;

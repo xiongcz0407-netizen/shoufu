@@ -1,6 +1,6 @@
 // 设计37 第一节：游戏样式的确认框 / 输入框，替换浏览器自带的确认框和输入框（深底金边；危险操作红按钮）
 // confirmBox(text, { title, ok, cancel, danger }) → Promise<boolean>；inputBox(title, fields: [{ label, value, max }]) → Promise<值数组 | null>
-import { h } from './dom.js?v=ab0bf094';
+import { h } from './dom.js?v=c60d881c';
 
 const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const host = () => document.querySelector('#phone') || document.body;
@@ -19,7 +19,7 @@ export function confirmBox(arg, opts = {}) {
   const o = typeof arg === 'object' && arg ? arg : { ...opts, body: arg };
   const text = o.body || ''; const title = o.title || ''; const ok = o.ok || '确定'; const cancel = o.cancel || '再想想'; const danger = !!o.danger;
   return new Promise((resolve) => {
-    const { mask, card, close } = box(title, `<div class="cf-text">${esc(text).replace(/\n/g, '<br>')}</div>`,
+    const { mask, card, close } = box(title, `<div class="cf-text">${o.html != null ? o.html : esc(text).replace(/\n/g, '<br>')}</div>`,   /* 开发2 设计73：html 给了就照原样放（自己拼好的、带颜色） */
       `<button class="btn cf-no">${esc(cancel)}</button><button class="btn ${danger ? 'cf-danger' : 'gold'} cf-yes">${esc(ok)}</button>`);
     const done = (v) => { close(); resolve(v); };
     card.querySelector('.cf-yes').onclick = () => done(true);

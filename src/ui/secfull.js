@@ -1,15 +1,15 @@
 // 设计66 第七节第 3 条 + 第八节：秘书详情 → 衣柜 → 全屏看她
 // 下面的面板和动作条滑走，立绘占满屏幕（全身、原尺寸图）；底部向上箭头 / 从底部往上滑 / 返回键 = 退出。
 // 1 倍时左右滑换衣服（只在她买了、能穿的里换），单击弹一下说一句（算互动次数）；两指缩放、双击、拖动见 zoomview.js
-import { SEC_BY_ID } from '../config/secretaries.js?v=ab0bf094';
-import { outfitsOf } from '../config/outfits.js?v=ab0bf094';
-import * as STY from '../core/styles.js?v=ab0bf094';
-import * as O from '../core/outfits.js?v=ab0bf094';
-import { asset, getSecMeta, hasAsset } from '../platform/assets.js?v=ab0bf094';
-import { game } from '../game.js?v=ab0bf094';
-import { h } from './dom.js?v=ab0bf094';
-import { pushBack } from './shell.js?v=ab0bf094';
-import { createZoomView } from './zoomview.js?v=ab0bf094';
+import { SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
+import { outfitsOf } from '../config/outfits.js?v=c60d881c';
+import * as STY from '../core/styles.js?v=c60d881c';
+import * as O from '../core/outfits.js?v=c60d881c';
+import { asset, getSecMeta, hasAsset } from '../platform/assets.js?v=c60d881c';
+import { game } from '../game.js?v=c60d881c';
+import { h } from './dom.js?v=c60d881c';
+import { pushBack } from './shell.js?v=c60d881c';
+import { createZoomView } from './zoomview.js?v=c60d881c';
 
 /** 这位秘书这一套的全屏图：全身秘书用原尺寸 cN_full.webp，老秘书用 cN.webp */
 export const fullSrc = (id, o) => (SEC_BY_ID[id] && SEC_BY_ID[id].fullBody && hasAsset(`assets/sec/${id}/${o}_full.webp`) ? `assets/sec/${id}/${o}_full.webp` : `assets/sec/${id}/${o}.webp`);
@@ -26,7 +26,7 @@ export function openSecFull(host, id, { bg, onTalk, onDress, onExit } = {}) {
   const el = h('div', 'sf-view', `<div class="sf-layer"><img class="sf-img" alt="" draggable="false"></div>
     <div class="sf-label"><b></b><em></em></div><div class="sf-scale"></div>
     <div class="bubble sf-bubble hidden"><div class="bubble-text"></div></div>
-    <button class="sf-up" aria-label="退出全屏">︿</button>`);
+    <button class="sf-up" aria-label="退出全屏">︿</button><button class="btn gold sf-wear hidden">让她换上</button>`);
   if (bg) el.style.backgroundImage = `url("${bg}")`;
   host.appendChild(el);
   const layer = el.querySelector('.sf-layer'); const img = el.querySelector('.sf-img');
@@ -42,7 +42,8 @@ export function openSecFull(host, id, { bg, onTalk, onDress, onExit } = {}) {
     Object.assign(img.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: hh + 'px' });
     r0 = { x: x + bb[0] * k, y: y + bb[1] * k, w: (bb[2] - bb[0]) * k, h: (bb[3] - bb[1]) * k };   // 边界按人物外框算（透明边不算）
   }
-  function label() { el.querySelector('.sf-label b').textContent = STY.nameOf(id, cur); el.querySelector('.sf-label em').textContent = STY.styleOf(id, cur) || ''; }
+  function wearTxt() { const b = el.querySelector('.sf-wear'); if (b) b.classList.toggle('hidden', game.state.secs[id].outfit === cur); }
+  function label() { wearTxt(); el.querySelector('.sf-label b').textContent = STY.nameOf(id, cur); el.querySelector('.sf-label em').textContent = STY.styleOf(id, cur) || ''; }
   function setOutfit(o, fade) {
     cur = o; img.src = asset(fullSrc(id, o)); place(); zv.reset(); label();
     if (fade) { el.classList.remove('sf-fade'); void el.offsetWidth; el.classList.add('sf-fade'); }
@@ -60,7 +61,7 @@ export function openSecFull(host, id, { bg, onTalk, onDress, onExit } = {}) {
     onSwipe: (d) => {
       const list = wearable(game.state, id); if (list.length < 2) return;
       const i = list.indexOf(cur); const o = list[((i < 0 ? 0 : i) + d + list.length) % list.length];
-      O.chooseOutfit(game.state, id, o); setOutfit(o, true); onDress && onDress(o);
+      setOutfit(o, true);   /* 设计74：左右滑只是看，不改她平时穿的；点「让她换上」才改 */
     },
     onSwipeUp: () => exit(false),
     onScale: (k) => { const t = el.querySelector('.sf-scale'); if (k <= 1.01) { t.classList.remove('on'); return; } t.textContent = `${(Math.round(k * 10) / 10).toString()}×`; t.classList.add('on'); clearTimeout(scaleTimer); scaleTimer = setTimeout(() => t.classList.remove('on'), 1000); },
@@ -68,6 +69,8 @@ export function openSecFull(host, id, { bg, onTalk, onDress, onExit } = {}) {
   const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => { place(); zv.reset(); }) : null; ro && ro.observe(el);
   setOutfit(cur, false);
   el.querySelector('.sf-up').addEventListener('pointerdown', (e) => e.stopPropagation());
+  const wearBtn = el.querySelector('.sf-wear'); wearBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+  wearBtn.onclick = () => { if (!O.chooseOutfit(game.state, id, cur)) return; wearTxt(); onDress && onDress(cur); };
   el.querySelector('.sf-up').onclick = () => exit(false);
   const done = pushBack(() => exit(true));   // 安卓返回键 / 浏览器后退 = 点向上箭头
   let closed = false;

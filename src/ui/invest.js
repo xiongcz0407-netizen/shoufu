@@ -1,27 +1,45 @@
-// 设计62 投资账户（开发2）：股票 / 基金页顶上的「投资账户 ¥X」条、转账弹框、钱不够一键转入、财务页三个账户、老存档第一次说明
-import * as IV from '../core/invest.js?v=ab0bf094';
-import * as FD from '../core/funds.js?v=ab0bf094';
-import * as SK from '../core/stocks.js?v=ab0bf094';
-import * as TR from '../core/trade.js?v=ab0bf094';
-import { fmtMoney } from '../core/format.js?v=ab0bf094';
-import { game } from '../game.js?v=ab0bf094';
-import { now } from '../core/clock.js?v=ab0bf094';
-import { h, openPanel, toast } from './dom.js?v=ab0bf094';
+// 设计62 投资账户（开发2）：股票页顶上的「投资账户 ¥X」条、转账弹框、钱不够一键转入、财务页三个账户、老存档第一次说明
+import * as IV from '../core/invest.js?v=c60d881c';
+import * as BK from '../core/books.js?v=c60d881c';   // 设计79 第三版
+import * as SK from '../core/stocks.js?v=c60d881c';
+import * as TR from '../core/trade.js?v=c60d881c';
+import * as IDLE from '../core/idle.js?v=c60d881c';   // 设计72
+import { fmtMoney } from '../core/format.js?v=c60d881c';
+import { game } from '../game.js?v=c60d881c';
+import { now } from '../core/clock.js?v=c60d881c';
+import { h, openPanel, toast } from './dom.js?v=c60d881c';
 
 const DIRS = [['personal', 'invest', '个人 → 投资'], ['invest', 'personal', '投资 → 个人'], ['invest', 'company', '投资 → 公司'], ['company', 'invest', '公司 → 投资']];
 const NOTE = {
-  'personal>invest': '免费，马上到。股票、基金、两融、打新、投资经理都只用投资账户里的钱。',
-  'invest>personal': '免费，马上到。挂单里冻着的钱、持仓、基金不能转，先卖掉或撤单。',
+  'personal>invest': '免费，马上到。股票、打新、投资经理都只用投资账户里的钱；没在用的钱自动生息，年化 8%。',
+  'invest>personal': '免费，马上到。挂单里冻着的钱、持仓不能转，先卖掉或撤单。',
   'invest>company': '算注资：不交税，记进公司「实收资本」，出一张《增资确认书》。钱进了公司只能分红拿回来。',
   'company>invest': '算分红：公司代扣 20% 个税，到手 80% 进投资账户。要留够两个月工资，贷款资金不能分。',
 };
 const done = () => { game.changed(); game.save(); };
-/** 投资账户市值：现金 + 持仓 + 挂单 + 基金 + 投资经理 */
-export function investTotal(s) { return (s.invest || 0) + (s.mkt ? SK.holdings(s).reduce((a, x) => a + x.value, 0) + TR.orderValue(s) + ((s.mkt.mgr && s.mkt.mgr.value) || 0) : 0) + FD.value(s); }
+/** 投资账户市值：现金 + 持仓 + 挂单 + 投资经理 */
+export function investTotal(s) { return (s.invest || 0) + (s.mkt ? SK.holdings(s).reduce((a, x) => a + x.value, 0) + TR.orderValue(s) + ((s.mkt.mgr && s.mkt.mgr.value) || 0) : 0) ; }
 
-/** 股票页、基金页顶上：投资账户 ¥X　[转入] [转出] */
+/** 设计81：投资账户总额 = 现金 + 股票市值（含卖单里的）+ 买单里放着的钱 + 投资经理手上的钱；pxOf：股价怎么取（股票页按 3 秒跳的显示价） */
+const r2 = (v) => Math.round(v * 100) / 100;
+export function investParts(s, pxOf = null) {
+  const cash = IV.cashOf(s); if (!s.mkt) return { cash, stock: 0, order: 0, mgr: 0, total: cash };
+  const stock = r2(Object.entries(SK.myShares(s)).reduce((a, [c, x]) => a + x.n * (pxOf ? pxOf(c) : SK.price(s, c)), 0));
+  const order = TR.inOrders(s).cash, mgr = r2((s.mkt.mgr && s.mkt.mgr.value) || 0);
+  return { cash, stock, order, mgr, total: r2(cash + stock + order + mgr) };
+}
+/** 「投资账户总额 ¥T」+ 小字组成（是 0 的不写） */
+export function totalHtml(s, pxOf = null) {
+  const P = investParts(s, pxOf);
+  const parts = [['现金', P.cash], ['股票', P.stock], ['挂单', P.order], ['投资经理', P.mgr]].filter(([, v]) => Math.abs(v) >= 0.005).map(([k, v]) => `<span>${k} ${fmtMoney(v)}</span>`);
+  return `投资账户总额 <b>${fmtMoney(P.total)}</b>${parts.length ? `<small>${parts.join('<i>·</i>')}</small>` : ''}`;
+}
+
+/** 股票页顶上：投资账户 ¥X　[转入] [转出] */
 export function investBar(s, redraw) {
-  const el = h('div', 'iv-bar', `<div><small>投资账户</small><b>${fmtMoney(IV.cashOf(s))}</b><small>个人现金 ${fmtMoney(s.cash)}</small></div><button class="btn sm gold iv-in">转入</button><button class="btn sm iv-out">转出</button>`);
+  const td = IDLE.today(s, now());
+  const el = h('div', 'iv-bar', `<div><small>投资账户（可用现金）</small><b>${fmtMoney(IV.cashOf(s))}</b><small>个人现金 ${fmtMoney(s.cash)}</small></div><button class="btn sm gold iv-in">转入</button><button class="btn sm iv-out">转出</button>
+    <div class="iv-total" data-ivtotal>${totalHtml(s)}</div>    <div class="iv-idle">闲钱自动生息 · 年化 ${Math.round(IDLE.rate() * 100)}% · 今天 <b>+${td >= 100 ? fmtMoney(td) : `¥${td.toFixed(2)}`}</b></div>`);   // 设计72
   el.querySelector('.iv-in').onclick = () => openTransfer('personal', 'invest', redraw);
   el.querySelector('.iv-out').onclick = () => openTransfer('invest', 'personal', redraw);
   return el;
@@ -76,11 +94,11 @@ export function bindAccounts(el, redraw) { const b = el.querySelector('.iv-go');
 /** 老存档第一次进股票页：弹一次说明 */
 export function firstNote(s, redraw) {
   const u = (s.ui = s.ui || {}); if (u.investNote) return; u.investNote = 1; done();
-  const old = (s.ledger || []).some((r) => /^(stock_|fund_|order_|inv_|margin_|ipo_)/.test(r.cat)) || (s.mkt && Object.keys(s.mkt.hold || {}).length);
+  const old = Object.values(BK.books(s).total).some((o) => Object.keys(o).some((k) => /^(stock_|order_|inv_|ipo_)/.test(k))) || (s.mkt && Object.keys(s.mkt.hold || {}).length);
   if (!old) return;   // 新开局没炒过股的不弹（只给老存档）
   const p = openPanel('投资账户');
   p.body.innerHTML = `<div class="iv-short">股票现在走投资账户，先从个人账户转钱进来</div>
-    <div class="tr-gain">买股票、条件单、补仓、看盘跟单、打新、两融、基金、投资经理，都只用投资账户里的钱；卖出、撤单退回、分红也回投资账户。个人 ↔ 投资账户互转免费、马上到。${SK.holdings(s).length || (s.mkt && s.mkt.orders && s.mkt.orders.length) ? '<br>你原来的持仓和挂单已经算到投资账户名下。' : ''}</div>
+    <div class="tr-gain">买股票、条件单、补仓、看盘跟单、打新、投资经理，都只用投资账户里的钱；卖出、撤单退回、分红也回投资账户。个人 ↔ 投资账户互转免费、马上到。${SK.holdings(s).length || (s.mkt && s.mkt.orders && s.mkt.orders.length) ? '<br>你原来的持仓和挂单已经算到投资账户名下。' : ''}</div>
     <button class="btn gold big go">去转钱</button><button class="btn big later">知道了</button>`;
   p.body.querySelector('.go').onclick = () => { p.close(); openTransfer('personal', 'invest', redraw); };
   p.body.querySelector('.later').onclick = () => p.close();

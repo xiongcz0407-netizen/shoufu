@@ -1,13 +1,15 @@
 // 财务补全（第 2-15 项，设计15 V0.2 + 设计17 V0.2）：年度汇算清缴、欠税滞纳金和征信、一般纳税人进项抵扣（房租、杂费、装修设备）、
-// 个人纳税记录（股票、基金、进口、境外所得……）、财务总监报税台词、销售提成、员工满意度、家族办公室
-import CFG from '../config/fiscal.json?v=ab0bf094' with { type: 'json' };
-import { TAX } from './companytax.js?v=ab0bf094';
-import { pay, receive } from './ledger.js?v=ab0bf094';
-import { holder, isSec } from './posts.js?v=ab0bf094';
-import { addMsg } from './inbox.js?v=ab0bf094';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=ab0bf094';
-import { SEC_BY_ID } from '../config/secretaries.js?v=ab0bf094';
-import { IND_BY_ID } from '../config/industries.js?v=ab0bf094';
+// 个人纳税记录（股票、进口、境外所得……）、财务总监报税台词、销售提成、员工满意度、家族办公室
+import { capAdd } from './cap.js?v=c60d881c';   // 设计79：有上限的列表（config/caps.js）
+import * as BK from './books.js?v=c60d881c';   // 设计79 第三版
+import CFG from '../config/fiscal.json?v=c60d881c' with { type: 'json' };
+import { TAX } from './companytax.js?v=c60d881c';
+import { pay, receive } from './ledger.js?v=c60d881c';
+import { holder, isSec } from './posts.js?v=c60d881c';
+import { addMsg } from './inbox.js?v=c60d881c';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=c60d881c';
+import { SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
+import { IND_BY_ID } from '../config/industries.js?v=c60d881c';
 
 export const FICFG = CFG;
 const r2 = (v) => Math.round(v * 100) / 100;
@@ -18,8 +20,7 @@ const fmt = (n) => (Math.abs(n) >= 1e8 ? `${+(n / 1e8).toFixed(2)}亿` : Math.ab
 export function taxRec(s, { kind, base = 0, rate = '', amount, payer = 'personal', period = '', t = Date.now() }) {
   if (!(amount >= 0.01)) return null;
   s.taxSeq = (s.taxSeq || 0) + 1; const cert = `完税-${String(s.taxSeq).padStart(5, '0')}`;
-  (s.taxes = s.taxes || []).push({ id: s.taxSeq, t, kind, period, base: r2(base), rate, amount: r2(amount), payer, cert });
-  if (s.taxes.length > 800) s.taxes.shift();
+  capAdd(s, 'taxes', (s.taxes = s.taxes || []), { id: s.taxSeq, t, kind, period, base: r2(base), rate, amount: r2(amount), payer, cert });   // 设计79：留 100 条，更早的按年汇总进 taxSum
   return cert;
 }
 
@@ -29,7 +30,7 @@ export function inputExtra(s, from, to) {
   const p = s.period || {}; const I = CFG.input;
   const rent = (p.rent || 0) / (1 + I.rent) * I.rent;
   const other = (p.other || 0) / (1 + I.opex) * I.opex;
-  const capex = (s.ledger || []).filter((r) => r.cat === 'expand' && r.t >= from && r.t <= to).reduce((a, r) => a + r.amount, 0) / (1 + I.capex) * I.capex;
+  const capex = BK.rowsOf(BK.cellsOfMonth(s, BK.mon(s, from), 'both')).filter((r) => r.cat === 'expand').reduce((a, r) => a + r.amount, 0) / (1 + I.capex) * I.capex;   // 设计79：[月初, 月底] 从 books
   return { rent: r2(rent), other: r2(other), capex: r2(capex), total: r2(rent + other + capex) };
 }
 
@@ -38,7 +39,7 @@ export function commission(s, from, end) {
   let total = 0; const lines = [];
   for (const [id, rate] of Object.entries(CFG.commission.rates)) {
     if (!s.inds[id] || !IND_BY_ID[id]) continue; const nm = IND_BY_ID[id].name;
-    const rev = (s.ledger || []).filter((r) => r.wallet === 'company' && r.dir === 'in' && ['revenue', 'presale'].includes(r.cat) && r.t > from && r.t <= end && (r.note || '').startsWith(nm)).reduce((x, r) => x + r.amount, 0);
+    const rev = BK.rowsOf(BK.cellsOfMonth(s, BK.mon(s, from), 'excl')).filter((r) => r.wallet === 'company' && r.dir === 'in' && ['revenue', 'presale'].includes(r.cat) && (r.note || '').startsWith(nm)).reduce((x, r) => x + r.amount, 0);   // 设计79：(月初, 月底] 从 books
     const amt = r2(rev * rate); if (amt < 0.01) continue;
     pay(s, { wallet: 'company', cat: 'commission', amount: amt, force: true, note: `${nm}销售提成（本月营收 ${fmt(rev)} × ${(rate * 100).toFixed(1)}%）` }, end);
     total += amt; lines.push([id, amt]);
@@ -118,9 +119,8 @@ export function annualCit(s, y, end, settle) {
 }
 /** 年度个人纳税汇总（分类所得：分红、财产转让、租金、股票分红、境外所得、买东西的税） */
 export function personalYear(s, from, to) {
-  const list = (s.taxes || []).filter((x) => x.payer === 'personal' && x.t >= from && x.t < to); const kinds = {};
-  for (const x of list) kinds[x.kind] = (kinds[x.kind] || 0) + x.amount;
-  return { total: r2(list.reduce((a, x) => a + x.amount, 0)), kinds: Object.entries(kinds).sort((a, b) => b[1] - a[1]) };
+  const kinds = {}; for (const [k, v] of Object.entries(BK.taxOfYear(s, BK.yr(s, from)))) { const [kind, p] = k.split('|'); if (p === 'p') kinds[kind] = (kinds[kind] || 0) + v; }   // 设计79：按游戏年从 books.tax（from 是年初）
+  return { total: r2(Object.values(kinds).reduce((a, x) => a + x, 0)), kinds: Object.entries(kinds).sort((a, b) => b[1] - a[1]) };
 }
 
 // ---------- 财务总监报税台词（按性格） ----------

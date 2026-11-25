@@ -4,15 +4,16 @@
 // 写哪家店：一家店只写产业名；有分店「城市 + 几号店」随机挑；非零售线写城市（设计40 第二轮，说法、单价不用了）
 // 一笔一笔进来的大钱（地产预售、收租、传媒分账、商战奖励）用记账那一笔直接出一条
 // 存档 s.flow = { day, sum: { rev, cost }, list: [{ i, t, id, name, text, rev, cost }]（最新在前，最多 60）, seq }；离线不补
-import { IND_BY_ID } from '../config/industries.js?v=ab0bf094';
-import { setIncomeHook } from './economy.js?v=ab0bf094';
-import { addReceiveHook } from './ledger.js?v=ab0bf094';
-import { lineLabor } from './staff.js?v=ab0bf094';
-import { monthlyRent, monthlyOpex } from './accrual.js?v=ab0bf094';
-import { MONTH_MS, gameDate } from './gametime.js?v=ab0bf094';
-import { now } from './clock.js?v=ab0bf094';
-import { lineCities, cityName } from './cities.js?v=ab0bf094';
-import { st as siteSt } from './sites.js?v=ab0bf094';
+import { capAdd } from './cap.js?v=c60d881c';   // 设计79：有上限的列表（config/caps.js）
+import { IND_BY_ID } from '../config/industries.js?v=c60d881c';
+import { setIncomeHook } from './economy.js?v=c60d881c';
+import { addReceiveHook } from './ledger.js?v=c60d881c';
+import { lineLabor } from './staff.js?v=c60d881c';
+import { monthlyRent, monthlyOpex } from './accrual.js?v=c60d881c';
+import { MONTH_MS, gameDate } from './gametime.js?v=c60d881c';
+import { now } from './clock.js?v=c60d881c';
+import { lineCities, cityName } from './cities.js?v=c60d881c';
+import { st as siteSt } from './sites.js?v=c60d881c';
 
 export const FLOW_MAX = 60;
 const GAP = [2000, 5000];   // 隔 2～5 秒出一笔
@@ -60,7 +61,7 @@ function push(s, t, row) {
   const f = fl(s); const k = dayKey(s, t); if (f.day !== k) { f.day = k; f.sum = { rev: 0, cost: 0 }; }
   const z = roundPair(row.rev, row.cost);
   f.sum.rev += z.rev; f.sum.cost += z.cost; f.seq += 1;   // 合计用每条取整后的数加，跟一条一条对得上
-  f.list.unshift({ i: f.seq, t, ...row, rev: z.rev, cost: z.cost }); if (f.list.length > FLOW_MAX) f.list.length = FLOW_MAX;
+  capAdd(s, 'flow.list', f.list, { i: f.seq, t, ...row, rev: z.rev, cost: z.cost });
 }
 
 /** 一秒一条线的营收进来（tickIncome 的挂钩；测试直接调） */
@@ -84,5 +85,12 @@ export function bigIn(s, row, t = now()) {
   push(s, row.t, { id: id || 'other', name: id === 'battle' ? '商战' : (IND_BY_ID[id] || {}).name || '其他', text, rev: row.amount, cost: 0, big: true });
 }
 
+/** 设计72：按跳一点一点进来的（投资账户利息）每个游戏天合成一行，原地加；只在线时（离线补的不进流水）；不算进公司的「今天合计」 */
+export function dailyLine(s, t, key, row, amt) {
+  if (!(amt > 0) || Math.abs(now() - t) > STALE) return;
+  const f = fl(s); const k = dayKey(s, t); let x = f.list.find((r) => r.daily === key && r.dk === k);
+  if (!x) { f.seq += 1; x = { i: f.seq, t, ...row, rev: 0, cost: 0, raw: 0, daily: key, dk: k, noSum: true }; capAdd(s, 'flow.list', f.list, x); }
+  x.raw += amt; x.rev = roundPair(x.raw, 0).rev; x.t = t;
+}
 setIncomeHook((s, id, rev, cogs, sec) => feed(s, id, rev, cogs, sec));
 addReceiveHook((s, row) => bigIn(s, row));

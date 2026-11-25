@@ -1,22 +1,22 @@
 // 财富 → 银行：征信、存款、贷款（经营贷、开发贷、股票质押、艺术品质押）、私人银行；申请和存款在底部抽屉
-import ECO from '../config/economy.json?v=ab0bf094' with { type: 'json' };
+import ECO from '../config/economy.json?v=c60d881c' with { type: 'json' };
 const PM = ECO.profitMul;
 /** 利率后面的小字：游戏年利率 = 现实 × 赚钱倍数（验收 2-16b） */
 const rn = (r) => `<small class="rate-note">（游戏年利率；现实 ${(r / PM * 100).toFixed(2).replace(/\.?0+$/, '')}% × 赚钱倍数 ${PM}）</small>`;
-import * as BK from '../core/bank.js?v=ab0bf094';
-import * as RE from '../core/realestate.js?v=ab0bf094';
-import * as PL from '../core/pledge.js?v=ab0bf094';
-import * as SK from '../core/stocks.js?v=ab0bf094';
-import * as AQ from '../core/antique.js?v=ab0bf094';
-import * as LS from '../core/listing.js?v=ab0bf094';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=ab0bf094';
-import { asset, hasAsset } from '../platform/assets.js?v=ab0bf094';
-import { now } from '../core/clock.js?v=ab0bf094';
-import { game } from '../game.js?v=ab0bf094';
-import { h, openPanel, toast, liveRender } from './dom.js?v=ab0bf094';
-import { hint } from './guide.js?v=ab0bf094';
-import { hintLater } from './guide2.js?v=ab0bf094';
-import { confirmBox } from './confirm.js?v=ab0bf094'; // 设计37 第一节：游戏样式确认框
+import * as BK from '../core/bank.js?v=c60d881c';
+import * as RE from '../core/realestate.js?v=c60d881c';
+import * as PL from '../core/pledge.js?v=c60d881c';
+import * as SK from '../core/stocks.js?v=c60d881c';
+import * as AQ from '../core/antique.js?v=c60d881c';
+import * as LS from '../core/listing.js?v=c60d881c';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=c60d881c';
+import { asset, hasAsset } from '../platform/assets.js?v=c60d881c';
+import { now } from '../core/clock.js?v=c60d881c';
+import { game } from '../game.js?v=c60d881c';
+import { h, openPanel, toast, liveRender } from './dom.js?v=c60d881c';
+import { hint } from './guide.js?v=c60d881c';
+import { hintLater } from './guide2.js?v=c60d881c';
+import { confirmBox } from './confirm.js?v=c60d881c'; // 设计37 第一节：游戏样式确认框
 
 const C = BK.BANK_CFG;
 const logo = (k) => (hasAsset(`assets/org/${C.banks[k].logo}.webp`) ? `<img class="bk-logo" src="${asset(`assets/org/${C.banks[k].logo}.webp`)}" alt="">` : `<div class="bk-logo ph">${C.banks[k].name.slice(0, 2)}</div>`);
@@ -33,7 +33,7 @@ function draw(el) {
     <div><small>每月要还</small><b>${fmtMoney(BK.monthlyDue(s))}</b></div>`));
   el.appendChild(h('div', 'tr-gain', `银行只借给公司：钱进公司账户，专款专用（贷款资金限用途 <b>${fmtMoney(X.restricted)}</b>，先花在产业经营上，不能拿地、不能分红）。个人买东西一律不能贷款。银行看的年营收 ${fmtMoney(BK.annualRevenue(s))}，经营贷还能贷 ${fmtMoney(BK.bizLimit(s))}。`));
   const tier = PL.privateTier(s); const PV = C.private; if (tier) hintLater('privatebank');
-  el.appendChild(h('div', 'tr-course pv-card', `<div style="flex:1"><b>私人银行 ${tier ? `· ${PV[tier].name}客户` : '· 还不是'}</b><div class="tr-gain">金融资产（存款 + 股票 + 基金）${fmtMoney(PL.finAssets(s))}。${PV.zhaoshang.name} ≥ ${fmtMoney(PV.zhaoshang.min)}、${PV.ruixin.name} ≥ ${fmtMoney(PV.ruixin.min)}：那家存款高一档、贷款低一档，拍卖会和限量车优先（人脉 +${PV.network}）${tier ? `；专属：${PV[tier].manager}` : ''}。</div></div>`));
+  el.appendChild(h('div', 'tr-course pv-card', `<div style="flex:1"><b>私人银行 ${tier ? `· ${PV[tier].name}客户` : '· 还不是'}</b><div class="tr-gain">金融资产（存款 + 股票 + 投资账户现金）${fmtMoney(PL.finAssets(s))}。${PV.zhaoshang.name} ≥ ${fmtMoney(PV.zhaoshang.min)}、${PV.ruixin.name} ≥ ${fmtMoney(PV.ruixin.min)}：那家存款高一档、贷款低一档，拍卖会和限量车优先（人脉 +${PV.network}）${tier ? `；专属：${PV[tier].manager}` : ''}。</div></div>`));
   // 我的贷款
   el.appendChild(h('div', 'sd-rec-title', '我的贷款'));
   for (const a of X.apps.filter((x) => x.status !== 'done')) el.appendChild(h('div', 'tr-course', `<div><b>${C.banks[a.bank].name} · ${a.type === 'dev' ? '开发贷' : '经营贷'} ${fmtMoney(a.amount)}</b><div class="tr-gain">${a.status === 'pending' ? `审批中，还要 ${fmtDuration(Math.max(0, (a.at - t) / 1000))}` : '批了，去消息中心「请示」签合同'}</div></div>`));

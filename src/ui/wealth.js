@@ -1,26 +1,26 @@
 // 「财富 → 财务」（第 13 项，设计15 第三节 + 设计17 第三节、设计18 第四节 5）
 // 横滑标签：总览 | 利润表 | 个人收支 | 资产清单 | 纳税 | 流水 | 档案柜；右上角切 今天 / 本月 / 本年 / 全部
-import * as EQ from '../core/equity.js?v=ab0bf094';
-import * as F from '../core/finance.js?v=ab0bf094';
-import * as E from '../core/economy.js?v=ab0bf094';
-import * as ST from '../core/staff.js?v=ab0bf094';
-import * as AC from '../core/accrual.js?v=ab0bf094';
-import * as AS from '../core/assets.js?v=ab0bf094';
-import * as PO from '../core/posts.js?v=ab0bf094';
-import { cityPL } from '../core/citypl.js?v=ab0bf094';
-import { cityName } from '../core/cities.js?v=ab0bf094';
-import { IND_BY_ID } from '../config/industries.js?v=ab0bf094';
-import { CATS, WALLET_NAME } from '../core/ledger.js?v=ab0bf094';
-import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=ab0bf094';
-import { fmtMoney } from '../core/format.js?v=ab0bf094';
-import { asset, hasAsset } from '../platform/assets.js?v=ab0bf094';
-import { now } from '../core/clock.js?v=ab0bf094';
-import { game } from '../game.js?v=ab0bf094';
-import { h, openPanel, liveRender } from './dom.js?v=ab0bf094';
-import { giftsTo, spentOn } from './secretary.js?v=ab0bf094';
-import { extendFinance } from './wealth2.js?v=ab0bf094';
-import { accountsHtml, bindAccounts } from './invest.js?v=ab0bf094';   // 设计62 投资账户
-import { sellGain } from './earn.js?v=ab0bf094';   // 设计65 小改：合同列表写赚多少
+import * as EQ from '../core/equity.js?v=c60d881c';
+import * as F from '../core/finance.js?v=c60d881c';
+import * as E from '../core/economy.js?v=c60d881c';
+import * as ST from '../core/staff.js?v=c60d881c';
+import * as AC from '../core/accrual.js?v=c60d881c';
+import * as AS from '../core/assets.js?v=c60d881c';
+import * as PO from '../core/posts.js?v=c60d881c';
+import { cityPL } from '../core/citypl.js?v=c60d881c';
+import { cityName } from '../core/cities.js?v=c60d881c';
+import { IND_BY_ID } from '../config/industries.js?v=c60d881c';
+import { CATS, WALLET_NAME } from '../core/ledger.js?v=c60d881c';
+import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=c60d881c';
+import { fmtMoney } from '../core/format.js?v=c60d881c';
+import { asset, hasAsset } from '../platform/assets.js?v=c60d881c';
+import { now } from '../core/clock.js?v=c60d881c';
+import { game } from '../game.js?v=c60d881c';
+import { h, openPanel, liveRender } from './dom.js?v=c60d881c';
+import { giftsTo, spentOn } from './secretary.js?v=c60d881c';
+import { extendFinance } from './wealth2.js?v=c60d881c';
+import { accountsHtml, bindAccounts } from './invest.js?v=c60d881c';   // 设计62 投资账户
+import { sellGain } from './earn.js?v=c60d881c';   // 设计65 小改：合同列表写赚多少
 
 const TABS = [['overview', '总览'], ['pl', '利润表'], ['personal', '个人收支'], ['assets', '资产清单'], ['tax', '纳税'], ['ledger', '流水'], ['archive', '档案柜']];
 let tab = 'overview', period = 'month', lf = { wallet: '', cat: '', by: '' };
@@ -59,8 +59,8 @@ const DRAW = {
       <div class="fn-pie"><i style="background:${pie}"></i><div>${parts.map((x, i) => `<div><em style="background:${colors[i]}"></em>${x[0]} ${pct(x[1] / tot)}</div>`).join('')}</div></div>
       ${cfoComment(s, pl, last && last.profit)}
       <div class="ind-btns"><button class="btn sm fn-inject">注资到公司</button><button class="btn sm gold fn-div">分红到个人</button></div>`;
-    el.querySelector('.fn-inject').onclick = () => import('./company.js?v=ab0bf094').then((m) => m.openInject());
-    el.querySelector('.fn-div').onclick = () => import('./company.js?v=ab0bf094').then((m) => m.openDividend());
+    el.querySelector('.fn-inject').onclick = () => import('./company.js?v=c60d881c').then((m) => m.openInject());
+    el.querySelector('.fn-div').onclick = () => import('./company.js?v=c60d881c').then((m) => m.openDividend());
     bindAccounts(el, () => DRAW.overview(el, game.state, from, now()));   // 设计62：三个账户 + 转账
   },
   pl(el, s, from, t) {
@@ -100,12 +100,13 @@ const DRAW = {
     el.querySelectorAll('select').forEach((x) => (x.onchange = () => { lf[x.dataset.f] = x.value; DRAW.ledger(el, s, from, t); }));
   },
   archive(el, s) {
-    const cs = (s.contracts || []).slice().reverse(); const inv = (s.invoices || []).slice().reverse(); const tx = (s.taxes || []).slice().reverse();
+    const cs = (s.contracts || []).slice().reverse().concat((s.contractsOld || []).slice().reverse()); const inv = (s.invoices || []).slice().reverse(); const tx = (s.taxes || []).slice().reverse();   // 设计79：早期合同只留摘要（contractsOld），照样列出来
+    const invOld = (s.invoiceSum || []).reduce((a, x) => a + x.n, 0);
     const icon = (k) => (hasAsset(`assets/ui/${k}.webp`) ? `<img class="fn-ic" src="${asset(`assets/ui/${k}.webp`)}" alt="">` : '');
-    el.innerHTML = `<div class="sd-rec-title">${icon('icon_contract')}合同（${cs.length}）</div><div class="fn-card">${cs.slice(0, 50).map((c, i) => `<button class="fn-doc" data-i="${i}"><b>${c.title}</b><small>${c.no} · ${c.subject} · ${fmtMoney(c.total)}</small>${sellGain(c)}</button>`).join('') || '<div class="empty">没有</div>'}</div>
-      <div class="sd-rec-title">${icon('icon_archive')}发票（${inv.length}）</div><div class="fn-card">${inv.slice(0, 50).map((x) => row(`${x.no} · ${x.item}`, `${fmtMoney(x.amount)}<small>含税 ${fmtMoney(x.tax)}</small>`)).join('') || '<div class="empty">没有</div>'}</div>
+    el.innerHTML = `<div class="sd-rec-title">${icon('icon_contract')}合同（${cs.length}）</div><div class="fn-card">${cs.slice(0, 50).map((c, i) => `<button class="fn-doc" data-i="${i}"><b>${c.title}</b><small>${c.no} · ${c.old ? `${c.party || ''}（早期，只留摘要）` : c.subject} · ${fmtMoney(c.total || 0)}</small>${c.old ? '' : sellGain(c)}</button>`).join('') || '<div class="empty">没有</div>'}</div>
+      <div class="sd-rec-title">${icon('icon_archive')}发票（${inv.length + invOld}）${invOld ? `<small>　更早的 ${invOld} 张按年汇总了</small>` : ''}</div><div class="fn-card">${inv.slice(0, 50).map((x) => row(`${x.no} · ${x.item}`, `${fmtMoney(x.amount)}<small>含税 ${fmtMoney(x.tax)}</small>`)).join('') || '<div class="empty">没有</div>'}</div>
       <div class="sd-rec-title">${icon('icon_taxcert')}完税凭证（${tx.length}）</div><div class="fn-card">${tx.slice(0, 50).map((x) => row(`${x.cert} · ${x.kind}`, x.amount)).join('') || '<div class="empty">没有</div>'}</div>`;
-    el.querySelectorAll('.fn-doc').forEach((b) => (b.onclick = () => { const c = cs[+b.dataset.i]; const p = openPanel(c.title); p.body.innerHTML = `<div class="tr-gain">${c.no} · ${new Date(c.t).toLocaleString('zh-CN', { hour12: false })}</div>${(c.parties || []).map(([k, v]) => row(k, v)).join('')}${row('标的', c.subject)}${(c.rows || []).map(([k, v, , tone, txt]) => (txt != null ? row(k, `<span class="${tone || ''}">${txt}</span>`) : row(k, v))).join('')}${row('合计', c.total, 'sum')}`; }));
+    el.querySelectorAll('.fn-doc').forEach((b) => (b.onclick = () => { const c = cs[+b.dataset.i]; if (c.old) { const q = openPanel(c.title); q.body.innerHTML = `<div class="tr-gain">${c.no} · ${new Date(c.t).toLocaleString('zh-CN', { hour12: false })}</div>${row('对方', c.party || '—')}${row('金额', fmtMoney(c.total || 0))}<div class="tr-gain">早期合同只留摘要</div>`; return; } const p = openPanel(c.title); p.body.innerHTML = `<div class="tr-gain">${c.no} · ${new Date(c.t).toLocaleString('zh-CN', { hour12: false })}</div>${(c.parties || []).map(([k, v]) => row(k, v)).join('')}${row('标的', c.subject)}${(c.rows || []).map(([k, v, , tone, txt]) => (txt != null ? row(k, `<span class="${tone || ''}">${txt}</span>`) : row(k, v))).join('')}${row('合计', c.total, 'sum')}`; }));
   },
 };
 

@@ -1,17 +1,19 @@
 // 上市（第 3-04 项，设计23 第四节）：四个板块条件 → 选券商 → 股改 → 辅导 → 申报审核（可能问询）→ 发行定价 → 路演 → 敲钟
 // 上市后：你的公司进股票列表（自己一只，跟大盘和利润走）；身价 = 市值 × 你的持股；锁定期后每 3 个游戏月最多减持 1%（限售股 20% 个税）；每年年报 + 分红
-import CFG from '../config/listing.json?v=ab0bf094' with { type: 'json' };
-import { pay, receive, canPay, canPayMust } from './ledger.js?v=ab0bf094';
-import { addContract } from './contracts.js?v=ab0bf094';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=ab0bf094';
-import { taxRec } from './fiscal.js?v=ab0bf094';
-import { gm } from './calib.js?v=ab0bf094';
-import { addMsg } from './inbox.js?v=ab0bf094';
-import { holder, isSec } from './posts.js?v=ab0bf094';
-import { companyEquity, earningsValue, stakeOf, addNetWorthHook } from './economy.js?v=ab0bf094';
-import { cap, ipoPower } from './capital.js?v=ab0bf094';
-import { room } from './cashflow.js?v=ab0bf094'; // V0.2.3
-import * as SK from './stocks.js?v=ab0bf094';
+import { capAdd } from './cap.js?v=c60d881c';   // 设计79：有上限的列表（config/caps.js）
+import * as BK from './books.js?v=c60d881c';   // 设计79 第三版
+import CFG from '../config/listing.json?v=c60d881c' with { type: 'json' };
+import { pay, receive, canPay, canPayMust } from './ledger.js?v=c60d881c';
+import { addContract } from './contracts.js?v=c60d881c';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=c60d881c';
+import { taxRec } from './fiscal.js?v=c60d881c';
+import { gm } from './calib.js?v=c60d881c';
+import { addMsg } from './inbox.js?v=c60d881c';
+import { holder, isSec } from './posts.js?v=c60d881c';
+import { companyEquity, earningsValue, stakeOf, addNetWorthHook } from './economy.js?v=c60d881c';
+import { cap, ipoPower } from './capital.js?v=c60d881c';
+import { room } from './cashflow.js?v=c60d881c'; // V0.2.3
+import * as SK from './stocks.js?v=c60d881c';
 
 export const LCFG = CFG;
 export const BOARDS = CFG.boards;
@@ -33,7 +35,7 @@ export const nonOperating = (s) => companyEquity(s) - earningsValue(s);
 export function preMoney(s, board) { const p = profit12(s); return r2(Math.max(0, p > 0 ? p * BOARDS[board].pe : earningsValue(s)) + nonOperating(s)); }
 /** 研发占全公司营收（近 12 个游戏月） */
 function rndShare(s, t) {
-  const rows = (s.ledger || []).filter((r) => r.wallet === 'company' && r.t > t - YEAR_MS && r.t <= t);
+  const rows = BK.rowsOf(BK.cellsLast12(s, t)).filter((r) => r.wallet === 'company');   // 设计79：近 12 个游戏月按整月，从 books
   const rnd = rows.filter((r) => r.cat === 'rnd').reduce((a, r) => a + r.amount, 0); const rev = rows.filter((r) => r.dir === 'in' && ['revenue', 'acquired_revenue', 'presale', 'rent_co'].includes(r.cat)).reduce((a, r) => a + r.amount, 0);
   return rev > 0 ? rnd / rev : 0;
 }
@@ -133,7 +135,7 @@ SK.addStepHook((s, tk, prev, px) => {
   const a = STK_SH.reduce((z, [c, sh]) => z + px[c] * sh, 0), b = STK_SH.reduce((z, [c, sh]) => z + prev[c] * sh, 0); const rm = Math.log(a / b);
   const lf = Math.log(Math.max(1, fairCap(s)) / X.shares); const lp = Math.log(X.px);
   X.px = Math.max(0.5, Math.round(Math.exp(lp + S.beta * rm + S.sigma * SK.hn('SELF', tk) + S.kappa * (lf - lp)) * 100) / 100);
-  X.hist.push(X.px); if (X.hist.length > 240) X.hist.shift();
+  capAdd(s, 'listing.listed.hist', X.hist, X.px);
 });
 // 身价：上市后公司那块按市值 × 你的持股（替换「公司估值 × 持股」）
 addNetWorthHook((s) => (listed(s) ? (marketCap(s) - companyEquity(s)) * stakeOf(s) : 0));

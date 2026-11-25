@@ -1,12 +1,12 @@
 // 老板页「设置」里的存档和素材（设计22 第二、三节）：登录名 + 口令（点眼睛看）、换个名字登录、重新开始、手机里的素材
-import { game } from '../game.js?v=ab0bf094';
-import { h, openPanel, toast } from './dom.js?v=ab0bf094';
-import * as CL from '../core/cloud.js?v=ab0bf094';
-import * as AD from '../platform/assetdb.js?v=ab0bf094';
-import { LOAD } from '../platform/assets.js?v=ab0bf094';
-import { defaultState, serialize } from '../core/save.js?v=ab0bf094';
-import { now } from '../core/clock.js?v=ab0bf094';
-import { APP_V, versionText } from '../version.js?v=ab0bf094';
+import { game } from '../game.js?v=c60d881c';
+import { h, openPanel, toast } from './dom.js?v=c60d881c';
+import * as CL from '../core/cloud.js?v=c60d881c';
+import * as AD from '../platform/assetdb.js?v=c60d881c';
+import { LOAD } from '../platform/assets.js?v=c60d881c';
+import { defaultState, serialize } from '../core/save.js?v=c60d881c';
+import { now } from '../core/clock.js?v=c60d881c';
+import { APP_V, versionText } from '../version.js?v=c60d881c';
 
 const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 /** 二次确认：底部弹层，两个按钮 */
@@ -52,8 +52,9 @@ export function appendCloudSettings(body) {
     const r1 = h('div', 'tr-course', `<div><b>登录名　${esc(a.name)}</b><div class="tr-gain">口令 <span class="pin">••••••</span>　换手机时，用同一个名字和口令就能接着玩</div></div><button class="btn">👁</button>`);
     let shown = false; const pin = r1.querySelector('.pin');
     r1.querySelector('.btn').onclick = () => { shown = !shown; pin.textContent = shown ? a.pin : '••••••'; };
-    const st = CL.cloudState.ok === false ? (CL.cloudState.err === 'token' ? CL.errTxt('token') : '云端没连上，进度先存在手机里') : CL.cloudState.at ? '云端已存好' : '进度会自动传到云端';
-    const r2 = h('div', 'tr-course', `<div><b>换个名字登录</b><div class="tr-gain">${st}</div></div><button class="btn">换</button>`);
+    const st = CL.cloudState.ok === false ? CL.stateTxt() : CL.cloudState.at ? '云端已存好' : '进度会自动传到云端';
+    const ago = `<div class="tr-gain cloud-ago">上次云端保存：${CL.agoTxt()}</div>`;   // 设计79
+    const r2 = h('div', 'tr-course', `<div><b>换个名字登录</b><div class="tr-gain">${st}</div>${ago}</div><button class="btn">换</button>`);
     r2.querySelector('.btn').onclick = switchName;
     body.append(r1, r2);
   } else body.append(h('div', 'tr-course', `<div><b>本机存档</b><div class="tr-gain">${location.protocol === 'file:' ? '本地打开' : '开发版没有云端钥匙'}，进度只存在这台手机里</div></div>`));

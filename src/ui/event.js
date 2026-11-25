@@ -1,15 +1,14 @@
 // 事件弹层（2-01）：消息中心「事件」点「去看看」→ 剧情 + 选择
-import * as EV from '../core/events.js?v=ab0bf094';
-import { EVENT_BY_ID } from '../config/events.js?v=ab0bf094';
-import { game } from '../game.js?v=ab0bf094';
-import { now } from '../core/clock.js?v=ab0bf094';
-import { playStory } from './story.js?v=ab0bf094';
-import { asset, hasAsset } from '../platform/assets.js?v=ab0bf094';
-import { toast } from './dom.js?v=ab0bf094';
-import { fmtMoney } from '../core/format.js?v=ab0bf094';
+import * as EV from '../core/events.js?v=c60d881c';
+import { EVENT_BY_ID } from '../config/events.js?v=c60d881c';
+import { game } from '../game.js?v=c60d881c';
+import { now } from '../core/clock.js?v=c60d881c';
+import { playStory } from './story.js?v=c60d881c';
+import { asset, hasAsset } from '../platform/assets.js?v=c60d881c';
+import { toast } from './dom.js?v=c60d881c';
+import { fmtMoney } from '../core/format.js?v=c60d881c';
 
-const BG = { teambuild: 'bg_teambuild', crisis: 'bg_finance', jobfair: 'bg_meeting' }; // 有背景图的用图（团建的图还没有）
-const BG_LABEL = { teambuild: '郊外拓展基地' };
+const BG = { teambuild: 'bg_teambuild', crisis: 'bg_finance', jobfair: 'bg_meeting' }; // 有背景图的用图；设计78：没图的不传，story.js 用当前办公室兜底
 
 export function openEventMsg(m, onDone) {
   const s = game.state; const id = m.data && m.data.id; const cfg = EVENT_BY_ID[id]; if (!cfg) return;
@@ -21,12 +20,12 @@ export function openEventMsg(m, onDone) {
     return { label: c.label, sub, disabled: !!why };
   });
   const k = BG[id]; const bg = k && hasAsset(`assets/bg/${k}.webp`) ? asset(`assets/bg/${k}.webp`) : null;
-  playStory(lines, { sec: from || undefined, title: cfg.name, bg, bgLabel: bg ? null : BG_LABEL[id], choices,
+  playStory(lines, { sec: from || undefined, title: cfg.name, bg, choices,
     onChoose: (i) => {
       const r = EV.choose(game.state, id, i, now());
       if (!r.ok) { toast(r.why); return false; }
       if (r.refund) setTimeout(() => toast(`多交的增值税退回 ${fmtMoney(r.refund)}`, 3000, { top: true }), 300);
-      if (r.then.length) playStory(r.then, { title: cfg.name, bg, bgLabel: bg ? null : BG_LABEL[id] });
+      if (r.then.length) playStory(r.then, { title: cfg.name, bg });
       game.changed(); game.save(); onDone && onDone();
     } });
 }

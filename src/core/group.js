@@ -1,16 +1,17 @@
 // 集团架构和节税（第 3-06 项，设计23 第六节）：控股公司 + 子公司、个人持股平台、高新技术企业、境外红筹架构、集团合并报表
 // 企业所得税按子公司各算（companytax.quarterTax 的挂钩 setCitHook；年度汇算 fiscal.setAnnualHook）
-import CFG from '../config/group.json?v=ab0bf094' with { type: 'json' };
-import { pay, receive, canPay } from './ledger.js?v=ab0bf094';
-import { addContract } from './contracts.js?v=ab0bf094';
-import { MONTH_MS, YEAR_MS, monthIndex } from './gametime.js?v=ab0bf094';
-import { TAX, setCitHook } from './companytax.js?v=ab0bf094';
-import { taxRec, setAnnualHook } from './fiscal.js?v=ab0bf094';
-import { gm } from './calib.js?v=ab0bf094';
-import { addMsg } from './inbox.js?v=ab0bf094';
-import { holder, isSec } from './posts.js?v=ab0bf094';
-import { IND_BY_ID } from '../config/industries.js?v=ab0bf094';
-import { liveProducts } from './tech.js?v=ab0bf094';
+import * as BK from './books.js?v=c60d881c';   // 设计79 第三版
+import CFG from '../config/group.json?v=c60d881c' with { type: 'json' };
+import { pay, receive, canPay } from './ledger.js?v=c60d881c';
+import { addContract } from './contracts.js?v=c60d881c';
+import { MONTH_MS, YEAR_MS, monthIndex } from './gametime.js?v=c60d881c';
+import { TAX, setCitHook } from './companytax.js?v=c60d881c';
+import { taxRec, setAnnualHook } from './fiscal.js?v=c60d881c';
+import { gm } from './calib.js?v=c60d881c';
+import { addMsg } from './inbox.js?v=c60d881c';
+import { holder, isSec } from './posts.js?v=c60d881c';
+import { IND_BY_ID } from '../config/industries.js?v=c60d881c';
+import { liveProducts } from './tech.js?v=c60d881c';
 
 export const GCFG = CFG;
 const r2 = (v) => Math.round(v * 100) / 100;
@@ -66,7 +67,7 @@ export function startPlatform(s, t) {
 // ---------- 高新技术企业 ----------
 /** 近 12 个游戏月：研发费用、科技收入、全公司收入 */
 export function hitechCheck(s, t) {
-  const from = t - YEAR_MS; const rows = (s.ledger || []).filter((r) => r.t > from && r.t <= t && r.wallet === 'company');
+  const rows = BK.rowsOf(BK.cellsLast12(s, t)).filter((r) => r.wallet === 'company');   // 设计79：近 12 个游戏月按整月，从 books
   const rnd = rows.filter((r) => r.cat === 'rnd').reduce((a, r) => a + r.amount, 0);
   const nm = IND_BY_ID.tech ? IND_BY_ID.tech.name : '科技';
   const rev = rows.filter((r) => r.dir === 'in' && ['revenue', 'acquired_revenue', 'presale', 'rent_co'].includes(r.cat));

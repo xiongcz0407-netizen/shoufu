@@ -1,16 +1,16 @@
 // 财务页补充（第 2-15 项）：资产负债表、完整资产清单、员工满意度和福利、家族办公室、进项抵扣、年度汇算、欠税
-import * as F from '../core/finance.js?v=ab0bf094';
-import * as FI from '../core/fiscal.js?v=ab0bf094';
-import * as ST from '../core/staff.js?v=ab0bf094';
-import { TAX } from '../core/companytax.js?v=ab0bf094';
-import { bank } from '../core/bank.js?v=ab0bf094';
-import { YEAR_MS } from '../core/gametime.js?v=ab0bf094';
-import { fmtMoney } from '../core/format.js?v=ab0bf094';
-import { SECRETARIES } from '../config/secretaries.js?v=ab0bf094';
-import { now } from '../core/clock.js?v=ab0bf094';
-import { game } from '../game.js?v=ab0bf094';
-import { toast } from './dom.js?v=ab0bf094';
-import { hintLater } from './guide2.js?v=ab0bf094';
+import * as F from '../core/finance.js?v=c60d881c';
+import * as FI from '../core/fiscal.js?v=c60d881c';
+import * as ST from '../core/staff.js?v=c60d881c';
+import { TAX } from '../core/companytax.js?v=c60d881c';
+import { bank } from '../core/bank.js?v=c60d881c';
+import { YEAR_MS } from '../core/gametime.js?v=c60d881c';
+import { fmtMoney } from '../core/format.js?v=c60d881c';
+import { SECRETARIES } from '../config/secretaries.js?v=c60d881c';
+import { now } from '../core/clock.js?v=c60d881c';
+import { game } from '../game.js?v=c60d881c';
+import { toast } from './dom.js?v=c60d881c';
+import { hintLater } from './guide2.js?v=c60d881c';
 
 const row = (k, v, cls = '') => `<div class="fn-row ${cls}"><span>${k}</span><b>${typeof v === 'number' ? fmtMoney(v) : v}</b></div>`;
 const RARE = { unique: '<em class="fn-rare u">孤品</em>', limited: '<em class="fn-rare l">限量</em>' };
@@ -25,7 +25,7 @@ function balance(el, s) {
     <div class="fn-card">${row('资产', C.A, 'pos')}${C.assets.map(([k, v]) => row('　' + k, v)).join('')}${row('负债', Math.round(C.L), 'neg')}${C.liabilities.filter(([, v]) => Math.abs(v) >= 0.5).map(([k, v]) => row('　' + k, Math.round(v))).join('') || row('　（没有）', '')}${row('所有者权益 = 资产 − 负债', C.equity, 'sum')}${row('　实收资本（老板注资）', C.paidIn)}${row('　留存收益和估值增值', C.retained)}</div>
     <div class="sd-rec-title">老板个人</div>
     <div class="fn-card">${row('资产', P.A, 'pos')}${P.assets.map(([k, v]) => row('　' + k, v)).join('')}${row('负债', 0)}${row('净资产 = 身价', P.net, 'sum')}</div>
-    <div class="tr-gain">车房飞机、游艇、表、西装按现在卖回去能拿到的算；古董按估价；股票基金按现价。公司按 100% 股权、所有者权益算进个人。</div>`;
+    <div class="tr-gain">车房飞机、游艇、表、西装按现在卖回去能拿到的算；古董按估价；股票按现价。公司按 100% 股权、所有者权益算进个人。</div>`;
 }
 /** 资产清单：所有东西，分组 */
 function assets(el, s) {
@@ -70,12 +70,12 @@ export function extendFinance(TABS, DRAW) {
 }
 
 // ---------- 第 3-06 项：「集团」页（架构、节税、合并报表） ----------
-import * as GR from '../core/group.js?v=ab0bf094';
-import { CAPITAL_SECTIONS } from './capital.js?v=ab0bf094';
-import * as TKC from '../core/takeover.js?v=ab0bf094';
-import { allRows as _allRows } from '../core/finance.js?v=ab0bf094';
-import { fmtDuration } from '../core/format.js?v=ab0bf094';
-import * as DL3 from '../core/daily.js?v=ab0bf094';
+import * as GR from '../core/group.js?v=c60d881c';
+import { CAPITAL_SECTIONS } from './capital.js?v=c60d881c';
+import * as TKC from '../core/takeover.js?v=c60d881c';
+import { allRows as _allRows } from '../core/finance.js?v=c60d881c';
+import { fmtDuration } from '../core/format.js?v=c60d881c';
+import * as DL3 from '../core/daily.js?v=c60d881c';
 const tick36 = (s) => { for (const x of GR.tick(s, now())) toast(x, 2600); };
 game.addTicker(tick36);
 function groupData(s, from, t) {

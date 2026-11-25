@@ -1,7 +1,14 @@
 // 剧情播放：全屏、立绘淡入、点一下下一句；多段排队
-import { SEC_BY_ID } from '../config/secretaries.js?v=ab0bf094';
-import { h } from './dom.js?v=ab0bf094';
-import { storyPortrait } from './portrait.js?v=ab0bf094';   // 设计66：立绘跟主页同一个 layout
+import { SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
+import { h } from './dom.js?v=c60d881c';
+import { storyPortrait } from './portrait.js?v=c60d881c';   // 设计66：立绘跟主页同一个 layout
+import { asset, hasAsset } from '../platform/assets.js?v=c60d881c';
+import { TITLES } from '../config/titles.js?v=c60d881c';
+import { game } from '../game.js?v=c60d881c';
+/** 设计78：背景图地址（assets/bg/<key>.webp 有就给，没有 null） */
+export const bgOf = (key) => (key && hasAsset(`assets/bg/${key}.webp`) ? asset(`assets/bg/${key}.webp`) : null);
+/** 设计78：某个称号的办公室背景（没图的往前找最近一张有图的，跟主页一样） */
+export function officeBg(title) { for (let i = Math.min(title ?? 0, TITLES.length - 1); i >= 0; i--) { const u = bgOf(TITLES[i].bg); if (u) return u; } return null; }
 
 const queue = [];
 let playing = false;
@@ -20,9 +27,10 @@ function next() {
   playing = true;
   const { lines, opts } = item;
   const sec = opts.sec || (lines.find((l) => SEC_BY_ID[l.who]) || {}).who;
-  const el = h('div', 'story' + (opts.bg || opts.bgLabel ? ' has-bg' : ''));
-  if (opts.bg) el.style.backgroundImage = `linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.1) 30%, rgba(0,0,0,.55)), url("${opts.bg}")`;
-  el.innerHTML = `${!opts.bg && opts.bgLabel ? `<div class="story-bgph">${opts.bgLabel}<small>（背景图还没到）</small></div>` : ''}${opts.title ? `<div class="story-title"><span>${opts.title}</span></div>` : ''}
+  const bg = opts.bg || officeBg(game.state ? game.state.title : 0);   // 设计78：没传背景就用当前称号的办公室，不再黑底；也不再写「背景图还没到」
+  const el = h('div', 'story' + (bg ? ' has-bg' : ''));
+  if (bg) el.style.backgroundImage = `linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.1) 30%, rgba(0,0,0,.55)), url("${bg}")`;
+  el.innerHTML = `${opts.title ? `<div class="story-title"><span>${opts.title}</span></div>` : ''}
     <div class="story-box"><div class="story-name"></div><div class="story-text"></div><div class="story-hint">点一下继续</div></div>`;
   document.querySelector('#phone').appendChild(el);
   if (sec) storyPortrait(el, sec, opts.outfit || 'c1', el.querySelector('.story-box'));
