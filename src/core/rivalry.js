@@ -1,12 +1,12 @@
 // 对手第二、三批的玩法（设计20 第三节）：瑞霖过桥融资、对手反击（挖人 / 抢地）、按城市抢地盘、商务总监加成
 // 不 import economy / battle
-import { RIVALS, RIVAL_BY_ID, COUNTER, TURF_HIT, RUILIN } from '../config/rivals.js?v=8c602723';
-import { pay, receive } from './ledger.js?v=8c602723';
-import { addMsg } from './inbox.js?v=8c602723';
-import { holder, isSec, power } from './posts.js?v=8c602723';
-import { MONTH_MS, monthIndex } from './gametime.js?v=8c602723';
-import { cityK, cityName } from './cities.js?v=8c602723';
-import { tickRivalGrow, turfCities, counterBonus } from './rivalgrow.js?v=8c602723';
+import { RIVALS, RIVAL_BY_ID, COUNTER, TURF_HIT, RUILIN } from '../config/rivals.js?v=4306ebaa';
+import { pay, receive } from './ledger.js?v=4306ebaa';
+import { addMsg } from './inbox.js?v=4306ebaa';
+import { holder, isSec, power } from './posts.js?v=4306ebaa';
+import { MONTH_MS, monthIndex } from './gametime.js?v=4306ebaa';
+import { cityK, cityName } from './cities.js?v=4306ebaa';
+import { tickRivalGrow, turfCities, counterBonus } from './rivalgrow.js?v=4306ebaa';
 export { RUILIN };
 
 const r2 = (x) => Math.round(x * 100) / 100;
@@ -14,7 +14,7 @@ const st = (s, id) => (s.rivals || {})[id] || { wins: 0, acquired: false };
 /** 商务总监的本事（0～1）：社交 + 魅力 */
 export const bizPower = (s) => (holder(s, 'biz') ? power(s, 'biz') : 0);
 export const bizBattle = (s) => bizPower(s) * 0.06;   // 带去商战：胜率 +（最多约 +6%）
-export const bizAcquire = (s) => bizPower(s) * 0.06;  // 谈收购：成功率 +
+export const bizAcquire = (s) => bizPower(s) * 0.06;  // 谈收购：设计64 起 × 0.5 变成收购价优惠（最多 3%）
 
 // ---------- 按城市抢地盘 ----------
 /** 这家对手现在还在跟你抢：到了它的阶段、没被收购 */

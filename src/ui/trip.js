@@ -1,17 +1,17 @@
 // V3-03 出差界面：选带谁去（她这趟要用的属性、爱慕阶段、有没有专属剧情）→ 看交通住宿和花费 → 出发：白天办事（选一次）→ 晚上 → 过夜 → 早上
-import * as TP from '../core/trip.js?v=8c602723';
-import * as AG from '../core/agenda.js?v=8c602723';
-import * as SL from '../core/storylib.js?v=8c602723';
-import * as STY from '../core/styles.js?v=8c602723';
-import { SEC_BY_ID } from '../config/secretaries.js?v=8c602723';
-import { attrs } from '../core/posts.js?v=8c602723';
-import { ensureSec, loveStage, LOVE_STAGES } from '../core/secretary.js?v=8c602723';
-import { fmtMoney } from '../core/format.js?v=8c602723';
-import { asset } from '../platform/assets.js?v=8c602723';
-import { game } from '../game.js?v=8c602723';
-import { now } from '../core/clock.js?v=8c602723';
-import { openPanel, toast } from './dom.js?v=8c602723';
-import { playScene } from './scene.js?v=8c602723';
+import * as TP from '../core/trip.js?v=4306ebaa';
+import * as AG from '../core/agenda.js?v=4306ebaa';
+import * as SL from '../core/storylib.js?v=4306ebaa';
+import * as STY from '../core/styles.js?v=4306ebaa';
+import { SEC_BY_ID } from '../config/secretaries.js?v=4306ebaa';
+import { attrs } from '../core/posts.js?v=4306ebaa';
+import { ensureSec, loveStage, LOVE_STAGES } from '../core/secretary.js?v=4306ebaa';
+import { fmtMoney } from '../core/format.js?v=4306ebaa';
+import { asset } from '../platform/assets.js?v=4306ebaa';
+import { game } from '../game.js?v=4306ebaa';
+import { now } from '../core/clock.js?v=4306ebaa';
+import { openPanel, toast } from './dom.js?v=4306ebaa';
+import { playScene } from './scene.js?v=4306ebaa';
 
 const C = TP.TRIP_CFG; const ATTR = { charm: '魅力', wit: '智慧', social: '交际', manage: '管理' };
 export function openTrip(it) {
@@ -19,7 +19,7 @@ export function openTrip(it) {
   const secs = Object.keys(s.secs || {}); let pick = secs.filter((id) => TP.canBring(s, id)).sort((a, b) => (attrs(s, b)[pu.attr] || 0) - (attrs(s, a)[pu.attr] || 0))[0] || null;
   const p = openPanel(`出差：${it.title}`);
   const draw = () => {
-    p.body.innerHTML = `<div class="tr-gain">${P.city} · ${pu.name} · ${it.days} 天（这几天别的日程排不进，生意照常）</div>
+    p.body.innerHTML = `<div class="tr-gain">${P.city} · ${pu.name} · ${it.days} 天（出发起这几天别的只能派人代去，生意照常）</div>
       <div class="tr-gain">交通：${P.plane ? '自己的私人飞机' : '头等舱（两个人来回）'}　住：${P.home ? `${P.city}自己的房子` : P.ownHotel ? `自己的${P.hotel}` : `${P.hotel} · ${P.room}`}　${P.cost ? `花费 <b>${fmtMoney(P.cost)}</b>（个人）` : '不用花钱'}</div>
       <div class="sd-rec-title">带谁去（这趟看${ATTR[pu.attr]}）</div>
       <div class="tp-secs">${secs.map((id) => { const r = ensureSec(s, id); const ls = loveStage(r.love); const ok = TP.canBring(s, id); return `<button class="tp-sec ${pick === id ? 'on' : ''}" data-s="${id}" ${ok ? '' : 'disabled'}><img src="${asset(`assets/sec/${id}/c1.webp`)}" alt=""><b>${SEC_BY_ID[id].name}</b><small>${ATTR[pu.attr]} ${Math.round(attrs(s, id)[pu.attr] || 0)} · ${LOVE_STAGES[ls][1]}${SL.hasTrip(id) ? ' · ✦' : ''}</small>${ok ? '' : '<em>走不开</em>'}</button>`; }).join('')}</div>

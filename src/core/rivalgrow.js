@@ -2,10 +2,10 @@
 // 估值、实力跟着变（早动手便宜，拖着贵）；赢它一次 −8%、输一次 +3%；利润每翻一倍多抢一个城市、反击概率 +10%；收购了就不长
 // 状态：s.rivals[id].g = { born, k（现在利润 ÷ 配置利润）, m（算到第几个游戏月）, prev（上个月的 k）, born0（出现时的 k）}
 // 不 import economy / battle（battle、rivalry、equity 都用这里）
-import { RIVALS, RIVAL_BY_ID, RIVAL_GROW as G } from '../config/rivals.js?v=8c602723';
-import { monthIndex } from './gametime.js?v=8c602723';
-import { profitMul } from './calib.js?v=8c602723';
-import { CITY_IDS, cityName } from './cities.js?v=8c602723';
+import { RIVALS, RIVAL_BY_ID, RIVAL_GROW as G } from '../config/rivals.js?v=4306ebaa';
+import { monthIndex } from './gametime.js?v=4306ebaa';
+import { profitMul } from './calib.js?v=4306ebaa';
+import { CITY_IDS, cityName } from './cities.js?v=4306ebaa';
 
 const rs = (s, id) => { s.rivals = s.rivals || {}; return (s.rivals[id] = s.rivals[id] || { wins: 0, losses: 0, acquired: false, cooldownUntil: 0 }); };
 const gOf = (s, id) => (s.rivals && s.rivals[id] && s.rivals[id].g) || null;

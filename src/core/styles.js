@@ -1,9 +1,9 @@
 // V3-05 衣服有用（设计33 第四之五节）：设计/剧情/衣服款式.json（每人 c1～c11 的款式和名字，tools/story_sync.mjs 拷进来）
 // 场合要什么款式：她肯穿的里挑同款最贵的，没有就按退的顺序；扮装只在私下（出差回酒店、恋人以上、20%）
-import { OUTFIT_STYLES } from '../config/story/index.js?v=8c602723';
-import { OUTFITS, priceOf } from '../config/outfits.js?v=8c602723';
-import { canWear } from './outfits.js?v=8c602723';
-import { ensureSec, loveStage } from './secretary.js?v=8c602723';
+import { OUTFIT_STYLES } from '../config/story/index.js?v=4306ebaa';
+import { outfitsOf, priceOf } from '../config/outfits.js?v=4306ebaa';
+import { canWear } from './outfits.js?v=4306ebaa';
+import { ensureSec, loveStage } from './secretary.js?v=4306ebaa';
 export { OUTFIT_STYLES };
 
 export const COSTUME = '扮装';
@@ -28,7 +28,7 @@ export const SEA = ['上海', '深圳', '香港', '新加坡', '迪拜', '纽约
 /** 挑：返回 { o, style, rank }（rank 0 对路、1 退一档、2 退两档…、-1 没有合适的穿身上那套）；扮装永远不在这里出（private 另说） */
 export function pick(s, id, occ) {
   const want = OCC[occ] || []; const r = ensureSec(s, id);
-  const ok = OUTFITS.filter((x) => canWear(s, id, x.id) && styleOf(id, x.id) !== COSTUME).map((x) => x.id);
+  const ok = outfitsOf(id).filter((x) => canWear(s, id, x.id) && styleOf(id, x.id) !== COSTUME).map((x) => x.id);
   for (let i = 0; i < want.length; i++) { const xs = ok.filter((o) => styleOf(id, o) === want[i]); if (xs.length) { const o = xs.sort((a, b) => priceOf(id, b) - priceOf(id, a))[0]; return { o, style: want[i], rank: i }; } }
   const cur = r.outfit && styleOf(id, r.outfit) !== COSTUME ? r.outfit : 'c1'; return { o: cur, style: styleOf(id, cur), rank: -1 };
 }
@@ -42,7 +42,7 @@ export function fitMult(s, id, occ, tier = 0) {
 }
 /** 出差回酒店 / 早上：居家 → 度假 → 休闲 → 晚装 → 身上那套；恋人以上、有扮装的 20% 她主动换扮装 */
 export function hotelOutfit(s, id, rnd = Math.random) {
-  const r = ensureSec(s, id); const cos = OUTFITS.filter((x) => canWear(s, id, x.id) && styleOf(id, x.id) === COSTUME).map((x) => x.id);
+  const r = ensureSec(s, id); const cos = outfitsOf(id).filter((x) => canWear(s, id, x.id) && styleOf(id, x.id) === COSTUME).map((x) => x.id);
   if (cos.length && loveStage(r.love) >= 4 && rnd() < 0.2) { const o = cos[Math.floor(rnd() * cos.length)]; return { o, style: COSTUME, costume: true, name: nameOf(id, o) }; }
   const p = pick(s, id, 'hotel'); return { ...p, name: nameOf(id, p.o) };
 }

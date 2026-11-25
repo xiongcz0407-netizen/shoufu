@@ -1,150 +1,148 @@
-// V3-02 老板日程表（设计33 第四之二节）：日程秘书（陪着你、没别的职位的那位）每天把明天的邀请推给你；一天上午 / 下午 / 晚上三个时段
-// 邀请：答应 / 推掉 / 派秘书代去（效果一半）；到点去参加 = 一个小场景（ui/agenda.js）；宴会、慈善、讲座、私人场合选车 / 表 / 西装 / 女伴
-// 外部事件（开发1 的大项目节点、对手进攻；开发2 的经营会）用 pushEvent 放进日程，界面上「去处理」交给注册的打开函数
-// 存档 s.agenda = { day 推到第几天, seq, items: [{ id, day, slot, kind, title, tier, host, line, sec, firm, status, ext, ref, days, city, purpose }], net 人脉, gov 政府关系, log }
-import C from '../config/agenda.json?v=8c602723' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=8c602723';
-import { SEC_BY_ID } from '../config/secretaries.js?v=8c602723';
-import { RIVALS } from '../config/rivals.js?v=8c602723';
-import { DAY_MS, dayIndex, addFx, addRep, isShop, dayRev } from './manage.js?v=8c602723';
-import { postOfSec, attrs } from './posts.js?v=8c602723';
-import { isTraining } from './training.js?v=8c602723';
-import { isScouting } from './busy.js?v=8c602723';
-import { addAttrHook } from './boss.js?v=8c602723';
-import { addFavor, addLove } from './affection.js?v=8c602723';
-import { afterDate } from './love.js?v=8c602723';   // 设计56
-import { addMsg } from './inbox.js?v=8c602723';
-import { pay } from './ledger.js?v=8c602723';
-import { netWorth } from './economy.js?v=8c602723';
-import { rivalState } from './battle.js?v=8c602723';
-import { ITEM } from './assets.js?v=8c602723';
-import * as LX from './luxury.js?v=8c602723';
-import * as STY from './styles.js?v=8c602723'; // V3-05 女伴按款式
-import * as LT from './late.js?v=8c602723'; // 开发1 V3-01：大项目节点、对手进攻、地产决策的消息
-export { C as AGENDA_CFG };
+// V3-02 老板日程表（设计33 第四之二节）→ 设计69 第二版（Arvin 2026-11-25）：日程改成「邀请箱」，不分时段、不过期
+// 日程秘书（陪着你、没别的职位的那位）每个游戏日开头把邀请箱补到上限（2 + 交际 / 35，最多 5；满了不补、不挤掉旧的）
+// 每件三个按钮：去参加（小场景，ui/agenda.js；宴会、慈善、讲座、私人场合选车 / 表 / 西装 / 女伴）/ 派人代去（效果一半，马上结算）/ 推掉；没有「答应」、没有失约
+// 出差也在邀请箱里，点「出发」起占 N 个游戏日（这期间别的只能派人代去）；外部事件（大项目节点、对手进攻、地产、经营会）用 pushEvent 放进日程
+// 存档 s.agenda = { day 补到第几天, seq, items: [{ id, at, kind, title, tier, host, line, sec, status: invite / done / declined, ext, ref, days, city, purpose, from }], away 出差 { id, until }, net 人脉, gov 政府关系, log, fresh 刚来的（界面提示）, offNew 离线来的几个 }
+import C from '../config/agenda.json?v=4306ebaa' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=4306ebaa';
+import { SEC_BY_ID } from '../config/secretaries.js?v=4306ebaa';
+import { RIVALS } from '../config/rivals.js?v=4306ebaa';
+import { DAY_MS, dayIndex, addFx, addRep, isShop, dayRev } from './manage.js?v=4306ebaa';
+import { postOfSec, attrs } from './posts.js?v=4306ebaa';
+import { isTraining } from './training.js?v=4306ebaa';
+import { isScouting } from './busy.js?v=4306ebaa';
+import { addAttrHook } from './boss.js?v=4306ebaa';
+import { addFavor, addLove } from './affection.js?v=4306ebaa';
+import { afterDate } from './love.js?v=4306ebaa';   // 设计56
+import { addMsg } from './inbox.js?v=4306ebaa';
+import { pay } from './ledger.js?v=4306ebaa';
+import { netWorth } from './economy.js?v=4306ebaa';
+import { rivalState } from './battle.js?v=4306ebaa';
+import { ITEM } from './assets.js?v=4306ebaa';
+import * as LX from './luxury.js?v=4306ebaa';
+import * as STY from './styles.js?v=4306ebaa'; // V3-05 女伴按款式
+import * as LT from './late.js?v=4306ebaa'; // 开发1 V3-01：大项目节点、对手进攻、地产决策的消息
+export { C as AGENDA_CFG, DAY_MS };
 
-const SLOT_MS = DAY_MS / 3;
+
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const pick = (a, r) => a[Math.floor(r() * a.length)];
 export const ag = (s) => { const a = (s.agenda = s.agenda || { day: null, seq: 0, items: [], net: 0, gov: 0, log: [] }); a.items = a.items || []; return a; };
 export const unlocked = (s) => (s.title || 0) >= C.minTitle;
-export const slotName = (k) => C.slots[k][1];
-export const slotStart = (s, day, slot) => s.createdAt + day * DAY_MS + slot * SLOT_MS;
-export const slotEnd = (s, day, slot) => slotStart(s, day, slot) + SLOT_MS;
-export const nowSlot = (s, t) => ({ day: dayIndex(s, t), slot: Math.min(2, Math.floor(((t - s.createdAt) % DAY_MS) / SLOT_MS)) });
 /** 日程秘书：陪着你、没有别的职位的那位；没有就 null（自己看邀请函） */
 export const scheduler = (s) => (s.current && s.secs && s.secs[s.current] && !postOfSec(s, s.current) ? s.current : null);
 export const tierOf = (s) => { const sc = scheduler(s); const up = sc && (attrs(s, sc).social || 0) >= C.invites.tierSocial ? 1 : 0; return clamp((s.title || 0) + up, 0, C.tiers.length - 1); };
 const free = (s, id) => !!s.secs[id] && !isTraining(s, id) && !isScouting(s, id);
-export const tripDays = (s) => { const out = new Set(); for (const x of ag(s).items) if (x.kind === 'trip' && ['accepted', 'going', 'done'].includes(x.status)) for (let k = 0; k < (x.days || 1); k++) out.add(x.day + k); return out; };
+/** 邀请箱上限 = 原来每天的邀请数：2 + 交际 / 35，最多 5（没有日程秘书就 2） */
+export const cap = (s) => { const sc = scheduler(s); return Math.min(C.invites.max, C.invites.base + (sc ? Math.floor((attrs(s, sc).social || 0) / C.invites.perSocial) : 0)); };
+/** 邀请箱里还没处理的（不含外部事件），按来的先后 */
+export const inbox = (s) => ag(s).items.filter((x) => !x.ext && x.status === 'invite').sort((a, b) => a.at - b.at || a.id - b.id);
+/** 现在在出差：{ id, until } 或 null */
+export const away = (s, t) => { const a = ag(s).away; return a && t < a.until ? a : null; };
 
 // —— 生成邀请 ——
 const EXT = new Set(['meeting', 'project', 'attack', 'realestate']);
 const TRIP_HOOK = { make: null };
 export const setTripMaker = (fn) => { TRIP_HOOK.make = fn; };   // core/trip.js 挂：出差邀请的城市、目的、天数
 function title(s, k, vars) { return pick(C.kinds[k].titles, vars.r).replace('{tier}', C.tiers[vars.tier]).replace('{host}', vars.host).replace('{line}', vars.line || '门店').replace('{sec}', vars.secName || '秘书'); }
-export function generate(s, day, rnd = Math.random) {
-  const A = ag(s); const sc = scheduler(s); const soc = sc ? attrs(s, sc).social || 0 : 0; const man = sc ? attrs(s, sc).manage || 0 : 0;
-  if (tripDays(s).has(day)) return [];
-  const n = Math.min(C.invites.max, C.invites.base + (sc ? Math.floor(soc / C.invites.perSocial) : 0));
+/** 来 n 个新邀请（出差同时只有一个） */
+/** 算不算同一件：同一种事 + 同一条线（视察）/ 同一个标题（别的） */
+export const keyOf = (x) => `${x.kind}|${x.kind === 'inspect' ? x.line : x.kind === 'trip' ? 'trip' : x.title}`;
+export function generate(s, n, t, rnd = Math.random) {
+  const A = ag(s); const sc = scheduler(s);
   const kinds = Object.entries(C.kinds).filter(([k, v]) => !EXT.has(k) && (s.title || 0) >= v.minTitle && v.w > 0);
   const W = kinds.reduce((a, [, v]) => a + v.w, 0); const tier = tierOf(s); const out = [];
   const shops = Object.keys(s.inds || {}).filter((id) => s.inds[id].branches > 0);
   const secs = Object.keys(s.secs || {});
+  const have = new Set(inbox(s).map(keyOf));   // 设计69 验收：邀请箱里不放重复的（同一种事 + 同一条线 / 同一个标题），补的时候跳过、换别的
   for (let i = 0; i < n; i++) {
-    let x = rnd() * W, k = kinds[0][0]; for (const [kk, v] of kinds) { x -= v.w; if (x <= 0) { k = kk; break; } }
-    if (k === 'trip' && (A.items.some((z) => z.kind === 'trip' && z.status !== 'expired' && z.status !== 'declined' && z.day >= day) || !TRIP_HOOK.make)) k = 'banquet';
-    if (k === 'inspect' && !shops.length) continue;
-    const used = out.filter((z) => z.kind !== 'trip').map((z) => z.slot); const freeSlots = [0, 1, 2].filter((z) => !used.includes(z));
-    const slot = man >= 50 && freeSlots.length ? pick(freeSlots, rnd) : Math.floor(rnd() * 3);   // 管理高的排得不冲突
-    const host = pick(C.hosts, rnd); const line = shops.length ? IND_BY_ID[pick(shops, rnd)].name : ''; const inviter = k === 'datesec' ? pick(secs, rnd) : null;
-    if (k === 'datesec' && !inviter) continue;
-    A.seq += 1;
-    const it = { id: A.seq, day, slot, kind: k, tier, host, line, sec: inviter, firm: !!C.kinds[k].firm, status: 'invite', from: sc };
-    it.title = title(s, k, { r: rnd, tier, host, line, secName: inviter ? SEC_BY_ID[inviter].name : '' });
-    if (k === 'trip') { Object.assign(it, TRIP_HOOK.make(s, day, rnd)); it.slot = 0; it.title = `${it.days > 1 ? `${it.days} 天` : ''}去${it.city}${it.purposeName}`; }
+    let it = null;
+    for (let tries = 0; tries < 12 && !it; tries++) {
+      let x = rnd() * W, ki = 0; for (let j = 0; j < kinds.length; j++) { x -= kinds[j][1].w; if (x <= 0) { ki = j; break; } }
+      let k = kinds[(ki + tries) % kinds.length][0];   // 换别的：重抽还撞就顺着换一种
+      if (k === 'trip' && (A.items.some((z) => z.kind === 'trip' && z.status === 'invite') || out.some((z) => z.kind === 'trip') || !TRIP_HOOK.make)) k = 'banquet';
+      if (k === 'inspect' && !shops.length) k = 'banquet';
+      const host = pick(C.hosts, rnd); const line = shops.length ? IND_BY_ID[pick(shops, rnd)].name : ''; const inviter = k === 'datesec' ? pick(secs, rnd) : null;
+      if (k === 'datesec' && !inviter) continue;
+      const c = { at: t, kind: k, tier, host, line, sec: inviter, status: 'invite', from: sc };
+      c.title = title(s, k, { r: rnd, tier, host, line, secName: inviter ? SEC_BY_ID[inviter].name : '' });
+      if (have.has(keyOf(c))) continue; it = c;
+    }
+    if (!it) continue; A.seq += 1; it.id = A.seq; have.add(keyOf(it)); const k = it.kind;
+    if (k === 'trip') { const tp = TRIP_HOOK.make(s, 0, rnd); Object.assign(it, { city: tp.city, cityId: tp.cityId, purpose: tp.purpose, purposeName: tp.purposeName, days: tp.days }); it.title = `${it.days > 1 ? `${it.days} 天` : ''}去${it.city}${it.purposeName}`; }
     out.push(it); A.items.push(it);
   }
   return out;
 }
-/** 外部事件进日程（经营会、大项目节点、对手进攻）：{ kind, title, body, ref, due, at } → 放进 at 所在的时段；ext 的「去处理」由 ui/agenda.js registerOpen(kind, fn) 打开 */
+/** 外部事件进日程（经营会、大项目节点、对手进攻）：{ kind, title, body, ref, at }；ext 的「去处理」由 ui/agenda.js registerOpen(kind, fn) 打开；不过期，处理了才关 */
 export function pushEvent(s, ev, t) {
-  const A = ag(s); const at = ev.at || t; const { day, slot } = nowSlot(s, at); A.seq += 1;
-  const it = { id: A.seq, day, slot, kind: ev.kind, title: ev.title, body: ev.body || '', ref: ev.ref ?? null, due: ev.due || slotEnd(s, day, slot), status: 'invite', ext: true, tier: tierOf(s) };
+  const A = ag(s); A.seq += 1;
+  const it = { id: A.seq, at: ev.at || t, kind: ev.kind, title: ev.title, body: ev.body || '', ref: ev.ref ?? null, status: 'invite', ext: true, tier: tierOf(s) };
   A.items.push(it); return it;
 }
-export const closeEvent = (s, kind, ref, status = 'done') => { for (const x of ag(s).items) if (x.ext && x.kind === kind && x.ref === ref && !['done', 'expired'].includes(x.status)) x.status = status; };
+export const closeEvent = (s, kind, ref, status = 'done') => { for (const x of ag(s).items) if (x.ext && x.kind === kind && x.ref === ref && x.status === 'invite') { x.status = status; x.doneAt = ag(s).now || 0; } };
 
 /** 开发1 的 late.agenda()：大项目节点（project）、对手进攻（attack）、地产决策（realestate）进日程；消息处理掉了就关（经营会我自己推） */
 function syncLate(s, t) {
   const A = ag(s); let open = [];
   try { open = LT.agenda(s, t) || []; } catch (e) { return; }
   const ids = new Set(open.map((x) => x.msgId));
-  for (const x of open) { if (x.kind === 'meeting' || !x.msgId || A.items.some((i) => i.ext && i.ref === x.msgId && i.kind === x.kind)) continue; pushEvent(s, { kind: x.kind, title: x.title, body: x.body, ref: x.msgId, due: x.until || t + SLOT_MS, at: Math.max(x.at || t, s.createdAt) }, t); }
-  for (const i of A.items) if (i.ext && i.kind !== 'meeting' && ['invite', 'accepted'].includes(i.status) && !ids.has(i.ref) && t < i.due) i.status = 'done';
+  for (const x of open) { if (x.kind === 'meeting' || !x.msgId || A.items.some((i) => i.ext && i.ref === x.msgId && i.kind === x.kind)) continue; pushEvent(s, { kind: x.kind, title: x.title, body: x.body, ref: x.msgId, at: Math.max(x.at || t, s.createdAt) }, t); }
+  for (const i of A.items) if (i.ext && i.kind !== 'meeting' && i.status === 'invite' && !ids.has(i.ref)) { i.status = 'done'; i.doneAt = t; }
 }
 
 // —— 每跳 ——
-/** 在线 ticker / 离线补算（offline: true，秘书替你推掉，不扣） */
+/** 在线 ticker / 离线补算（offline: true）：每个游戏日开头把邀请箱补到上限；邀请不过期。在线来的记进 fresh（界面弹提示），离线来的只数个数（对账单） */
 export function tick(s, t, opts = {}, rnd = Math.random) {
-  const A = ag(s); const d = dayIndex(s, t); let out = null;
+  const A = ag(s); const d = dayIndex(s, t); A.now = t; let out = null;
   if (!unlocked(s)) { A.day = d; return null; }
-  if (A.day == null) { generate(s, d, rnd); generate(s, d + 1, rnd); A.day = d; out = { day: d }; }
-  else if (d > A.day) { A.day = d; const g = generate(s, d + 1, rnd); out = { day: d, invites: g.length }; if (g.length && !opts.offline) brief(s, d + 1, t); }
-  for (const x of A.items) {
-    if (['done', 'expired', 'declined', 'missed'].includes(x.status)) continue;
-    const end = x.ext ? x.due : x.kind === 'trip' ? slotEnd(s, x.day + (x.days || 1) - 1, 2) : slotEnd(s, x.day, x.slot);
-    if (t < end) continue;
-    if (x.status === 'delegated') { resolve(s, x, null, t, { delegated: true }); continue; }
-    if (x.status === 'accepted' && x.firm && !opts.offline) { x.status = 'missed'; A.net = clamp(A.net - C.missNet, C.netFloor, C.netCap); A.log.unshift({ t, id: x.id, text: `失约：${x.title}，人脉 −${C.missNet}` }); continue; }
-    x.status = x.status === 'accepted' && opts.offline ? 'declined' : 'expired';
+  if (A.day == null || d > A.day) {
+    A.day = d; const need = Math.max(0, cap(s) - inbox(s).length); const g = need ? generate(s, need, t, rnd) : [];
+    out = { day: d, invites: g.length, items: g };
+    if (g.length) { if (opts.offline) A.offNew = (A.offNew || 0) + g.length; else (A.fresh = A.fresh || []).push(...g.map((x) => x.id)); }
   }
   syncLate(s, t);
-  A.items = A.items.filter((x) => x.day >= d - 2 || (x.kind === 'trip' && x.day + (x.days || 1) >= d - 1));
+  A.items = A.items.filter((x) => x.status === 'invite' || (x.doneAt || x.at || 0) >= t - 2 * DAY_MS);
   if (A.log.length > 30) A.log.length = 30;
   return out;
 }
-function brief(s, day, t) {
-  const A = ag(s); const sc = scheduler(s); const xs = A.items.filter((x) => x.day === day && !x.ext);
-  if (!xs.length) return;
-  addMsg(s, { kind: 'report', type: 'agenda', from: sc || '', title: '明天的日程', body: xs.map((x) => `${slotName(x.slot)}：${x.title}${x.firm ? '（要答应才算数，失约扣人脉）' : ''}`).join('\n') + (sc ? '' : '\n（没有日程秘书，邀请函都堆在桌上）'), actions: [{ key: 'open', label: '看日程' }] }, t);
-}
+/** 刚来的新邀请（在线，拿一次就清）：还在邀请箱里的那几件 */
+export function takeFresh(s) { const A = ag(s); const ids = A.fresh || []; A.fresh = []; return ids.map((id) => byId(s, id)).filter((x) => x && x.status === 'invite'); }
+/** 离线时来的（拿一次就清）：「日程：新来了 3 个邀请」，没有就 '' */
+export function takeOffNew(s) { const A = ag(s); const n = A.offNew || 0; A.offNew = 0; return n ? `日程：新来了 ${n} 个邀请` : ''; }
+/** 新邀请提示：「老板，又来了 2 个邀请：签约仪式、商会晚宴」（没有日程秘书写「日程：」） */
+export const freshText = (s, xs) => `${scheduler(s) ? '老板，' : '日程：'}又来了 ${xs.length} 个邀请：${xs.map((x) => x.title).join('、')}`;
 
-// —— 答应 / 推掉 / 代去 ——
-export const itemsOf = (s, day) => ag(s).items.filter((x) => x.day === day || (x.kind === 'trip' && day >= x.day && day < x.day + (x.days || 1))).sort((a, b) => a.slot - b.slot || a.id - b.id);
+// —— 去 / 推掉 / 代去 ——
 export const byId = (s, id) => ag(s).items.find((x) => x.id === id);
-export function whyAccept(s, it) {
-  if (!it || it.status !== 'invite') return '已经处理过了';
-  if (it.kind === 'trip') { for (let k = 0; k < (it.days || 1); k++) if (ag(s).items.some((x) => x !== it && x.status === 'accepted' && x.day === it.day + k && !x.ext)) return '那几天已经答应了别的事'; return null; }
-  if (tripDays(s).has(it.day)) return '那天在出差';
-  const c = ag(s).items.find((x) => x !== it && x.day === it.day && x.slot === it.slot && x.status === 'accepted' && !x.ext);
-  return c ? `这个时段已经答应了「${c.title}」` : null;
-}
-export function accept(s, id) {
-  const it = byId(s, id); const why = whyAccept(s, it); if (why) return { ok: false, why };
-  it.status = 'accepted';
-  if (it.kind === 'trip') for (const x of ag(s).items) if (x !== it && !x.ext && x.status === 'invite' && x.day >= it.day && x.day < it.day + it.days) x.status = 'declined';
-  return { ok: true };
-}
-export function decline(s, id) { const it = byId(s, id); if (!it || !['invite', 'accepted'].includes(it.status)) return { ok: false, why: '已经处理过了' }; it.status = 'declined'; return { ok: true }; }
+export function decline(s, id, t = ag(s).now || 0) { const it = byId(s, id); if (!it || it.status !== 'invite') return { ok: false, why: '已经处理过了' }; it.status = 'declined'; it.doneAt = t; return { ok: true }; }
 export function whyDelegate(s, it, secId) {
-  if (!it || !['invite', 'accepted'].includes(it.status) || it.ext || it.kind === 'trip' || it.kind === 'datesec') return '这件不能代';
+  if (!it || it.status !== 'invite' || it.ext || it.kind === 'trip' || it.kind === 'datesec') return '这件不能代';
   if (!secId || !free(s, secId)) return '她现在走不开';
-  if (ag(s).items.some((x) => x.status === 'delegated' && x.day === it.day && x.slot === it.slot && x.del === secId)) return '她这个时段已经代你去别处了';
   return null;
 }
-export function delegate(s, id, secId) { const it = byId(s, id); const why = whyDelegate(s, it, secId); if (why) return { ok: false, why }; it.status = 'delegated'; it.del = secId; return { ok: true }; }
-/** 现在能去吗（在它的时段里） */
+/** 派人代去：马上按一半效果结算 */
+export function delegate(s, id, secId, t = ag(s).now || 0, rnd = Math.random) { const it = byId(s, id); const why = whyDelegate(s, it, secId); if (why) return { ok: false, why }; it.del = secId; const res = resolve(s, it, null, t, { delegated: true }, rnd); return { ok: true, res }; }
+/** 现在能去吗：出差中别的只能代去；其他什么时候都能去 */
 export function whyAttend(s, it, t) {
-  if (!it || !['invite', 'accepted'].includes(it.status)) return '已经处理过了';
+  if (!it || it.status !== 'invite') return '已经处理过了';
   if (it.ext) return null;
-  if (it.kind === 'trip') return t < slotStart(s, it.day, 0) ? `${it.day - dayIndex(s, t)} 天后出发` : it.status === 'accepted' ? null : '先答应';
-  const a = slotStart(s, it.day, it.slot), b = slotEnd(s, it.day, it.slot);
-  if (t < a) return `${it.day > dayIndex(s, t) ? '明天' : '今天'}${slotName(it.slot)}才开始`;
-  if (t >= b) return '已经过了';
-  if (tripDays(s).has(it.day)) return '你在出差';
-  const c = ag(s).items.find((x) => x !== it && x.day === it.day && x.slot === it.slot && x.status === 'accepted' && !x.ext); if (c) return `这个时段答应了「${c.title}」`;
+  const a = away(s, t); if (a) { const left = Math.max(1, Math.ceil((a.until - t) / DAY_MS)); return it.kind === 'trip' ? '已经在出差了' : `你在出差（还有 ${left} 天回来），只能派人代去`; }
   return null;
+}
+/** 出差出发（core/trip.js go 叫）：从这一刻起占 N 个游戏日 */
+export function startTrip(s, it, t) { ag(s).away = { id: it.id, until: t + (it.days || 1) * DAY_MS }; }
+/** 去了有什么好处（按钮上写，不用玩家算；按「都选对、打扮够格」估） */
+export function gainText(s, it) {
+  const K = C.kinds[it.kind]; if (!K) return ''; const L = [];
+  if (it.kind === 'inspect') L.push(`营业额 +${Math.round(K.rev * 100)}%（${K.days} 天）`);
+  if (it.kind === 'sign') L.push(`门店营业额 +${Math.round(K.rev * 100)}%（${K.days} 天）`);
+  if (K.net && it.kind !== 'datesec') L.push(`人脉 +${K.net}`);
+  if (it.kind === 'talk' || it.kind === 'media') L.push('股价小涨');
+  if (it.kind === 'charity') L.push(`政府关系 +${K.gov}（要捐款）`);
+  if (it.kind === 'datesec' && it.sec && SEC_BY_ID[it.sec]) L.push(`${SEC_BY_ID[it.sec].name}好感 +${K.favor}`);
+  if (needDress(it)) L.push('女伴好感、爱慕涨');
+  return L.join('，');
 }
 
 // —— 出席打扮 ——
@@ -177,8 +175,8 @@ export function resolve(s, it, sel, t, opts = {}, rnd = Math.random) {
   let m = C.mult[score] * (opts.delegated ? C.delegateK : 1);
   if (!opts.delegated && needDress(it)) m *= dressMult(s, it.tier, sel || {}, it);
   const res = { m: Math.round(m * 100) / 100, lines: [] }; const net = (n) => { if (!n) return; const v = Math.round(n * 10) / 10; A.net = clamp(A.net + v, C.netFloor, C.netCap); res.net = (res.net || 0) + v; };
-  if (it.kind === 'inspect') { const id = bestShop(s); if (id) { addFx(s, id, { rev: K.rev * m }, t, K.days); addRep(s, id, K.rep * m); res.lines.push(`${IND_BY_ID[id].name}营业额 +${(K.rev * m * 100).toFixed(1)}%（${K.days} 天）`); } else net(K.net * m); }
-  if (it.kind === 'sign') { for (const id of Object.keys(s.inds || {}).filter((x) => isShop(x) && s.inds[x].branches)) addFx(s, id, { rev: K.rev * m }, t, K.days); res.lines.push(`门店营业额 +${(K.rev * m * 100).toFixed(1)}%（${K.days} 天）`); }
+  if (it.kind === 'inspect') { const id = bestShop(s); if (id) { addFx(s, id, { rev: K.rev * m, src: 'agenda' }, t, K.days); addRep(s, id, K.rep * m); res.lines.push(`${IND_BY_ID[id].name}营业额 +${(K.rev * m * 100).toFixed(1)}%（${K.days} 天）`); } else net(K.net * m); }
+  if (it.kind === 'sign') { for (const id of Object.keys(s.inds || {}).filter((x) => isShop(x) && s.inds[x].branches)) addFx(s, id, { rev: K.rev * m, src: 'agenda' }, t, K.days);   /* 设计69 验收：日程来的营业额加成同一条线不叠加（core/manage.js addFx 的 src） */ res.lines.push(`门店营业额 +${(K.rev * m * 100).toFixed(1)}%（${K.days} 天）`); }
   if (['talk', 'banquet', 'charity', 'sign', 'media', 'private'].includes(it.kind)) net(K.net * m);
   if (it.kind === 'talk' && bumpPx(s, K.px * m)) res.lines.push(`股价 +${(K.px * m * 100).toFixed(2)}%`);
   if (it.kind === 'media') { const up = score >= 2 ? K.px * m : -K.px; if (bumpPx(s, up)) res.lines.push(`股价 ${up >= 0 ? '+' : ''}${(up * 100).toFixed(2)}%`); if (score < 2) res.lines.push('答得不好，有一篇负面报道'); }
@@ -192,15 +190,21 @@ export function resolve(s, it, sel, t, opts = {}, rnd = Math.random) {
   if (comp && needDress(it)) { addFavor(s, comp, 3); addLove(s, comp, it.kind === 'private' ? K.love : 0.5); res.comp = comp; }
   if (it.kind === 'datesec' && it.sec && s.secs[it.sec]) { const l0 = s.secs[it.sec].love; addFavor(s, it.sec, Math.round(K.favor * m)); const lv = addLove(s, it.sec, Math.round(K.love * m * 10) / 10, { cross: true }); if (lv.stageUp) res.loveUp = { id: it.sec, r: lv }; const tk = afterDate(s, it.sec, l0, t); if (tk) { res.token = { id: it.sec, ...tk }; res.lines.push(`${SEC_BY_ID[it.sec].name}：「${tk.line}」`); } /* 设计56：日程里她约你也算约会（能跨门、提起信物） */  res.lines.push(`${SEC_BY_ID[it.sec].name}好感 +${Math.round(K.favor * m)}`); }
   if (res.net) res.lines.unshift(`人脉 ${res.net > 0 ? '+' : ''}${res.net}`);
-  it.status = 'done'; it.res = { m: res.m, delegated: !!opts.delegated, score };
+  it.status = 'done'; it.doneAt = t; it.res = { m: res.m, delegated: !!opts.delegated, score };
   A.log.unshift({ t, id: it.id, text: `${opts.delegated ? `${SEC_BY_ID[it.del] ? SEC_BY_ID[it.del].name : '秘书'}代你去了` : '去了'}${it.title}：${res.lines.join('，') || '没什么收获'}` });
   return res;
 }
-export const pendingCount = (s, t) => ag(s).items.filter((x) => (x.status === 'invite' && x.day > dayIndex(s, t) && !x.ext) || (!whyAttend(s, x, t) && ['invite', 'accepted'].includes(x.status))).length;
+
+/** 主页「日程」红点：邀请箱里现在能去的件数（外部事件也算） */
+export const pendingCount = (s, t) => ag(s).items.filter((x) => x.status === 'invite' && !whyAttend(s, x, t)).length;
 addAttrHook((s) => ({ network: (s.agenda && s.agenda.net) || 0 }));
 /** econsim A：每天去 2 个（打扮最好、小场景都选对） */
 export function autoA(s, t, maxPerDay = 2) {
   const A = ag(s); const d = dayIndex(s, t); A.aDone = A.aDone || {}; let n = A.aDone[d] || 0; const out = [];
-  for (const x of A.items) { if (n >= maxPerDay) break; if (x.ext || x.kind === 'trip' || whyAttend(s, x, t)) continue; out.push(resolve(s, x, bestDress(s), t, { score: 4 })); n += 1; }
+  for (const x of inbox(s)) { if (n >= maxPerDay) break; if (x.kind === 'trip' || whyAttend(s, x, t)) continue; out.push(resolve(s, x, bestDress(s), t, { score: 4 })); n += 1; }
   A.aDone = { [d]: n }; return out;
+}
+/** 设计69 econsim B / C：邀请箱里能去的都去掉（不挑：打扮照默认、小场景选中间）；出差交给 tools/autoplay.mjs（要选人） */
+export function autoAll(s, t, ok = () => true) {
+  const out = []; for (const x of inbox(s)) { if (x.kind === 'trip' || whyAttend(s, x, t) || !ok(x)) continue; out.push(resolve(s, x, bestDress(s), t, { score: 2 })); } return out;
 }

@@ -1,23 +1,23 @@
-// V2-13 每周经营会（设计29 第五节）：企业家起每 7 个游戏天，秘书发消息约你开会，30 分钟内开
+// V2-13 每周经营会（设计29 第五节）：每 7 个游戏天，秘书发消息约你开会 → 设计69 第二版：不过期，挂在「重要」里等你开，同时最多挂一次；开了效果从开会起算 7 个游戏天
 // 会上：看各线上周营收 / 利润 / 增长；负责的秘书汇报一句（按她的属性给建议）；把预算（上周利润 10%）分到广告 / 扩张 / 研发 / 人才，到这个游戏周结束都有加成
-// 不开会：到点按平均分，效果七折。大亨起改「董事会」，多一项分红 / 回购 / 并购三选一
+// （原来不开会到点按平均分、七折——设计69 作废）。大亨起改「董事会」，多一项分红 / 回购 / 并购三选一
 // 存档 s.meet = { wk 上次结算到第几周, acc 累计营收进货, base 本周开始时的累计, prev 上周各线营收, cur 这一周的会, fx 这一周的加成, hist 最近几次 }
-import { setMeetAdHook } from './ads.js?v=8c602723'; // V0.2.3
-import { credit } from './credit.js?v=8c602723'; // V3-01 亲自拍板攒投入度
-import C from '../config/meeting.json?v=8c602723' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=8c602723';
-import { SEC_BY_ID } from '../config/secretaries.js?v=8c602723';
-import { setMeetingHooks, lineNetMonth, industryRevenue } from './economy.js?v=8c602723';
-import { staffFactor, setTurnoverHook } from './staff.js?v=8c602723';
-import { setAcquireHook } from './battle.js?v=8c602723';
-import { setTrackHook, dividend } from './companytax.js?v=8c602723';
-import { pay } from './ledger.js?v=8c602723';
-import { available } from './accrual.js?v=8c602723';
-import { addMsg } from './inbox.js?v=8c602723';
-import { holder, isSec, attrs } from './posts.js?v=8c602723';
-import { DAY_MS } from './manage.js?v=8c602723';
-import { MONTH_MS } from './gametime.js?v=8c602723';
-import { pushEvent, closeEvent } from './agenda.js?v=8c602723'; // V3-02 经营会也进日程
+import { setMeetAdHook } from './ads.js?v=4306ebaa'; // V0.2.3
+import { credit } from './credit.js?v=4306ebaa'; // V3-01 亲自拍板攒投入度
+import C from '../config/meeting.json?v=4306ebaa' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=4306ebaa';
+import { SEC_BY_ID } from '../config/secretaries.js?v=4306ebaa';
+import { setMeetingHooks, lineNetMonth, industryRevenue } from './economy.js?v=4306ebaa';
+import { staffFactor, setTurnoverHook } from './staff.js?v=4306ebaa';
+import { setAcquireHook } from './battle.js?v=4306ebaa';
+import { setTrackHook, dividend } from './companytax.js?v=4306ebaa';
+import { pay } from './ledger.js?v=4306ebaa';
+import { available } from './accrual.js?v=4306ebaa';
+import { addMsg } from './inbox.js?v=4306ebaa';
+import { holder, isSec, attrs } from './posts.js?v=4306ebaa';
+import { DAY_MS } from './manage.js?v=4306ebaa';
+import { MONTH_MS } from './gametime.js?v=4306ebaa';
+import { pushEvent, closeEvent } from './agenda.js?v=4306ebaa'; // V3-02 经营会也进日程
 export { C as MEET_CFG };
 
 const DIRS = Object.keys(C.dirs);
@@ -66,30 +66,28 @@ export function reports(s, st, rnd = Math.random) {
 }
 
 // —— 周期 ——
-/** 每跳叫（在线 ticker、离线补算）：过了一周就结上周、约这周的会；到点没开就按平均分（七折） */
+/** 每跳叫（在线 ticker、离线补算）：过了一周就结上周；没有挂着的会就约这周的会（设计69：不过期、不自动处理，同时最多挂一次） */
 export function tick(s, t, rnd = Math.random) {
   const m = mt(s); const wk = weekOf(s, t); m.now = t;
   if (m.wk == null) { m.wk = wk; m.base = copy(m.acc); return null; }
   let out = null;
-  if (m.cur && !m.cur.done && t >= m.cur.due) out = decide(s, null, t, { auto: true });
   if (wk > m.wk) {
-    if (m.cur && !m.cur.done) decide(s, null, t, { auto: true });
     const st = weekStats(s); m.prev = {}; for (const r of st.rows) m.prev[r.id] = r.rev;
     m.base = copy(m.acc); m.wk = wk;
-    if (unlocked(s)) out = invite(s, st, wk, t, rnd);
+    if (unlocked(s) && !pending(s, t)) out = invite(s, st, wk, t, rnd);
   }
   return out;
 }
 function invite(s, st, wk, t, rnd) {
   const m = mt(s); const budget = Math.max(0, r2(st.profit * C.budgetPct));
   const rep = reports(s, st, rnd); const from = rep.length ? rep[0].sec : (Object.keys(s.secs || {})[0] || '');
-  const msg = addMsg(s, { kind: 'invite', type: 'meeting', from, title: `每周${nameOf(s)}`, body: `上周营收 ${fmt(st.rev)}、利润 ${fmt(st.profit)}。这周的预算 ${fmt(budget)}（上周利润的 ${Math.round(C.budgetPct * 100)}%）等你来分。${C.dueMin} 分钟内不开，就按平均分，效果打七折。`, actions: [{ key: 'open', label: `开${nameOf(s)}` }], data: { wk } }, t);
-  m.cur = { wk, at: t, due: t + C.dueMin * 60e3, msgId: msg.id, stats: st, rep, budget, board: isBoard(s), done: false };
-  pushEvent(s, { kind: 'meeting', title: `每周${nameOf(s)}（预算 ${fmt(budget)}）`, ref: wk, due: m.cur.due }, t);
+  const msg = addMsg(s, { kind: 'invite', type: 'meeting', from, title: `每周${nameOf(s)}`, body: `上周营收 ${fmt(st.rev)}、利润 ${fmt(st.profit)}。预算 ${fmt(budget)}（上周利润的 ${Math.round(C.budgetPct * 100)}%）等你来分，开了以后 ${C.weekDays} 个游戏天都有加成。不着急，什么时候开都行。`, actions: [{ key: 'open', label: `开${nameOf(s)}` }], data: { wk } }, t);
+  m.cur = { wk, at: t, msgId: msg.id, stats: st, rep, budget, board: isBoard(s), done: false };
+  pushEvent(s, { kind: 'meeting', title: `每周${nameOf(s)}（预算 ${fmt(budget)}）`, ref: wk }, t);
   return { invited: true, wk, budget };
 }
 const fmt = (n) => (Math.abs(n) >= 1e8 ? `¥${+(n / 1e8).toFixed(2)}亿` : Math.abs(n) >= 1e4 ? `¥${+(n / 1e4).toFixed(1)}万` : `¥${Math.round(n)}`);
-export const pending = (s, t) => { const c = s.meet && s.meet.cur; return c && !c.done && t < c.due ? c : null; };
+export const pending = (s, t) => { const c = s.meet && s.meet.cur; return c && !c.done ? c : null; };   // 设计69：不过期
 export const evenAlloc = () => { const o = {}; for (const d of DIRS) o[d] = 100 / DIRS.length; return o; };
 export function whyAlloc(alloc) {
   const sum = DIRS.reduce((a, d) => a + (alloc[d] || 0), 0);
@@ -97,15 +95,14 @@ export function whyAlloc(alloc) {
   if (Math.abs(sum - 100) > 0.01) return `加起来要 100%（现在 ${Math.round(sum)}%）`;
   return null;
 }
-/** 拍板：alloc { ad, exp, res, tal } 百分比（加起来 100）；board 'div' | 'buyback' | 'ma' | null。opts.auto：没开会，按平均、七折 */
+/** 拍板：alloc { ad, exp, res, tal } 百分比（加起来 100）；board 'div' | 'buyback' | 'ma' | null。（opts.auto 是原来没开会按平均、七折，设计69 起不再用） */
 export function decide(s, alloc, t, opts = {}) {
   const m = mt(s); const c = m.cur; if (!c || c.done) return { ok: false, why: '现在没有要开的会' };
-  if (!opts.auto && t >= c.due) return { ok: false, why: '过了时间，已经按平均分了' };
   const auto = !!opts.auto; const al = auto ? evenAlloc() : alloc; const why = whyAlloc(al); if (why) return { ok: false, why };
   const k = auto ? C.autoK : 1; if (!auto) credit(s, 'meeting', 1, t); /* V3-01 亲自开会攒投入度（开发1 加的挂钩） */ const spend = r2(Math.min(c.budget, Math.max(0, available(s))));
   if (spend > 0) pay(s, { wallet: 'company', cat: 'meeting', amount: spend, party: '各部门', note: `第 ${c.wk + 1} 周${c.board ? '董事会' : '经营会'}预算（${DIRS.map((d) => `${C.dirs[d].name} ${Math.round(al[d])}%`).join('、')}${auto ? '，没开会按平均分' : ''}）` }, t);
   const scale = c.budget > 0 ? spend / c.budget : 0;
-  const fx = { wk: c.wk, until: weekEnd(s, c.wk), auto };
+  const fx = { wk: c.wk, from: t, until: t + WEEK_MS, auto };   // 设计69：从开会那一刻起算 7 个游戏天
   for (const d of DIRS) fx[d] = r2(C.dirs[d].max * (al[d] / 100) * k * scale * 1e4) / 1e4;
   let boardRes = null;
   if (c.board && !auto && opts.board) boardRes = boardAct(s, opts.board, c, t, fx);

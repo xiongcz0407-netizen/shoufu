@@ -1,19 +1,19 @@
 // 「公司 → 职位」（设计16 第六节、设计18 第四节 1）：组织架构图（你在最上，下面一排职位卡：头像 / 空缺 / 外包），
 // 点职位卡 → 底部抽屉：选人（最适合的打星）、外包、撤职、授权额度、店长托管（月预算 + 回本期）、资产管家出租、看她的月报
-import * as ADS from '../core/ads.js?v=8c602723'; // V0.2.5 自动升级广告
-import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=8c602723';
-import { IND_BY_ID } from '../config/industries.js?v=8c602723';
-import * as PO from '../core/posts.js?v=8c602723';
-import * as MG from '../core/manage.js?v=8c602723';
-import { noteUp } from '../core/upnote.js?v=8c602723'; // V0.2.5 升级框
-import * as PW from '../core/postwork.js?v=8c602723';
-import * as T from '../core/training.js?v=8c602723';
-import { fmtMoney } from '../core/format.js?v=8c602723';
-import { asset, hasAsset } from '../platform/assets.js?v=8c602723';
-import { now } from '../core/clock.js?v=8c602723';
-import { game } from '../game.js?v=8c602723';
-import { h, openPanel, toast, liveRender } from './dom.js?v=8c602723';
-import { avatarKey } from './main-screen.js?v=8c602723';
+import * as ADS from '../core/ads.js?v=4306ebaa'; // V0.2.5 自动升级广告
+import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=4306ebaa';
+import { IND_BY_ID } from '../config/industries.js?v=4306ebaa';
+import * as PO from '../core/posts.js?v=4306ebaa';
+import * as MG from '../core/manage.js?v=4306ebaa';
+import { noteUp } from '../core/upnote.js?v=4306ebaa'; // V0.2.5 升级框
+import * as PW from '../core/postwork.js?v=4306ebaa';
+import * as T from '../core/training.js?v=4306ebaa';
+import { fmtMoney } from '../core/format.js?v=4306ebaa';
+import { asset, hasAsset } from '../platform/assets.js?v=4306ebaa';
+import { now } from '../core/clock.js?v=4306ebaa';
+import { game } from '../game.js?v=4306ebaa';
+import { h, openPanel, toast, liveRender } from './dom.js?v=4306ebaa';
+import { avatarKey } from './main-screen.js?v=4306ebaa';
 
 const AN = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 const icon = (k, cls = 'pc-ic') => (hasAsset(`assets/ui/${k}.webp`) ? `<img class="${cls}" src="${asset(`assets/ui/${k}.webp`)}" alt="">` : '');
@@ -69,7 +69,7 @@ export function openPost(key) {
   const render = () => {
     const s = game.state; const who = PO.holder(s, key); const m = PO.postMeta(s, key); const cfg = PO.POSTS_CFG.posts[kind];
     p.body.innerHTML = '';
-    p.body.appendChild(h('div', 'tr-gain', ({ manager: `管这条线：收入 ×(1 + 管理 × 0.8)、进货成本 ×(1 − 管理 × 0.15)；拉熟客护口碑；打开托管后按预算和回本期自己升级、开分店；每月经营月报。管理低于 30 每月可能出小事故。`, cfo: '自动申报纳税（没人管要你自己点申报，过期有滞纳金）；现金流预警；分红建议；智慧 ≥ 40 提醒小型微利企业线；智慧低于 30 申报偶尔算错要补税。', biz: '商务总监：商战胜率、收购成功率加一点（看交际、魅力）；对手要挖人、抢地时一半以上能提前稳住；跟瑞霖谈融资时利率更低。阶段二后面还管品牌关系、配货额度。', steward: '维护费打折；帮你出租豪宅、飞机托管包机（租金进个人现金，代扣 20%）；代办验资排队；卖东西议价到最高 80%；每月资产月报。' })[kind] + `<br>看「${attrText(kind)}」；基本月薪 ${fmtMoney(cfg.base)}`));
+    p.body.appendChild(h('div', 'tr-gain', ({ manager: `管这条线：收入 ×(1 + 管理 × 0.8)、进货成本 ×(1 − 管理 × 0.15)；拉熟客护口碑；打开托管后按预算和回本期自己升级、开分店；每月经营月报。管理低于 30 每月可能出小事故。`, cfo: '自动申报纳税（没人管要你自己点申报，过期有滞纳金）；现金流预警；分红建议；智慧 ≥ 40 提醒小型微利企业线；智慧低于 30 申报偶尔算错要补税。', biz: '商务总监：商战胜率加一点、收购价最多便宜 3%（看交际、魅力）；对手要挖人、抢地时一半以上能提前稳住；跟瑞霖谈融资时利率更低。阶段二后面还管品牌关系、配货额度。', steward: '维护费打折；帮你出租豪宅、飞机托管包机（租金进个人现金，代扣 20%）；代办验资排队；卖东西议价到最高 80%；每月资产月报。' })[kind] + `<br>看「${attrText(kind)}」；基本月薪 ${fmtMoney(cfg.base)}`));
     // 选人
     p.body.appendChild(h('div', 'sd-rec-title', '谁来当'));
     const list = h('div', 'pick-list');

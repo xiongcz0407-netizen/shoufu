@@ -29,7 +29,7 @@ export function act(s, id, action, t = Date.now()) {
 // 经营：每天的经营事件（0 点清掉是开发1 的事）；邀请拍卖：经营会、日程、拍卖这类按时段的；月报照旧
 export const TABS = { important: '重要', biz: '经营', report: '月报', invite: '邀请拍卖', system: '系统' };
 const BIZ = new Set(['biz_event']);
-const TIMED = new Set(['meeting', 'auction', 'agenda']);              // 按时段 / 场次的，不算「重要」
+const TIMED = new Set(['auction', 'agenda']);              // 按场次的，不算「重要」（设计69：经营会不过期了，挂「重要」等你开）
 const ackOnly = (m) => m.actions.length === 1 && /知道了/.test(m.actions[0].label || '');
 export const isImportant = (m) => m.status === 'open' && !BIZ.has(m.type) && m.kind !== 'event' && m.kind !== 'report' && !TIMED.has(m.type) && m.actions.length > 0 && !ackOnly(m);
 export function tabOf(m) {

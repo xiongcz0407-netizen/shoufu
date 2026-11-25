@@ -1,17 +1,17 @@
 // 第 3-09 项：离线补算里的资本部分（股市、基金、上市、要约、集团费用、地标收租和估值）
 // main.js 的 settleAway 按游戏日一段段叫这些（跟在线 ticker 叫的是同一批函数，所以结果一样）；前后各拍一张快照，离开期间对账单里列出来
-import * as SK from './stocks.js?v=8c602723';
-import * as FD from './funds.js?v=8c602723';
-import * as LS from './listing.js?v=8c602723';
-import * as TKO from './takeover.js?v=8c602723';
-import * as GR from './group.js?v=8c602723';
-import * as LMK from './landmark.js?v=8c602723';
-import { recalc } from './assets.js?v=8c602723';
-import { addMsg } from './inbox.js?v=8c602723';
-import * as TR from './trade.js?v=8c602723';
-import * as MT from './meeting.js?v=8c602723'; // V2-13 每周经营会
-import * as RL from './richlist.js?v=8c602723'; // V2-14 财富榜：跨年发榜（只发最近一年的）
-import * as AGD from './agenda.js?v=8c602723'; // V3-02 日程表：离线时秘书替你推掉，不扣
+import * as SK from './stocks.js?v=4306ebaa';
+import * as FD from './funds.js?v=4306ebaa';
+import * as LS from './listing.js?v=4306ebaa';
+import * as TKO from './takeover.js?v=4306ebaa';
+import * as GR from './group.js?v=4306ebaa';
+import * as LMK from './landmark.js?v=4306ebaa';
+import { recalc } from './assets.js?v=4306ebaa';
+import { addMsg } from './inbox.js?v=4306ebaa';
+import * as TR from './trade.js?v=4306ebaa';
+import * as MT from './meeting.js?v=4306ebaa'; // V2-13 每周经营会
+import * as RL from './richlist.js?v=4306ebaa'; // V2-14 财富榜：跨年发榜（只发最近一年的）
+import * as AGD from './agenda.js?v=4306ebaa'; // V3-02 日程表：离线时秘书替你推掉，不扣
 
 const TICK_MS = SK.SCFG.tickSec * 1000;
 const r2 = (v) => Math.round(v * 100) / 100;
@@ -37,7 +37,7 @@ export function capitalTicks(to, ctx = { news: [] }) {
     (s, t) => { if (s.landmark) LMK.tick(s, t, ctx.rnd); },
     (s, t) => { MT.tick(s, t, ctx.rnd); },
     (s, t) => { RL.tick(s, t); },   // V2-14：跨年发榜、首次上榜奖励
-    (s, t) => { AGD.tick(s, t, { offline: true }, ctx.rnd); },   // V3-02   // V2-13：结上周、约这周的会；到点没开按平均分（七折）
+    (s, t) => { AGD.tick(s, t, { offline: true }, ctx.rnd); },   // V3-02 → 设计69：离线照样补邀请箱，不弹、不过期（对账单写新来了几个）   // V2-13：结上周、约这周的会；到点没开按平均分（七折）
   ];
 }
 /** 补算结束：股市大新闻汇总成一条消息 */

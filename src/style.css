@@ -123,7 +123,8 @@ body.desktop { --safe-t: 24px; --safe-b: 16px; } /* 电脑上模拟刘海和底�
 .story { position: absolute; inset: 0; z-index: 70; background: linear-gradient(180deg, rgba(10,8,6,.55), rgba(10,8,6,.85)); animation: fadeIn .3s; }
 .story.out { opacity: 0; transition: opacity .25s; }
 .story-title { position: absolute; top: calc(var(--safe-t) + 16px); left: 0; right: 0; text-align: center; color: var(--gold); font-size: 15px; letter-spacing: 4px; }
-.story-sec { position: absolute; left: 50%; bottom: calc(var(--safe-b) + 150px); height: 66%; transform: translateX(-50%); animation: fadeIn .5s; }
+.story-sec { position: absolute; left: 0; right: 0; bottom: calc(var(--safe-b) + 150px); height: 66%; pointer-events: none; animation: secIn .5s; } /* 设计66：舞台，立绘用 portrait.js 的 layout 摆；淡入只动透明度 */
+@keyframes secIn { from { opacity: 0; } to { opacity: 1; } }
 .story-box { position: absolute; left: 12px; right: 12px; bottom: calc(var(--safe-b) + 20px); min-height: 120px; padding: 12px 16px 26px;
   background: rgba(255,250,240,.95); color: #3b2d22; border: 2px solid var(--gold); border-radius: 14px; }
 .story-name { font-weight: 800; color: #a0702a; margin-bottom: 4px; }
@@ -295,7 +296,7 @@ body.desktop { --safe-t: 24px; --safe-b: 16px; } /* 电脑上模拟刘海和底�
 .hint-ring { position: absolute; z-index: 86; border: 3px solid var(--gold); border-radius: 16px; pointer-events: none; animation: ring 1.2s ease-in-out infinite; }
 @keyframes ring { 0%,100% { box-shadow: 0 0 0 0 rgba(232,194,122,.7); } 50% { box-shadow: 0 0 0 10px rgba(232,194,122,0); } }
 /* 剧情 / 结果弹层开着时，首页立绘和气泡藏起来（验收 #1） */
-body.story-open .portrait, body.story-open .bubble { visibility: hidden; }
+body.story-open .portrait:not(.in-story), body.story-open .bubble { visibility: hidden; }
 .story { background-color: #120e0b; }
 
 /* 界面框架：页面层（叠在首页上，底部导航留着） */
@@ -1158,3 +1159,42 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 .lk-pct{font-size:12px;margin:-2px 0 6px 4px} /* 设计65 */
 .ord-pct{font-size:12px;margin:2px 0 6px;color:#9aa6c0} /* 设计65 */
 .fn-doc .fn-doc-pl{display:block;font-size:12px;margin-top:2px} /* 设计65 小改 */
+/* 设计67「还能跟 X 分钟」：不到 1 分钟橙色；低点过了灰 */
+.ws-cd { color: #ffd27a; font-weight: 700; opacity: 1; } .ws-cd.soon { color: #ff7a1a; } .ws-cd.past { color: #9a9a9a; font-weight: 400; }
+.ws-low .ws-cd { font-size: 11px; }
+.ws-cd-row { margin: 2px 0 4px; } .ws-cd.big { font-size: 15px; }
+.lk-look.past .lk-pos button { opacity: .45; }
+/* 设计66 第七节：衣柜看全身（全身秘书：舞台跟可见区一样高，头顶到鞋尖都露出来）+ 全屏按钮 */
+.sd-hero.sd-fb .sd-stage { top: 3%; height: 95%; }
+.sd-fs { position: absolute; right: 8px; top: 8px; z-index: 3; width: 34px; height: 34px; border-radius: 10px; border: 1px solid rgba(255,255,255,.35); background: rgba(16,21,31,.55); color: #fff; font-size: 18px; line-height: 1; }
+.sd-fs.hidden { display: none; }
+/* 设计66：全屏看她——面板、动作条往下滑走；立绘层盖满（包括标题栏） */
+.full.sf-on .seg-bar, .full.sf-on .sd-panel, .full.sf-on .sd-acts { transform: translateY(110vh); transition: transform .28s ease-in; }
+.full .seg-bar, .full .sd-panel, .full .sd-acts { transition: transform .28s ease-out; }
+.sf-view { position: absolute; inset: 0; z-index: 70; overflow: hidden; background: #18223a center / cover no-repeat; touch-action: none; user-select: none; -webkit-user-select: none; animation: fadeIn .28s ease-out; }
+.sf-view.sf-out { opacity: 0; transition: opacity .25s ease-in; pointer-events: none; }
+.sf-layer { position: absolute; inset: 0; transform-origin: 0 0; will-change: transform; }
+.sf-img { position: absolute; display: block; pointer-events: none; filter: drop-shadow(0 6px 14px rgba(0,0,0,.35)); }
+.sf-img.sf-bounce { animation: bounce .32s ease-out; }
+.sf-view.sf-fade .sf-img { animation: fadeIn .35s ease-out; }
+.sf-label { position: absolute; left: 12px; top: calc(var(--safe-t, 0px) + 10px); z-index: 2; color: #fff; font-size: 12px; text-shadow: 0 1px 3px rgba(0,0,0,.7); pointer-events: none; }
+.sf-label b { font-weight: 700; } .sf-label em { font-style: normal; margin-left: 6px; padding: 1px 6px; border-radius: 8px; background: rgba(0,0,0,.35); font-size: 11px; }
+.sf-view.sf-fade .sf-label { animation: fadeIn .35s ease-out; }
+.sf-scale { position: absolute; right: 12px; bottom: calc(var(--safe-b, 0px) + 14px); z-index: 2; color: #fff; font-size: 12px; padding: 2px 8px; border-radius: 10px; background: rgba(0,0,0,.45); opacity: 0; transition: opacity .4s; pointer-events: none; }
+.sf-scale.on { opacity: 1; transition: none; }
+.sf-up { position: absolute; left: 50%; bottom: calc(var(--safe-b, 0px) + 10px); transform: translateX(-50%); z-index: 2; width: 52px; height: 34px; border: 0; border-radius: 17px; background: rgba(255,255,255,.28); color: #fff; font-size: 22px; line-height: 34px; backdrop-filter: blur(4px); }
+.sf-bubble { position: absolute; left: 12px; right: 12px; top: auto; bottom: calc(var(--safe-b) + 56px); z-index: 2; }
+/* 设计69 日程到点提醒：跟看盘提示条一个样子，弹在最上层；剩 2 分钟橙色 */
+.ag-rem{position:absolute;left:12px;right:12px;top:calc(var(--safe-t, 0px) + 56px);z-index:120;display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:12px;border:1px solid rgba(233,217,168,.5);background:rgba(20,26,40,.96);color:#f3e7c4;font-size:13px;text-align:left;box-shadow:0 6px 18px rgba(0,0,0,.45);transform:translateY(-12px);opacity:0;pointer-events:none;transition:transform .25s,opacity .25s}
+.ag-rem.show{transform:none;opacity:1;pointer-events:auto}
+.ag-rem img{width:32px;height:32px;border-radius:50%;object-fit:cover;object-position:top;flex:none}
+.ag-rem .ag-rem-ic{font-style:normal;font-size:20px}
+.ag-rem span{flex:1;line-height:1.4}.ag-rem > i{font-style:normal;opacity:.7}
+.ag-rem.late{border-color:#ff7a1a;color:#ffb070}.ag-rem.late b{color:#ff9a4a}
+.ag-item.focus{box-shadow:0 0 0 2px #e8c27a inset}
+.ab-ag{margin:2px 0 6px}
+/* 设计69 第二版：日程邀请箱 */
+.ag-gain{font-size:11px;opacity:.75;margin:2px 0 4px}
+.ag-item .btn small{display:block;font-size:10px;opacity:.85;font-weight:400}
+.ag-away{color:#9fd0ff}
+.ag-item .btn.gold small{color:#5a3a0e;opacity:1}

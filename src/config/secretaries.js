@@ -8,7 +8,7 @@ export const ATTRS = [
   { key: 'manage', name: '管理' },
 ];
 export const SECRETARIES = [
-  { id: 's09_xia', name: '夏芷晴', type: '元气', attrs: [15, 12, 15, 18], best: 'manage', stage: 0, unlock: { type: 'start' }, text: '开局就在', favorites: ['零食礼盒', '电影票'], dislikes: ['钢笔'], likeBrand: 'lv', likeLux: '翡翠手镯' },
+  { id: 's09_xia', name: '夏芷晴', type: '元气', outfits: 14, fullBody: true, attrs: [15, 12, 15, 18], best: 'manage', stage: 0, unlock: { type: 'start' }, text: '开局就在', favorites: ['零食礼盒', '电影票'], dislikes: ['钢笔'], likeBrand: 'lv', likeLux: '翡翠手镯' },
   { id: 's10_lu', name: '陆诗雨', type: '高冷', attrs: [18, 15, 10, 25], best: 'manage', stage: 0, unlock: { type: 'networth', value: 5e5 }, text: '身价到 50 万，公司搬进写字楼', favorites: ['猫咪马克杯', '精品咖啡豆'], dislikes: ['动漫手办'], likeBrand: 'bv', likeLux: '女士腕表' },
   { id: 's06_ye', name: '叶蔓', type: '绿茶', attrs: [25, 12, 15, 10], best: 'charm', stage: 0, unlock: { type: 'branches', ind: 'store', value: 3 }, text: '便利店开到 3 家', favorites: ['手账套装', '真丝丝巾'], dislikes: ['运动鞋'], likeBrand: 'dior', likeLux: '钻石耳环' },
   { id: 's03_lin', name: '林知夏', type: '绿茶', attrs: [30, 15, 22, 18], best: 'charm', stage: 0, unlock: { type: 'acquire', rival: 'weidao' }, text: '收购「味道工坊」', favorites: ['毛绒公仔', '草莓蛋糕'], dislikes: ['球赛门票'], likeBrand: 'dior', likeLux: '金手链' },
@@ -20,4 +20,5 @@ export const SECRETARIES = [
   { id: 's02_su', name: '苏曼琳', type: '高冷', attrs: [35, 45, 45, 30], best: 'social', stage: 3, unlock: { type: 'flag', flag: 'beatSuBank', minTitle: 3 }, text: '升「企业家」，跟瑞霖资本谈判赢一次', favorites: ['钢笔', '口红礼盒'], dislikes: ['零食礼盒'], likeBrand: 'hermes', likeLux: '祖母绿戒指' },
 ];
 export const SEC_BY_ID = Object.fromEntries(SECRETARIES.map((s) => [s.id, s]));
-export const OUTFIT_COUNT = 11;
+export const OUTFIT_COUNT = 11;   // 默认几套（老的 9 个秘书）；设计66：每人可以写 outfits: N（夏芷晴 14），用 outfitCountOf(id)
+export const outfitCountOf = (id) => (SEC_BY_ID[id] && SEC_BY_ID[id].outfits) || OUTFIT_COUNT;

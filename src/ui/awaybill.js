@@ -1,10 +1,10 @@
 // 离开期间账单（第 2-16a 项）：跟合同、交割单一样的纸张样式；公司 / 个人两段；下面是秘书替你做了什么
-import { secWork } from '../core/awaybill.js?v=8c602723';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=8c602723';
-import { asset, hasAsset } from '../platform/assets.js?v=8c602723';
-import { game } from '../game.js?v=8c602723';
-import { h } from './dom.js?v=8c602723';
-import { openFull } from './shell.js?v=8c602723';
+import { secWork } from '../core/awaybill.js?v=4306ebaa';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=4306ebaa';
+import { asset, hasAsset } from '../platform/assets.js?v=4306ebaa';
+import { game } from '../game.js?v=4306ebaa';
+import { h } from './dom.js?v=4306ebaa';
+import { openFull } from './shell.js?v=4306ebaa';
 
 const days = (d) => (d >= 30 ? `${Math.floor(d / 30)} 个月 ${Math.round(d % 30)} 天` : `${Math.max(1, Math.round(d))} 天`);
 const dt = (t) => new Date(t).toLocaleString('zh-CN', { hour12: false, month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -37,6 +37,7 @@ export function showAwayBill(b) {
     ${b.capital && b.capital.length ? `<div class="ct-sec">四、投资和资本</div><table class="ct-tbl ab-tbl">${b.capital.map(([k, v]) => `<tr><td>${k}</td><td style="white-space:normal;text-align:right">${v}</td></tr>`).join('')}</table>` : ''}
     ${b.rivals && b.rivals.length ? `<div class="ct-sec">${b.capital && b.capital.length ? '五' : '四'}、对手</div><table class="ct-tbl ab-tbl">${b.rivals.map(([k, v]) => `<tr><td>${k}</td><td style="white-space:normal;text-align:right">${v}</td></tr>`).join('')}</table>` : ''}
     <div class="ct-sec">${'四五六'[2 - !(b.capital && b.capital.length) - !(b.rivals && b.rivals.length)]}、秘书替你做了什么</div>
+    ${b.agenda ? `<div class="ct-text ab-ag">${b.agenda}</div>` : ''}
     ${work.length ? work.map((x) => `<div class="ab-sec">${hasAsset(`assets/sec/${x.id}/${(s.secs[x.id] || {}).outfit}.webp`) ? `<img src="${asset(`assets/sec/${x.id}/${s.secs[x.id].outfit}.webp`)}" alt="">` : ''}<div><b>${x.name}${x.post ? `<small>${x.post}</small>` : ''}</b>
       ${x.cats.filter((c) => c.amount >= 1).map((c) => `<div class="ab-line"><span>${c.dir === 'in' ? '收' : '付'} ${c.name}${c.n > 1 ? ` ×${c.n}` : ''}</span><em class="${c.dir === 'in' ? 'pos' : 'neg'}">${fmtMoney(c.amount)}</em></div>`).join('')}
       ${x.msgs.length ? `<div class="ab-line"><span>交来 ${x.msgs.length} 份：${[...new Set(x.msgs.map((m) => m.title.replace(/[：:].*$/, '')))].slice(0, 3).join('、')}${x.msgs.some((m) => m.open) ? '（有等你批的）' : ''}</span></div>` : ''}</div></div>`).join('') : '<div class="ct-text">这段时间没有秘书替你办事（「公司 → 职位」可以任命店长、财务总监、资产管家）。</div>'}

@@ -1,8 +1,8 @@
 // 界面框架（设计18）：首页层 + 页面层叠加；底部 5 页签；二级分段；记住上次分段；逐步开放和锁；红点
-import { asset, hasAsset } from '../platform/assets.js?v=8c602723';
-import { onTap } from '../platform/input.js?v=8c602723';
-import { game } from '../game.js?v=8c602723';
-import { h, toast } from './dom.js?v=8c602723';
+import { asset, hasAsset } from '../platform/assets.js?v=4306ebaa';
+import { onTap } from '../platform/input.js?v=4306ebaa';
+import { game } from '../game.js?v=4306ebaa';
+import { h, toast } from './dom.js?v=4306ebaa';
 
 export const TABS = [
   { key: 'company', name: '公司', icon: 'icon_industry' },
@@ -135,6 +135,17 @@ export function goHome() {
 /** 让已有的「面板式」渲染函数画进页签里：给一个假的 panel */
 export const hostPanel = (body, ctx) => ({ el: body, body, close: () => ctx && ctx.rerender && ctx.rerender() });
 
+/** 设计66：全屏层里再开一层（秘书全屏看图）时，让返回键先关它。onBack(true) 是返回键关的；
+ *  自己关的时候调返回的 done()，把那条历史退掉 */
+export function pushBack(onBack) {
+  history.pushState({ full: 1 }, '');
+  const entry = { close: (fromPop) => onBack(fromPop) };
+  overlays.push(entry);
+  return () => {
+    const i = overlays.indexOf(entry); if (i < 0) return; overlays.splice(i, 1);
+    if (history.state && history.state.full) { ignorePop += 1; history.back(); }
+  };
+}
 /** 全屏弹层（秘书详情、合同等）；返回 { el, body, close } */
 export function openFull(title, { onClose } = {}) {
   const el = h('div', 'full');

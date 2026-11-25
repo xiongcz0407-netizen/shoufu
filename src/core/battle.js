@@ -1,35 +1,36 @@
 // 商战和收购：胜率、开战、赢满 3 次收购、收购效果、升称号
-import { whyCushion } from './cashflow.js?v=8c602723'; // V0.2.3 留够两个月工资
-import { credit } from './credit.js?v=8c602723'; // V3-01 亲自拍板攒投入度
-import { MONTH_MS, gameDate, dateText } from './gametime.js?v=8c602723';
-import { downRate, downOf, schedule, openDeal } from './equity.js?v=8c602723';
-import { gm } from './calib.js?v=8c602723';
-import { whyNotMa, maLoan } from './bank.js?v=8c602723';
-import { needsBoard, boardApprove } from './capital.js?v=8c602723';
-import { live, onBattle } from './rivalgrow.js?v=8c602723'; // P-00 对手也在长大
-import { bigBonus, useBig, whyEnergy, doEnergy, energy, E_COST } from './manage.js?v=8c602723'; // P-05 老板亲自带队 / 亲自谈判
-import { ACQ_NEGO, RIVAL_BY_ID, RIVALS, PROJECTS, WINS_TO_ACQUIRE, TEAM_MAX, ACQUIRE_REFUND, ACQUIRE_COOLDOWN_SEC, ACQUIRE_EXTRA_WIN, INTEL_PER_LOSS, INTEL_MAX } from '../config/rivals.js?v=8c602723';
-import { TITLES } from '../config/titles.js?v=8c602723';
-import { fmtMoney } from './format.js?v=8c602723';
-import { netWorth, unlockIfReady, earningsValue } from './economy.js?v=8c602723';
-import { ensureSec } from './secretary.js?v=8c602723';
-import { addFavor, daily } from './affection.js?v=8c602723';
-import { isTraining } from './training.js?v=8c602723';
-import { isScouting } from './busy.js?v=8c602723'; // V2-08 踩点占用（开发2）
-import { auraBattle, networkAcquire, visionBattle } from './boss.js?v=8c602723';
-import { bump } from './daily.js?v=8c602723';
-import { pay, receive, accrue, canPay } from './ledger.js?v=8c602723';
-import { TAX } from './companytax.js?v=8c602723';
-import { addContract } from './contracts.js?v=8c602723';
-import { IND_BY_ID } from '../config/industries.js?v=8c602723';
-import { establishment, staffUp } from './staff.js?v=8c602723';
-import { bizBattle, bizAcquire, grantBridge } from './rivalry.js?v=8c602723';
-import { logi, LOGI_CFG } from './logistics.js?v=8c602723';
-import { addAcquiredProject } from './realestate.js?v=8c602723';
-import { tech, TECH_CFG } from './tech.js?v=8c602723';
-import { lookOf } from './staff.js?v=8c602723';
-import { reValue } from './realestate.js?v=8c602723';
-import { fleetValue } from './logistics.js?v=8c602723';
+import { whyCushion } from './cashflow.js?v=4306ebaa'; // V0.2.3 留够两个月工资
+import { credit } from './credit.js?v=4306ebaa'; // V3-01 亲自拍板攒投入度
+import { MONTH_MS, gameDate, dateText } from './gametime.js?v=4306ebaa';
+import { downRate, downOf, schedule, openDeal } from './equity.js?v=4306ebaa';
+import { gm } from './calib.js?v=4306ebaa';
+import { whyNotMa, maLoan } from './bank.js?v=4306ebaa';
+import { needsBoard } from './capital.js?v=4306ebaa';   // 设计64：董事会一律通过，只在协议上留一行
+import { live, onBattle } from './rivalgrow.js?v=4306ebaa'; // P-00 对手也在长大
+import { bigBonus, useBig, whyEnergy, doEnergy, energy, E_COST } from './manage.js?v=4306ebaa'; // P-05 老板亲自带队 / 亲自谈判
+import { ACQ_NEGO, RIVAL_BY_ID, RIVALS, PROJECTS, WINS_TO_ACQUIRE, TEAM_MAX, ACQ_DISC, INTEL_PER_LOSS, INTEL_MAX } from '../config/rivals.js?v=4306ebaa';
+import { TITLES } from '../config/titles.js?v=4306ebaa';
+import { fmtMoney } from './format.js?v=4306ebaa';
+import { addMsg } from './inbox.js?v=4306ebaa';   // 设计64 待签协议
+import { netWorth, unlockIfReady, earningsValue } from './economy.js?v=4306ebaa';
+import { ensureSec } from './secretary.js?v=4306ebaa';
+import { addFavor, daily } from './affection.js?v=4306ebaa';
+import { isTraining } from './training.js?v=4306ebaa';
+import { isScouting } from './busy.js?v=4306ebaa'; // V2-08 踩点占用（开发2）
+import { auraBattle, networkAcquire, visionBattle } from './boss.js?v=4306ebaa';
+import { bump } from './daily.js?v=4306ebaa';
+import { pay, receive, accrue, canPay } from './ledger.js?v=4306ebaa';
+import { TAX } from './companytax.js?v=4306ebaa';
+import { addContract } from './contracts.js?v=4306ebaa';
+import { IND_BY_ID } from '../config/industries.js?v=4306ebaa';
+import { establishment, staffUp } from './staff.js?v=4306ebaa';
+import { bizBattle, bizAcquire, grantBridge } from './rivalry.js?v=4306ebaa';
+import { logi, LOGI_CFG } from './logistics.js?v=4306ebaa';
+import { addAcquiredProject } from './realestate.js?v=4306ebaa';
+import { tech, TECH_CFG } from './tech.js?v=4306ebaa';
+import { lookOf } from './staff.js?v=4306ebaa';
+import { reValue } from './realestate.js?v=4306ebaa';
+import { fleetValue } from './logistics.js?v=4306ebaa';
 
 const PROJ = Object.fromEntries(PROJECTS.map((p) => [p.id, p]));
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -108,17 +109,22 @@ export function settleBattle(s, rivalId, team, win, t, o = {}) {
 }
 const SHARE_HOOKS = []; export const onShare = (fn) => SHARE_HOOKS.push(fn);
 
-/** 满 3 胜以后多赢的次数（每次 +10% 收购成功率） */
+/** 满 3 胜以后多赢的次数（设计64：每次收购价 −2%，最多 3 次） */
 export const extraWins = (s, rivalId) => Math.max(0, rv(s, rivalId).wins - WINS_TO_ACQUIRE);
-/** 收购成功率：身价跟估值比 + 带去的人魅力、交际 + 多赢的商战 */
-export function acquireRate(s, rivalId, team) {
-  const r = live(s, rivalId);
-  const nw = Math.max(1, netWorth(s));
-  const cs = team.length ? (teamAttr(s, team, 'charm') + teamAttr(s, team, 'social')) / 2 : 0;
-  return clamp(0.45 + 0.25 * Math.tanh(Math.log10(nw / r.value) * 2) + cs / 200 + extraWins(s, rivalId) * ACQUIRE_EXTRA_WIN + networkAcquire(s) + bizAcquire(s) + acqHook(s), 0.1, 0.95); // 老板人脉；商务总监
+/** 设计64：收购价优惠（原来加成功率的那些）。返回 { k 合计（≤ ACQ_DISC.max）, parts: [{ name, k }], capped } */
+export function acqDiscount(s, rivalId) {
+  const D = ACQ_DISC; const parts = []; const ew = extraWins(s, rivalId);
+  const add = (name, k) => { k = Math.round(k * 1e4) / 1e4; if (k > 0) parts.push({ name, k }); };
+  add(`多赢 ${Math.min(ew, D.extraMax / D.extraWin)} 次`, Math.min(ew * D.extraWin, D.extraMax));
+  add('老板人脉', Math.min(networkAcquire(s) * D.network, D.networkMax));
+  add('商务总监', Math.min(bizAcquire(s) * D.biz, D.bizMax));
+  add('董事会并购', acqHook(s) * D.board);
+  add('亲自谈判', bigBonus(s, 'deal'));
+  const sum = parts.reduce((a, x) => a + x.k, 0);
+  return { k: Math.min(sum, D.max), parts, capped: sum > D.max + 1e-9 };
 }
 /** 第 3-05 项：换股收购的挂钩 { why(s, r, plan, amount), issue(s, r, amount, t), row(s, r, amount) }（core/takeover.js 设） */
-/** V2-13 董事会「并购」：这一周收购成功率 +（开发2，core/meeting.js 挂进来） */
+/** V2-13 董事会「并购」：这一周的加成（开发2，core/meeting.js 挂进来）；设计64 起 × 0.5 变成收购价优惠 */
 let acqHook = () => 0; export const setAcquireHook = (fn) => { acqHook = fn; };
 let SWAP = null; export const setSwapHook = (x) => { SWAP = x; };
 /** 设计38 第四节：收购每档最终对手，身价要先到那一档门槛的 80% */
@@ -129,7 +135,6 @@ export function whyNotAcquire(s, rivalId, team, t, plan = 'full', loan = null, s
   if (st.acquired) return '已经收购了';
   { const ti = TITLES.findIndex((x) => x.rival === rivalId); if (ti > 0 && netWorth(s) < FINAL_NW_K * TITLES[ti].need) return `身价到 ${fmtMoney(FINAL_NW_K * TITLES[ti].need)} 才能谈`; } /* 设计38 第四节：最终对手要身价先到这一档门槛的 80% */
   if (st.wins < WINS_TO_ACQUIRE) return `商战赢满 ${WINS_TO_ACQUIRE} 次才能收购`;
-  if (t < st.cooldownUntil) return `对方还在气头上，${Math.ceil((st.cooldownUntil - t) / 60000)} 分钟后再谈（再赢一次商战能提高成功率）`;
   if (team.some((id) => isTraining(s, id))) return '上课的人不能带';
   if (team.some((id) => isScouting(s, id, t))) return '踩点的人不能带'; // V2-10：收购也挡踩点的（开发2）
   if (loan && loan.amount > 0) { const w = whyNotMa(s, loan.bank, r.value, payNow(s, r, plan), loan.amount); if (w) return w; }
@@ -149,25 +154,24 @@ export function acqNegoOpts(s, rivalId, team, t) {
 export function setAcqPrice(s, rivalId, price, t) { void t; rv(s, rivalId).deal = { price: Math.round(price), value0: live(s, rivalId).value }; } /* V0.2.3（设计35 第十节）：谈好的价一直有效，对手估值变动超过 20% 才要重谈 */
 export const dealStale = (s, rivalId) => { const d = rv(s, rivalId).deal; return !!(d && d.value0 && Math.abs(live(s, rivalId).value / d.value0 - 1) > 0.2); };
 export const dealPrice = (s, rivalId, t) => { const d = rv(s, rivalId).deal; if (!d) return null; if (d.value0) return dealStale(s, rivalId) ? null : d.price; return d.until > t ? d.price : null; };
-export function liveDeal(s, rivalId, t) { const r = live(s, rivalId); const p = dealPrice(s, rivalId, t); return p && p < r.value ? { ...r, value: p } : r; } // 谈得比估值还贵就按估值（直接收购本来就是估值价）
+/** 收购这次按多少付：谈下来的价（比估值贵就按估值）再打设计64 的优惠。value = 实付价；value0 估值、base 打折前、dealP 谈下来的价、disc 优惠 */
+export function liveDeal(s, rivalId, t) {
+  const r = live(s, rivalId); const p = dealPrice(s, rivalId, t); const base = p && p < r.value ? p : r.value;
+  const disc = acqDiscount(s, rivalId);
+  return { ...r, value: Math.round(base * (1 - disc.k)), value0: r.value, base, dealP: p, disc };
+}
 export const payNow = (s, r, plan) => (plan === 'install' ? downOf(s, r.value) : r.value);
-/** 收购。plan：'full' 一次付清 / 'install' 分期（首付付完就算成功）。成功：并进来、效果生效；失败：退一半钱、冷却 */
+/** 收购。plan：'full' 一次付清 / 'install' 分期（首付付完就算成功）。设计64：签了字就成（没有成功率、退款、冷却、董事会否决） */
 export function acquire(s, rivalId, team, t, rnd = Math.random, plan = 'full', loan = null, swap = 0) {
   const why = whyNotAcquire(s, rivalId, team, t, plan, loan, swap);
   if (why) return { ok: false, why };
   const r = liveDeal(s, rivalId, t); const rTrue = live(s, rivalId); /* V2-07：谈下来的价按成交价付，身价里按真实估值 */ const st = rv(s, rivalId);
-  const rate = acquireRate(s, rivalId, team);
-  if (needsBoard(s, r.value) && !boardApprove(s, rnd)) { st.cooldownUntil = t + ACQUIRE_COOLDOWN_SEC * 1000; return { ok: true, success: false, board: true, rate: 0, refund: 0, why: '投资人董事在董事会上投了反对票（收购超过公司估值 20%，要过董事会）' }; } // 3-02
+  void rnd; const board = needsBoard(s, r.value);   // 设计64：要过董事会的一律通过，协议上留一行
   const now0 = payNow(s, r, plan); const la = (loan && loan.amount) || 0; const sw = swap > 0 ? swap : 0; const own = now0 - la - sw; // 换股那部分谈成了才发新股 // 并购贷款那部分谈成了才放款
   pay(s, { wallet: 'company', cat: 'acquire', amount: own, party: r.name, note: plan === 'install' ? `收购${r.name}首付（${Math.round(downRate(s) * 100)}%）${la ? '自有部分' : ''}` : `收购${r.name}${la ? '（自有部分）' : ''}` }, t);
-  if (rnd() >= rate) {
-    receive(s, { wallet: 'company', cat: 'refund', amount: Math.floor(own * ACQUIRE_REFUND), party: r.name, note: '收购失败退款' }, t);
-    st.cooldownUntil = t + ACQUIRE_COOLDOWN_SEC * 1000;
-    return { ok: true, success: false, rate, refund: Math.floor(own * ACQUIRE_REFUND) };
-  }
   let maL = null;
   if (la > 0) { maL = maLoan(s, loan.bank, r.name, la, t); pay(s, { wallet: 'company', cat: 'acquire', amount: la, party: r.name, ref: maL.contract, note: `收购${r.name}（并购贷款受托支付）` }, t); }
-  if (st.deal && st.deal.until > t) credit(s, 'nego', 1, t); /* V3-01：谈下来的价真用上了才算拍板 */ st.acquired = true; st.deal = null;
+  if (r.dealP) credit(s, 'nego', 1, t); /* V3-01：谈下来的价真用上了才算拍板 */ st.acquired = true; st.deal = null; st.sign = null;
   s.flags.acquired = s.flags.acquired || {}; s.flags.acquired[rivalId] = true;
   const e = r.effect || {}; const iv0 = earningsValue(s);
   if (e.boost) { s.flags.indBoost = s.flags.indBoost || {}; for (const [k, v] of Object.entries(e.boost)) s.flags.indBoost[k] = (s.flags.indBoost[k] || 0) + v; }
@@ -186,13 +190,36 @@ export function acquire(s, rivalId, team, t, rnd = Math.random, plan = 'full', l
   for (const id of team) addFavor(s, id, 10);
   // 股权转让协议：买方印花税 0.05%（产权转移书据），合同进档案柜
   const stamp = Math.round(r.value * TAX.stamp.equity * 100) / 100;
-  const ct = addContract(s, { prefix: 'GQ', kind: 'equity', title: '股权转让协议', parties: [['受让方', s.companyName || '我的公司'], ['转让方', `${r.boss}（${r.name}）`]], subject: `${r.name} 100% 股权`, rows: [['股权转让款', r.value], ...(plan === 'install' ? [[`首付（${Math.round(downRate(s) * 100)}%，已付）`, now0], ...schedule(s, r.value, t, now0).map((x) => [`第 ${x.k} 期（${dateText(gameDate(s, x.due))}）`, x.amount])] : []), ['印花税（0.05%）', stamp]], total: r.value + stamp, wallet: 'company' }, t);
+  const ct = addContract(s, { prefix: 'GQ', kind: 'equity', title: '股权转让协议', parties: [['受让方', s.companyName || '我的公司'], ['转让方', `${r.boss}（${r.name}）`]], subject: `${r.name} 100% 股权`, rows: [['股权转让款', r.value], ...(r.disc.k > 0 ? [[`已减优惠 −${+(r.disc.k * 100).toFixed(1)}%（${r.disc.parts.map((x) => x.name).join('、')}）`, r.base - r.value]] : []), ...(board ? [['董事会决议：同意（收购超过公司估值 20%）', 0]] : []), ...(plan === 'install' ? [[`首付（${Math.round(downRate(s) * 100)}%，已付）`, now0], ...schedule(s, r.value, t, now0).map((x) => [`第 ${x.k} 期（${dateText(gameDate(s, x.due))}）`, x.amount])] : []), ['印花税（0.05%）', stamp]], total: r.value + stamp, wallet: 'company' }, t);
   pay(s, { wallet: 'company', cat: 'tax_company', amount: stamp, force: true, party: '税务局', ref: ct.no, note: `股权转让印花税（${r.name}）` }, t);
   let swapped = null; if (sw > 0 && SWAP) { swapped = SWAP.issue(s, r, sw, t); ct.rows.push(SWAP.row(s, r, sw)); } // 第 3-05 项
-  if (bigBonus(s, 'deal')) { const reb = Math.round(r.value * bigBonus(s, 'deal')); useBig(s, 'deal'); receive(s, { wallet: 'company', cat: 'refund', amount: reb, party: r.name, note: `老板亲自谈判，收购价压下来 ${Math.round(bigBonus(s, 'deal') * 100) || 3}%` }, t); } // P-05
+  if (bigBonus(s, 'deal')) useBig(s, 'deal'); // P-05 老板亲自谈判：设计64 起已经并进收购价优惠（liveDeal），这里只把这次用掉
   const deal = plan === 'install' ? openDeal(s, rivalId, t, { down: now0, merged, av, boost: e.boost, contract: ct.no }) : null;
-  (s.battleLog = s.battleLog || []).unshift({ t, rival: rivalId, acquire: true, win: true, rate, reward: 0, merged, contract: ct.no, plan });
-  return { ok: true, success: true, rate, stamp, contract: ct, merged, deal, loan: maL, swapped };
+  (s.battleLog = s.battleLog || []).unshift({ t, rival: rivalId, acquire: true, win: true, price: r.value, disc: r.disc.k, reward: 0, merged, contract: ct.no, plan });
+  return { ok: true, success: true, price: r.value, disc: r.disc, board, stamp, contract: ct, merged, deal, loan: maL, swapped };
+}
+
+// ---------- 设计64 第三节第 5 条：协议没签就关 → 消息「重要」挂一条待签，点开回到协议；签了 / 价作废（估值变 20%）自动收掉 ----------
+const signOf = (s, rivalId) => (s.inbox || []).find((m) => m.type === 'acq_sign' && m.status === 'open' && m.data && m.data.rivalId === rivalId);
+/** 挂（或更新）待签。c：{ plan, useLoan, swapK, team } */
+export function signMsg(s, rivalId, t, c = {}) {
+  if (rv(s, rivalId).acquired) return null;
+  const r = liveDeal(s, rivalId, t); const title = `待签：收购${r.name}股权转让协议（${fmtMoney(r.value)}）`;
+  const data = { rivalId, plan: c.plan || 'full', useLoan: !!c.useLoan, swapK: c.swapK || 0, team: c.team || [], value0: r.value0 };
+  const old = signOf(s, rivalId); if (old) { old.title = title; old.data = data; old.t = t; old.read = false; return old; }
+  return addMsg(s, { kind: 'request', type: 'acq_sign', title, body: `${r.dealP && r.dealP < r.value0 ? `谈好的价 ${fmtMoney(r.dealP)}` : `按估值 ${fmtMoney(r.value0)}`}${r.disc && r.disc.k ? `，优惠后 ${fmtMoney(r.value)}` : ''}。谈好的价一直有效，${r.name}估值变动超过 20% 才要重谈。`, actions: [{ key: 'open', label: '打开协议' }], data }, t);
+}
+/** 每秒看一眼：收购了的收掉；估值变了 20%（谈的价作废）收掉，换成一句「要重新谈」。有变化返回 true */
+export function tidySign(s, t) {
+  let ch = false;
+  for (const m of s.inbox || []) {
+    if (m.type !== 'acq_sign' || m.status !== 'open' || !m.data) continue;
+    const id = m.data.rivalId; const st = rv(s, id);
+    if (st.acquired) { m.status = 'done'; ch = true; continue; }
+    const v = live(s, id).value; const stale = dealStale(s, id) || (m.data.value0 && Math.abs(v / m.data.value0 - 1) > 0.2);
+    if (stale) { m.status = 'done'; ch = true; addMsg(s, { kind: 'system', type: 'acq_stale', title: `${live(s, id).name}估值变了，上次谈的价不算了，要重新谈`, body: '去「商战 → 收购」重新谈价，或者按估值直接签。' }, t); }
+  }
+  return ch;
 }
 
 /** 升称号（身价到线 + 最终对手收购了）；返回新称号序号或 null */

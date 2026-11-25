@@ -1,15 +1,15 @@
 // V0.2.3 资金链断裂（设计35）：花钱前留够两个月工资 + 社保 + 房租；跨样子升级先算账；可用 < 1 个月工资发急报；
 // 欠薪停业满 1 个游戏月员工自动遣散（N+1 记应付）；公司账户负数时银行给一次应急周转贷（3 个月工资，利率高一档）
-import { IND_BY_ID } from '../config/industries.js?v=8c602723';
-import B from '../config/bank.json?v=8c602723' with { type: 'json' };
-import * as ST from './staff.js?v=8c602723';
-import { available, monthlyRent, payables } from './accrual.js?v=8c602723';
-import { lineK } from './cities.js?v=8c602723';
-import { pay, receive, post, setCompanyFloor, lockState } from './ledger.js?v=8c602723';
-import { addMsg } from './inbox.js?v=8c602723';
-import { holder, isSec } from './posts.js?v=8c602723';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=8c602723';
-import { fmtMoney } from './format.js?v=8c602723';
+import { IND_BY_ID } from '../config/industries.js?v=4306ebaa';
+import B from '../config/bank.json?v=4306ebaa' with { type: 'json' };
+import * as ST from './staff.js?v=4306ebaa';
+import { available, monthlyRent, payables } from './accrual.js?v=4306ebaa';
+import { lineK } from './cities.js?v=4306ebaa';
+import { pay, receive, post, setCompanyFloor, lockState } from './ledger.js?v=4306ebaa';
+import { addMsg } from './inbox.js?v=4306ebaa';
+import { holder, isSec } from './posts.js?v=4306ebaa';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=4306ebaa';
+import { fmtMoney } from './format.js?v=4306ebaa';
 
 export const CUSHION_MONTHS = 2;
 const r2 = (x) => Math.round(x * 100) / 100;

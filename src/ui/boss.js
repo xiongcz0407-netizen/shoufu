@@ -1,19 +1,19 @@
-import { avatarKey } from './main-screen.js?v=8c602723';
-import * as MG from '../core/manage.js?v=8c602723'; // P-05 精力
-import { asset, hasAsset } from '../platform/assets.js?v=8c602723';
+import { avatarKey } from './main-screen.js?v=4306ebaa';
+import * as MG from '../core/manage.js?v=4306ebaa'; // P-05 精力
+import { asset, hasAsset } from '../platform/assets.js?v=4306ebaa';
 // 老板页：名字和公司、老板属性、称号进度、穿戴、统计、设置（存档、重新开始在「设置」里，设计22）
-import { TITLES } from '../config/titles.js?v=8c602723';
-import { RIVALS } from '../config/rivals.js?v=8c602723';
-import * as E from '../core/economy.js?v=8c602723';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=8c602723';
-import { versionText } from '../version.js?v=8c602723';
-import { now } from '../core/clock.js?v=8c602723';
-import { game } from '../game.js?v=8c602723';
-import { h, toast } from './dom.js?v=8c602723';
-import { openFull } from './shell.js?v=8c602723';
-import { wearHtml } from './luxury.js?v=8c602723';
-import { appendCloudSettings } from './cloudset.js?v=8c602723';
-import { inputBox } from './confirm.js?v=8c602723'; // 设计37 第一节：游戏样式输入框
+import { TITLES } from '../config/titles.js?v=4306ebaa';
+import { RIVALS } from '../config/rivals.js?v=4306ebaa';
+import * as E from '../core/economy.js?v=4306ebaa';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=4306ebaa';
+import { versionText } from '../version.js?v=4306ebaa';
+import { now } from '../core/clock.js?v=4306ebaa';
+import { game } from '../game.js?v=4306ebaa';
+import { h, toast } from './dom.js?v=4306ebaa';
+import { openFull } from './shell.js?v=4306ebaa';
+import { wearHtml } from './luxury.js?v=4306ebaa';
+import { appendCloudSettings } from './cloudset.js?v=4306ebaa';
+import { inputBox } from './confirm.js?v=4306ebaa'; // 设计37 第一节：游戏样式输入框
 
 // 老板属性（设计09 第一节）由第 12 项提供：返回 [{ name, value, from }]
 let bossAttrs = () => [];
@@ -43,7 +43,7 @@ export function openBoss() {
       <div class="sd-rec"><div>玩了<b>${fmtDuration((t - s.createdAt) / 1000)}</b></div><div>累计赚<b>${fmtMoney(st.earned || 0)}</b></div><div>商战<b>${st.battleWins || 0}/${st.battles || 0}</b></div>
         <div>约会<b>${st.dates || 0}次</b></div><div>送礼<b>${st.gifts || 0}次</b></div><div>结业<b>${st.coursesDone || 0}门</b></div></div>
       <div class="sd-rec-title">设置</div>
-      <div class="tr-course"><div><b>人声</b><div class="tr-gain">秘书说话的配音（没有配音文件时只出气泡）</div></div><button class="btn voice">${s.settings.voice === false ? '关' : '开'}</button></div><div class="boss-cloud"></div>
+      <div class="tr-course"><div><b>人声</b><div class="tr-gain">秘书说话的配音（没有配音文件时只出气泡）</div></div><button class="btn voice">${s.settings.voice === false ? '关' : '开'}</button></div><div class="tr-course"><div><b>日程提醒</b><div class="tr-gain">新邀请到了在上方提醒一下（关了只剩日程图标的红点）</div></div><button class="btn ag-rem-set">${s.settings.agendaRem === false ? '关' : '开'}</button></div><div class="boss-cloud"></div>
       <div class="tr-gain" style="text-align:center;margin-top:12px">${versionText()}</div></div>`;
     p.body.querySelectorAll('.big-act').forEach((b) => (b.onclick = () => { const r = MG.doBig(game.state, b.dataset.k, now()); toast(r.ok ? r.text : r.why, 2600); game.changed(); game.save(); }));
     p.body.querySelector('.rename').onclick = async () => {
@@ -52,6 +52,7 @@ export function openBoss() {
     };
     appendCloudSettings(p.body.querySelector('.boss-cloud')); // 登录名、换名字、重新开始、手机里的素材（设计22）
     p.body.querySelector('.voice').onclick = () => { s.settings.voice = s.settings.voice === false; game.save(); render(); };
+    p.body.querySelector('.ag-rem-set').onclick = () => { s.settings.agendaRem = s.settings.agendaRem === false; game.save(); render(); };   // 设计69
   };
   render();
 }

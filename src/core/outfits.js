@@ -1,9 +1,9 @@
 // 衣服：买（算送礼）、好感到了自动换上、衣柜、约会穿哪套
-import { OUTFITS, OUTFIT_BY_ID, DATE_OUTFIT, priceOf } from '../config/outfits.js?v=8c602723';
-import { ensureSec, FAVOR_STAGES } from './secretary.js?v=8c602723';
-import { addFavor } from './affection.js?v=8c602723';
-import { pay, receive, accrue, canPay } from './ledger.js?v=8c602723';
-import * as STY from './styles.js?v=8c602723'; // V3-05 按款式挑
+import { outfitsOf, hasOutfit, OUTFIT_BY_ID, DATE_OUTFIT, priceOf } from '../config/outfits.js?v=4306ebaa';
+import { ensureSec, FAVOR_STAGES } from './secretary.js?v=4306ebaa';
+import { addFavor } from './affection.js?v=4306ebaa';
+import { pay, receive, accrue, canPay } from './ledger.js?v=4306ebaa';
+import * as STY from './styles.js?v=4306ebaa'; // V3-05 按款式挑
 
 function rec(s, id) {
   const r = ensureSec(s, id);
@@ -24,7 +24,7 @@ export const needText = (o) => `好感到「${FAVOR_STAGES[Math.floor(OUTFIT_BY_
 /** 买衣服；返回 { ok, wearNow, favor } 或 { ok:false, why } */
 export function buyOutfit(s, id, o, t = Date.now()) {
   const r = rec(s, id); const cfg = OUTFIT_BY_ID[o];
-  if (!cfg || o === 'c1') return { ok: false, why: '买不了' };
+  if (!cfg || o === 'c1' || !hasOutfit(id, o)) return { ok: false, why: '买不了' };   // 设计66：她没有这一套
   if (r.owned.includes(o)) return { ok: false, why: '已经买过了' };
   const price = priceOf(id, o); // 设计35 第十四节：按款式定价；已经买过的不退不补
   if (!canPay(s, 'personal', price)) return { ok: false, why: '个人现金不够' };
@@ -37,7 +37,7 @@ export function buyOutfit(s, id, o, t = Date.now()) {
 /** 有没有买了、条件到了、还没穿过的 → 换上最贵的那套。返回换上的 id 或 null */
 export function autoWear(s, id) {
   const r = rec(s, id);
-  const ready = OUTFITS.filter((x) => x.id !== 'c1' && canWear(s, id, x.id) && !r.worn.includes(x.id));
+  const ready = outfitsOf(id).filter((x) => x.id !== 'c1' && canWear(s, id, x.id) && !r.worn.includes(x.id));
   if (!ready.length) return null;
   const best = ready.slice().sort((a, b) => priceOf(id, b.id) - priceOf(id, a.id) || b.needFavor - a.needFavor)[0].id; // 同时到的换最贵那套（设计04）
   for (const x of ready) r.worn.push(x.id);
@@ -59,7 +59,7 @@ export function grantDateOutfit(s, id) {
 export function outfitForDate(s, id, dress, placeId) {
   const r = rec(s, id);
   if (STY.OUTFIT_STYLES[id]) return STY.pick(s, id, (placeId ? ['beach', 'yacht'].includes(placeId) : dress === 'casual') ? 'dateResort' : 'dateFormal').o; // V3-05：西餐厅 / 楼顶晚装、海边 / 游艇度假，没有退休闲；扮装不穿出去
-  const ok = OUTFITS.filter((x) => canWear(s, id, x.id)).map((x) => x.id);
+  const ok = outfitsOf(id).filter((x) => canWear(s, id, x.id)).map((x) => x.id);
   if (ok.length <= 1) return r.outfit;
   if (dress === 'formal') return ok[ok.length - 1];
   const casual = ok.filter((x) => ['c2', 'c3', 'c4', 'c5'].includes(x));

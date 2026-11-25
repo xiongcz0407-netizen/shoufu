@@ -1,20 +1,20 @@
 // P-05 前期核心玩法·经营（设计25 第一、三节）：老板精力、每家店四个亲自经营动作（可带秘书）、口碑、店长 / 秘书自动经营、大盘行情、老板以后的大事
 // 「店」= 一条门店线（便利店 / 餐饮 / 服装）；营业额、进货的加成通过 economy.setManageHooks 挂进去
-import { credit } from './credit.js?v=8c602723'; // V3-01 亲自拍板攒投入度
-import M from '../config/manage.json?v=8c602723' with { type: 'json' };
-import AD from '../config/ads.json?v=8c602723' with { type: 'json' }; // V0.2.5 口碑底线 = 广告升的口碑
-import { IND_BY_ID } from '../config/industries.js?v=8c602723';
-import { SEC_BY_ID } from '../config/secretaries.js?v=8c602723';
-import { YEAR_MS, MONTH_MS } from './gametime.js?v=8c602723';
-import { industryRevenue, setManageHooks } from './economy.js?v=8c602723';
-import { setRateAdjFn } from './bank.js?v=8c602723';
-import { pay, receive, canPay } from './ledger.js?v=8c602723';
-import { holder, isSec, attrs } from './posts.js?v=8c602723';
-import { bossAttrs } from './boss.js?v=8c602723';
-import { dayKey } from './affection.js?v=8c602723';
-import { isTraining } from './training.js?v=8c602723';
-import { mark, energyBonus, onReward } from './goals.js?v=8c602723'; // P-06 目标链（开发2）：做到了打勾、精力上限、奖励
-import { wage } from './staff.js?v=8c602723';
+import { credit } from './credit.js?v=4306ebaa'; // V3-01 亲自拍板攒投入度
+import M from '../config/manage.json?v=4306ebaa' with { type: 'json' };
+import AD from '../config/ads.json?v=4306ebaa' with { type: 'json' }; // V0.2.5 口碑底线 = 广告升的口碑
+import { IND_BY_ID } from '../config/industries.js?v=4306ebaa';
+import { SEC_BY_ID } from '../config/secretaries.js?v=4306ebaa';
+import { YEAR_MS, MONTH_MS } from './gametime.js?v=4306ebaa';
+import { industryRevenue, setManageHooks } from './economy.js?v=4306ebaa';
+import { setRateAdjFn } from './bank.js?v=4306ebaa';
+import { pay, receive, canPay } from './ledger.js?v=4306ebaa';
+import { holder, isSec, attrs } from './posts.js?v=4306ebaa';
+import { bossAttrs } from './boss.js?v=4306ebaa';
+import { dayKey } from './affection.js?v=4306ebaa';
+import { isTraining } from './training.js?v=4306ebaa';
+import { mark, energyBonus, onReward } from './goals.js?v=4306ebaa'; // P-06 目标链（开发2）：做到了打勾、精力上限、奖励
+import { wage } from './staff.js?v=4306ebaa';
 
 export { M as MANAGE_CFG };
 export const DAY_MS = YEAR_MS / M.daysPerYear;
@@ -89,6 +89,7 @@ export const ACT_MS = M.energy.actHours * 3600e3;
 export function addFxFor(s, id, fx, t, ms) { const L = line(s, id); L.fx.push({ ...fx, until: t + ms, perm: false }); mg(s, t); }
 export function addFx(s, id, fx, t, days = 0) {
   const L = line(s, id); const until = days >= 9999 ? Infinity : days ? s.createdAt + (dayIndex(s, t) + days) * DAY_MS : dayEnd(s, t);
+  if (fx.src) { const o = L.fx.find((f) => f.src === fx.src && f.until > t); if (o) { for (const k of ['rev', 'cogs', 'margin']) if (fx[k] != null && Math.abs(fx[k]) > Math.abs(o[k] || 0)) o[k] = fx[k]; o.until = Math.max(o.until, until); o.perm = o.perm || days >= 9999; /* 开发1 并的时候改：按绝对值取大的（cogs 是负数，原来 Math.max 会留下小的那个）、到期取晚的 */ mg(s, t); return; } }   // 开发2 设计69 验收：同一来源（日程 src: 'agenda'）同一条线不叠加——取大的数、到期刷新成新的
   L.fx.push({ ...fx, until, perm: days >= 9999 }); mg(s, t);
 }
 /** V0.2.5（设计37 第二节 4）口碑底线 = 广告升上去的口碑（50 + 每级 5），永远不掉；店铺升级不再加口碑 */

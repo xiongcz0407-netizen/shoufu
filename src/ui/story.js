@@ -1,7 +1,7 @@
 // 剧情播放：全屏、立绘淡入、点一下下一句；多段排队
-import { SEC_BY_ID } from '../config/secretaries.js?v=8c602723';
-import { asset } from '../platform/assets.js?v=8c602723';
-import { h } from './dom.js?v=8c602723';
+import { SEC_BY_ID } from '../config/secretaries.js?v=4306ebaa';
+import { h } from './dom.js?v=4306ebaa';
+import { storyPortrait } from './portrait.js?v=4306ebaa';   // 设计66：立绘跟主页同一个 layout
 
 const queue = [];
 let playing = false;
@@ -23,9 +23,9 @@ function next() {
   const el = h('div', 'story' + (opts.bg || opts.bgLabel ? ' has-bg' : ''));
   if (opts.bg) el.style.backgroundImage = `linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.1) 30%, rgba(0,0,0,.55)), url("${opts.bg}")`;
   el.innerHTML = `${!opts.bg && opts.bgLabel ? `<div class="story-bgph">${opts.bgLabel}<small>（背景图还没到）</small></div>` : ''}${opts.title ? `<div class="story-title"><span>${opts.title}</span></div>` : ''}
-    ${sec ? `<img class="story-sec" src="${asset(`assets/sec/${sec}/${opts.outfit || 'c1'}.webp`)}" alt="">` : ''}
     <div class="story-box"><div class="story-name"></div><div class="story-text"></div><div class="story-hint">点一下继续</div></div>`;
   document.querySelector('#phone').appendChild(el);
+  if (sec) storyPortrait(el, sec, opts.outfit || 'c1', el.querySelector('.story-box'));
   document.body.classList.add('story-open'); // 藏首页立绘，免得两个人叠影
   let i = -1;
   const step = () => {

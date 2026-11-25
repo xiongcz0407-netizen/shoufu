@@ -1,17 +1,19 @@
 // V2-05 商战三回合（设计29 第一节）：开战前看对手卡片；三回合每回合双方各出一张打法同时亮牌；克制的赢，同打法 / 不相克比带去的秘书对应属性
 // 三回合赢两回合算赢（提前分出胜负就结束）；每赢一回合你这条线当月营收 +2%、对手利润 −3%；结果落地走 battle.settleBattle
-import { WAR, RIVAL_BY_ID } from '../config/rivals.js?v=8c602723';
-import * as B from './battle.js?v=8c602723';
-import { live, monthGrowth } from './rivalgrow.js?v=8c602723';
-import { ensureSec } from './secretary.js?v=8c602723';
-import { netWorth } from './economy.js?v=8c602723';
-import * as E from './economy.js?v=8c602723';
-import { auraBattle, visionBattle } from './boss.js?v=8c602723';
-import { bizBattle } from './rivalry.js?v=8c602723';
-import { bigBonus } from './manage.js?v=8c602723';
-import { pay, canPay } from './ledger.js?v=8c602723';
-import { wage } from './staff.js?v=8c602723';
-import { DAY_MS, dayIndex } from './manage.js?v=8c602723';
+import { WAR, RIVAL_BY_ID } from '../config/rivals.js?v=4306ebaa';
+import * as B from './battle.js?v=4306ebaa';
+import { live, monthGrowth } from './rivalgrow.js?v=4306ebaa';
+import { ensureSec } from './secretary.js?v=4306ebaa';
+import { netWorth } from './economy.js?v=4306ebaa';
+import * as E from './economy.js?v=4306ebaa';
+import { auraBattle, visionBattle } from './boss.js?v=4306ebaa';
+import { bizBattle } from './rivalry.js?v=4306ebaa';
+import { bigBonus } from './manage.js?v=4306ebaa';
+import { pay, canPay } from './ledger.js?v=4306ebaa';
+import { wage } from './staff.js?v=4306ebaa';
+import { DAY_MS, dayIndex } from './manage.js?v=4306ebaa';
+import { addMsg } from './inbox.js?v=4306ebaa';   // 设计64 商战自动打完留一条
+import { SEC_BY_ID } from '../config/secretaries.js?v=4306ebaa';
 
 const P = WAR.plays; export const PLAY_IDS = Object.keys(P); export { WAR };
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -84,8 +86,31 @@ function finish(s, t) {
   const r = B.settleBattle(s, w.rivalId, w.team, win, t, { rounds: w.me, project: 'war', cards: w.log.map((x) => [x.me, x.op, x.win]) });
   s.war = { ...w, result: r }; return r;
 }
-/** 放弃（关了面板）：没打的回合都算输 */
-export function abandon(s, t) { const w = s.war; if (!w || !w.open) return null; w.op = WAR.need; return finish(s, t); }
+/** 设计64：中途离开（关了面板 / 关了游戏）不算输——剩下的回合交给带去的秘书自动打完：每回合 pickCard(s, true)（有情报出克它的，没有出带去的人最强那项），
+ *  跟玩家自己点一样扣钱、比属性、记日志；一张都出不起的那回合算输。打完照常结算，消息「经营」里留一条（三回合怎么打的）。
+ *  返回 { result, war, text } 或 null（没有在打的） */
+export function autoFinish(s, t, rnd = Math.random) {
+  const w = s.war; if (!w || !w.open) return null;
+  while (w.open) {
+    const c = pickCard(s, true);
+    if (!c) {   // 钱不够，一张都出不起：这一回合算输
+      w.op++; w.log.push({ round: w.round + 1, me: null, op: w.plan[w.round], win: false, how: 'broke', rate: null, spec: false, cost: 0, auto: true }); w.round++; w.hurtMe = 0; w.hurtOp = 0;
+      if (w.me >= WAR.need || w.op >= WAR.need || w.round >= WAR.rounds) finish(s, t);
+      continue;
+    }
+    const x = play(s, c, !whyNotPlay(s, c, true, t), t, rnd); if (!x.ok) break;
+    w.log[w.log.length - 1].auto = true;
+  }
+  const war = s.war; const res = war.result; const who = (SEC_BY_ID[war.team[0]] || {}).name || '秘书'; const r = RIVAL_BY_ID[war.rivalId];
+  const text = `${who}替你打完了跟${r.name}的商战：${war.me} : ${war.op} ${res && res.win ? '赢了' : '输了'}`;
+  addMsg(s, { kind: 'event', type: 'war_auto', title: text, from: war.team[0], body: war.log.map(logText).join('<br>') }, t);
+  return { result: res, war, text };
+}
+/** 一回合的日志（面板里、消息里一样） */
+export function logText(x) {
+  if (x.how === 'broke') return `第 ${x.round} 回合：钱不够，一张牌都出不起，对方出「${P[x.op].name}」→ 输`;
+  return `第 ${x.round} 回合：${x.auto ? '秘书替你' : '你'}出「${P[x.me].name}」${x.spec ? '（专长）' : ''}，对方出「${P[x.op].name}」→ ${x.win ? '赢' : '输'}（${x.how === 'beat' ? '克住了' : x.how === 'beaten' ? '被克了' : `比属性，把握 ${Math.round(x.rate * 100)}%`}）`;
+}
 // 抢份额：每赢一回合，你这条线（对手抢的那条）这个月营收 +2%（一个游戏月 30 天）；估值不算
 B.onShare((s, rivalId, rounds, t) => {
   const r = RIVAL_BY_ID[rivalId]; if (!rounds || !r.line || !s.inds[r.line]) return;

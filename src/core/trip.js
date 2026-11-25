@@ -1,20 +1,20 @@
 // V3-03 出差（设计33 第四之三节）：日程里的「去 X 签约 / 看地 / 见投资人 / 考察」，占 1～3 个游戏日
 // 出发前选带谁 → 交通（私人飞机 / 头等舱）、住（自己的房子 / 地标酒店 / 按档次订一间套房）→ 白天办事（她的属性 + 你的选择）→ 晚上 → 过夜剧情（按爱慕阶段拼片段）→ 早上收尾
 // 存档 s.trip = { rec: { 秘书id: { n, cities: [] } }, n }；片段用过的记 s.storyUsed（core/storylib.js）
-import C from '../config/trips.json?v=8c602723' with { type: 'json' };
-import { SEC_BY_ID } from '../config/secretaries.js?v=8c602723';
-import { ITEM } from './assets.js?v=8c602723';
-import { LM, mine as lmMine } from './landmark.js?v=8c602723';
-import { attrs } from './posts.js?v=8c602723';
-import { ensureSec, loveStage } from './secretary.js?v=8c602723';
-import { addFavor, addLove } from './affection.js?v=8c602723';
-import { pay } from './ledger.js?v=8c602723';
-import { addFx, isShop } from './manage.js?v=8c602723';
-import { isTraining } from './training.js?v=8c602723';
-import { isScouting } from './busy.js?v=8c602723';
-import * as AG from './agenda.js?v=8c602723';
-import * as SL from './storylib.js?v=8c602723';
-import * as STY from './styles.js?v=8c602723'; // V3-05 出差按场合换衣服
+import C from '../config/trips.json?v=4306ebaa' with { type: 'json' };
+import { SEC_BY_ID } from '../config/secretaries.js?v=4306ebaa';
+import { ITEM } from './assets.js?v=4306ebaa';
+import { LM, mine as lmMine } from './landmark.js?v=4306ebaa';
+import { attrs } from './posts.js?v=4306ebaa';
+import { ensureSec, loveStage } from './secretary.js?v=4306ebaa';
+import { addFavor, addLove } from './affection.js?v=4306ebaa';
+import { pay } from './ledger.js?v=4306ebaa';
+import { addFx, isShop } from './manage.js?v=4306ebaa';
+import { isTraining } from './training.js?v=4306ebaa';
+import { isScouting } from './busy.js?v=4306ebaa';
+import * as AG from './agenda.js?v=4306ebaa';
+import * as SL from './storylib.js?v=4306ebaa';
+import * as STY from './styles.js?v=4306ebaa'; // V3-05 出差按场合换衣服
 export { C as TRIP_CFG };
 
 const pick = (a, r) => a[Math.floor(r() * a.length)];
@@ -59,7 +59,7 @@ export function go(s, id, secId, choice, t, rnd = Math.random) {
   const r0 = ensureSec(s, secId); const stage = loveStage(r0.love);
   addFavor(s, secId, C.favor); addLove(s, secId, C.love); res.push(`${name}好感 +${C.favor}、爱慕 +${C.love}`);
   const T = tr(s); const rec = (T.rec[secId] = T.rec[secId] || { n: 0, cities: [] }); rec.n += 1; if (!rec.cities.includes(P.city)) rec.cities.push(P.city); T.n += 1;
-  it.status = 'done'; it.res = { sec: secId, m }; R.log.unshift({ t, id: it.id, text: `跟${name}去${P.city}${pu.name}：${res.join('，')}` });
+  it.status = 'done'; it.doneAt = t; it.res = { sec: secId, m }; AG.startTrip(s, it, t);   // 设计69：出发起占 N 个游戏日 R.log.unshift({ t, id: it.id, text: `跟${name}去${P.city}${pu.name}：${res.join('，')}` });
   // 剧情
   const st = Math.max(1, stage);
   const parts = SL.hasTrip(secId) ? SL.night(s, secId, st, { city: P.city, view: P.view, hotel: P.hotel, cloth }, rnd) : C.fallback[String(st)].map((seg) => seg.map(sub));

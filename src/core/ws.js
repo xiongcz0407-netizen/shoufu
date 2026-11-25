@@ -3,14 +3,14 @@
 // 利好 / 利空新闻每跳检查、新闻前 30 跳就说（提前说 / 说准按「股票 + 新闻那一跳」定种子只掷一次，点几次都一样）。
 // 机会：要涨停 / 有利好 / 有一波 → 「重要」消息（⅓仓 / 半仓 / 全仓 一点就挂）；手里有的要跌 → 「¥X 以下先卖掉」（卖 ⅓ / 一半 / 全部）。
 // 设计48：提示不进消息，放在 s.mkt.wsTips（股票页看盘卡片下面列）；同一只不重复、最多 3 条；买入点过了收起；「不用了」这次看盘这只不再说。离线不补发：回来还在看盘时间里马上扫一次。结束弹战绩。不看盘就没有任何股票提示（规矩 9）。
-import * as SK from './stocks.js?v=8c602723';
-import * as TR from './trade.js?v=8c602723';
-import { attrs as secAttrs } from './posts.js?v=8c602723';
-import { whyEnergy, doEnergy } from './manage.js?v=8c602723';
-import { isTraining } from './training.js?v=8c602723';
-import { SEC_BY_ID } from '../config/secretaries.js?v=8c602723';
-import { posShares, POS_BY, nFor } from './look.js?v=8c602723';
-import { have as haveItem, useItem } from './coupon.js?v=8c602723';   // 设计53 投资券
+import * as SK from './stocks.js?v=4306ebaa';
+import * as TR from './trade.js?v=4306ebaa';
+import { attrs as secAttrs } from './posts.js?v=4306ebaa';
+import { whyEnergy, doEnergy } from './manage.js?v=4306ebaa';
+import { isTraining } from './training.js?v=4306ebaa';
+import { SEC_BY_ID } from '../config/secretaries.js?v=4306ebaa';
+import { posShares, POS_BY, nFor } from './look.js?v=4306ebaa';
+import { have as haveItem, useItem } from './coupon.js?v=4306ebaa';   // 设计53 投资券
 
 const C = SK.SCFG; const W = C.watch; const WS = W.ws; const T = W.tip;
 const TICK = C.tickSec * 1000; const HOUR_TICKS = 3600e3 / TICK;
@@ -76,7 +76,8 @@ export function newsCall(s, w, newsTick) {
 // ---------- 设计51：只给马上能买、win 跳内卖掉的（设计65：5 分钟）----------
 const K = W.look; const up2 = (v) => Math.ceil(v * 100 - 1e-7) / 100;
 const cOf = (wv) => K.cBase + K.cK * Math.min(100, Math.max(0, wv)) / 100;
-const AHEAD = () => WS.win;   // 设计59 / 65：只看接下来 win 跳（现在 10 跳 = 5 分钟，从挂单算）
+const AHEAD = () => WS.win;
+const LEAD = () => WS.minLead || 0;   // 设计67：低点最早在第 minLead + 1 跳（下标 ≥ minLead）   // 设计59 / 65：只看接下来 win 跳（现在 10 跳 = 5 分钟，从挂单算）
 /** 这个秘书的门槛：3% + 智慧 × 0.02%（智慧 100 = 5%） */
 export const thrOf = (wv) => WS.minG + Math.min(100, Math.max(0, wv)) * WS.minGK;
 /** 这一跳以后的 win 跳（看盘只看这么远） */
@@ -86,11 +87,13 @@ function luIn(m, F) { const out = {}; const end = m.tick + AHEAD(); for (const p
 /** 设计59 一只的价：接下来 win 跳（5 分钟）里找「先低后高」最赚的一对——卖点 j（1～win−1）、买点 b = p[0..j−1] 最低那一跳（同样低取最早）；
  *  买价 X = p[b] 往上取整到分（不超涨停价）；卖价 Y = X + (高点 − X) × c 往下取整（不封顶；会封涨停的往涨停价靠）；止损 Z = X × 0.97；
  *  只要赚头 ≥ 3% + 智慧 × 0.02%。返回 { code, X, Y, Z, g, lu, b（第几跳到低点，0 = 下一跳）, hit（第几跳碰到卖价）, mins（约几分钟内完成）, thr } */
-export function quick(m, code, path, wv, luLimit = null) {
+export function quick(m, code, path, wv, luLimit = null, fixB = null) {   // 设计67：fixB 给了就是出提示时定下的低点（之后每跳只更新价，不挪低点）
   const P = m.px[code]; if (!(P > 0) || !path || path.length < AHEAD() || SK.onBoard(m, code) === 'up') return null;
-  const B = SK.band(m, code); const w = Math.min(100, Math.max(0, wv)); const c = cOf(w); const thr = thrOf(w); let best = null; let lo = 0;
-  for (let j = 1; j < AHEAD(); j++) {
-    if (path[j - 1] < path[lo] - 1e-9) lo = j - 1;
+  if (fixB != null && !(fixB >= 0)) return null;   // 低点那一跳已经到了
+  const L0 = fixB != null ? fixB : LEAD();   // 设计67：买点 b 只在 [minLead, j − 1] 里找（出提示起至少 1 分钟后才到低点），卖点 j 从 minLead + 1 起
+  const B = SK.band(m, code); const w = Math.min(100, Math.max(0, wv)); const c = cOf(w); const thr = thrOf(w); let best = null; let lo = L0;
+  for (let j = L0 + 1; j < AHEAD(); j++) {
+    if (fixB == null && path[j - 1] < path[lo] - 1e-9) lo = j - 1;
     let X = up2(path[lo]); if (B.up != null) X = Math.min(X, B.up); const H = path[j]; if (!(H > X)) continue;
     const lu = luLimit != null && H >= luLimit - 1e-9;
     const Y = dn2(Math.min(H, lu ? X + (luLimit - X) * c : X + (H - X) * c)); const g = Y / X - 1; if (!(g > 0)) continue;
@@ -123,6 +126,7 @@ function send(s, w, d, t) {
   if (msgs(s).some((x) => x.data.code === d.code) || (w.no && w.no[d.code])) return null;   // 同一只不重复；「不用了」的这次看盘不再说
   const who = w.who; const sec = SEC_BY_ID[who] ? SEC_BY_ID[who].name : ''; const m = s.mkt;
   const tip = { id: (m.wsTipSeq = (m.wsTipSeq || 0) + 1), from: who, title: `${sec}：${nm(d.code)}${d.pre ? '有利好，马上要出' : TITLE[d.kind]}`, data: { ...d, at: t }, at: t, seen: false };
+  if (d.kind !== 'fall' && !d.pre && d.b != null) tip.data.lowTk = m.tick + 1 + d.b;   // 设计67：低点那一跳出提示时就定下来
   (m.wsTips = m.wsTips || []).push(tip);
   w.sent += 1; w.toast.push({ who, code: d.code, kind: d.kind, id: tip.id, text: d.kind === 'fall' ? `${nm(d.code)}要跌，去看看` : d.pre ? `${nm(d.code)}有利好，马上要出` : `${nm(d.code)}有机会，去看看` });
   const all = tips(s);   // 最多 3 条：从排在后面的挤掉，但涨幅 ≥ 3% 的能买提示至少留一条（设计52 保底）
@@ -138,8 +142,8 @@ const nextScan = (w, tk) => w.st + (Math.floor((tk - w.st) / WS.scanTicks) + 1) 
 export function makeGuard(s, w, see, tk) {
   const m = s.mkt; const G = WS.guard; m.guards = (m.guards || []).filter((g) => g.from + g.ticks > tk - 200);
   if (m.guards.some((g) => !g.w && g.from > tk)) return null;   // 已经有一只在等（算错造的不算）
-  const c = cOf(wit(s, w)); const thr = thrOf(wit(s, w)); const N = AHEAD(); const rise = Math.pow(1 + thr / c + G.extra, N / (N - 1)) - 1;   // 设计59 / 65：低点是第一跳，高点是第 win 跳（跳数跟着 win 走）
-  const lus = new Set(((m.lu && m.lu.act) || []).map((p) => p.code)); const busy = new Set(msgs(s).map((x) => x.data.code)); for (const o of m.orders || []) busy.add(o.code); for (const [c, h] of Object.entries(m.hold || {})) if (h && h.n > 0) busy.add(c);   // 手里有的、挂着单的不碰（不然把已经说好的走势改了）
+  const c = cOf(wit(s, w)); const thr = thrOf(wit(s, w)); const N = AHEAD(); const D = LEAD() + 1; const rise = thr / c + G.extra;   // 设计67：先用 D 跳（minLead + 1 = 2 跳，1 分钟）往下走 dip 到低点，再从低点涨 rise 到第 win 跳
+  const lus = new Set(((m.lu && m.lu.act) || []).map((p) => p.code)); const busy = new Set(msgs(s).map((x) => x.data.code)); for (const o of m.orders || []) busy.add(o.code); for (const [c, h] of Object.entries(m.hold || {})) if (h && h.n > 0) busy.add(c); { const to = nextScan(w, tk) + 1 + N + WS.newsLead; for (let k = tk + 1; k <= to; k++) { const nw = SK.newsAt(k); if (nw && nw.kind === 'stock') busy.add(nw.target); } }   // 设计67：快出个股新闻的也不碰（不然先出一条利好预告，把保底那只占住）；手里有的、挂着单的不碰（不然把已经说好的走势改了）
   const base = (code) => m.px[code] > 0 && !lus.has(code) && !busy.has(code) && !(w.no && w.no[code]) && !SK.onBoard(m, code) && !SK.BY[code].ipo && !m.guards.some((g) => g.code === code && g.from + g.ticks > tk);
   const room = (code) => { const B = SK.band(m, code); return B.up == null ? Infinity : B.up / m.px[code]; };
   const all = SK.STOCKS.map((x) => x.code);
@@ -147,8 +151,8 @@ export function makeGuard(s, w, see, tk) {
   let ok = []; for (const [pool, k] of [[see, 1.04], [all, 1.04], [see, 1.01], [all, 1.01]]) { ok = pool.filter((c) => base(c) && room(c) > (1 + rise) * k); if (ok.length) break; }
   if (!ok.length) { const b = all.filter(base).sort((a, c) => room(c) - room(a)); if (!b.length) return null; ok = [b[0]]; }
   const code = ok[Math.floor(SK.hu(`WSG${s.gid || ''}`, tk) * ok.length)];
-  const r1 = Math.pow(1 + thr / c + G.extra + 0.03 / m.px[code], N / (N - 1)) - 1;   // 设计54：便宜股（几块钱）买价往上、卖价往下各取整到分，多留 3 分钱
-  const g = { code, from: nextScan(w, tk) + 1, ticks: N, rise: Math.round(r1 * 1e6) / 1e6, p0: null, by: tk }; m.guards.push(g); w.guards = (w.guards || 0) + 1; return g;
+  const r1 = thr / c + G.extra + 0.03 / (m.px[code] * (1 - (G.dip || 0)));   // 设计54：便宜股（几块钱）买价往上、卖价往下各取整到分，多留 3 分钱
+  const g = { code, from: nextScan(w, tk) + 1, ticks: N, rise: Math.round(r1 * 1e6) / 1e6, p0: null, by: tk, dip: G.dip || 0, dn: D }; m.guards.push(g); w.guards = (w.guards || 0) + 1; return g;   // 设计67：dip / dn 见 stocks.js
 }
 
 // ---------- 设计53 秘书算错 ----------
@@ -164,8 +168,9 @@ function moveOn(s, code, tk, dir) {
   const g = { code, from: tk + 1, ticks: AHEAD(), rise: Math.round(dir * a * 1e6) / 1e6, p0: null, by: tk, w: dir }; m.guards.push(g); return g;
 }
 /** 设计59 说错的：低点只在前 lowIn 跳里找（碰得到），碰到以后接着跌——win 跳（5 分钟）里最高 < 买价 × 1.01，挂单起第 win 跳（到时按现价卖）比低点还低 0.5% */
-const lowOf = (p) => { let b = 0; for (let k = 1; k < WS.lowIn; k++) if (p[k] < p[b] - 1e-9) b = k; return b; };
+const lowOf = (p) => { const L0 = LEAD(); let b = L0; for (let k = L0 + 1; k < WS.lowIn; k++) if (p[k] < p[b] - 1e-9) b = k; return b; };   // 设计67：第 2～4 跳（下标 minLead～lowIn − 1）
 const stillBad = (p, b, X) => Math.max(...p.slice(b + 1, AHEAD())) < X * (1 + WS.wrong.maxUp) && p[AHEAD() - 1] < p[b] * 0.995;
+const fakeY = (X, g0, thr) => { const Y = dn2(X * (1 + g0)); return Y / X - 1 >= thr - 1e-9 ? Y : up2(X * (1 + thr)); };   // 设计67：便宜股取整到分后也不低于门槛
 const fakeG = (s, code, tk, wv) => thrOf(wv) + 0.001 + SK.hu(`WSG0${s.gid || ''}:${code}`, tk) * 0.02;
 const fakeMins = (s, code, tk, b) => Math.min(Math.ceil(AHEAD() / 2) - 1,   /* 设计65：说错的「约 N 分钟」比最晚卖出早一点（≤ 4 分钟） */ Math.ceil((b + 1) / 2) + 1 + Math.floor(SK.hu(`WSN${s.gid || ''}:${code}`, tk) * 4));
 /** 说错的那条：她看得到的里挑一只「碰到低点以后接着跌」的；没有就造一只往下走的。提示长得和对的一样（低点买、+门槛以上卖、约 N 分钟内完成） */
@@ -184,22 +189,23 @@ function wrongBuy(s, w, see, kind, wv, ex, i) {
     code = L[Math.floor(SK.hu(`WSD${s.gid || ''}`, tk * 8 + i) * L.length)]; if (!moveOn(s, code, tk, -1)) return null; F = fut(m);
   }
   const { X, b } = xOf(code); const B = SK.band(m, code); const g0 = fakeG(s, code, tk, wv); const lu = kind === 'lu' && B.up != null;
-  const Y = lu ? B.up : dn2(X * (1 + g0));
+  const Y = lu ? B.up : fakeY(X, g0, thrOf(wv));
   return { kind, code, X, Y, Z: dn2(X * K.slK), g: Y / X - 1, g0, lu, b, thr: thrOf(wv), mins: fakeMins(s, code, tk, b), wrong: 1, until: tk + WS.scanTicks };
 }
 /** 说错的买单刷新：低点、买价照样跟着变；还是「碰到以后接着跌」就留着（最多 scanTicks 跳），不跌了就收起 */
 function refreshWrong(s, x, F) {
   const m = s.mkt; const d = x.data; const p = F.path[d.code]; if (!p || m.tick > d.until) return false;
-  const b = lowOf(p); const B = SK.band(m, d.code); let X = up2(p[b]); if (B.up != null) X = Math.min(X, B.up);
+  const b = d.lowTk != null ? d.lowTk - m.tick - 1 : lowOf(p); if (b < 0) return false;   // 设计67：低点定下了不挪；到了没跟就收起
+  const B = SK.band(m, d.code); let X = up2(p[b]); if (B.up != null) X = Math.min(X, B.up);
   if (!stillBad(p, b, X)) return false;
-  const Y = d.lu && B.up != null ? B.up : dn2(X * (1 + d.g0)); if (B.up != null && (Y > B.up || Y / X - 1 < (d.thr || WS.minG) - 5e-4)) return false;
+  const Y = d.lu && B.up != null ? B.up : fakeY(X, d.g0, d.thr || WS.minG); if (B.up != null && (Y > B.up || Y / X - 1 < (d.thr || WS.minG) - 5e-4)) return false;
   Object.assign(d, { X, Y, Z: dn2(X * K.slK), g: Y / X - 1, b, mins: Math.max(Math.ceil((b + 1) / 2), Math.min(d.mins, Math.ceil(AHEAD() / 2))) }); return true;
 }
 
 /** 扫一次（自动 / 手动一样）：看得到的里 5 分钟内封涨停 / 能涨 ≥ 3% 的 + 手里有的要跌；没有好的就造一只（下一次扫一定有）；返回新发的提示 */
 export function scan(s, t = Date.now(), manual = false) {
   const w = ws(s); if (!w) return [];
-  const m = s.mkt; w.scans.push({ tk: m.tick, manual }); if (w.scans.length > 80) w.scans.shift(); const wv = wit(s, w);
+  const m = s.mkt; w.scans.push({ tk: m.tick, manual }); if (w.scans.length > 160) w.scans.shift(); const wv = wit(s, w);   // 设计67：6 小时 144 次，留得下
   const F = fut(m); const LU = luIn(m, F); const see = visible(s, w); const out = [];
   const rows = see.map((code) => quick(m, code, F.path[code], wv, LU[code] != null ? LU[code] : null)).filter(Boolean).sort((a, b) => (b.lu - a.lu) || (b.g - a.g) || (a.hit - b.hit));
   const ex = new Set(rows.map((r) => r.code)); let wi = 0;
@@ -235,7 +241,7 @@ function newsCheck(s, w, tk, t) {
 /** 利好看错了的那只：照样给价（前 lowIn 跳里的低点买、卖价门槛以上），其实新闻出来要跌 */
 function wrongNews(s, w, code, wv) {
   const m = s.mkt; const p = fut(m).path[code]; if (!p || SK.onBoard(m, code) === 'up') return null; const B = SK.band(m, code);
-  const b = lowOf(p); let X = up2(p[b]); if (B.up != null) X = Math.min(X, B.up); const g0 = fakeG(s, code, m.tick, wv); const Y = dn2(X * (1 + g0)); if (B.up != null && Y > B.up) return null;
+  const b = lowOf(p); let X = up2(p[b]); if (B.up != null) X = Math.min(X, B.up); const g0 = fakeG(s, code, m.tick, wv); const Y = fakeY(X, g0, thrOf(wv)); if (B.up != null && Y > B.up) return null;
   return { X, Y, Z: dn2(X * K.slK), g: Y / X - 1, g0, lu: false, b, thr: thrOf(wv), mins: fakeMins(s, code, m.tick, b), wrong: 1, until: m.tick + WS.scanTicks };
 }
 /** 每跳重算（设计51）：买价跟着变；机会没了收起；预告到能买时出按钮 */
@@ -250,17 +256,19 @@ export function refresh(s) {
     if (d.pre && d.right === false) {   // 设计53：利好看错了（其实是利空）—— 新闻快到时照样出按钮，跟了会亏
       if (d.newsTick - tk > WS.sellTicks - 2) continue;
       const w = ws(s); const nd = w ? wrongNews(s, w, d.code, wv) : null; if (!nd) { delTip(s, x.id); continue; }
-      Object.assign(d, nd, { pre: false }); if (w) { tally(w, true); w.toast.push({ who: x.from, code: d.code, kind: 'news', id: x.id, text: `${nm(d.code)}有利好，现在能买了` }); } continue;
+      Object.assign(d, nd, { pre: false, lowTk: tk + 1 + nd.b }); if (w) { tally(w, true); w.toast.push({ who: x.from, code: d.code, kind: 'news', id: x.id, text: `${nm(d.code)}有利好，现在能买了` }); } continue;
     }
     if (d.kind === 'fall') {
       const have = TR.sellable(s, d.code); if (have < 1) { delTip(s, x.id); continue; }
       const f = quickFall(m, d.code, F.path[d.code], d.newsTick != null && tk < d.newsTick); if (!f) { delTip(s, x.id); continue; }
       Object.assign(d, { X: f.X, have, g: d.newsTick != null && tk < d.newsTick ? d.g : f.drop }); continue;
     }
-    const q = quick(m, d.code, F.path[d.code], wv, LU[d.code] != null ? LU[d.code] : null);
+    const fixB = d.pre || d.lowTk == null ? null : d.lowTk - tk - 1;   // 设计67：低点定下了，只更新价；到了低点那一跳还没跟就收起
+    if (fixB != null && fixB < 0) { delTip(s, x.id); continue; }
+    const q = quick(m, d.code, F.path[d.code], wv, LU[d.code] != null ? LU[d.code] : null, fixB);
     if (!q) { if (d.pre && tk <= d.newsTick + WS.buyTicks) continue; delTip(s, x.id); continue; }   // 预告：新闻出来前一直留着
     if (d.pre) { d.pre = false; const w = ws(s); if (w) tally(w, false); if (w) w.toast.push({ who: x.from, code: d.code, kind: 'news', id: x.id, text: `${nm(d.code)}有利好，现在能买了` }); x.title = `${SEC_BY_ID[x.from] ? SEC_BY_ID[x.from].name : ''}：${nm(d.code)}有利好`; }
-    Object.assign(d, { X: q.X, Y: q.Y, Z: q.Z, g: q.g, mins: q.mins, lu: q.lu, b: q.b, hit: q.hit, thr: q.thr }); if (d.kind !== 'news') d.kind = q.lu ? 'lu' : 'wave';
+    Object.assign(d, { X: q.X, Y: q.Y, Z: q.Z, g: q.g, mins: q.mins, lu: q.lu, b: q.b, hit: q.hit, thr: q.thr }); if (d.lowTk == null) d.lowTk = tk + 1 + q.b; if (d.kind !== 'news') d.kind = q.lu ? 'lu' : 'wave';
   }
 }
 /** 每一跳（stocks.js advance 的钩子）：重算提示、到点自动扫、新闻前、结束；离线补的跳不发，回到现在马上扫一次 */
@@ -300,7 +308,8 @@ export const pickInfo = (s, id) => { const wv = secAttrs(s, id).wit; return { wi
 export const etaOf = (d, tk) => ({ buy: tk + 1 + (d.b || 0), sell: tk + Math.max(1 + (d.b || 0) + 1, d.hit != null && !d.wrong ? 1 + d.hit : (d.mins || Math.ceil(AHEAD() / 2)) * 2) });
 /** 跟一单（⅓仓 / 半仓 / 全仓，或者「改」了价钱再挂）：先看今天还能不能跟（免费的 → 投资券），挂上才算 */
 export function placeLegs(s, msg, legs, t = Date.now()) {
-  const d = msg.data; const f = followState(s, t); if (!f.ok) return { ok: false, why: '今天免费的用完了，没有投资券', noCoupon: true };
+  const d = msg.data; if (d.lowTk != null && t >= d.lowTk * TICK) { delTip(s, msg.id); return { ok: false, why: '低点过了，等下一条', past: true }; }   // 设计67
+  const f = followState(s, t); if (!f.ok) return { ok: false, why: '今天免费的用完了，没有投资券', noCoupon: true };
   const tk = s.mkt.tick; const eta = etaOf(d, tk);   // 设计60：预计到低点买入、预计卖出那一跳（说错的照提示上写的）
   const r = TR.addGroup(s, legs, { src: 'watch', exp: t + ((d.b || 0) + 1 + WS.buyTicks) * TICK + 1000, lu: !!d.lu, sellBy: tk + AHEAD(), etaBuy: eta.buy, etaSell: eta.sell }, t); if (!r.ok) return r;   // 设计59：到低点后 2 跳没成交撤；从挂单起 10 分钟到了按现价卖
   const used = useFollow(s, t); delTip(s, msg.id); const w = ws(s); if (w) { w.placed += 1; w.grps.push(r.grp); if (d.wrong) (w.wrongGrps = w.wrongGrps || {})[r.grp] = 1; }
@@ -333,4 +342,11 @@ TR.addGroupHook((s, e) => {
 });
 /** 说错亏了的台词（拿一次就清） */
 export const takeWrong = (s) => { const q = (s.mkt && s.mkt.wrongQ) || []; if (s.mkt) s.mkt.wrongQ = []; return q; };
+/** 设计67「还能跟 X 分钟」：离低点那一跳还有 ms 毫秒（现实时间）→ 30 秒一档往下取（1 分钟、1 分半、2 分钟…）；不到 1 分钟 soon（橙色）；到了 past */
+export function followTxt(ms) {
+  if (ms == null) return { text: '', cls: '' };
+  if (ms <= 0) return { text: '低点过了，等下一条', cls: 'past' };
+  if (ms < 60e3) return { text: '还能跟不到 1 分钟', cls: 'soon' };
+  const h = Math.floor(ms / 30e3); const mn = Math.floor(h / 2); return { text: `还能跟 ${mn} 分${h % 2 ? '半' : '钟'}`, cls: '' };
+}
 export { nFor };

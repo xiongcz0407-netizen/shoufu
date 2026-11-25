@@ -1,18 +1,18 @@
 // 设计37 第三节：通用升级框 upgradeBox —— 顶上金光「升级！」，三行：升了什么 / 带来什么（前 → 后）/ 下一步；一个「好」，点框外不关。
 // 同一时间只放一个，其余排队；剧情、小场景开着时先等（跟设计35 第五节第 4 条的队列一个规矩）。
 // 开发2 这边接：秘书上课（ui/training.js）、好感升阶、老板属性涨（下面两个看守，每秒比一次）。开发1 的店铺 / 广告 / 分店直接调 upgradeBox。
-import { SEC_BY_ID } from '../config/secretaries.js?v=8c602723';
-import { OUTFITS } from '../config/outfits.js?v=8c602723';
-import { LINES } from '../config/lines.js?v=8c602723';
-import { FAVOR_STAGES, favorStage } from '../core/secretary.js?v=8c602723';
-import { bossAttrs, auraBattle, networkAcquire, visionIncome, visionBattle } from '../core/boss.js?v=8c602723';
-import { favorMult } from '../core/affection.js?v=8c602723';
-import { nameOf } from '../core/styles.js?v=8c602723';
-import { RIVALS } from '../config/rivals.js?v=8c602723';
-import P from '../config/posts.json?v=8c602723' with { type: 'json' };
-import { game } from '../game.js?v=8c602723';
-import { h } from './dom.js?v=8c602723';
-import { isStoryPlaying } from './story.js?v=8c602723';
+import { SEC_BY_ID } from '../config/secretaries.js?v=4306ebaa';
+import { outfitsOf } from '../config/outfits.js?v=4306ebaa';
+import { LINES } from '../config/lines.js?v=4306ebaa';
+import { FAVOR_STAGES, favorStage } from '../core/secretary.js?v=4306ebaa';
+import { bossAttrs, auraBattle, networkAcquire, visionIncome, visionBattle } from '../core/boss.js?v=4306ebaa';
+import { favorMult } from '../core/affection.js?v=4306ebaa';
+import { nameOf } from '../core/styles.js?v=4306ebaa';
+import { RIVALS, ACQ_DISC } from '../config/rivals.js?v=4306ebaa';
+import P from '../config/posts.json?v=4306ebaa' with { type: 'json' };
+import { game } from '../game.js?v=4306ebaa';
+import { h } from './dom.js?v=4306ebaa';
+import { isStoryPlaying } from './story.js?v=4306ebaa';
 
 const esc = (x) => String(x == null ? '' : x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const Q = []; let showing = false;
@@ -54,7 +54,7 @@ function pump() {
 const favorEff = (f) => { let e = 1; for (const [x, k] of P.favorEff) if (f >= x) e = k; return e; };
 export function favorBox(s, id, fromStage, toStage) {
   const r = s.secs[id]; const name = SEC_BY_ID[id].name; const gains = [];
-  const wear = OUTFITS.filter((o) => o.needFavor > fromStage * 100 && o.needFavor <= toStage * 100).map((o) => `${nameOf(id, o.id)}${(r.owned || []).includes(o.id) ? '（已买）' : ''}`);
+  const wear = outfitsOf(id).filter((o) => o.needFavor > fromStage * 100 && o.needFavor <= toStage * 100).map((o) => `${nameOf(id, o.id)}${(r.owned || []).includes(o.id) ? '（已买）' : ''}`);
   if (wear.length) gains.push(`能穿：${wear.join('、')}`);
   if (fromStage * 100 < 200 && toStage * 100 >= 200) gains.push('点她有一半机会撒娇（暧昧台词）');
   const e0 = favorEff(fromStage * 100), e1 = favorEff(toStage * 100);
@@ -67,7 +67,7 @@ export function favorBox(s, id, fromStage, toStage) {
 // —— 老板属性涨 ——
 const NAME = { aura: '气场', network: '人脉', vision: '眼光' };
 const fxOf = (s) => ({ aura: [['商战胜率', `+${(auraBattle(s) * 100).toFixed(1)}%`], ['秘书好感涨得快', `×${favorMult(s).toFixed(2)}`]],
-  network: [['收购成功率', `+${(networkAcquire(s) * 100).toFixed(1)}%`]],
+  network: [['收购价', `−${(Math.min(networkAcquire(s) * ACQ_DISC.network, ACQ_DISC.networkMax) * 100).toFixed(1)}%`]],   // 设计64
   vision: [['产钱', `+${(visionIncome(s) * 100).toFixed(1)}%`], ['商战看穿底牌', `+${(visionBattle(s) * 100).toFixed(1)}%`]] });
 const NEXT = { aura: '买更贵的车、表、西装还能涨', network: '买豪宅、收购对手还能涨', vision: '买飞机、开分店、升称号还能涨' };
 const snap = (s) => ({ a: bossAttrs(s), fx: fxOf(s), seq: s.ledgerSeq || 0, acq: Object.values(s.rivals || {}).filter((x) => x.acquired).length, br: Object.values(s.inds || {}).reduce((a, x) => a + (x.branches || 0), 0), title: s.title || 0 });

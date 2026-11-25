@@ -1,7 +1,7 @@
 // 离开期间账单（第 2-16a 项）：秘书替你做了什么（从流水的经手人和消息中心数出来）
-import { CATS } from './ledger.js?v=8c602723';
-import { SEC_BY_ID } from '../config/secretaries.js?v=8c602723';
-import { postOfSec, postName } from './posts.js?v=8c602723';
+import { CATS } from './ledger.js?v=4306ebaa';
+import { SEC_BY_ID } from '../config/secretaries.js?v=4306ebaa';
+import { postOfSec, postName } from './posts.js?v=4306ebaa';
 
 /** 离开这段时间（bill.from ～ bill.to）每个秘书经手的事：按类别合计 + 发来的月报 / 请示 */
 export function secWork(s, b) {

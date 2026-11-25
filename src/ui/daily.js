@@ -1,12 +1,12 @@
 // 每日：签到 + 每日任务
-import * as DL from '../core/daily.js?v=8c602723';
-import { totalIncome } from '../core/economy.js?v=8c602723';
-import { SEC_BY_ID } from '../config/secretaries.js?v=8c602723';
-import { fmtMoney } from '../core/format.js?v=8c602723';
-import { now } from '../core/clock.js?v=8c602723';
-import { game } from '../game.js?v=8c602723';
-import { appendCloudSettings } from './cloudset.js?v=8c602723';
-import { h, openPanel, toast } from './dom.js?v=8c602723';
+import * as DL from '../core/daily.js?v=4306ebaa';
+import { totalIncome } from '../core/economy.js?v=4306ebaa';
+import { SEC_BY_ID } from '../config/secretaries.js?v=4306ebaa';
+import { fmtMoney } from '../core/format.js?v=4306ebaa';
+import { now } from '../core/clock.js?v=4306ebaa';
+import { game } from '../game.js?v=4306ebaa';
+import { appendCloudSettings } from './cloudset.js?v=4306ebaa';
+import { h, openPanel, toast } from './dom.js?v=4306ebaa';
 
 export const hasDailyTodo = (s, t) => !DL.signInfo(s, t).signed || DL.doneCount(s, t) > 0;
 
@@ -46,5 +46,6 @@ export function openSettings() {
   b.onclick = () => { s.settings.voice = s.settings.voice === false; upd(); game.save(); };
   upd();
   p.body.append(row);
+  { const r2 = h('div', 'tr-course', `<div><b>日程提醒</b><div class="tr-gain">新邀请到了在上方提醒一下（关了只剩日程图标的红点）</div></div><button class="btn"></button>`); const b2 = r2.querySelector('.btn'); const u2 = () => { b2.textContent = s.settings.agendaRem === false ? '关' : '开'; }; b2.onclick = () => { s.settings.agendaRem = s.settings.agendaRem === false; u2(); game.save(); }; u2(); p.body.append(r2); }   // 设计69
   appendCloudSettings(p.body); // 登录名、换名字、重新开始、手机里的素材（设计22）
 }

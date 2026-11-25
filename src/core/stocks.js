@@ -3,17 +3,17 @@
 // 每跳 ln P += β·M（大盘，牛 / 熊 / 震荡）+ B（板块）+ σ·ε + κ·(ln F − ln P) + 新闻跳空；随机数 = hash(名字, 跳数)，固定种子
 // 设计62：只能用投资账户的钱买（个人现金先转进投资账户）；佣金、过户费、卖出印花税、大单滑点；交割单进档案柜；分红按持有时间扣个税；持股 5% 举牌公告，30% 进度
 // 投资经理（秘书职位）：你划一笔钱 + 风格（稳健 / 平衡 / 进取）+ 止损线，按大盘走 + 她的超额（智慧）；新闻前一跳有概率提前给判断
-import CFG from '../config/stocks.json?v=8c602723' with { type: 'json' };
-import { pay, receive } from './ledger.js?v=8c602723';
-import { addContract } from './contracts.js?v=8c602723';
-import { addAssetHook } from './assets.js?v=8c602723';
-import { shortWhy } from './invest.js?v=8c602723';   // 设计62 投资账户（身价挂钩、钱不够的说法）
-import { holder, isSec, attrs as secAttrs, efficiency, OUT } from './posts.js?v=8c602723';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=8c602723';
+import CFG from '../config/stocks.json?v=4306ebaa' with { type: 'json' };
+import { pay, receive } from './ledger.js?v=4306ebaa';
+import { addContract } from './contracts.js?v=4306ebaa';
+import { addAssetHook } from './assets.js?v=4306ebaa';
+import { shortWhy } from './invest.js?v=4306ebaa';   // 设计62 投资账户（身价挂钩、钱不够的说法）
+import { holder, isSec, attrs as secAttrs, efficiency, OUT } from './posts.js?v=4306ebaa';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=4306ebaa';
 const YEAR_H = YEAR_MS / 3600e3; // 游戏一年 = 现实多少小时（V0.2.10：144）
-import { taxRec, payerOfPost } from './fiscal.js?v=8c602723';
-import { profitMul } from './calib.js?v=8c602723';
-import { TITLES } from '../config/titles.js?v=8c602723';
+import { taxRec, payerOfPost } from './fiscal.js?v=4306ebaa';
+import { profitMul } from './calib.js?v=4306ebaa';
+import { TITLES } from '../config/titles.js?v=4306ebaa';
 
 export const SCFG = CFG;
 export const STOCKS = CFG.stocks;
@@ -142,7 +142,9 @@ export function step(m, tick) {
       if (tick < gu.from) continue;   // 造出来到开始涨之间：价钱停着不动（不然这几跳可能先冲到涨停附近，没空间了）
       if (gu.p0 == null) gu.p0 = m.px[c];
       const k = tick - gu.from + 1;
-      const B = band(m, c); m.px[c] = r2(Math.max(B.dn != null ? B.dn : 0, Math.min(B.up != null ? B.up : Infinity, gu.p0 * Math.pow(1 + gu.rise, k / gu.ticks))));   // 设计53 算错造的也走这里（rise 可以是负的）
+      let v; if (gu.dip) { const D = gu.dn || 2; const lo = gu.p0 * (1 - gu.dip); v = k <= D ? gu.p0 * Math.pow(1 - gu.dip, k / D) : lo * Math.pow(1 + gu.rise, Math.min(1, (k - D) / (gu.ticks - D))); }   // 设计67 保底：先 D 跳往下走 dip 到低点，再涨 rise 到第 ticks 跳
+      else v = gu.p0 * Math.pow(1 + gu.rise, k / gu.ticks);
+      const B = band(m, c); m.px[c] = r2(Math.max(B.dn != null ? B.dn : 0, Math.min(B.up != null ? B.up : Infinity, v)));   // 设计53 算错造的也走这里（rise 可以是负的）
       continue;
     }
     if (lu && lu.from != null) {   // 涨停：拉升 pullTicks 跳，然后封板（不跳噪声、不吃新闻）

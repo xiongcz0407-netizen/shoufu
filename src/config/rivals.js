@@ -51,12 +51,12 @@ export const BATTLES_PER_DAY = 20;          // 商战次数上限（攒满 20 �
 export const BATTLE_REGEN_MIN = 10; // V0.2.3（设计35 第十一节）：10 分钟回 1 次；         // 每 30 分钟（真实时间，离线照样）恢复 1 次；原来是按自然日零点清零，下午打完要等到半夜（验收阶段二）
 export const WINS_TO_ACQUIRE = 3;
 export const TEAM_MAX = 2;
-export const ACQUIRE_REFUND = 0.5;          // 收购失败退一半
 // 收购款分期（验收阶段二 2-08b 第三轮）：首付 ≥ 30%（商务总监在任 20%），余款 12 个游戏月按月付；逾期按日 0.05% 违约金；连续 3 期付不上对方解除协议（股权收回，已付的扣 20% 退回，并进来的店和员工退回去）
 export const INSTALL = { down: 0.3, downBiz: 0.2, months: 12, lateDaily: 0.0005, missMax: 3, breachKeep: 0.2 };
-export const ACQUIRE_COOLDOWN_SEC = 0; // V0.2.3：去掉收购失败冷却； // 失败后冷却 10 分钟（真实时间，离线照样走）
-export const ACQUIRE_EXTRA_WIN = 0.1;
-export const INTEL_PER_LOSS = 0.05, INTEL_MAX = 0.25; // 知己知彼：对同一家每输一次下次胜率 +5%，最多 +25%，赢一次清零        // 满 3 胜以后每多赢一次商战，收购成功率 +10%
+// 设计64：收购没有成功率，签了字就成（没有退款、冷却、董事会否决）。原来加成功率的改成收购价优惠，按「谈下来的价」（没谈按估值）再打折：
+//   满 3 胜以后每多赢一次 −2%（最多 −6%）；老板人脉 × 0.25（最多 −5%）；商务总监 × 0.5（最多 −3%）；董事会「并购」那周 × 0.5；老板亲自谈判 3%；合计最多 −12%（max）
+export const ACQ_DISC = { extraWin: 0.02, extraMax: 0.06, network: 0.25, networkMax: 0.05, biz: 0.5, bizMax: 0.03, board: 0.5, max: 0.12 };
+export const INTEL_PER_LOSS = 0.05, INTEL_MAX = 0.25; // 知己知彼：对同一家每输一次下次胜率 +5%，最多 +25%，赢一次清零        // 满 3 胜以后每多赢一次商战，收购价 −2%（设计64，最多 −6%）
 // V2-05 商战三回合（设计29 第一节）：六种打法，克制表、花费（按对手规模：对手月利润 / 月营收；挖人是一个店员年薪）、看哪项属性
 // 对手月营收按 月利润 ÷ revMargin 估。专长牌：秘书最高那项属性对应的打法，效果 ×1.5，每战每人一次；挖人：对方下回合效果 ×0.7
 export const WAR = {

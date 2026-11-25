@@ -1,37 +1,38 @@
 // 「秘书」页签（设计18 第四节 2）：上面一条培训位、两列卡片（没来的剪影 + 条件）；
 // 秘书详情全屏：上半立绘、下半面板（资料 | 培养 | 衣柜 | 职位工资），底部动作条（互动 · 送礼 · 约会 · 陪着我）
-import * as LV from '../core/love.js?v=8c602723';   // 设计56
-import { tokenCard, jewelBoxHtml } from './gift.js?v=8c602723';
-import * as CP from '../core/capital.js?v=8c602723';
-import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=8c602723';
-import { COURSE_BY_ID } from '../config/courses.js?v=8c602723';
-import { OUTFITS, priceOf } from '../config/outfits.js?v=8c602723';
-import { IND_BY_ID } from '../config/industries.js?v=8c602723';
-import * as S from '../core/secretary.js?v=8c602723';
-import * as T from '../core/training.js?v=8c602723';
-import { isScouting } from '../core/busy.js?v=8c602723'; // V2-08
-import * as STY from '../core/styles.js?v=8c602723'; // 设计36 第 4 条：衣柜写衣服名字 + 款式
-import * as O from '../core/outfits.js?v=8c602723';
-import * as A from '../core/affection.js?v=8c602723';
-import { query } from '../core/ledger.js?v=8c602723';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=8c602723';
-import { asset } from '../platform/assets.js?v=8c602723';
-import { now } from '../core/clock.js?v=8c602723';
-import { game } from '../game.js?v=8c602723';
-import { h, toast, liveRender } from './dom.js?v=8c602723';
-import { openFull, closeTab, goHome } from './shell.js?v=8c602723';
-import { switchSecretary, dressUp } from './main-screen.js?v=8c602723';
-import { pickSec, renderCourses } from './training.js?v=8c602723';
-import { openMall } from './mall.js?v=8c602723';
-import { openDate } from './date.js?v=8c602723';
-import { createPortrait } from './portrait.js?v=8c602723';
-import { bgKeyFor } from './main-screen.js?v=8c602723';
-import * as PO from '../core/posts.js?v=8c602723';
-import { openTab } from './shell.js?v=8c602723';
-import { addFavor } from '../core/affection.js?v=8c602723';
-import { gameDate, dateText } from '../core/gametime.js?v=8c602723'; // 送礼明细的日期
-import * as COUP from '../core/coupon.js?v=8c602723'; // 设计39 再聊 5 次（开发2）
-import { openWallet } from './coupon.js?v=8c602723'; // 设计39 去卡包买互动券（开发2）
+import * as LV from '../core/love.js?v=4306ebaa';   // 设计56
+import { tokenCard, jewelBoxHtml } from './gift.js?v=4306ebaa';
+import * as CP from '../core/capital.js?v=4306ebaa';
+import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=4306ebaa';
+import { COURSE_BY_ID } from '../config/courses.js?v=4306ebaa';
+import { outfitsOf, priceOf } from '../config/outfits.js?v=4306ebaa';
+import { IND_BY_ID } from '../config/industries.js?v=4306ebaa';
+import * as S from '../core/secretary.js?v=4306ebaa';
+import * as T from '../core/training.js?v=4306ebaa';
+import { isScouting } from '../core/busy.js?v=4306ebaa'; // V2-08
+import * as STY from '../core/styles.js?v=4306ebaa'; // 设计36 第 4 条：衣柜写衣服名字 + 款式
+import * as O from '../core/outfits.js?v=4306ebaa';
+import * as A from '../core/affection.js?v=4306ebaa';
+import { query } from '../core/ledger.js?v=4306ebaa';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=4306ebaa';
+import { asset } from '../platform/assets.js?v=4306ebaa';
+import { now } from '../core/clock.js?v=4306ebaa';
+import { game } from '../game.js?v=4306ebaa';
+import { h, toast, liveRender } from './dom.js?v=4306ebaa';
+import { openFull, closeTab, goHome } from './shell.js?v=4306ebaa';
+import { switchSecretary, dressUp } from './main-screen.js?v=4306ebaa';
+import { pickSec, renderCourses } from './training.js?v=4306ebaa';
+import { openMall } from './mall.js?v=4306ebaa';
+import { openDate } from './date.js?v=4306ebaa';
+import { createPortrait } from './portrait.js?v=4306ebaa';
+import { openSecFull } from './secfull.js?v=4306ebaa';   // 设计66 全屏看她
+import { bgKeyFor } from './main-screen.js?v=4306ebaa';
+import * as PO from '../core/posts.js?v=4306ebaa';
+import { openTab } from './shell.js?v=4306ebaa';
+import { addFavor } from '../core/affection.js?v=4306ebaa';
+import { gameDate, dateText } from '../core/gametime.js?v=4306ebaa'; // 送礼明细的日期
+import * as COUP from '../core/coupon.js?v=4306ebaa'; // 设计39 再聊 5 次（开发2）
+import { openWallet } from './coupon.js?v=4306ebaa'; // 设计39 去卡包买互动券（开发2）
 
 const BEST_NAME = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 /** 她现在的职位名：没有返回 '' */
@@ -102,7 +103,7 @@ export function openDetail(id, seg = 'info') {
   const p = openFull(`${c.name}<small class="sd-sub">${c.type} · 擅长${BEST_NAME[c.best]}</small>`, { onClose: () => { portrait && portrait.stop(); off && off(); game.changed(); } });
   p.body.classList.add('sd-full');
   const k = bgKeyFor(s.title);
-  const hero = h('div', 'sd-hero', '<div class="sd-stage"></div><div class="bubble sd-bubble hidden"><div class="bubble-text"></div></div>');
+  const hero = h('div', 'sd-hero', '<div class="sd-stage"></div><div class="bubble sd-bubble hidden"><div class="bubble-text"></div></div><button class="sd-fs hidden" aria-label="全屏">⛶</button>');
   if (k) hero.style.backgroundImage = `url("${asset(`assets/bg/${k}.webp`)}")`;
   const segBar = h('div', 'seg-bar'); const panel = h('div', 'sd-panel');
   const acts = h('div', 'sd-acts', '<button class="btn talk">互动</button><button class="btn gift">送礼</button><button class="btn date">约会</button><button class="btn gold stay"></button>');
@@ -120,6 +121,8 @@ export function openDetail(id, seg = 'info') {
     seg = key; segBar.innerHTML = '';
     for (const [kk, n] of SEGS) { const b = h('button', 'seg' + (kk === key ? ' on' : ''), n); b.onclick = () => show(kk); segBar.appendChild(b); }
     off && off(); off = null; panel.innerHTML = ''; panel.scrollTop = 0;
+    // 设计66 第七节：衣柜页看全身（全身秘书），右上角全屏按钮；别的页裁到大腿
+    const wd = key === 'wardrobe'; hero.classList.toggle('sd-fb', wd && !!c.fullBody); portrait.setFull(wd && !!c.fullBody); hero.querySelector('.sd-fs').classList.toggle('hidden', !wd);
     const draw = { info: drawInfo, train: drawTrain, wardrobe: drawWardrobe, post: drawPost }[key];
     if (key === 'info' || key === 'train') off = liveRender(panel, () => { panel.innerHTML = ''; draw(panel, id, show, portrait); }, (fn) => game.onChange(fn), panel);
     else draw(panel, id, show, portrait);
@@ -133,6 +136,11 @@ export function openDetail(id, seg = 'info') {
     talkBtn.innerHTML = n ? `互动<small>今天还能 ${n} 次</small>` : use ? `再聊 ${IT.n} 次<small>用 1 张互动券（还有 ${COUP.have(s, 'talk')} 张）</small>` : buy ? `再聊 ${IT.n} 次<small>去卡包买互动券</small>` : '今天聊够了<small>明天再来</small>';
     talkBtn.disabled = !n && !use && !buy; talkBtn.classList.add('two'); talkBtn.classList.toggle('gold', use || buy); };
   talkText(); const offTalk = game.onChange(() => { if (!document.body.contains(talkBtn)) { offTalk && offTalk(); return; } talkText(); });
+  // 设计66：全屏看她。单击 = 互动（算每天 10 次）；左右滑换的衣服跟衣柜点一样记下；退出时衣柜刷新
+  const talkOnce = () => { const res = A.tapSec(game.state, id, now()); if (res.favor && res.favor.stageUp) game.emit('favorUp', id, res.favor); game.changed(); game.save(); return res.line || (res.favor && res.favor.to > res.favor.from ? '' : '今天聊够了，明天再来'); };
+  hero.querySelector('.sd-fs').onclick = () => openSecFull(p.el, id, { bg: k ? asset(`assets/bg/${k}.webp`) : null, onTalk: talkOnce,
+    onDress: (o) => { if (id === game.state.current) dressUp(id, o); game.changed(); game.save(); },
+    onExit: (o) => { portrait.show(id, o, { fade: false }); if (seg === 'wardrobe') show('wardrobe'); talkText(); } });
   talkBtn.onclick = () => {
     if (!A.talksLeft(game.state, id, now())) { if (!COUP.have(game.state, 'talk')) { openWallet({ focus: 'talk', back: talkText }); return; } const r = COUP.useTalk(game.state, id, now()); toast(r.ok ? `今天能跟${SEC_BY_ID[id].name}再聊 ${r.n} 次` : r.why); game.changed(); game.save(); talkText(); return; }
     const res = A.tapSec(game.state, id, now());
@@ -183,7 +191,7 @@ function drawWardrobe(el, id, show, portrait) {
   const s = game.state; const r = s.secs[id];
   el.appendChild(h('div', 'tr-gain', '点一套让她换上；没买的去商场买（个人现金）'));
   const grid = h('div', 'cloth-grid sd-cloth');
-  for (const o of OUTFITS) {
+  for (const o of outfitsOf(id)) {   // 设计66：按人几套
     const own = O.owns(s, id, o.id); const ok = O.canWear(s, id, o.id); const on = r.outfit === o.id;
     const card = h('button', 'cloth' + (own && ok ? '' : ' dim') + (on ? ' on' : ''), `<img src="${asset(`assets/sec/${id}/${o.id}.webp`)}" alt="">
       <div class="cloth-meta">${STY.nameOf(id, o.id)}${STY.styleOf(id, o.id) ? `<em class="cloth-st">${STY.styleOf(id, o.id)}</em>` : ''}${on ? ' · 穿着' : ''}</div>${!own ? `<div class="cloth-need">🔒 ${fmtMoney(priceOf(id, o.id))}</div>` : ok ? '' : `<div class="cloth-need">${O.needText(o.id)}</div>`}`);
