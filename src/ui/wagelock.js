@@ -1,11 +1,11 @@
 // V0.2.9 工资锁只是提醒（Arvin）：玩家点了要花公司的钱、花完留不够工资时，不是挡住，而是弹框说清楚要花多少、花完剩多少、
 // 还差多少、会有什么后果；点「照样花」就再点一次那个按钮（这一下不锁）。自动的（托管、秘书、每秒逻辑）照样锁。
-import { lockState } from '../core/ledger.js?v=f7808ad2';
-import { lockInfo } from '../core/cashflow.js?v=f7808ad2';
-import { fmtMoney } from '../core/format.js?v=f7808ad2';
-import { game } from '../game.js?v=f7808ad2';
-import { toastHook } from './dom.js?v=f7808ad2';
-import { confirmBox } from './confirm.js?v=f7808ad2';
+import { lockState } from '../core/ledger.js?v=8c602723';
+import { lockInfo } from '../core/cashflow.js?v=8c602723';
+import { fmtMoney } from '../core/format.js?v=8c602723';
+import { game } from '../game.js?v=8c602723';
+import { toastHook } from './dom.js?v=8c602723';
+import { confirmBox } from './confirm.js?v=8c602723';
 
 const LOCK_TXT = /要留工资|钱不够|账户不够|还差/;
 let target = null, at = 0, asking = false;

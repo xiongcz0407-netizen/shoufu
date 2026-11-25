@@ -1,17 +1,17 @@
 // 第 P-06 项：财富 → 投资 里的「打新 · 两融」页签、个股页的条件单 / 融资买入、行情顶上的看盘（设计25 第五节）
-import { earnAt, cls, sgnPct } from './earn.js?v=f7808ad2';   // 设计65：挂单写百分比
-import { whyToast } from './invest.js?v=f7808ad2';   // 设计62：钱不够一键从个人账户转入
-import * as SK from '../core/stocks.js?v=f7808ad2';
-import * as TR from '../core/trade.js?v=f7808ad2';
-import * as LK from '../core/look.js?v=f7808ad2'; // 设计41
-import * as AS from '../core/assets.js?v=f7808ad2';
-import { attrs as secAttrs } from '../core/posts.js?v=f7808ad2';
-import { SEC_BY_ID } from '../config/secretaries.js?v=f7808ad2';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=f7808ad2';
-import { profitMul } from '../core/calib.js?v=f7808ad2';
-import { game } from '../game.js?v=f7808ad2';
-import { now } from '../core/clock.js?v=f7808ad2';
-import { h, openPanel, toast } from './dom.js?v=f7808ad2';
+import { earnAt, cls, sgnPct } from './earn.js?v=8c602723';   // 设计65：挂单写百分比
+import { whyToast } from './invest.js?v=8c602723';   // 设计62：钱不够一键从个人账户转入
+import * as SK from '../core/stocks.js?v=8c602723';
+import * as TR from '../core/trade.js?v=8c602723';
+import * as LK from '../core/look.js?v=8c602723'; // 设计41
+import * as AS from '../core/assets.js?v=8c602723';
+import { attrs as secAttrs } from '../core/posts.js?v=8c602723';
+import { SEC_BY_ID } from '../config/secretaries.js?v=8c602723';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=8c602723';
+import { profitMul } from '../core/calib.js?v=8c602723';
+import { game } from '../game.js?v=8c602723';
+import { now } from '../core/clock.js?v=8c602723';
+import { h, openPanel, toast } from './dom.js?v=8c602723';
 
 const C = SK.SCFG; const I = C.ipo, MG = C.margin;
 const COLOR = { 科技: '#3b6fd8', 消费: '#d8823b', 能源: '#3ba86b', 汽车: '#7a5cd6', 金融: '#c9a43b', 传媒: '#d64b7a', 奢侈品: '#8a6a3a' };

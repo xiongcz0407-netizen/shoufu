@@ -1,21 +1,21 @@
 // 设计41 / 46 / 47 看盘界面（开发2）：看盘那一块（开始 / 结束；设计63 去掉了「现在看一眼」）、看盘消息弹框（⅓仓 / 半仓 / 全仓）、照她说的挂单（条件单表）、消息「重要」里的按钮
-import { earnAt } from './earn.js?v=f7808ad2';   // 设计65：挂单写百分比
-import { whyToast } from './invest.js?v=f7808ad2';   // 设计62：钱不够一键从个人账户转入
-import * as SK from '../core/stocks.js?v=f7808ad2';
-import * as TR from '../core/trade.js?v=f7808ad2';
-import * as LK from '../core/look.js?v=f7808ad2';
-import * as I from '../core/inbox.js?v=f7808ad2';
-import { SEC_BY_ID } from '../config/secretaries.js?v=f7808ad2';
-import { fmtMoney } from '../core/format.js?v=f7808ad2';
-import { asset, hasAsset } from '../platform/assets.js?v=f7808ad2';
-import { game } from '../game.js?v=f7808ad2';
-import { now } from '../core/clock.js?v=f7808ad2';
-import { h, openPanel, toast } from './dom.js?v=f7808ad2';
-import { addActionUi } from './inbox.js?v=f7808ad2';
-import * as WSM from '../core/ws.js?v=f7808ad2';   // 设计47
-import { attrs as secAttrs } from '../core/posts.js?v=f7808ad2';
-import { isTraining } from '../core/training.js?v=f7808ad2';
-import { itemIcon, goBuyHtml, bindGoBuy } from './coupon.js?v=f7808ad2';   // 设计53 投资券
+import { earnAt } from './earn.js?v=8c602723';   // 设计65：挂单写百分比
+import { whyToast } from './invest.js?v=8c602723';   // 设计62：钱不够一键从个人账户转入
+import * as SK from '../core/stocks.js?v=8c602723';
+import * as TR from '../core/trade.js?v=8c602723';
+import * as LK from '../core/look.js?v=8c602723';
+import * as I from '../core/inbox.js?v=8c602723';
+import { SEC_BY_ID } from '../config/secretaries.js?v=8c602723';
+import { fmtMoney } from '../core/format.js?v=8c602723';
+import { asset, hasAsset } from '../platform/assets.js?v=8c602723';
+import { game } from '../game.js?v=8c602723';
+import { now } from '../core/clock.js?v=8c602723';
+import { h, openPanel, toast } from './dom.js?v=8c602723';
+import { addActionUi } from './inbox.js?v=8c602723';
+import * as WSM from '../core/ws.js?v=8c602723';   // 设计47
+import { attrs as secAttrs } from '../core/posts.js?v=8c602723';
+import { isTraining } from '../core/training.js?v=8c602723';
+import { itemIcon, goBuyHtml, bindGoBuy } from './coupon.js?v=8c602723';   // 设计53 投资券
 
 const W = SK.SCFG.watch; const WSC = W.ws;
 const WS_wit = (s, id) => secAttrs(s, id).wit;
@@ -62,9 +62,9 @@ const secName = (id) => (SEC_BY_ID[id] ? SEC_BY_ID[id].name : '她');
 export function pickAndStart(after) {
   const s = game.state; const p = openPanel('派谁看盘');
   const ids = Object.keys(s.secs).sort((a, b) => WS_wit(s, b) - WS_wit(s, a));
-  p.body.innerHTML = `<div class="tr-gain">看盘 ${WSC.hours * 60 / 24 | 0} 天（${WSC.hours} 小时）· ${W.look.energy} 精力${s.mkt.freeHint ? `（送的看盘 ${s.mkt.freeHint} 次：这次不花精力）` : ''}。这段时间她一直帮你盯着：每 ${Math.round(WSC.scanTicks * 30 / 60)} 分钟自动看一次，有涨停、利好、一波、或者你手里的要跌，就发消息到「重要」。</div>`;
+  p.body.innerHTML = `<div class="tr-gain">看盘 ${WSC.hours * 60 / 24 | 0} 天（${WSC.hours} 小时）· ${W.look.energy} 精力${s.mkt.freeHint ? `（送的看盘 ${s.mkt.freeHint} 次：这次不花精力）` : ''}。这段时间她一直帮你盯着：每 ${Math.round(WSC.scanTicks * 30 / 60)} 分钟自动看一次，有涨停、利好、一波、或者你手里的要跌，就列在股票页看盘卡片下面。</div>`;
   ids.forEach((id, i) => {
-    const tr = isTraining(s, id); const b = h('button', `sk-row ${tr ? 'dim' : ''}`, `${hasAsset(`assets/sec/${id}/c1.webp`) ? `<img class="sk-logo" src="${asset(`assets/sec/${id}/c1.webp`)}" alt="" style="object-fit:cover;object-position:top;border-radius:50%">` : ''}<div class="sk-name"><b>${secName(id)}${i === 0 ? '<small>（智慧最高）</small>' : ''}</b><small>智慧 ${WS_wit(s, id)}　每次看得到 ${Math.min(30, Math.floor(W.look.seeBase + Math.min(100, WS_wit(s, id)) / W.look.seeDiv))} 只${tr ? '　在上课，不能看盘' : ''}</small></div>`);
+    const tr = isTraining(s, id); const b = h('button', `sk-row ${tr ? 'dim' : ''}`, `${hasAsset(`assets/sec/${id}/c1.webp`) ? `<img class="sk-logo" src="${asset(`assets/sec/${id}/c1.webp`)}" alt="" style="object-fit:cover;object-position:top;border-radius:50%">` : ''}<div class="sk-name"><b>${secName(id)}${i === 0 ? '<small>（智慧最高）</small>' : ''}</b><small>智慧 ${WS_wit(s, id)}　每次看得到 ${WSM.pickInfo(s, id).see} 只　说对 ${Math.round(WSM.pickInfo(s, id).right * 100)}%${tr ? '　在上课，不能看盘' : ''}</small></div>`);
     if (tr) b.disabled = true;
     b.onclick = () => { const r = WSM.startWatch(s, id, now()); if (!r.ok) { whyToast(r.why); return; } p.close(); done(`${secName(id)}开始看盘了${r.free ? '（送的，不花精力）' : ''}`); if (after) after(); };
     p.body.appendChild(b);

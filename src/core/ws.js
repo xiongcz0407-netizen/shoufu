@@ -3,14 +3,14 @@
 // 利好 / 利空新闻每跳检查、新闻前 30 跳就说（提前说 / 说准按「股票 + 新闻那一跳」定种子只掷一次，点几次都一样）。
 // 机会：要涨停 / 有利好 / 有一波 → 「重要」消息（⅓仓 / 半仓 / 全仓 一点就挂）；手里有的要跌 → 「¥X 以下先卖掉」（卖 ⅓ / 一半 / 全部）。
 // 设计48：提示不进消息，放在 s.mkt.wsTips（股票页看盘卡片下面列）；同一只不重复、最多 3 条；买入点过了收起；「不用了」这次看盘这只不再说。离线不补发：回来还在看盘时间里马上扫一次。结束弹战绩。不看盘就没有任何股票提示（规矩 9）。
-import * as SK from './stocks.js?v=f7808ad2';
-import * as TR from './trade.js?v=f7808ad2';
-import { attrs as secAttrs } from './posts.js?v=f7808ad2';
-import { whyEnergy, doEnergy } from './manage.js?v=f7808ad2';
-import { isTraining } from './training.js?v=f7808ad2';
-import { SEC_BY_ID } from '../config/secretaries.js?v=f7808ad2';
-import { posShares, POS_BY, nFor } from './look.js?v=f7808ad2';
-import { have as haveItem, useItem } from './coupon.js?v=f7808ad2';   // 设计53 投资券
+import * as SK from './stocks.js?v=8c602723';
+import * as TR from './trade.js?v=8c602723';
+import { attrs as secAttrs } from './posts.js?v=8c602723';
+import { whyEnergy, doEnergy } from './manage.js?v=8c602723';
+import { isTraining } from './training.js?v=8c602723';
+import { SEC_BY_ID } from '../config/secretaries.js?v=8c602723';
+import { posShares, POS_BY, nFor } from './look.js?v=8c602723';
+import { have as haveItem, useItem } from './coupon.js?v=8c602723';   // 设计53 投资券
 
 const C = SK.SCFG; const W = C.watch; const WS = W.ws; const T = W.tip;
 const TICK = C.tickSec * 1000; const HOUR_TICKS = 3600e3 / TICK;
@@ -295,6 +295,8 @@ export function placeWs(s, msg, k, t = Date.now()) {
   return r.ok ? { ...r, n, pos: POS_BY[k].name } : r;
 }
 /** 设计60：提示上的时间换成跳——低点 b 是 p[b]（挂单后第 b + 1 跳），碰到卖价 hit 同理；说错的没有 hit，按提示上写的「约 N 分钟」（N × 2 跳） */
+/** 派谁看盘那一行（开发2 小 bug）：智慧、每次看得到几只（跟看盘实际用的 SK.seeCount 一样：5 + 智慧 × 0.45，最多 50）、说对的概率（watchOdds.right） */
+export const pickInfo = (s, id) => { const wv = secAttrs(s, id).wit; return { wit: wv, see: SK.seeCount(wv), right: TR.watchOdds(s, id).right }; };
 export const etaOf = (d, tk) => ({ buy: tk + 1 + (d.b || 0), sell: tk + Math.max(1 + (d.b || 0) + 1, d.hit != null && !d.wrong ? 1 + d.hit : (d.mins || Math.ceil(AHEAD() / 2)) * 2) });
 /** 跟一单（⅓仓 / 半仓 / 全仓，或者「改」了价钱再挂）：先看今天还能不能跟（免费的 → 投资券），挂上才算 */
 export function placeLegs(s, msg, legs, t = Date.now()) {

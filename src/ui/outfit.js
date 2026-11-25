@@ -1,15 +1,15 @@
 // 服装店（按秘书分页）和衣柜；换装出场
-import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=f7808ad2';
-import { OUTFITS, priceOf } from '../config/outfits.js?v=f7808ad2';
-import { LINES } from '../config/lines.js?v=f7808ad2';
-import * as STY from '../core/styles.js?v=f7808ad2'; // V3-05 衣服名字和款式
-import * as O from '../core/outfits.js?v=f7808ad2';
-import { fmtMoney } from '../core/format.js?v=f7808ad2';
-import { asset } from '../platform/assets.js?v=f7808ad2';
-import { game } from '../game.js?v=f7808ad2';
-import { now } from '../core/clock.js?v=f7808ad2';
-import { h, openPanel, toast } from './dom.js?v=f7808ad2';
-import { say, dressUp } from './main-screen.js?v=f7808ad2';
+import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=8c602723';
+import { OUTFITS, priceOf } from '../config/outfits.js?v=8c602723';
+import { LINES } from '../config/lines.js?v=8c602723';
+import * as STY from '../core/styles.js?v=8c602723'; // V3-05 衣服名字和款式
+import * as O from '../core/outfits.js?v=8c602723';
+import { fmtMoney } from '../core/format.js?v=8c602723';
+import { asset } from '../platform/assets.js?v=8c602723';
+import { game } from '../game.js?v=8c602723';
+import { now } from '../core/clock.js?v=8c602723';
+import { h, openPanel, toast } from './dom.js?v=8c602723';
+import { say, dressUp } from './main-screen.js?v=8c602723';
 
 export function openShop(secId, host) {
   const s = game.state;
@@ -75,6 +75,6 @@ export function openWardrobe(id) {
   }
   const shop = h('button', 'btn', '去商场买衣服');
   shop.style.marginTop = '10px'; shop.style.width = '100%';
-  shop.onclick = () => { p.close(); import('./mall.js?v=f7808ad2').then((m) => m.openMall(id, 'clothes')); };
+  shop.onclick = () => { p.close(); import('./mall.js?v=8c602723').then((m) => m.openMall(id, 'clothes')); };
   p.body.append(grid, shop);
 }

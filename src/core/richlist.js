@@ -2,16 +2,16 @@
 // 前 10（和华夏第 12 郑浩然）挂股票的人身价 = 持股 × 游戏里这只股票的实时市值（+ 私人部分）；其余按字库生成、存档里固定一份
 // 对手老板 = 公司估值 × 70%，没上榜的放「你身边的人」；被你收购的退出。每个游戏年开始发榜（消息 + 新闻 + 秘书点评），首次进前 100 / 前 10 / 第 1 给人脉和剧情（只给一次）
 // 存档 s.rich = { v 版本, ppl: [{ id, n 名字, c 国家, cn 中国富豪, biz 生意 / 行业, v 身价, stock, pct, priv, top 前 10 不出负面事件 }], seq, year 发过榜的年份, last: { cn: {id: 名次}, gl: {...} }, first: {}, net 人脉, story: [], acq: [] }
-import C from '../config/richlist.json?v=f7808ad2' with { type: 'json' };
-import { RIVALS, RIVAL_BY_ID } from '../config/rivals.js?v=f7808ad2';
-import { SEC_BY_ID } from '../config/secretaries.js?v=f7808ad2';
-import * as SK from './stocks.js?v=f7808ad2';
-import { live as rivalLive } from './rivalgrow.js?v=f7808ad2';
-import { rivalState } from './battle.js?v=f7808ad2';
-import { netWorth } from './economy.js?v=f7808ad2';
-import { addAttrHook } from './boss.js?v=f7808ad2';
-import { addMsg } from './inbox.js?v=f7808ad2';
-import { YEAR_MS } from './gametime.js?v=f7808ad2';
+import C from '../config/richlist.json?v=8c602723' with { type: 'json' };
+import { RIVALS, RIVAL_BY_ID } from '../config/rivals.js?v=8c602723';
+import { SEC_BY_ID } from '../config/secretaries.js?v=8c602723';
+import * as SK from './stocks.js?v=8c602723';
+import { live as rivalLive } from './rivalgrow.js?v=8c602723';
+import { rivalState } from './battle.js?v=8c602723';
+import { netWorth } from './economy.js?v=8c602723';
+import { addAttrHook } from './boss.js?v=8c602723';
+import { addMsg } from './inbox.js?v=8c602723';
+import { YEAR_MS } from './gametime.js?v=8c602723';
 export { C as RICH_CFG };
 
 const ME = 'me';
