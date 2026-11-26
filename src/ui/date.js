@@ -1,25 +1,25 @@
 // 约会：选地点 → 开车去 → 约会画面（背景、她的台词、加了多少）→ 次数解锁
 // 设计83：一场按爱慕阶段从片段库拼（open 1 + chat 2 + end 1，用完才轮回）；恋人以后加「私密约会」（车里 / 私人飞机 / 游艇，两次 3 选 1 → 黑屏 → 精力清空）
-import * as MG from '../core/manage.js?v=06229def'; // 设计39 约会花精力
-import { SEC_BY_ID } from '../config/secretaries.js?v=06229def';
-import { DATE_PLACES, DATES_PER_DAY, DATE5_LINES, DATE50_TITLE, RARE_NARR, RARE_REACT, ROOFTOP_LINES } from '../config/dates.js?v=06229def';
-import * as LMK from '../core/landmark.js?v=06229def';
-import { FIRST_DATE_LINES, DATE50_LINES } from '../config/love-stories.js?v=06229def';
-import { LINES } from '../config/lines.js?v=06229def';
-import * as D from '../core/dates.js?v=06229def';
-import { fmtMoney } from '../core/format.js?v=06229def';
-import { now } from '../core/clock.js?v=06229def';
-import { asset, hasAsset } from '../platform/assets.js?v=06229def';
-import { game } from '../game.js?v=06229def';
-import { h, openPanel, toast } from './dom.js?v=06229def';
-import { playStory } from './story.js?v=06229def';
-import { potionHtml, bindPotion, openWallet } from './coupon.js?v=06229def'; // 设计39 精力药水（开发2）
-import * as DL from '../core/datelib.js?v=06229def';   // 设计83 约会片段库
-import * as PD from '../core/privdate.js?v=06229def';  // 设计83 私密约会
-import * as RD from '../core/ride.js?v=06229def';      // 设计71 座驾
-import { privOutfit } from '../core/styles.js?v=06229def';
-import { playScene } from './scene.js?v=06229def';
-import { confirmBox } from './confirm.js?v=06229def';
+import * as MG from '../core/manage.js?v=5e43f185'; // 设计39 约会花精力
+import { SEC_BY_ID } from '../config/secretaries.js?v=5e43f185';
+import { DATE_PLACES, DATES_PER_DAY, DATE5_LINES, DATE50_TITLE, RARE_NARR, RARE_REACT, ROOFTOP_LINES } from '../config/dates.js?v=5e43f185';
+import * as LMK from '../core/landmark.js?v=5e43f185';
+import { FIRST_DATE_LINES, DATE50_LINES } from '../config/love-stories.js?v=5e43f185';
+import { LINES } from '../config/lines.js?v=5e43f185';
+import * as D from '../core/dates.js?v=5e43f185';
+import { fmtMoney } from '../core/format.js?v=5e43f185';
+import { now } from '../core/clock.js?v=5e43f185';
+import { asset, hasAsset } from '../platform/assets.js?v=5e43f185';
+import { game } from '../game.js?v=5e43f185';
+import { h, openPanel, toast } from './dom.js?v=5e43f185';
+import { playStory } from './story.js?v=5e43f185';
+import { potionHtml, bindPotion, openWallet } from './coupon.js?v=5e43f185'; // 设计39 精力药水（开发2）
+import * as DL from '../core/datelib.js?v=5e43f185';   // 设计83 约会片段库
+import * as PD from '../core/privdate.js?v=5e43f185';  // 设计83 私密约会
+import * as RD from '../core/ride.js?v=5e43f185';      // 设计71 座驾
+import { privOutfit } from '../core/styles.js?v=5e43f185';
+import { playScene } from './scene.js?v=5e43f185';
+import { confirmBox } from './confirm.js?v=5e43f185';
 
 // 车：返回 { tier, name, rarity: 'normal'|'limited'|'unique', count }；没车就打车
 let carFor = () => ({ tier: 0, name: '' });
@@ -114,14 +114,14 @@ function go(secId, placeId) {
 function goPriv(secId, key) {
   const s = game.state; const c = SEC_BY_ID[secId];
   const outfit = privOutfit(s, secId, key);
-  const r = PD.goPriv(s, secId, key, now());
+  const r = PD.goPriv(s, secId, key, now(), Math.random, outfit);   // 设计87：穿的那套有丝袜就送
   if (!r.ok) { toast(r.why); return; }
   game.changed(); game.save();
   const vars = { ...rideVars(s, r.place.name, carFor(s)), [{ car: '车', jet: '飞机', yacht: '游艇' }[key]]: r.ride.name };
   const f = (a) => a.map((x) => DL.fill(x, vars));
   const ask = (Q, then) => { const a = f(Q.ask); const q = a[a.length - 1]; return [...a.slice(0, -1), { choice: { q, who: q.startsWith('「') ? secId : 'narr', opts: Q.opts.map((o) => DL.fill(o.t, vars)) }, then }]; };
   const bg = privBg(key); const sc = r.scene; const tail = tailLines(r, c, secId);
-  const steps = [...f(sc.open), ...ask(sc.q1, (i) => [...f(sc.q1.opts[i].r), ...ask(sc.q2, (j) => [...f(sc.q2.opts[j].r), ...f(sc.close), countLine(s, secId, r), ...(tail.length ? [{ bg }, ...tail] : [])])])];
+  const steps = [...f(sc.open), ...ask(sc.q1, (i) => [...f(sc.q1.opts[i].r), ...ask(sc.q2, (j) => [...f(sc.q2.opts[j].r), ...f(sc.close), ...(r.gift.length ? [{ bg }, ...r.gift] : []), countLine(s, secId, r), ...(tail.length ? [{ bg }, ...tail] : [])])])];
   playScene(steps, { sec: secId, outfit, title: `私密约会 · ${r.place.name}`, bg }).then(async () => {
     if (await confirmBox({ title: '精力用完了', body: '精力用完了。还要做事得喝精力药水。', ok: '去卡包', cancel: '知道了' })) openWallet({ focus: 'potion' });
     afterDate(r, secId);

@@ -1,10 +1,10 @@
 // 剧情播放：全屏、立绘淡入、点一下下一句；多段排队
-import { SEC_BY_ID } from '../config/secretaries.js?v=06229def';
-import { h } from './dom.js?v=06229def';
-import { storyPortrait } from './portrait.js?v=06229def';   // 设计66：立绘跟主页同一个 layout
-import { asset, hasAsset } from '../platform/assets.js?v=06229def';
-import { TITLES } from '../config/titles.js?v=06229def';
-import { game } from '../game.js?v=06229def';
+import { SEC_BY_ID } from '../config/secretaries.js?v=5e43f185';
+import { h } from './dom.js?v=5e43f185';
+import { storyPortrait } from './portrait.js?v=5e43f185';   // 设计66：立绘跟主页同一个 layout
+import { asset, hasAsset } from '../platform/assets.js?v=5e43f185';
+import { TITLES } from '../config/titles.js?v=5e43f185';
+import { game } from '../game.js?v=5e43f185';
 /** 设计78：背景图地址（assets/bg/<key>.webp 有就给，没有 null） */
 export const bgOf = (key) => (key && hasAsset(`assets/bg/${key}.webp`) ? asset(`assets/bg/${key}.webp`) : null);
 /** 设计78：某个称号的办公室背景（没图的往前找最近一张有图的，跟主页一样） */

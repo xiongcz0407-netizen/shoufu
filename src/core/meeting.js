@@ -2,23 +2,23 @@
 // 会上：看各线上周营收 / 利润 / 增长；负责的秘书汇报一句（按她的属性给建议）；把预算（上周利润 10%）分到广告 / 扩张 / 研发 / 人才，到这个游戏周结束都有加成
 // （原来不开会到点按平均分、七折——设计69 作废）。大亨起改「董事会」，多一项分红 / 回购 / 并购三选一
 // 存档 s.meet = { wk 上次结算到第几周, acc 累计营收进货, base 本周开始时的累计, prev 上周各线营收, cur 这一周的会, fx 这一周的加成, hist 最近几次 }
-import { capAdd } from './cap.js?v=06229def';   // 设计79：有上限的列表（config/caps.js）
-import { setMeetAdHook } from './ads.js?v=06229def'; // V0.2.3
-import { credit } from './credit.js?v=06229def'; // V3-01 亲自拍板攒投入度
-import C from '../config/meeting.json?v=06229def' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=06229def';
-import { SEC_BY_ID } from '../config/secretaries.js?v=06229def';
-import { setMeetingHooks, lineNetMonth, industryRevenue } from './economy.js?v=06229def';
-import { staffFactor, setTurnoverHook } from './staff.js?v=06229def';
-import { setAcquireHook } from './battle.js?v=06229def';
-import { setTrackHook, dividend } from './companytax.js?v=06229def';
-import { pay } from './ledger.js?v=06229def';
-import { available } from './accrual.js?v=06229def';
-import { addMsg } from './inbox.js?v=06229def';
-import { holder, isSec, attrs } from './posts.js?v=06229def';
-import { DAY_MS } from './manage.js?v=06229def';
-import { MONTH_MS } from './gametime.js?v=06229def';
-import { pushEvent, closeEvent } from './agenda.js?v=06229def'; // V3-02 经营会也进日程
+import { capAdd } from './cap.js?v=5e43f185';   // 设计79：有上限的列表（config/caps.js）
+import { setMeetAdHook } from './ads.js?v=5e43f185'; // V0.2.3
+import { credit } from './credit.js?v=5e43f185'; // V3-01 亲自拍板攒投入度
+import C from '../config/meeting.json?v=5e43f185' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=5e43f185';
+import { SEC_BY_ID } from '../config/secretaries.js?v=5e43f185';
+import { setMeetingHooks, lineNetMonth, industryRevenue } from './economy.js?v=5e43f185';
+import { staffFactor, setTurnoverHook } from './staff.js?v=5e43f185';
+import { setAcquireHook } from './battle.js?v=5e43f185';
+import { setTrackHook, dividend } from './companytax.js?v=5e43f185';
+import { pay } from './ledger.js?v=5e43f185';
+import { available } from './accrual.js?v=5e43f185';
+import { addMsg } from './inbox.js?v=5e43f185';
+import { holder, isSec, attrs } from './posts.js?v=5e43f185';
+import { DAY_MS } from './manage.js?v=5e43f185';
+import { MONTH_MS } from './gametime.js?v=5e43f185';
+import { pushEvent, closeEvent } from './agenda.js?v=5e43f185'; // V3-02 经营会也进日程
 export { C as MEET_CFG };
 
 const DIRS = Object.keys(C.dirs);

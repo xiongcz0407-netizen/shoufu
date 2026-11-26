@@ -1,18 +1,18 @@
 // 主界面：背景（跟称号换）、顶部条、立绘、台词气泡、底部 5 个按钮
-import { asset, hasAsset } from '../platform/assets.js?v=06229def';
-import { onTap } from '../platform/input.js?v=06229def';
-import { TITLES } from '../config/titles.js?v=06229def';
-import { SEC_BY_ID } from '../config/secretaries.js?v=06229def';
-import { fmtMoney, fmtNum } from '../core/format.js?v=06229def';
-import { gameDate, dateText } from '../core/gametime.js?v=06229def';
-import * as PK from '../core/pick.js?v=06229def'; // V2-03 进货挑品
-import { bell as bellOf } from '../core/inbox.js?v=06229def';
-import { now as nowFn } from '../core/clock.js?v=06229def';
-import { game } from '../game.js?v=06229def';
-import { h, openPanel, toast } from './dom.js?v=06229def';
-import { createPortrait } from './portrait.js?v=06229def';
-import { audio } from '../platform/audio.js?v=06229def';
-import { voiceFile } from '../config/lines.js?v=06229def';
+import { asset, hasAsset } from '../platform/assets.js?v=5e43f185';
+import { onTap } from '../platform/input.js?v=5e43f185';
+import { TITLES } from '../config/titles.js?v=5e43f185';
+import { SEC_BY_ID } from '../config/secretaries.js?v=5e43f185';
+import { fmtMoney, fmtNum } from '../core/format.js?v=5e43f185';
+import { gameDate, dateText } from '../core/gametime.js?v=5e43f185';
+import * as PK from '../core/pick.js?v=5e43f185'; // V2-03 进货挑品
+import { bell as bellOf } from '../core/inbox.js?v=5e43f185';
+import { now as nowFn } from '../core/clock.js?v=5e43f185';
+import { game } from '../game.js?v=5e43f185';
+import { h, openPanel, toast } from './dom.js?v=5e43f185';
+import { createPortrait } from './portrait.js?v=5e43f185';
+import { audio } from '../platform/audio.js?v=5e43f185';
+import { voiceFile } from '../config/lines.js?v=5e43f185';
 
 export const NAV = [
   { key: 'industry', name: '产业', icon: 'icon_industry' },
@@ -120,6 +120,7 @@ export function buildMain(root) {
   onTap(top.querySelector('.tb-bell'), () => run('inbox'));
   refresh(game.state);
   game.onChange(refresh);
+  game.onChange(() => requestAnimationFrame(placeBubble));   // 设计89 补：红条出来 / 没了，气泡跟着让
   return ui;
 }
 
@@ -132,8 +133,16 @@ function swipe(dir) {
 }
 
 /** 台词气泡；scene 给了就试着放配音（没有文件就算了） */
+/** 设计89 补：气泡跟着字数长高；首页红条（资金链急报等 .fund-bar）出来时整体往上让，不被盖住 */
+export function placeBubble() {
+  if (!ui || !ui.bubble || !ui.bubble.parentElement) return;
+  const box = ui.bubble.parentElement.getBoundingClientRect(); let lift = 0;
+  for (const bar of ui.bubble.parentElement.querySelectorAll('.fund-bar')) { if (bar.classList.contains('hidden') || !bar.offsetHeight) continue; lift = Math.max(lift, box.bottom - bar.getBoundingClientRect().top + 8); }
+  ui.bubble.style.bottom = lift ? `${Math.round(lift)}px` : '';
+}
 export function say(secId, text, ms = 3200, scene = null) {
   if (!ui || !text) return;
+  ms = Math.max(ms, 1500 + text.length * 110);   // 设计89 补：长句多停一会儿，念得完
   if (scene && game.state.settings.voice !== false) {
     const f = voiceFile(secId, scene);
     if (hasAsset(f)) audio.play(asset(f));
@@ -141,6 +150,7 @@ export function say(secId, text, ms = 3200, scene = null) {
   const sec = SEC_BY_ID[secId];
   ui.bubble.querySelector('.bubble-name').textContent = sec ? sec.name : '';
   ui.bubble.querySelector('.bubble-text').textContent = text;
+  placeBubble();
   ui.bubble.classList.remove('hidden', 'pop'); void ui.bubble.offsetWidth; ui.bubble.classList.add('pop');
   clearTimeout(ui.bubbleTimer);
   ui.bubbleTimer = setTimeout(() => ui.bubble.classList.add('hidden'), ms);

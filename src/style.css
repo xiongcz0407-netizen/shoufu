@@ -63,6 +63,7 @@ body.desktop { --safe-t: 24px; --safe-b: 16px; } /* 电脑上模拟刘海和底�
   box-shadow: 0 4px 16px rgba(0,0,0,.35); border: 2px solid #e8c27a; pointer-events: none; }
 .bubble.pop { animation: pop .22s ease-out; }
 .bubble-name { font-weight: 800; color: #a0702a; font-size: 13px; margin-bottom: 2px; }
+.bubble-text { white-space: normal; overflow-wrap: anywhere; }   /* 设计89 补：整句都显示，高度跟着字数走（不限行） */
 @keyframes pop { from { transform: scale(.92); opacity: 0; } to { transform: none; opacity: 1; } }
 .sec-switch { position: absolute; right: 12px; top: calc(var(--safe-t) + 78px); z-index: 11; padding: 6px 12px; border-radius: 14px;
   border: 1px solid rgba(232,194,122,.6); background: rgba(0,0,0,.5); color: var(--gold); font-size: 13px; }

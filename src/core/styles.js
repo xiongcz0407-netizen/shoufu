@@ -1,14 +1,16 @@
 // V3-05 衣服有用（设计33 第四之五节）：设计/剧情/衣服款式.json（每人 c1～c11 的款式和名字，tools/story_sync.mjs 拷进来）
 // 场合要什么款式：她肯穿的里挑同款最贵的，没有就按退的顺序；扮装只在私下（出差回酒店、恋人以上、20%）
-import { OUTFIT_STYLES } from '../config/story/index.js?v=06229def';
-import { outfitsOf, priceOf } from '../config/outfits.js?v=06229def';
-import { canWear } from './outfits.js?v=06229def';
-import { ensureSec, loveStage } from './secretary.js?v=06229def';
+import { OUTFIT_STYLES } from '../config/story/index.js?v=5e43f185';
+import { outfitsOf, priceOf } from '../config/outfits.js?v=5e43f185';
+import { canWear } from './outfits.js?v=5e43f185';
+import { ensureSec, loveStage } from './secretary.js?v=5e43f185';
 export { OUTFIT_STYLES };
 
 export const COSTUME = '扮装';
 export const styleOf = (id, o) => ((OUTFIT_STYLES[id] || {})[o] || {}).style || null;
 export const nameOf = (id, o) => ((OUTFIT_STYLES[id] || {})[o] || {}).name || `第 ${String(o).slice(1)} 套`;
+/** 设计87：这套的丝袜名（光腿的没有）→ 名字或 null */
+export const stockingsOf = (id, o) => ((OUTFIT_STYLES[id] || {})[o] || {}).stockings || null;
 export const tagOf = (id, o) => { const st = styleOf(id, o); return st ? `${nameOf(id, o)} · ${st}` : nameOf(id, o); };
 /** 场合 → [要的, 退一档, 再退…] */
 export const OCC = {

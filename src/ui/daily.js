@@ -1,12 +1,12 @@
 // 每日：签到 + 每日任务
-import * as DL from '../core/daily.js?v=06229def';
-import { totalIncome } from '../core/economy.js?v=06229def';
-import { SEC_BY_ID } from '../config/secretaries.js?v=06229def';
-import { fmtMoney } from '../core/format.js?v=06229def';
-import { now } from '../core/clock.js?v=06229def';
-import { game } from '../game.js?v=06229def';
-import { appendCloudSettings } from './cloudset.js?v=06229def';
-import { h, openPanel, toast } from './dom.js?v=06229def';
+import * as DL from '../core/daily.js?v=5e43f185';
+import { totalIncome } from '../core/economy.js?v=5e43f185';
+import { SEC_BY_ID } from '../config/secretaries.js?v=5e43f185';
+import { fmtMoney } from '../core/format.js?v=5e43f185';
+import { now } from '../core/clock.js?v=5e43f185';
+import { game } from '../game.js?v=5e43f185';
+import { appendCloudSettings } from './cloudset.js?v=5e43f185';
+import { h, openPanel, toast } from './dom.js?v=5e43f185';
 
 export const hasDailyTodo = (s, t) => !DL.signInfo(s, t).signed || DL.doneCount(s, t) > 0;
 

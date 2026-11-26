@@ -1,12 +1,13 @@
 // 好感、爱慕、每天互动、送礼、台词触发规则（设计03 第五节）、吃醋 / 冷落
-import { capAdd } from './cap.js?v=06229def';   // 设计79：有上限的列表（config/caps.js）
-import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=06229def';
-import { GIFT_BY_ID } from '../config/gifts.js?v=06229def';
-import { LINES } from '../config/lines.js?v=06229def';
-import { ensureSec, favorStage, loveStage, FAVOR_MAX, FAVOR_FULL_AT, LOVE_STAGES } from './secretary.js?v=06229def';
-import { bump } from './daily.js?v=06229def';
-import { pay, receive, accrue, canPay } from './ledger.js?v=06229def';
-import LOVE from '../config/love.json?v=06229def' with { type: 'json' };   // 设计56
+import { capAdd } from './cap.js?v=5e43f185';   // 设计79：有上限的列表（config/caps.js）
+import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=5e43f185';
+import { GIFT_BY_ID } from '../config/gifts.js?v=5e43f185';
+import { LINES } from '../config/lines.js?v=5e43f185';
+import { ensureSec, favorStage, loveStage, FAVOR_MAX, FAVOR_FULL_AT, LOVE_STAGES } from './secretary.js?v=5e43f185';
+import { bump } from './daily.js?v=5e43f185';
+import { pay, receive, accrue, canPay } from './ledger.js?v=5e43f185';
+import LOVE from '../config/love.json?v=5e43f185' with { type: 'json' };   // 设计56
+import { afterLine } from './afterlines.js?v=5e43f185';   // 设计89 私密约会第二天的台词
 
 export const DAILY_TALKS = 10;      // 每人每天点她涨好感的次数
 export const TALK_FAVOR = 2;
@@ -86,6 +87,7 @@ export function tapSec(s, id, t, rnd = Math.random) {
     if (!d.flirts[id]) { d.flirts[id] = true; favor = favor || null; addLove(s, id, 1); } // 暧昧时点她，每天第一次 +1 爱慕
   }
   if (new Date(t).getDate() === LOVE.secretary.birthday[id] && !(d.bday && d.bday[id])) { (d.bday = d.bday || {})[id] = true; return { scene: 'happy', line: LOVE.birthdayLines[id], favor, birthday: true }; }   // 设计56：生日当天点她，先说生日那句
+  { const ln = afterLine(s, id, t, rnd); if (ln) return { scene: 'after', line: ln, favor, after: true }; }   // 设计89：私密约会的下一天先说这些（当天不重复，用完回平常）
   return { scene, line: LINES[id] && LINES[id][scene], favor };
 }
 

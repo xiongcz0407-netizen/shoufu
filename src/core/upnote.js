@@ -1,10 +1,10 @@
 // V0.2.5（设计37 第三节）每次升级都告诉玩家：升了什么 / 带来什么（前 → 后）/ 下一步。
 // 自己点的：noteUp 放进 s.upq，界面一个一个弹（ui/upshow.js）。
 // 托管自动升的：noteAuto 攒进 s.upAuto；在线攒满 1 分钟合成一个框，离线回来合成一个汇总（首页弹 + 离开期间账单列一段）。
-import { capAdd } from './cap.js?v=06229def';   // 设计79：有上限的列表（config/caps.js）
-import { IND_BY_ID } from '../config/industries.js?v=06229def';
-import { SEC_BY_ID } from '../config/secretaries.js?v=06229def';
-import { fmtMoney } from './format.js?v=06229def';
+import { capAdd } from './cap.js?v=5e43f185';   // 设计79：有上限的列表（config/caps.js）
+import { IND_BY_ID } from '../config/industries.js?v=5e43f185';
+import { SEC_BY_ID } from '../config/secretaries.js?v=5e43f185';
+import { fmtMoney } from './format.js?v=5e43f185';
 
 export const AUTO_MERGE_MS = 60e3;
 /** note = { title, what, fx: [行], next, img?, big?, opened?: [行] } */

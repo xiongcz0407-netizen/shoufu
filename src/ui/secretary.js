@@ -1,40 +1,41 @@
 // 「秘书」页签（设计18 第四节 2）：上面一条培训位、两列卡片（没来的剪影 + 条件）；
 // 秘书详情全屏：上半立绘、下半面板（资料 | 培养 | 衣柜 | 职位工资），底部动作条（互动 · 送礼 · 约会 · 陪着我）
-import * as BK from '../core/books.js?v=06229def';   // 设计79 第三版
-import * as LV from '../core/love.js?v=06229def';   // 设计56
-import { tokenCard, jewelBoxHtml } from './gift.js?v=06229def';
-import * as CP from '../core/capital.js?v=06229def';
-import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=06229def';
-import { COURSE_BY_ID } from '../config/courses.js?v=06229def';
-import { outfitsOf, priceOf } from '../config/outfits.js?v=06229def';
-import { IND_BY_ID } from '../config/industries.js?v=06229def';
-import * as S from '../core/secretary.js?v=06229def';
-import * as T from '../core/training.js?v=06229def';
-import { isScouting } from '../core/busy.js?v=06229def'; // V2-08
-import * as STY from '../core/styles.js?v=06229def'; // 设计36 第 4 条：衣柜写衣服名字 + 款式
-import * as O from '../core/outfits.js?v=06229def';
-import * as A from '../core/affection.js?v=06229def';
-import { query } from '../core/ledger.js?v=06229def';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=06229def';
-import { asset } from '../platform/assets.js?v=06229def';
-import { now } from '../core/clock.js?v=06229def';
-import { game } from '../game.js?v=06229def';
-import { h, toast, liveRender } from './dom.js?v=06229def';
-import { openFull, closeTab, goHome } from './shell.js?v=06229def';
-import { switchSecretary, dressUp } from './main-screen.js?v=06229def';
-import { pickSec, renderCourses } from './training.js?v=06229def';
-import { openMall } from './mall.js?v=06229def';
-import { openDate } from './date.js?v=06229def';
-import { createPortrait } from './portrait.js?v=06229def';
-import { openSecFull } from './secfull.js?v=06229def';
-import * as DR from '../core/dress.js?v=06229def';   // 设计74   // 设计66 全屏看她
-import { bgKeyFor } from './main-screen.js?v=06229def';
-import * as PO from '../core/posts.js?v=06229def';
-import { openTab } from './shell.js?v=06229def';
-import { addFavor } from '../core/affection.js?v=06229def';
-import { gameDate, dateText } from '../core/gametime.js?v=06229def'; // 送礼明细的日期
-import * as COUP from '../core/coupon.js?v=06229def'; // 设计39 再聊 5 次（开发2）
-import { openWallet } from './coupon.js?v=06229def'; // 设计39 去卡包买互动券（开发2）
+import * as BK from '../core/books.js?v=5e43f185';   // 设计79 第三版
+import * as LV from '../core/love.js?v=5e43f185';   // 设计56
+import { tokenCard, jewelBoxHtml } from './gift.js?v=5e43f185';
+import * as CP from '../core/capital.js?v=5e43f185';
+import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=5e43f185';
+import { COURSE_BY_ID } from '../config/courses.js?v=5e43f185';
+import { outfitsOf, priceOf } from '../config/outfits.js?v=5e43f185';
+import { IND_BY_ID } from '../config/industries.js?v=5e43f185';
+import * as S from '../core/secretary.js?v=5e43f185';
+import * as T from '../core/training.js?v=5e43f185';
+import { isScouting } from '../core/busy.js?v=5e43f185'; // V2-08
+import * as STY from '../core/styles.js?v=5e43f185'; // 设计36 第 4 条：衣柜写衣服名字 + 款式
+import * as O from '../core/outfits.js?v=5e43f185';
+import * as A from '../core/affection.js?v=5e43f185';
+import { query } from '../core/ledger.js?v=5e43f185';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=5e43f185';
+import { asset } from '../platform/assets.js?v=5e43f185';
+import { now } from '../core/clock.js?v=5e43f185';
+import { game } from '../game.js?v=5e43f185';
+import { h, toast, liveRender } from './dom.js?v=5e43f185';
+import { openFull, closeTab, goHome } from './shell.js?v=5e43f185';
+import { switchSecretary, dressUp } from './main-screen.js?v=5e43f185';
+import { pickSec, renderCourses } from './training.js?v=5e43f185';
+import { openMall } from './mall.js?v=5e43f185';
+import { openDate } from './date.js?v=5e43f185';
+import { createPortrait } from './portrait.js?v=5e43f185';
+import { openSecFull } from './secfull.js?v=5e43f185';
+import * as DR from '../core/dress.js?v=5e43f185';   // 设计74   // 设计66 全屏看她
+import { bgKeyFor } from './main-screen.js?v=5e43f185';
+import * as PO from '../core/posts.js?v=5e43f185';
+import { openTab } from './shell.js?v=5e43f185';
+import { addFavor } from '../core/affection.js?v=5e43f185';
+import { gameDate, dateText } from '../core/gametime.js?v=5e43f185'; // 送礼明细的日期
+import * as COUP from '../core/coupon.js?v=5e43f185'; // 设计39 再聊 5 次（开发2）
+import { privRecordRows } from '../core/privdate.js?v=5e43f185';   // 设计87 她的记录里私密约会、送你丝袜
+import { openWallet } from './coupon.js?v=5e43f185'; // 设计39 去卡包买互动券（开发2）
 
 const BEST_NAME = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 /** 她现在的职位名：没有返回 '' */
@@ -170,7 +171,7 @@ function drawInfo(el, id) {
     <div class="sd-token"></div>
     <div class="sd-rec-title">她的记录</div>
     <div class="sd-rec">
-      <div>认识<b>${S.daysKnown(s, id)} 天</b></div><div>互动<b>${r.rec.talks} 次</b></div><div>约会<b>${r.rec.dates} 次</b></div>
+      <div>认识<b>${S.daysKnown(s, id)} 天</b></div><div>互动<b>${r.rec.talks} 次</b></div><div>约会<b>${r.rec.dates} 次</b></div>${privRecordRows(r).map(([k, v]) => `<div>${k}<b>${v}</b></div>`).join('')}
       <div class="sd-gift-n ${g.n ? 'tap' : ''}">送她礼物<b>${g.n} 件${g.n ? ' ›' : ''}</b></div><div>花了<b>${fmtMoney(g.amount)}</b></div><div>买衣服<b>${r.rec.clothes} 件</b></div>
       <div>职位<b>${post || '没有'}</b></div><div>月薪<b>${fmtMoney(PO.salaryOf(s, id))}</b></div><div>累计工资<b>${fmtMoney(salaryPaid(s, id))}</b></div>${(() => { const w = CP.secWorth(s, id); return w.pct ? `<div>她的身家<b>${fmtMoney(w.total)}</b></div><div>持股 / 期权<b>${(w.pct * 100).toFixed(2)}%</b></div>` : ''; })()}
       ${r.dateTitle ? '<div>称号<b>心上人</b></div>' : ''}${(() => { const x = s.trip && s.trip.rec && s.trip.rec[id]; return x ? `<div>一起出差<b>${x.n} 次</b></div><div>去过<b>${x.cities.join('、')}</b></div>` : ''; })()}<div>最近约会<b>${r.rec.lastDate ? new Date(r.rec.lastDate).toLocaleDateString('zh-CN') : '还没有'}</b></div>

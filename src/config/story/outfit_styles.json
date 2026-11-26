@@ -1,36 +1,42 @@
 {
- "_说明": "秘书衣服款式表（设计33 第四之五节，设计看图定的）。每人 c1～c11（设计66：夏芷晴 c1～c14）：style 款式（职业 / 晚装 / 休闲 / 运动 / 居家 / 度假 / 扮装），name 名字（衣服店、衣柜、剧情里的 {衣服} 用）。扮装只在私下（出差回酒店、恋人以上）出现，不穿去任何公开场合。 price：价格（元，设计35 第十四节：居家/运动 2000～8000，休闲/职业 5000～3 万，度假 1～5 万，扮装 5000～2 万，晚装 5～50 万，顶级高定 50～150 万；同款式里序号越大越贵；c1 自带 0）。",
+ "_说明": "秘书衣服款式表（设计33 第四之五节，设计看图定的）。每人 c1～c11（设计66：夏芷晴 c1～c14）：style 款式（职业 / 晚装 / 休闲 / 运动 / 居家 / 度假 / 扮装），name 名字（衣服店、衣柜、剧情里的 {衣服} 用）。扮装只在私下（出差回酒店、恋人以上）出现，不穿去任何公开场合。 price：价格（元，设计35 第十四节：居家/运动 2000～8000，休闲/职业 5000～3 万，度假 1～5 万，扮装 5000～2 万，晚装 5～50 万，顶级高定 50～150 万；同款式里序号越大越贵；c1 自带 0）。 stockings = 这套穿的丝袜（设计87：私密约会穿这套就送给玩家）；没有 = 光腿。",
  "list": {
   "s01_shen": {
    "c1": {
     "style": "职业",
     "name": "米白真丝蝴蝶结衬衫",
-    "price": 0
+    "price": 0,
+    "stockings": "肉色丝袜"
    },
    "c2": {
     "style": "职业",
     "name": "白色小香风套装",
-    "price": 5000
+    "price": 5000,
+    "stockings": "黑色后缝线丝袜"
    },
    "c3": {
     "style": "休闲",
     "name": "奶油色针织开衫套装",
-    "price": 14000
+    "price": 14000,
+    "stockings": "白色丝袜"
    },
    "c4": {
     "style": "晚装",
     "name": "香槟缎面开衩长裙",
-    "price": 150000
+    "price": 150000,
+    "stockings": "肉色露趾丝袜"
    },
    "c5": {
     "style": "扮装",
     "name": "白色护士装",
-    "price": 10000
+    "price": 10000,
+    "stockings": "白色蕾丝边过膝袜"
    },
    "c6": {
     "style": "运动",
     "name": "白色网球套装",
-    "price": 4700
+    "price": 4700,
+    "stockings": "白色丝袜"
    },
    "c7": {
     "style": "度假",
@@ -40,22 +46,26 @@
    "c8": {
     "style": "晚装",
     "name": "白色深V鱼尾礼服",
-    "price": 720000
+    "price": 720000,
+    "stockings": "肉色丝袜"
    },
    "c9": {
     "style": "休闲",
     "name": "米色短风衣套装",
-    "price": 24000
+    "price": 24000,
+    "stockings": "浅灰丝袜"
    },
    "c10": {
     "style": "扮装",
     "name": "白色刺绣旗袍",
-    "price": 18000
+    "price": 18000,
+    "stockings": "肉色丝袜"
    },
    "c11": {
     "style": "居家",
     "name": "奶白缎面睡衣",
-    "price": 8000
+    "price": 8000,
+    "stockings": "白色过膝袜"
    },
    "c12": {
     "style": "度假",
@@ -65,44 +75,52 @@
    "c13": {
     "style": "运动",
     "name": "米色普拉提套装",
-    "price": 6000
+    "price": 6000,
+    "stockings": "浅灰丝袜"
    },
    "c14": {
     "style": "居家",
     "name": "香槟蕾丝睡裙",
-    "price": 12000
+    "price": 12000,
+    "stockings": "香槟色蕾丝边过膝袜"
    }
   },
   "s02_su": {
    "c1": {
     "style": "职业",
     "name": "白衬衫黑领结百褶裙",
-    "price": 0
+    "price": 0,
+    "stockings": "黑色丝袜"
    },
    "c2": {
     "style": "职业",
     "name": "白真丝衬衫开衩包臀裙",
-    "price": 5000
+    "price": 5000,
+    "stockings": "黑色后缝线丝袜"
    },
    "c3": {
     "style": "休闲",
     "name": "黑色皮夹克牛仔短裙",
-    "price": 14000
+    "price": 14000,
+    "stockings": "酒红丝袜"
    },
    "c4": {
     "style": "晚装",
     "name": "酒红丝绒开衩长裙",
-    "price": 150000
+    "price": 150000,
+    "stockings": "肉色露趾丝袜"
    },
    "c5": {
     "style": "扮装",
     "name": "黑色兔女郎装",
-    "price": 10000
+    "price": 10000,
+    "stockings": "黑色网袜"
    },
    "c6": {
     "style": "运动",
     "name": "白色运动套装",
-    "price": 4700
+    "price": 4700,
+    "stockings": "白色丝袜"
    },
    "c7": {
     "style": "度假",
@@ -112,22 +130,26 @@
    "c8": {
     "style": "晚装",
     "name": "黑色抹胸鱼尾礼服",
-    "price": 610000
+    "price": 610000,
+    "stockings": "黑色亮面丝袜"
    },
    "c9": {
     "style": "休闲",
     "name": "浅蓝西装套装",
-    "price": 24000
+    "price": 24000,
+    "stockings": "浅蓝丝袜"
    },
    "c10": {
     "style": "扮装",
     "name": "藏青空乘制服",
-    "price": 18000
+    "price": 18000,
+    "stockings": "肉色丝袜"
    },
    "c11": {
     "style": "居家",
     "name": "雾蓝针织露肩家居服",
-    "price": 8000
+    "price": 8000,
+    "stockings": "白色过膝袜"
    },
    "c12": {
     "style": "度假",
@@ -137,44 +159,52 @@
    "c13": {
     "style": "运动",
     "name": "灰色瑜伽套装",
-    "price": 6000
+    "price": 6000,
+    "stockings": "浅灰丝袜"
    },
    "c14": {
     "style": "居家",
     "name": "酒红缎面睡衣",
-    "price": 12000
+    "price": 12000,
+    "stockings": "黑色蕾丝边过膝袜"
    }
   },
   "s03_lin": {
    "c1": {
     "style": "职业",
     "name": "粉色针织开衫灰百褶裙",
-    "price": 0
+    "price": 0,
+    "stockings": "浅粉丝袜"
    },
    "c2": {
     "style": "职业",
     "name": "格纹背带短裙",
-    "price": 5000
+    "price": 5000,
+    "stockings": "白色丝袜"
    },
    "c3": {
     "style": "休闲",
     "name": "白色荷叶边一字肩套装",
-    "price": 14000
+    "price": 14000,
+    "stockings": "白色蕾丝花纹丝袜"
    },
    "c4": {
     "style": "晚装",
     "name": "粉色纱裙礼服",
-    "price": 150000
+    "price": 150000,
+    "stockings": "肉色露趾丝袜"
    },
    "c5": {
     "style": "扮装",
     "name": "黑白女仆装",
-    "price": 10000
+    "price": 10000,
+    "stockings": "白色蝴蝶结蕾丝边过膝袜"
    },
    "c6": {
     "style": "运动",
     "name": "薰衣草紫网球套装",
-    "price": 4700
+    "price": 4700,
+    "stockings": "白色丝袜"
    },
    "c7": {
     "style": "度假",
@@ -184,22 +214,26 @@
    "c8": {
     "style": "晚装",
     "name": "黑色丝绒蝴蝶结短裙",
-    "price": 350000
+    "price": 350000,
+    "stockings": "黑色波点丝袜"
    },
    "c9": {
     "style": "休闲",
     "name": "奶白泡泡袖紫色短裙",
-    "price": 24000
+    "price": 24000,
+    "stockings": "薰衣草紫丝袜"
    },
    "c10": {
     "style": "扮装",
     "name": "粉色偶像舞台装",
-    "price": 18000
+    "price": 18000,
+    "stockings": "粉色丝袜"
    },
    "c11": {
     "style": "居家",
     "name": "粉色兔耳毛绒家居服",
-    "price": 8000
+    "price": 8000,
+    "stockings": "白色过膝袜"
    },
    "c12": {
     "style": "度假",
@@ -209,44 +243,52 @@
    "c13": {
     "style": "运动",
     "name": "粉色瑜伽套装",
-    "price": 6000
+    "price": 6000,
+    "stockings": "粉色丝袜"
    },
    "c14": {
     "style": "居家",
     "name": "白色蕾丝睡裙",
-    "price": 12000
+    "price": 12000,
+    "stockings": "白色蕾丝边过膝袜"
    }
   },
   "s04_gu": {
    "c1": {
     "style": "职业",
     "name": "浅蓝衬衫白色包臀裙",
-    "price": 0
+    "price": 0,
+    "stockings": "肉色丝袜"
    },
    "c2": {
     "style": "职业",
     "name": "灰色西装马甲白衬衫",
-    "price": 5000
+    "price": 5000,
+    "stockings": "灰色丝袜"
    },
    "c3": {
     "style": "休闲",
     "name": "墨绿开衫灯芯绒短裙",
-    "price": 14000
+    "price": 14000,
+    "stockings": "墨绿丝袜"
    },
    "c4": {
     "style": "晚装",
     "name": "白缎黑色开衩晚装",
-    "price": 150000
+    "price": 150000,
+    "stockings": "黑色亮面丝袜"
    },
    "c5": {
     "style": "扮装",
     "name": "白大褂研究员",
-    "price": 10000
+    "price": 10000,
+    "stockings": "黑色过膝袜"
    },
    "c6": {
     "style": "运动",
     "name": "藏青棒球外套运动装",
-    "price": 4700
+    "price": 4700,
+    "stockings": "白色丝袜"
    },
    "c7": {
     "style": "度假",
@@ -256,22 +298,26 @@
    "c8": {
     "style": "晚装",
     "name": "午夜蓝亮片礼服",
-    "price": 350000
+    "price": 350000,
+    "stockings": "藏青丝袜"
    },
    "c9": {
     "style": "休闲",
     "name": "奶白麻花毛衣裙",
-    "price": 24000
+    "price": 24000,
+    "stockings": "浅灰丝袜"
    },
    "c10": {
     "style": "扮装",
     "name": "藏青水手服",
-    "price": 18000
+    "price": 18000,
+    "stockings": "白色过膝袜"
    },
    "c11": {
     "style": "居家",
     "name": "浅蓝格纹睡衣",
-    "price": 8000
+    "price": 8000,
+    "stockings": "白色过膝袜"
    },
    "c12": {
     "style": "度假",
@@ -281,44 +327,52 @@
    "c13": {
     "style": "运动",
     "name": "鼠尾草绿普拉提套装",
-    "price": 6000
+    "price": 6000,
+    "stockings": "浅灰丝袜"
    },
    "c14": {
     "style": "居家",
     "name": "星空缎面睡裙",
-    "price": 12000
+    "price": 12000,
+    "stockings": "黑色蕾丝边过膝袜"
    }
   },
   "s05_jiang": {
    "c1": {
     "style": "职业",
     "name": "白衬衫红领结黑色包臀裙",
-    "price": 0
+    "price": 0,
+    "stockings": "黑色波点丝袜"
    },
    "c2": {
     "style": "职业",
     "name": "黑色小香风外套驼色短裙",
-    "price": 5000
+    "price": 5000,
+    "stockings": "黑色丝袜"
    },
    "c3": {
     "style": "休闲",
     "name": "红黑格纹一字肩套装",
-    "price": 14000
+    "price": 14000,
+    "stockings": "红色丝袜"
    },
    "c4": {
     "style": "晚装",
     "name": "黑色缎面蝴蝶结短裙",
-    "price": 150000
+    "price": 150000,
+    "stockings": "黑色亮面丝袜"
    },
    "c5": {
     "style": "扮装",
     "name": "小猫围裙",
-    "price": 10000
+    "price": 10000,
+    "stockings": "黑色蝴蝶结过膝袜"
    },
    "c6": {
     "style": "运动",
     "name": "白色网球套装",
-    "price": 4700
+    "price": 4700,
+    "stockings": "白色丝袜"
    },
    "c7": {
     "style": "度假",
@@ -328,22 +382,26 @@
    "c8": {
     "style": "晚装",
     "name": "红色缎面蝴蝶结礼服",
-    "price": 500000
+    "price": 500000,
+    "stockings": "黑色后缝线丝袜"
    },
    "c9": {
     "style": "休闲",
     "name": "象牙白小香风短外套",
-    "price": 24000
+    "price": 24000,
+    "stockings": "灰色丝袜"
    },
    "c10": {
     "style": "扮装",
     "name": "黑红哥特洛丽塔",
-    "price": 18000
+    "price": 18000,
+    "stockings": "黑色蕾丝花纹丝袜"
    },
    "c11": {
     "style": "居家",
     "name": "白色印花大T恤",
-    "price": 8000
+    "price": 8000,
+    "stockings": "白色过膝袜"
    },
    "c12": {
     "style": "度假",
@@ -353,44 +411,52 @@
    "c13": {
     "style": "运动",
     "name": "黑红瑜伽套装",
-    "price": 6000
+    "price": 6000,
+    "stockings": "浅灰丝袜"
    },
    "c14": {
     "style": "居家",
     "name": "红色缎面睡衣",
-    "price": 12000
+    "price": 12000,
+    "stockings": "黑色蕾丝边过膝袜"
    }
   },
   "s06_ye": {
    "c1": {
     "style": "职业",
     "name": "灰色短袖黑色包臀裙",
-    "price": 0
+    "price": 0,
+    "stockings": "黑色丝袜"
    },
    "c2": {
     "style": "职业",
     "name": "浅蓝衬衫丝巾短裙",
-    "price": 5000
+    "price": 5000,
+    "stockings": "肉色丝袜"
    },
    "c3": {
     "style": "休闲",
     "name": "白色泡泡袖牛仔短裙",
-    "price": 14000
+    "price": 14000,
+    "stockings": "白色小圆点丝袜"
    },
    "c4": {
     "style": "晚装",
     "name": "黑色珍珠一字肩短裙",
-    "price": 150000
+    "price": 150000,
+    "stockings": "黑色亮面丝袜"
    },
    "c5": {
     "style": "扮装",
     "name": "粉色护士装",
-    "price": 10000
+    "price": 10000,
+    "stockings": "白色蕾丝边过膝袜"
    },
    "c6": {
     "style": "运动",
     "name": "浅蓝运动套装",
-    "price": 4700
+    "price": 4700,
+    "stockings": "肉色丝袜"
    },
    "c7": {
     "style": "度假",
@@ -400,22 +466,26 @@
    "c8": {
     "style": "晚装",
     "name": "雾蓝缎面吊带裙",
-    "price": 350000
+    "price": 350000,
+    "stockings": "肉色露趾丝袜"
    },
    "c9": {
     "style": "休闲",
     "name": "米色针织背心格纹短裙",
-    "price": 24000
+    "price": 24000,
+    "stockings": "巧克力色丝袜"
    },
    "c10": {
     "style": "扮装",
     "name": "粉色兔女郎装",
-    "price": 18000
+    "price": 18000,
+    "stockings": "粉色丝袜"
    },
    "c11": {
     "style": "居家",
     "name": "灰色针织家居服",
-    "price": 8000
+    "price": 8000,
+    "stockings": "浅灰过膝袜"
    },
    "c12": {
     "style": "度假",
@@ -425,44 +495,52 @@
    "c13": {
     "style": "运动",
     "name": "浅蓝普拉提套装",
-    "price": 6000
+    "price": 6000,
+    "stockings": "肉色丝袜"
    },
    "c14": {
     "style": "居家",
     "name": "白色缎面睡衣",
-    "price": 12000
+    "price": 12000,
+    "stockings": "白色蕾丝边过膝袜"
    }
   },
   "s07_tang": {
    "c1": {
     "style": "职业",
     "name": "红色西装白POLO衫",
-    "price": 0
+    "price": 0,
+    "stockings": "黑色丝袜"
    },
    "c2": {
     "style": "职业",
     "name": "白衬衫红色短裙",
-    "price": 5000
+    "price": 5000,
+    "stockings": "肉色丝袜"
    },
    "c3": {
     "style": "休闲",
     "name": "白色短外套红百褶裙",
-    "price": 14000
+    "price": 14000,
+    "stockings": "白色丝袜"
    },
    "c4": {
     "style": "晚装",
     "name": "红色亮片单肩短裙",
-    "price": 150000
+    "price": 150000,
+    "stockings": "肉色露趾丝袜"
    },
    "c5": {
     "style": "扮装",
     "name": "红白啦啦队服",
-    "price": 10000
+    "price": 10000,
+    "stockings": "白色丝袜"
    },
    "c6": {
     "style": "运动",
     "name": "白色运动套装",
-    "price": 4700
+    "price": 4700,
+    "stockings": "白色丝袜"
    },
    "c7": {
     "style": "度假",
@@ -472,22 +550,26 @@
    "c8": {
     "style": "晚装",
     "name": "黑色缎面紧身短裙",
-    "price": 350000
+    "price": 350000,
+    "stockings": "黑色细网袜"
    },
    "c9": {
     "style": "休闲",
     "name": "演唱会穿搭",
-    "price": 24000
+    "price": 24000,
+    "stockings": "红色丝袜"
    },
    "c10": {
     "style": "扮装",
     "name": "红白赛车女郎装",
-    "price": 18000
+    "price": 18000,
+    "stockings": "白色过膝袜"
    },
    "c11": {
     "style": "居家",
     "name": "红色篮球衫家居",
-    "price": 8000
+    "price": 8000,
+    "stockings": "白色过膝袜"
    },
    "c12": {
     "style": "度假",
@@ -497,44 +579,52 @@
    "c13": {
     "style": "运动",
     "name": "红色瑜伽套装",
-    "price": 6000
+    "price": 6000,
+    "stockings": "浅灰丝袜"
    },
    "c14": {
     "style": "居家",
     "name": "粉色缎面睡衣",
-    "price": 12000
+    "price": 12000,
+    "stockings": "白色蕾丝边过膝袜"
    }
   },
   "s08_xu": {
    "c1": {
     "style": "职业",
     "name": "米色毛衣格纹短裙",
-    "price": 0
+    "price": 0,
+    "stockings": "黑色丝袜"
    },
    "c2": {
     "style": "职业",
     "name": "白真丝衬衫黑色包臀裙",
-    "price": 5000
+    "price": 5000,
+    "stockings": "肉色丝袜"
    },
    "c3": {
     "style": "休闲",
     "name": "驼色羊绒开衫套装",
-    "price": 14000
+    "price": 14000,
+    "stockings": "奶白丝袜"
    },
    "c4": {
     "style": "晚装",
     "name": "酒红丝绒裹身裙",
-    "price": 150000
+    "price": 150000,
+    "stockings": "黑色丝袜"
    },
    "c5": {
     "style": "扮装",
     "name": "红色圣诞装",
-    "price": 10000
+    "price": 10000,
+    "stockings": "白色蕾丝边过膝袜"
    },
    "c6": {
     "style": "运动",
     "name": "米色网球套装",
-    "price": 4700
+    "price": 4700,
+    "stockings": "白色丝袜"
    },
    "c7": {
     "style": "度假",
@@ -544,22 +634,26 @@
    "c8": {
     "style": "晚装",
     "name": "金色亮片吊带裙",
-    "price": 350000
+    "price": 350000,
+    "stockings": "肉色露趾丝袜"
    },
    "c9": {
     "style": "休闲",
     "name": "奶白针织棕色皮裙",
-    "price": 24000
+    "price": 24000,
+    "stockings": "酒红丝袜"
    },
    "c10": {
     "style": "扮装",
     "name": "黑色丝绒旗袍",
-    "price": 18000
+    "price": 18000,
+    "stockings": "肉色丝袜"
    },
    "c11": {
     "style": "居家",
     "name": "米色毛衣灰色短裤",
-    "price": 8000
+    "price": 8000,
+    "stockings": "浅灰过膝袜"
    },
    "c12": {
     "style": "度假",
@@ -569,44 +663,52 @@
    "c13": {
     "style": "运动",
     "name": "摩卡色普拉提套装",
-    "price": 6000
+    "price": 6000,
+    "stockings": "浅灰丝袜"
    },
    "c14": {
     "style": "居家",
     "name": "浅蓝真丝睡裙",
-    "price": 12000
+    "price": 12000,
+    "stockings": "白色蕾丝边过膝袜"
    }
   },
   "s09_xia": {
    "c1": {
     "style": "职业",
     "name": "粉色小香风套装",
-    "price": 0
+    "price": 0,
+    "stockings": "浅粉丝袜"
    },
    "c2": {
     "style": "职业",
     "name": "黑色西装连衣裙",
-    "price": 5000
+    "price": 5000,
+    "stockings": "黑色丝袜"
    },
    "c3": {
     "style": "休闲",
     "name": "法式碎花方领套装",
-    "price": 14000
+    "price": 14000,
+    "stockings": "白色小圆点丝袜"
    },
    "c4": {
     "style": "晚装",
     "name": "香槟缎面吊带裙",
-    "price": 150000
+    "price": 150000,
+    "stockings": "肉色露趾丝袜"
    },
    "c5": {
     "style": "扮装",
     "name": "粉白女仆装",
-    "price": 10000
+    "price": 10000,
+    "stockings": "白色蝴蝶结蕾丝边过膝袜"
    },
    "c6": {
     "style": "运动",
     "name": "球衣蕾丝网球裙",
-    "price": 4700
+    "price": 4700,
+    "stockings": "白色丝袜"
    },
    "c7": {
     "style": "度假",
@@ -616,22 +718,26 @@
    "c8": {
     "style": "晚装",
     "name": "黑色丝绒蝴蝶结礼服",
-    "price": 350000
+    "price": 350000,
+    "stockings": "黑色后缝线丝袜"
    },
    "c9": {
     "style": "休闲",
     "name": "芭蕾风粉色套装",
-    "price": 24000
+    "price": 24000,
+    "stockings": "芭蕾粉丝袜"
    },
    "c10": {
     "style": "扮装",
     "name": "红色改良旗袍",
-    "price": 18000
+    "price": 18000,
+    "stockings": "肉色丝袜"
    },
    "c11": {
     "style": "居家",
     "name": "奶白毛绒家居服",
-    "price": 8000
+    "price": 8000,
+    "stockings": "浅灰丝袜"
    },
    "c12": {
     "style": "度假",
@@ -641,44 +747,52 @@
    "c13": {
     "style": "运动",
     "name": "粉色普拉提套装",
-    "price": 6000
+    "price": 6000,
+    "stockings": "粉色丝袜"
    },
    "c14": {
     "style": "居家",
     "name": "紫色缎面睡衣套装",
-    "price": 12000
+    "price": 12000,
+    "stockings": "白色蕾丝边过膝袜"
    }
   },
   "s10_lu": {
    "c1": {
     "style": "职业",
     "name": "黑色西装套裙",
-    "price": 0
+    "price": 0,
+    "stockings": "黑色丝袜"
    },
    "c2": {
     "style": "职业",
     "name": "灰色条纹马甲套裙",
-    "price": 5000
+    "price": 5000,
+    "stockings": "灰色丝袜"
    },
    "c3": {
     "style": "休闲",
     "name": "黑色机车皮衣短裙",
-    "price": 14000
+    "price": 14000,
+    "stockings": "黑色波点丝袜"
    },
    "c4": {
     "style": "晚装",
     "name": "黑色丝绒喇叭袖短裙",
-    "price": 150000
+    "price": 150000,
+    "stockings": "黑色亮面丝袜"
    },
    "c5": {
     "style": "扮装",
     "name": "黑色警察制服",
-    "price": 10000
+    "price": 10000,
+    "stockings": "黑色后缝线过膝袜"
    },
    "c6": {
     "style": "运动",
     "name": "黑色网球套装",
-    "price": 4700
+    "price": 4700,
+    "stockings": "肉色丝袜"
    },
    "c7": {
     "style": "度假",
@@ -688,22 +802,26 @@
    "c8": {
     "style": "晚装",
     "name": "银色亮片吊带短裙",
-    "price": 350000
+    "price": 350000,
+    "stockings": "亮丝露趾丝袜"
    },
    "c9": {
     "style": "休闲",
     "name": "灰色针织开衫套装",
-    "price": 24000
+    "price": 24000,
+    "stockings": "浅灰丝袜"
    },
    "c10": {
     "style": "扮装",
     "name": "黑猫女仆装",
-    "price": 18000
+    "price": 18000,
+    "stockings": "白色蕾丝边过膝袜"
    },
    "c11": {
     "style": "居家",
     "name": "灰色oversize卫衣",
-    "price": 8000
+    "price": 8000,
+    "stockings": "白色过膝袜"
    },
    "c12": {
     "style": "度假",
@@ -713,12 +831,14 @@
    "c13": {
     "style": "运动",
     "name": "黑色瑜伽套装",
-    "price": 6000
+    "price": 6000,
+    "stockings": "肉色丝袜"
    },
    "c14": {
     "style": "居家",
     "name": "黑色缎面睡裙",
-    "price": 12000
+    "price": 12000,
+    "stockings": "黑色蕾丝边过膝袜"
    }
   }
  }

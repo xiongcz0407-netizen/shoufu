@@ -9,9 +9,9 @@
    }
    键 = 类别，报表要分的再带一段：营收 / 进货 / 土地 / 建安按产业名（「revenue|便利店」）、秘书工资分「sec」和「perf」（店长绩效），备忘行加「|m」
    报表要「某段时间的流水」时，用 rowsSince 把格子变成几条「假流水」（字段跟明细一样，note 写产业名 / 秘书工资），原来的报表代码照算 */
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=06229def';
-import { INDUSTRIES } from '../config/industries.js?v=06229def';
-import { SEC_BY_ID } from '../config/secretaries.js?v=06229def';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=5e43f185';
+import { INDUSTRIES } from '../config/industries.js?v=5e43f185';
+import { SEC_BY_ID } from '../config/secretaries.js?v=5e43f185';
 
 const r2 = (x) => Math.round(x * 100) / 100;
 export const KEEP_MONTHS = 24;
