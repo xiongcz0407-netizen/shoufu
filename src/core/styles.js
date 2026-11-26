@@ -1,9 +1,9 @@
 // V3-05 衣服有用（设计33 第四之五节）：设计/剧情/衣服款式.json（每人 c1～c11 的款式和名字，tools/story_sync.mjs 拷进来）
 // 场合要什么款式：她肯穿的里挑同款最贵的，没有就按退的顺序；扮装只在私下（出差回酒店、恋人以上、20%）
-import { OUTFIT_STYLES } from '../config/story/index.js?v=c60d881c';
-import { outfitsOf, priceOf } from '../config/outfits.js?v=c60d881c';
-import { canWear } from './outfits.js?v=c60d881c';
-import { ensureSec, loveStage } from './secretary.js?v=c60d881c';
+import { OUTFIT_STYLES } from '../config/story/index.js?v=9a2bf56f';
+import { outfitsOf, priceOf } from '../config/outfits.js?v=9a2bf56f';
+import { canWear } from './outfits.js?v=9a2bf56f';
+import { ensureSec, loveStage } from './secretary.js?v=9a2bf56f';
 export { OUTFIT_STYLES };
 
 export const COSTUME = '扮装';
@@ -14,7 +14,7 @@ export const tagOf = (id, o) => { const st = styleOf(id, o); return st ? `${name
 export const OCC = {
   gala: ['晚装', '职业'], work: ['职业', '晚装'], sport: ['运动', '休闲'], salon: ['晚装', '休闲'],
   dateFormal: ['晚装', '休闲'], dateResort: ['度假', '休闲'], tripDay: ['职业'],
-  tripEveSea: ['度假', '休闲', '晚装', '职业'], tripEve: ['休闲', '晚装', '职业'], hotel: ['居家', '度假', '休闲', '晚装'], // 设计33 第四之五节（11-22 更新）：加晚装一档
+  tripEveSea: ['度假', '休闲', '晚装', '职业'], tripEve: ['休闲', '晚装', '职业'], hotel: ['居家', '度假', '休闲', '晚装'], privJet: ['晚装', '度假', '休闲'], privYacht: ['度假', '休闲'], // 设计83 私密约会：飞机晚装 → 度假 → 休闲；游艇度假 → 休闲 // 设计33 第四之五节（11-22 更新）：加晚装一档
 };
 /** 日程事件 → 场合 */
 export function occOfItem(it) {
@@ -45,4 +45,11 @@ export function hotelOutfit(s, id, rnd = Math.random) {
   const r = ensureSec(s, id); const cos = outfitsOf(id).filter((x) => canWear(s, id, x.id) && styleOf(id, x.id) === COSTUME).map((x) => x.id);
   if (cos.length && loveStage(r.love) >= 4 && rnd() < 0.2) { const o = cos[Math.floor(rnd() * cos.length)]; return { o, style: COSTUME, costume: true, name: nameOf(id, o) }; }
   const p = pick(s, id, 'hotel'); return { ...p, name: nameOf(id, p.o) };
+}
+/** 设计83 私密约会穿什么：车里穿她身上那套；飞机晚装 → 度假 → 休闲；游艇度假 → 休闲；唯一阶段有扮装的 20% 换扮装 */
+export function privOutfit(s, id, key, rnd = Math.random) {
+  const r = ensureSec(s, id); const cos = outfitsOf(id).filter((x) => canWear(s, id, x.id) && styleOf(id, x.id) === COSTUME).map((x) => x.id);
+  if (cos.length && loveStage(r.love) >= 5 && rnd() < 0.2) return cos[Math.floor(rnd() * cos.length)];
+  if (key === 'car') return r.outfit || 'c1';
+  return pick(s, id, key === 'jet' ? 'privJet' : 'privYacht').o;
 }

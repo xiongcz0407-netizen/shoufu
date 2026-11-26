@@ -1,15 +1,15 @@
 // 设计56 商场「礼物」「奢侈品」两页（秘书详情「送礼」直达）：礼物只加好感（价钱 ÷ 500），奢侈品只加爱慕（价钱 ÷ 1 万）；走个人现金、出发票
 // 卡片写实际能加多少（到门口 / 要信物 / 好感已满写清楚）；一点都加不上还点送 → 游戏自己的确认框；奢侈品页最上面一栏「定情信物」
-import { SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
-import * as A from '../core/affection.js?v=c60d881c';
-import * as LV from '../core/love.js?v=c60d881c';
-import { fmtMoney } from '../core/format.js?v=c60d881c';
-import { asset, hasAsset } from '../platform/assets.js?v=c60d881c';
-import { now } from '../core/clock.js?v=c60d881c';
-import { game } from '../game.js?v=c60d881c';
-import { h, openPanel, toast } from './dom.js?v=c60d881c';
-import { say } from './main-screen.js?v=c60d881c';
-import { confirmBox } from './confirm.js?v=c60d881c';
+import { SEC_BY_ID } from '../config/secretaries.js?v=9a2bf56f';
+import * as A from '../core/affection.js?v=9a2bf56f';
+import * as LV from '../core/love.js?v=9a2bf56f';
+import { fmtMoney } from '../core/format.js?v=9a2bf56f';
+import { asset, hasAsset } from '../platform/assets.js?v=9a2bf56f';
+import { now } from '../core/clock.js?v=9a2bf56f';
+import { game } from '../game.js?v=9a2bf56f';
+import { h, openPanel, toast } from './dom.js?v=9a2bf56f';
+import { say } from './main-screen.js?v=9a2bf56f';
+import { confirmBox } from './confirm.js?v=9a2bf56f';
 
 const num = (v) => (Math.round(v * 100) / 100).toString();
 const pic = (img, name, cls = '') => (hasAsset(img) ? `<img class="${cls}" src="${asset(img)}" alt="">` : `<div class="gift-ph ${cls}">${name}</div>`);
@@ -31,7 +31,7 @@ export function openGift(secId, host) {
   const p = host || openPanel(`送 ${c.name} 什么？`);
   if (s.secs[secId] && s.secs[secId].favor >= 499) {   // 设计76：好感满了不显示礼物那排
     const el = h('button', 'gift-full', `${c.name} 已经是知己，好感满了；想加爱慕送奢侈品 ›`);
-    el.onclick = () => { if (host && host.toLux) host.toLux(); else import('./mall.js?v=c60d881c').then((u) => { if (!host) p.close(); u.openMall(secId, 'lux'); }); };
+    el.onclick = () => { if (host && host.toLux) host.toLux(); else import('./mall.js?v=9a2bf56f').then((u) => { if (!host) p.close(); u.openMall(secId, 'lux'); }); };
     p.body.append(el); return;
   }
   const grid = h('div', 'gift-grid');

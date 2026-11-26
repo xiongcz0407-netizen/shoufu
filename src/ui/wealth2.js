@@ -1,16 +1,16 @@
 // 财务页补充（第 2-15 项）：资产负债表、完整资产清单、员工满意度和福利、家族办公室、进项抵扣、年度汇算、欠税
-import * as F from '../core/finance.js?v=c60d881c';
-import * as FI from '../core/fiscal.js?v=c60d881c';
-import * as ST from '../core/staff.js?v=c60d881c';
-import { TAX } from '../core/companytax.js?v=c60d881c';
-import { bank } from '../core/bank.js?v=c60d881c';
-import { YEAR_MS } from '../core/gametime.js?v=c60d881c';
-import { fmtMoney } from '../core/format.js?v=c60d881c';
-import { SECRETARIES } from '../config/secretaries.js?v=c60d881c';
-import { now } from '../core/clock.js?v=c60d881c';
-import { game } from '../game.js?v=c60d881c';
-import { toast } from './dom.js?v=c60d881c';
-import { hintLater } from './guide2.js?v=c60d881c';
+import * as F from '../core/finance.js?v=9a2bf56f';
+import * as FI from '../core/fiscal.js?v=9a2bf56f';
+import * as ST from '../core/staff.js?v=9a2bf56f';
+import { TAX } from '../core/companytax.js?v=9a2bf56f';
+import { bank } from '../core/bank.js?v=9a2bf56f';
+import { YEAR_MS } from '../core/gametime.js?v=9a2bf56f';
+import { fmtMoney } from '../core/format.js?v=9a2bf56f';
+import { SECRETARIES } from '../config/secretaries.js?v=9a2bf56f';
+import { now } from '../core/clock.js?v=9a2bf56f';
+import { game } from '../game.js?v=9a2bf56f';
+import { toast } from './dom.js?v=9a2bf56f';
+import { hintLater } from './guide2.js?v=9a2bf56f';
 
 const row = (k, v, cls = '') => `<div class="fn-row ${cls}"><span>${k}</span><b>${typeof v === 'number' ? fmtMoney(v) : v}</b></div>`;
 const RARE = { unique: '<em class="fn-rare u">孤品</em>', limited: '<em class="fn-rare l">限量</em>' };
@@ -70,12 +70,12 @@ export function extendFinance(TABS, DRAW) {
 }
 
 // ---------- 第 3-06 项：「集团」页（架构、节税、合并报表） ----------
-import * as GR from '../core/group.js?v=c60d881c';
-import { CAPITAL_SECTIONS } from './capital.js?v=c60d881c';
-import * as TKC from '../core/takeover.js?v=c60d881c';
-import { allRows as _allRows } from '../core/finance.js?v=c60d881c';
-import { fmtDuration } from '../core/format.js?v=c60d881c';
-import * as DL3 from '../core/daily.js?v=c60d881c';
+import * as GR from '../core/group.js?v=9a2bf56f';
+import { CAPITAL_SECTIONS } from './capital.js?v=9a2bf56f';
+import * as TKC from '../core/takeover.js?v=9a2bf56f';
+import { allRows as _allRows } from '../core/finance.js?v=9a2bf56f';
+import { fmtDuration } from '../core/format.js?v=9a2bf56f';
+import * as DL3 from '../core/daily.js?v=9a2bf56f';
 const tick36 = (s) => { for (const x of GR.tick(s, now())) toast(x, 2600); };
 game.addTicker(tick36);
 function groupData(s, from, t) {

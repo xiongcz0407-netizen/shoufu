@@ -1,22 +1,22 @@
 // 5 个页签的页面（设计18 第四节）。各分段的内容在各自的模块里，这里只排结构
-import { registerPage, hostPanel } from './shell.js?v=c60d881c';
-import { openIndustry } from './industry.js?v=c60d881c';
-import { renderSecretaryList } from './secretary.js?v=c60d881c';
-import { openBattle, renderBattleLog, renderAcquire } from './battle.js?v=c60d881c';
-import { renderAssets } from './assets.js?v=c60d881c';
-import { renderInvest } from './stocks.js?v=c60d881c';
-import { renderCapital } from './capital.js?v=c60d881c';
-import { renderRich } from './richlist.js?v=c60d881c'; // V2-14 财富榜
-import { renderFunds } from './company.js?v=c60d881c';
-import { h } from './dom.js?v=c60d881c';
+import { registerPage, hostPanel } from './shell.js?v=9a2bf56f';
+import { openIndustry } from './industry.js?v=9a2bf56f';
+import { renderSecretaryList } from './secretary.js?v=9a2bf56f';
+import { openBattle, renderBattleLog, renderAcquire } from './battle.js?v=9a2bf56f';
+import { renderAssets } from './assets.js?v=9a2bf56f';
+import { renderInvest } from './stocks.js?v=9a2bf56f';
+import { renderCapital } from './capital.js?v=9a2bf56f';
+import { renderRich } from './richlist.js?v=9a2bf56f'; // V2-14 财富榜
+import { renderFunds } from './company.js?v=9a2bf56f';
+import { h } from './dom.js?v=9a2bf56f';
 
 const todo = (text) => (body) => { body.appendChild(h('div', 'empty', text)); };
 const extra = {}; // 后面的项往分段里塞内容：extra['company.hr'] = (body, ctx) => …
 export const setSegment = (path, fn) => { extra[path] = fn; };
 const seg = (path, fallback) => (body, ctx) => (extra[path] || fallback)(body, ctx);
 
-import { renderProfit } from './profit.js?v=c60d881c';
-import { openHelp } from './guide.js?v=c60d881c'; // V0.2.3：「?」里放原来的教程提示
+import { renderProfit } from './profit.js?v=9a2bf56f';
+import { openHelp } from './guide.js?v=9a2bf56f'; // V0.2.3：「?」里放原来的教程提示
 
 export function registerPages() {
   registerPage('company', { title: '公司', help: () => openHelp('company', '公司 · 怎么玩'), segments: [

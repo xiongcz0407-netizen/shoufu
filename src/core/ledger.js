@@ -23,7 +23,6 @@ export const CATS = {
   co_stock: ['公司买股票', 'company'], co_stock_sell: ['公司卖股票', 'company'], // 验收阶段三：公司买的才能举牌、要约、控股
   ipo: ['上市募资', 'company'], ipo_fee: ['承销保荐和发行费用', 'company'], reduce: ['减持股票', 'personal'], // 第 3-04 项
   counter: ['老板站柜台', 'company'], // V2-04 站柜台（设计28 第一节）
-  branch_sell: ['关店转让', 'company'], // V2-08 选址（设计29 第三节）
   meeting: ['经营会预算', 'company'], buyback: ['回购股票', 'company'], // V2-13 每周经营会（设计29 第五节）
   charity: ['慈善捐款', 'personal'], trip: ['出差（机票酒店）', 'personal'], // V3-02 日程表、V3-03 出差
   offshore_back: ['境外账户取消，余额转回', 'personal'], offshore_back_co: ['香港子公司取消，钱转回公司', 'company'], // V0.2 设计30：存档迁移用
@@ -31,15 +30,15 @@ export const CATS = {
   transfer_in: ['转入', 'personal'], transfer_out: ['转出', 'personal'], // 设计62：个人 ↔ 投资账户转账（两头各记一笔，wallet 写明是哪个账户）
 };
 export const KEEP_GAME_YEARS = 3;
-import { capAdd } from './cap.js?v=c60d881c';   // 设计79
-import { bookRow } from './books.js?v=c60d881c';   // 设计79 第三版：记账时顺手累加（s.books），数字都从这里拿
+import { capAdd } from './cap.js?v=9a2bf56f';   // 设计79
+import { bookRow } from './books.js?v=9a2bf56f';   // 设计79 第三版：记账时顺手累加（s.books），数字都从这里拿
 /** 每记一笔都要顺手做的事（今日日常计数、新手目标的免费课等）：fn(s, row) */
 const POST_HOOKS = [];
 export const addPostHook = (fn, replay = false) => { POST_HOOKS.push({ fn, replay }); };   // replay：老存档迁移时也拿全部明细跑一遍（只放纯计数的）
 export function replayHooks(s, rows) { for (const r of rows) for (const h of POST_HOOKS) if (h.replay) h.fn(s, r); }
 /** 设计79：明细只留最近 300 条给人看；同时记进 books、跑挂钩 */
 function record(s, row) { capAdd(s, 'ledger', (s.ledger = s.ledger || []), row); bookRow(s, row); for (const h of POST_HOOKS) h.fn(s, row); return row; }
-import BANKCFG from '../config/bank.json?v=c60d881c' with { type: 'json' };
+import BANKCFG from '../config/bank.json?v=9a2bf56f' with { type: 'json' };
 const USE_CATS = BANKCFG.useCats;
 
 const bal = (s, w) => (w === 'company' ? s.company : w === 'offshore' ? (s.offshore || 0) : w === 'invest' ? (s.invest || 0) : s.cash);

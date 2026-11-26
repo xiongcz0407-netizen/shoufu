@@ -1,7 +1,7 @@
 // 素材：加载页一次读完，存在手机里（设计22 第二节，库在 assetdb.js）。代码里用 asset('assets/xxx.webp') 拿地址
 // 打包版有清单 files.json（hash + 字节数）→ 用 IndexedDB 只下改过的；开发版没有清单 → 照 assets/manifest.json 从网上读
-import * as AD from './assetdb.js?v=c60d881c';
-import { storage } from './storage.js?v=c60d881c';
+import * as AD from './assetdb.js?v=9a2bf56f';
+import { storage } from './storage.js?v=9a2bf56f';
 const LIST_KEY = 'sf_files';   // 上次的素材清单（断网打开时用）
 
 const urls = new Map();   // 开发版：路径 → blob 网址

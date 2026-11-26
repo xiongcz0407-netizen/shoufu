@@ -1,15 +1,15 @@
 // V0.2.3 资金链断裂（设计35）：花钱前留够两个月工资 + 社保 + 房租；跨样子升级先算账；可用 < 1 个月工资发急报；
 // 欠薪停业满 1 个游戏月员工自动遣散（N+1 记应付）；公司账户负数时银行给一次应急周转贷（3 个月工资，利率高一档）
-import { IND_BY_ID } from '../config/industries.js?v=c60d881c';
-import B from '../config/bank.json?v=c60d881c' with { type: 'json' };
-import * as ST from './staff.js?v=c60d881c';
-import { available, monthlyRent, payables } from './accrual.js?v=c60d881c';
-import { lineK } from './cities.js?v=c60d881c';
-import { pay, receive, post, setCompanyFloor, lockState } from './ledger.js?v=c60d881c';
-import { addMsg } from './inbox.js?v=c60d881c';
-import { holder, isSec } from './posts.js?v=c60d881c';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=c60d881c';
-import { fmtMoney } from './format.js?v=c60d881c';
+import { IND_BY_ID } from '../config/industries.js?v=9a2bf56f';
+import B from '../config/bank.json?v=9a2bf56f' with { type: 'json' };
+import * as ST from './staff.js?v=9a2bf56f';
+import { available, monthlyRent, payables } from './accrual.js?v=9a2bf56f';
+import { lineK } from './cities.js?v=9a2bf56f';
+import { pay, receive, post, setCompanyFloor, lockState } from './ledger.js?v=9a2bf56f';
+import { addMsg } from './inbox.js?v=9a2bf56f';
+import { holder, isSec } from './posts.js?v=9a2bf56f';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=9a2bf56f';
+import { fmtMoney } from './format.js?v=9a2bf56f';
 
 export const CUSHION_MONTHS = 2;
 const r2 = (x) => Math.round(x * 100) / 100;
@@ -53,13 +53,13 @@ export function upgradePreview(s, id, cost = 0) {
 
 /** 资金链预警：可用 < 1 个月工资 */
 export const fundLow = (s) => { const w = monthlyWage(s); return w > 0 && available(s) < ((s.title || 0) ? w : 0); }; /* 打工人阶段开局账上本来就薄：可用成了负数才报 */
-export const FUND_ACTIONS = [{ key: 'inject', label: '注资' }, { key: 'loan', label: '申请经营贷' }, { key: 'sell', label: '卖股票 / 资产' }, { key: 'fire', label: '裁员 / 关店' }];
+export const FUND_ACTIONS = [{ key: 'inject', label: '注资' }, { key: 'loan', label: '申请经营贷' }, { key: 'sell', label: '卖股票 / 资产' }, { key: 'fire', label: '裁员' }];
 /** 每秒（在线）：缺钱了财务总监发急报，一个游戏月最多一次 */
 export function tickFund(s, t) {
   if (!fundLow(s)) { for (const m of s.inbox || []) if (m.type === 'fund_low' && m.status === 'open') { m.status = 'done'; m.read = true; } return null; }   /* V0.2.9：钱够了急报自动收起 */ const C = cf(s); if (C.alertAt && t - C.alertAt < MONTH_MS) return null;
   C.alertAt = t; const w = monthlyWage(s); const av = available(s);
   return addMsg(s, { kind: 'request', type: 'fund_low', from: cfoOf(s), title: '急报：公司快发不出工资了',
-    body: `公司可用 ${fmtMoney(av)}，一个月工资社保要 ${fmtMoney(w)}。发不出工资员工会走、拖两个月门店全部停业。先补上：注资、申请经营贷、卖股票 / 资产，或者裁员 / 关店。`, actions: [...FUND_ACTIONS, { key: 'ok', label: '知道了' }] }, t);
+    body: `公司可用 ${fmtMoney(av)}，一个月工资社保要 ${fmtMoney(w)}。发不出工资员工会走、拖两个月门店全部停业。先补上：注资、申请经营贷、卖股票 / 资产，或者裁员。`, actions: [...FUND_ACTIONS, { key: 'ok', label: '知道了' }] }, t);
 }
 
 /** 月底（hookCompany 里 monthEnd 之后）：欠薪停业满 1 个月自动遣散；公司负数给应急周转贷 */

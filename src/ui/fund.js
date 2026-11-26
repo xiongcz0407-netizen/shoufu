@@ -1,13 +1,13 @@
 // V0.2.3 资金链预警（设计35 第二节 3）：首页红条 + 财务总监急报，4 个选项直达
-import * as CF from '../core/cashflow.js?v=c60d881c';
-import { available } from '../core/accrual.js?v=c60d881c';
-import { fmtMoney } from '../core/format.js?v=c60d881c';
-import { game } from '../game.js?v=c60d881c';
-import { openPanel, h } from './dom.js?v=c60d881c';
-import { openTab } from './shell.js?v=c60d881c';
-import * as INB from './inbox.js?v=c60d881c';
+import * as CF from '../core/cashflow.js?v=9a2bf56f';
+import { available } from '../core/accrual.js?v=9a2bf56f';
+import { fmtMoney } from '../core/format.js?v=9a2bf56f';
+import { game } from '../game.js?v=9a2bf56f';
+import { openPanel, h } from './dom.js?v=9a2bf56f';
+import { openTab } from './shell.js?v=9a2bf56f';
+import * as INB from './inbox.js?v=9a2bf56f';
 
-/** 直达：注资 → 资金页签；经营贷 → 银行；卖股票 / 资产 → 投资；裁员 / 关店 → 人事 */
+/** 直达：注资 → 资金页签；经营贷 → 银行；卖股票 / 资产 → 投资；裁员 → 人事 */
 export function goFund(key) {
   const s = game.state;
   if (key === 'inject') openTab('company', 'funds');

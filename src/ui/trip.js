@@ -1,17 +1,17 @@
 // V3-03 出差界面：选带谁去（她这趟要用的属性、爱慕阶段、有没有专属剧情）→ 看交通住宿和花费 → 出发：白天办事（选一次）→ 晚上 → 过夜 → 早上
-import * as TP from '../core/trip.js?v=c60d881c';
-import * as AG from '../core/agenda.js?v=c60d881c';
-import * as SL from '../core/storylib.js?v=c60d881c';
-import * as STY from '../core/styles.js?v=c60d881c';
-import { SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
-import { attrs } from '../core/posts.js?v=c60d881c';
-import { ensureSec, loveStage, LOVE_STAGES } from '../core/secretary.js?v=c60d881c';
-import { fmtMoney } from '../core/format.js?v=c60d881c';
-import { asset } from '../platform/assets.js?v=c60d881c';
-import { game } from '../game.js?v=c60d881c';
-import { now } from '../core/clock.js?v=c60d881c';
-import { openPanel, toast } from './dom.js?v=c60d881c';
-import { playScene } from './scene.js?v=c60d881c';
+import * as TP from '../core/trip.js?v=9a2bf56f';
+import * as AG from '../core/agenda.js?v=9a2bf56f';
+import * as SL from '../core/storylib.js?v=9a2bf56f';
+import * as STY from '../core/styles.js?v=9a2bf56f';
+import { SEC_BY_ID } from '../config/secretaries.js?v=9a2bf56f';
+import { attrs } from '../core/posts.js?v=9a2bf56f';
+import { ensureSec, loveStage, LOVE_STAGES } from '../core/secretary.js?v=9a2bf56f';
+import { fmtMoney } from '../core/format.js?v=9a2bf56f';
+import { asset } from '../platform/assets.js?v=9a2bf56f';
+import { game } from '../game.js?v=9a2bf56f';
+import { now } from '../core/clock.js?v=9a2bf56f';
+import { openPanel, toast } from './dom.js?v=9a2bf56f';
+import { playScene } from './scene.js?v=9a2bf56f';
 
 const C = TP.TRIP_CFG; const ATTR = { charm: '魅力', wit: '智慧', social: '交际', manage: '管理' };
 export function openTrip(it) {
@@ -20,7 +20,7 @@ export function openTrip(it) {
   const p = openPanel(`出差：${it.title}`);
   const draw = () => {
     p.body.innerHTML = `<div class="tr-gain">${P.city} · ${pu.name} · ${it.days} 天（出发起这几天别的只能派人代去，生意照常）</div>
-      <div class="tr-gain">交通：${P.plane ? '自己的私人飞机' : '头等舱（两个人来回）'}　住：${P.home ? `${P.city}自己的房子` : P.ownHotel ? `自己的${P.hotel}` : `${P.hotel} · ${P.room}`}　${P.cost ? `花费 <b>${fmtMoney(P.cost)}</b>（个人）` : '不用花钱'}</div>
+      <div class="tr-gain">交通：${P.plane ? `自己的${P.planeName || '私人飞机'}` : '头等舱（两个人来回）'}　住：${P.home ? `${P.city}自己的房子` : P.ownHotel ? `自己的${P.hotel}` : `${P.hotel} · ${P.room}`}　${P.cost ? `花费 <b>${fmtMoney(P.cost)}</b>（个人）` : '不用花钱'}</div>
       <div class="sd-rec-title">带谁去（这趟看${ATTR[pu.attr]}）</div>
       <div class="tp-secs">${secs.map((id) => { const r = ensureSec(s, id); const ls = loveStage(r.love); const ok = TP.canBring(s, id); return `<button class="tp-sec ${pick === id ? 'on' : ''}" data-s="${id}" ${ok ? '' : 'disabled'}><img src="${asset(`assets/sec/${id}/c1.webp`)}" alt=""><b>${SEC_BY_ID[id].name}</b><small>${ATTR[pu.attr]} ${Math.round(attrs(s, id)[pu.attr] || 0)} · ${LOVE_STAGES[ls][1]}${SL.hasTrip(id) ? ' · ✦' : ''}</small>${ok ? '' : '<em>走不开</em>'}</button>`; }).join('')}</div>
       <div class="tr-gain">✦ 有专属出差剧情。一路上好感、爱慕都会涨。</div>
@@ -34,7 +34,7 @@ function run(it, secId) {
   const s = game.state; const P = TP.plan(s, it); const pu = C.purposes[it.purpose]; const name = SEC_BY_ID[secId].name;
   const sub = (x) => x.replace(/\{sec\}/g, name).replace(/\{城市\}/g, P.city).replace(/\{夜景\}/g, P.view).replace(/\{酒店\}/g, P.hotel);
   const before = SL.lineOf(secId, 'trip_before', Math.random, ''); // V3-04 台词扩充：出差前
-  const steps = [...(before ? [{ who: secId, text: before }] : []), P.plane ? sub(C.plane) : sub(C.firstClass), `落地${P.city}。`, {
+  const steps = [...(before ? [{ who: secId, text: before }] : []), ...(P.plane && P.planeName ? [`你们登上了你的${P.planeName}。`] : []), P.plane ? sub(C.plane) : sub(C.firstClass), `落地${P.city}。`, {
     choice: { q: sub(pu.q), opts: pu.opts.map((o) => sub(o[0])) },
     then: (i) => {
       const r = TP.go(game.state, it.id, secId, i, now()); if (!r.ok) { toast(r.why); return []; }

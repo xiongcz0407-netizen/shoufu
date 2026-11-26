@@ -1,13 +1,13 @@
 // 设计62 投资账户（开发2）：股票页顶上的「投资账户 ¥X」条、转账弹框、钱不够一键转入、财务页三个账户、老存档第一次说明
-import * as IV from '../core/invest.js?v=c60d881c';
-import * as BK from '../core/books.js?v=c60d881c';   // 设计79 第三版
-import * as SK from '../core/stocks.js?v=c60d881c';
-import * as TR from '../core/trade.js?v=c60d881c';
-import * as IDLE from '../core/idle.js?v=c60d881c';   // 设计72
-import { fmtMoney } from '../core/format.js?v=c60d881c';
-import { game } from '../game.js?v=c60d881c';
-import { now } from '../core/clock.js?v=c60d881c';
-import { h, openPanel, toast } from './dom.js?v=c60d881c';
+import * as IV from '../core/invest.js?v=9a2bf56f';
+import * as BK from '../core/books.js?v=9a2bf56f';   // 设计79 第三版
+import * as SK from '../core/stocks.js?v=9a2bf56f';
+import * as TR from '../core/trade.js?v=9a2bf56f';
+import * as IDLE from '../core/idle.js?v=9a2bf56f';   // 设计72
+import { fmtMoney } from '../core/format.js?v=9a2bf56f';
+import { game } from '../game.js?v=9a2bf56f';
+import { now } from '../core/clock.js?v=9a2bf56f';
+import { h, openPanel, toast } from './dom.js?v=9a2bf56f';
 
 const DIRS = [['personal', 'invest', '个人 → 投资'], ['invest', 'personal', '投资 → 个人'], ['invest', 'company', '投资 → 公司'], ['company', 'invest', '公司 → 投资']];
 const NOTE = {

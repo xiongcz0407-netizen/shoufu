@@ -16,7 +16,7 @@ export const SECRETARIES = [
   { id: 's01_shen', name: '沈清妍', type: '绿茶', outfits: 14, fullBody: true, attrs: [45, 25, 40, 25], best: 'charm', stage: 0, unlock: { type: 'acquire', rival: 'hengyuan' }, text: '收购「恒远集团」', favorites: ['白玫瑰花束', '香水'], dislikes: ['毛绒公仔'], likeBrand: 'hermes', likeLux: '珍珠项链' },
   { id: 's07_tang', name: '江映雪', type: '元气', attrs: [20, 12, 28, 20], best: 'social', stage: 2, unlock: { type: 'flag', flag: 'teamBuild1', minTitle: 2 }, text: '升「老板」后员工满 20 人，公司第一次团建', favorites: ['运动鞋', '演唱会 VIP 票'], dislikes: ['精装小说'], likeBrand: 'lv', likeLux: '钻石项链' },
   { id: 's08_xu', name: '许可欣', type: '知性', attrs: [15, 35, 12, 32], best: 'wit', stage: 2, unlock: { type: 'flag', flag: 'financeCrisis1', minTitle: 2 }, text: '升「老板」后第一次财务危机', favorites: ['精装小说', '羊绒围巾'], dislikes: ['红底高跟鞋'], likeBrand: 'chanel', likeLux: '名庄红酒' },
-  { id: 's04_gu', name: '顾念安', type: '知性', attrs: [20, 42, 20, 35], best: 'wit', stage: 2, unlock: { type: 'flag', flag: 'jobFair1', minTitle: 2 }, text: '身价到 1000 万后的招聘会', favorites: ['香薰蜡烛', '星空投影灯'], dislikes: ['演唱会 VIP 票'], likeBrand: 'bv', likeLux: '名贵腕表套盒' },
+  { id: 's04_gu', name: '顾念安', type: '知性', outfits: 14, fullBody: true, attrs: [20, 42, 20, 35], best: 'wit', stage: 2, unlock: { type: 'flag', flag: 'jobFair1', minTitle: 2 }, text: '身价到 1000 万后的招聘会', favorites: ['香薰蜡烛', '星空投影灯'], dislikes: ['演唱会 VIP 票'], likeBrand: 'bv', likeLux: '名贵腕表套盒' },
   { id: 's02_su', name: '苏曼琳', type: '高冷', attrs: [35, 45, 45, 30], best: 'social', stage: 3, unlock: { type: 'flag', flag: 'beatSuBank', minTitle: 3 }, text: '升「企业家」，跟瑞霖资本谈判赢一次', favorites: ['钢笔', '口红礼盒'], dislikes: ['零食礼盒'], likeBrand: 'hermes', likeLux: '祖母绿戒指' },
 ];
 export const SEC_BY_ID = Object.fromEntries(SECRETARIES.map((s) => [s.id, s]));

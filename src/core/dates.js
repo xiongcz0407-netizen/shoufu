@@ -1,12 +1,12 @@
 // 约会：地点、花钱、爱慕 / 好感、记录、次数解锁、同一天陪别人
-import { whyEnergy, doEnergy, E_COST } from './manage.js?v=c60d881c'; // 设计39 约会花精力
-import { DATE_PLACES, PLACE_BY_ID, DATES_PER_DAY, CAR_TIER_LOVE, OTHER_SAME_DAY_LOVE, DATE_MILESTONES } from '../config/dates.js?v=c60d881c';
-import { ensureSec } from './secretary.js?v=c60d881c';
-import { addFavor, addLove, daily, markWith, favorMult } from './affection.js?v=c60d881c';
-import { isTraining } from './training.js?v=c60d881c';
-import { bump } from './daily.js?v=c60d881c';
-import { afterDate } from './love.js?v=c60d881c';   // 设计56 定情信物
-import { pay, receive, accrue, canPay } from './ledger.js?v=c60d881c';
+import { whyEnergy, doEnergy, E_COST } from './manage.js?v=9a2bf56f'; // 设计39 约会花精力
+import { DATE_PLACES, PLACE_BY_ID, DATES_PER_DAY, CAR_TIER_LOVE, OTHER_SAME_DAY_LOVE, DATE_MILESTONES } from '../config/dates.js?v=9a2bf56f';
+import { ensureSec } from './secretary.js?v=9a2bf56f';
+import { addFavor, addLove, daily, markWith, favorMult } from './affection.js?v=9a2bf56f';
+import { isTraining } from './training.js?v=9a2bf56f';
+import { bump } from './daily.js?v=9a2bf56f';
+import { afterDate } from './love.js?v=9a2bf56f';   // 设计56 定情信物
+import { pay, receive, accrue, canPay } from './ledger.js?v=9a2bf56f';
 
 /** 地点的调整（第 2-11 项：自己有游艇就不花租船钱、按档次多加）：fn(s, placeId) → null 或 { price, love, favor, note } */
 const ADJ = [];
@@ -51,21 +51,28 @@ export function goDate(s, id, placeId, t, carTier = 0) {
   if (datesWith(s, id, t) >= 1) s.items.date -= 1; /* 今天约过她了：用一张约会券 */
   doEnergy(s, E_COST.date, t);
   pay(s, { wallet: 'personal', cat: 'date', amount: adj ? adj.price : p.price, party: p.name, note: `和${id}约会` }, t);
+  const loveN = Math.round((p.love + (CAR_TIER_LOVE[carTier] || 0) + (adj ? adj.love : 0)) * favorMult(s)); // 老板气场也让爱慕涨得快；设计56：只有约会能跨 20 / 40 / 60 / 80（最多 99）
+  const { love, favor, milestones, hurt, token } = recordDate(s, id, t, p.name, loveN, p.favor + carTier * 2 + (adj ? adj.favor : 0));
+  return { ok: true, place: p, love, favor, milestones, hurt, adj, token };
+}
+/** 约会记一次（普通约会、设计83 私密约会共用）：同一天约别人的扣爱慕、次数、记录、爱慕（能跨门）、好感、里程碑、定情信物 */
+export function recordDate(s, id, t, placeName, loveN, favorN) {
+  const r = ensureSec(s, id); const d = daily(s, t);
   d.dates = d.dates || {};
   // 同一天约别人：今天约过的其他人爱慕 -1
   const hurt = [];
   for (const other of Object.keys(d.dates)) if (other !== id) { const x = addLove(s, other, OTHER_SAME_DAY_LOVE); if (x.to < x.from) hurt.push(other); }
   d.dates[id] = (d.dates[id] || 0) + 1;
-  r.rec.dates += 1; r.rec.places[p.name] = (r.rec.places[p.name] || 0) + 1; r.rec.lastDate = t;
+  r.rec.dates += 1; r.rec.places[placeName] = (r.rec.places[placeName] || 0) + 1; r.rec.lastDate = t;
   s.stats.dates = (s.stats.dates || 0) + 1; bump(s, t, 'date');
   markWith(s, id, t);
   const love0 = r.love;
-  const love = addLove(s, id, Math.round((p.love + (CAR_TIER_LOVE[carTier] || 0) + (adj ? adj.love : 0)) * favorMult(s)), { cross: true }); // 老板气场也让爱慕涨得快；设计56：只有约会能跨 20 / 40 / 60 / 80（最多 99）
-  const favor = addFavor(s, id, p.favor + carTier * 2 + (adj ? adj.favor : 0));
+  const love = addLove(s, id, loveN, { cross: true });
+  const favor = addFavor(s, id, favorN);
   const milestones = DATE_MILESTONES.filter((m) => m.n === r.rec.dates);
   if (milestones.some((m) => m.kind === 'outfit')) r.dateOutfit = true;
   if (milestones.some((m) => m.kind === 'title')) r.dateTitle = true;
   const token = afterDate(s, id, love0, t);   // 设计56：爱慕 ≥ 80 以后的下一次约会，她提起定情信物
-  return { ok: true, place: p, love, favor, milestones, hurt, adj, token };
+  return { love, favor, milestones, hurt, token };
 }
 export { DATE_PLACES };

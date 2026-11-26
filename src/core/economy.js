@@ -1,24 +1,24 @@
 // 经济：产钱、升级、分店、派驻、身价、离线收益（纯函数，node 测试能跑）
-import { YEAR_MS } from './gametime.js?v=c60d881c'; // V0.2.10 一个月 = 现实 12 小时
-import { whyCushion } from './cashflow.js?v=c60d881c'; // V0.2.3 留够两个月工资（设计35）
-import { INDUSTRIES, IND_BY_ID, SEC_BONUS_PER_POINT, BRANCH_CAP, LOOK3_TITLE } from '../config/industries.js?v=c60d881c';
-import * as CB from './calib.js?v=c60d881c';
-import CAP from '../config/capital.json?v=c60d881c' with { type: 'json' };
-import { TITLES } from '../config/titles.js?v=c60d881c';
-import { pay, receive, accrue, canPay } from './ledger.js?v=c60d881c';
-import { staffFactor, staffUp, PAY, estTotal } from './staff.js?v=c60d881c';
-import { track } from './companytax.js?v=c60d881c';
-import { payables } from './accrual.js?v=c60d881c';
-import { visionIncome } from './boss.js?v=c60d881c';
-import { managerRevMult, managerCostMult, stat } from './posts.js?v=c60d881c';
-import { reValue } from './realestate.js?v=c60d881c';
-import { logiRevPerSec, linkCogsMult, fleetValue } from './logistics.js?v=c60d881c';
-import { techRevPerSec, techLink } from './tech.js?v=c60d881c';
-import { liveRevPerSec, mediaLink } from './media.js?v=c60d881c';
-import { lineK, lineCities, cityOpen, cityK, cityName, CITY_CFG } from './cities.js?v=c60d881c';
-import { revK, debt } from './rivalry.js?v=c60d881c';
-import { depositTotal, loanDebt, setNW } from './bank.js?v=c60d881c';
-import { equityOwed } from './equity.js?v=c60d881c';
+import { YEAR_MS } from './gametime.js?v=9a2bf56f'; // V0.2.10 一个月 = 现实 12 小时
+import { whyCushion } from './cashflow.js?v=9a2bf56f'; // V0.2.3 留够两个月工资（设计35）
+import { INDUSTRIES, IND_BY_ID, SEC_BONUS_PER_POINT, BRANCH_CAP, LOOK3_TITLE } from '../config/industries.js?v=9a2bf56f';
+import * as CB from './calib.js?v=9a2bf56f';
+import CAP from '../config/capital.json?v=9a2bf56f' with { type: 'json' };
+import { TITLES } from '../config/titles.js?v=9a2bf56f';
+import { pay, receive, accrue, canPay } from './ledger.js?v=9a2bf56f';
+import { staffFactor, staffUp, PAY, estTotal } from './staff.js?v=9a2bf56f';
+import { track } from './companytax.js?v=9a2bf56f';
+import { payables } from './accrual.js?v=9a2bf56f';
+import { visionIncome } from './boss.js?v=9a2bf56f';
+import { managerRevMult, managerCostMult, stat } from './posts.js?v=9a2bf56f';
+import { reValue } from './realestate.js?v=9a2bf56f';
+import { logiRevPerSec, linkCogsMult, fleetValue } from './logistics.js?v=9a2bf56f';
+import { techRevPerSec, techLink } from './tech.js?v=9a2bf56f';
+import { liveRevPerSec, mediaLink } from './media.js?v=9a2bf56f';
+import { lineK, lineCities, cityOpen, cityK, cityName, CITY_CFG } from './cities.js?v=9a2bf56f';
+import { revK, debt } from './rivalry.js?v=9a2bf56f';
+import { depositTotal, loanDebt, setNW } from './bank.js?v=9a2bf56f';
+import { equityOwed } from './equity.js?v=9a2bf56f';
 
 /** 存档里的产业：{ store: { level, branches, spent, sec, staff, agency, openedAt } } */
 export function newIndustry(t = Date.now()) { return { level: 1, branches: 1, spent: 0, sec: null, staff: {}, agency: {}, openedAt: t }; }
@@ -203,7 +203,7 @@ export function openBranch(s, id, t = Date.now(), by = '', city = CITY_CFG.hq) {
   const ind = s.inds[id]; const cfg = IND_BY_ID[id];
   if (!ind || whyNotBranch(s, id) || !cityOpen(s, city, t)) return false; // 新城市先注册分公司
   const cs = lineCities(s, id);
-  const cost = Math.ceil(branchCost(cfg, ind.branches, city, ind.level) * meetBr(s, id)); // V2-13 扩张打折；V2-08：开店费记进铺位（关店转让拿回 30%）
+  const cost = Math.ceil(branchCost(cfg, ind.branches, city, ind.level) * meetBr(s, id)); // V2-13 扩张打折；V2-08：开店费记进分店记录
   if (whyCushion(s, cost)) return false; /* V0.2.3 留够两个月工资 */
   const snap = upSnap(s, id); if (!payInd(s, ind, cost, id, `开第 ${ind.branches + 1} 家店（${cityName(city)}）`, t, by)) return false;
   ind.branches += 1; cs[city] = (cs[city] || 0) + 1; s.stats.maxStoreBranches = Math.max(s.stats.maxStoreBranches || 0, s.inds.store ? s.inds.store.branches : 0);
@@ -263,5 +263,5 @@ export function canPromote(s) {
 }
 
 // 资产的验资要看身价（避免互相 import）
-import { setNetWorthFn } from './assets.js?v=c60d881c';
+import { setNetWorthFn } from './assets.js?v=9a2bf56f';
 setNetWorthFn(netWorth); setNW(netWorth);

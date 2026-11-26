@@ -1,6 +1,6 @@
 // 第 2-16a 项：阶段二新功能第一次打开的提示（加进 guide.js 的 HINTS，只出一次）
-import { HINTS, hint } from './guide.js?v=c60d881c';
-import { game } from '../game.js?v=c60d881c';
+import { HINTS, hint } from './guide.js?v=9a2bf56f';
+import { game } from '../game.js?v=9a2bf56f';
 
 Object.assign(HINTS, {
   land: '拿地是挂牌竞价：每次加 5%，开发商会跟。地款只能用公司自有资金（不能贷款），成交另交 3% 契税。拿到地先办四证，四证齐了才能开工、才能贷开发贷。',

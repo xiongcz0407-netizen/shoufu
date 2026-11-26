@@ -743,12 +743,7 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 .st-rows b { font-weight: 600; }
 .st-card .st-go { width: 100%; }
 .st-secs .tab small { opacity: .7; font-size: 11px; }
-.st-mine { display: flex; flex-direction: column; gap: 6px; margin-bottom: 6px; }
-.st-row { display: flex; align-items: center; gap: 8px; background: #1b2438; border-radius: 10px; padding: 6px 10px; }
-.st-row span { flex: 1; display: flex; flex-direction: column; font-size: 13px; }
-.st-row span small { color: #9aa6c0; font-size: 11px; }
-.st-row em { font-style: normal; font-weight: 700; }
-.st-row .pos, .st-rows .pos { color: #7ddc8a; } .st-row .neg, .st-rows .neg { color: #ff8a80; }
+.st-rows .pos { color: #7ddc8a; } .st-rows .neg { color: #ff8a80; }
 
 /* V2-05 商战三回合 */
 .wr-card { background: rgba(255,255,255,.04); border-radius: 10px; padding: 10px; margin-bottom: 8px; }
@@ -1244,3 +1239,16 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 .iv-bar > .iv-idle { border-top: 0; padding-top: 4px; }
 .iv-bar > div:first-child small:first-child { white-space: nowrap; }
 .sd-gift-recent{display:block;width:100%;font-size:11px;opacity:.6;margin-top:2px}
+
+/* 设计71 我的座驾 */
+.ride-row { justify-content: flex-start; }
+.ride-row .btn { margin-left: auto; width: 72px; }
+.ride-thumb { width: 72px; height: 44px; flex: none; border-radius: 6px; background: #1d1813; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.ride-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.ride-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ride-info small { color: var(--muted, #b9a88f); font-size: 12px; }
+.ride-info b { font-size: 14px; }
+.ride-pick { display: flex; align-items: center; gap: 10px; }
+/* 设计83 私密约会 */
+.date-priv-title { margin-top: 14px; color: #ff8aa5; }
+.date-priv { border-color: #6b3a4a; }

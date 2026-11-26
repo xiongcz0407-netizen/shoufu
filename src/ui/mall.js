@@ -1,12 +1,12 @@
 // 商场（首页右侧浮动；秘书详情「送礼」直达）：礼物 | 衣服，都按秘书分页，走个人现金
-import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
-import { fmtMoney } from '../core/format.js?v=c60d881c';
-import { game } from '../game.js?v=c60d881c';
-import { h } from './dom.js?v=c60d881c';
-import { asset, hasAsset } from '../platform/assets.js?v=c60d881c';
-import { openFull } from './shell.js?v=c60d881c';
-import { openGift, openLux } from './gift.js?v=c60d881c';   // 设计56：礼物 / 奢侈品
-import { openShop } from './outfit.js?v=c60d881c';
+import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=9a2bf56f';
+import { fmtMoney } from '../core/format.js?v=9a2bf56f';
+import { game } from '../game.js?v=9a2bf56f';
+import { h } from './dom.js?v=9a2bf56f';
+import { asset, hasAsset } from '../platform/assets.js?v=9a2bf56f';
+import { openFull } from './shell.js?v=9a2bf56f';
+import { openGift, openLux } from './gift.js?v=9a2bf56f';   // 设计56：礼物 / 奢侈品
+import { openShop } from './outfit.js?v=9a2bf56f';
 
 export function openMall(secId, seg = 'gift') {
   const s = game.state;

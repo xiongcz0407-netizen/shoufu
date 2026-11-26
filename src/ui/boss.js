@@ -1,19 +1,20 @@
-import { avatarKey } from './main-screen.js?v=c60d881c';
-import * as MG from '../core/manage.js?v=c60d881c'; // P-05 精力
-import { asset, hasAsset } from '../platform/assets.js?v=c60d881c';
+import { avatarKey } from './main-screen.js?v=9a2bf56f';
+import * as MG from '../core/manage.js?v=9a2bf56f'; // P-05 精力
+import { asset, hasAsset } from '../platform/assets.js?v=9a2bf56f';
 // 老板页：名字和公司、老板属性、称号进度、穿戴、统计、设置（存档、重新开始在「设置」里，设计22）
-import { TITLES } from '../config/titles.js?v=c60d881c';
-import { RIVALS } from '../config/rivals.js?v=c60d881c';
-import * as E from '../core/economy.js?v=c60d881c';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=c60d881c';
-import { versionText } from '../version.js?v=c60d881c';
-import { now } from '../core/clock.js?v=c60d881c';
-import { game } from '../game.js?v=c60d881c';
-import { h, toast } from './dom.js?v=c60d881c';
-import { openFull } from './shell.js?v=c60d881c';
-import { wearHtml } from './luxury.js?v=c60d881c';
-import { appendCloudSettings } from './cloudset.js?v=c60d881c';
-import { inputBox } from './confirm.js?v=c60d881c'; // 设计37 第一节：游戏样式输入框
+import { TITLES } from '../config/titles.js?v=9a2bf56f';
+import { RIVALS } from '../config/rivals.js?v=9a2bf56f';
+import * as E from '../core/economy.js?v=9a2bf56f';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=9a2bf56f';
+import { versionText } from '../version.js?v=9a2bf56f';
+import { now } from '../core/clock.js?v=9a2bf56f';
+import { game } from '../game.js?v=9a2bf56f';
+import { h, toast, openPanel } from './dom.js?v=9a2bf56f';
+import { openFull } from './shell.js?v=9a2bf56f';
+import { wearHtml } from './luxury.js?v=9a2bf56f';
+import { appendCloudSettings } from './cloudset.js?v=9a2bf56f';
+import { inputBox } from './confirm.js?v=9a2bf56f'; // 设计37 第一节：游戏样式输入框
+import * as RD from '../core/ride.js?v=9a2bf56f'; // 设计71 座驾
 
 // 老板属性（设计09 第一节）由第 12 项提供：返回 [{ name, value, from }]
 let bossAttrs = () => [];
@@ -30,6 +31,7 @@ export function openBoss() {
       <div class="boss-card"><div class="tb-avatar big">${hasAsset(`assets/me/${avatarKey(s.title)}.webp`) ? `<img src="${asset(`assets/me/${avatarKey(s.title)}.webp`)}" alt="">` : (s.bossName || '我').slice(0, 1)}</div>
         <div><div class="ind-name">${s.bossName || '老板'} <small>${TITLES[s.title].name}</small></div><div class="tr-gain">${s.companyName || ''}</div></div>
         <button class="btn rename">改名</button></div>
+      ${rideHtml(s)}
       <div class="sd-rec-title">精力</div>
       <div class="tr-course"><div style="flex:1"><b>${Math.floor(MG.energy(s, t))} / ${MG.energyMax(s)}</b><div class="bar" style="margin-top:6px"><i style="width:${MG.energy(s, t) / MG.energyMax(s) * 100}%"></i></div><div class="tr-gain">每天 0 点回满（打工人 150、小老板 200、老板起 250），中间不回复；门店动作、大事、事件选项、商战各 5，约会 10。${MG.tip(s)}。门店详情里「亲自上阵」花精力；${(s.title || 0) >= 2 ? '老板以后亲自经营效果减半，精力多花在大事上：' : `精力够哪条线都能去。`}</div>
         ${(s.title || 0) >= 2 ? `<div class="ind-btns">${['battle', 'deal'].map((k) => `<button class="btn big-act" data-k="${k}" ${MG.whyNotBig(s, k, t) ? 'disabled' : ''}>${MG.MANAGE_CFG.big[k].name}（${MG.MANAGE_CFG.big[k].energy}）${MG.bigBonus(s, k) ? '<br><small>已准备好</small>' : ''}</button>`).join('')}</div>` : ''}</div></div>
@@ -46,6 +48,7 @@ export function openBoss() {
       <div class="tr-course"><div><b>人声</b><div class="tr-gain">秘书说话的配音（没有配音文件时只出气泡）</div></div><button class="btn voice">${s.settings.voice === false ? '关' : '开'}</button></div><div class="tr-course"><div><b>日程提醒</b><div class="tr-gain">新邀请到了在上方提醒一下（关了只剩日程图标的红点）</div></div><button class="btn ag-rem-set">${s.settings.agendaRem === false ? '关' : '开'}</button></div><div class="boss-cloud"></div>
       <div class="tr-gain" style="text-align:center;margin-top:12px">${versionText()}</div></div>`;
     p.body.querySelectorAll('.big-act').forEach((b) => (b.onclick = () => { const r = MG.doBig(game.state, b.dataset.k, now()); toast(r.ok ? r.text : r.why, 2600); game.changed(); game.save(); }));
+    p.body.querySelectorAll('.ride-chg').forEach((b) => (b.onclick = () => pickRide(b.dataset.k, render)));   // 设计71
     p.body.querySelector('.rename').onclick = async () => {
       const v = await inputBox('改名字', [{ label: '你的名字', value: s.bossName || '', max: 12 }, { label: '公司名字', value: s.companyName || '', max: 16 }]); if (!v) return; const [n, c] = v;
       s.bossName = n.trim() || s.bossName; s.companyName = c.trim() || s.companyName; game.save(); game.changed(); render();
@@ -55,4 +58,25 @@ export function openBoss() {
     p.body.querySelector('.ag-rem-set').onclick = () => { s.settings.agendaRem = s.settings.agendaRem === false; game.save(); render(); };   // 设计69
   };
   render();
+}
+
+// —— 设计71 我的座驾：车 / 飞机 / 游艇各一行（飞机、游艇没有就不出），点「换 ›」从买过、还在手上的里挑 ——
+const rideImg = (kind, id) => { const p = `assets/${kind}/${id}.webp`; return hasAsset(p) ? `<img src="${asset(p)}" alt="">` : ''; };
+function rideHtml(s) {
+  const rows = RD.KINDS.map((k) => {
+    const id = RD.rideId(s, k);
+    if (!id) return k === 'car' ? `<div class="tr-course ride-row"><div class="ride-thumb"></div><div class="ride-info"><small>车</small><b>还没有车</b></div></div>` : '';
+    const n = RD.owned(s, k).length;
+    return `<div class="tr-course ride-row" data-k="${k}"><div class="ride-thumb">${rideImg(k, id)}</div><div class="ride-info"><small>${RD.KIND_NAME[k]}${n > 1 ? `（${n} 台）` : ''}</small><b>${RD.nameOf(k, id)}</b></div><button class="btn sm ride-chg" data-k="${k}">换 ›</button></div>`;
+  }).join('');
+  return `<div class="sd-rec-title">我的座驾</div><div class="ride-box">${rows}</div>`;
+}
+function pickRide(kind, after) {
+  const s = game.state; const cur = RD.rideId(s, kind);
+  const p = openPanel(`换${RD.KIND_NAME[kind]}`);
+  for (const id of RD.owned(s, kind)) {
+    const row = h('button', `tr-course ch ride-pick${id === cur ? ' on' : ''}`, `<div class="ride-thumb">${rideImg(kind, id)}</div><div class="ride-info"><b>${RD.nameOf(kind, id)}</b><small>${fmtMoney(RD.rideItem(kind, id).price)}</small></div>`);
+    row.onclick = () => { const r = RD.setRide(game.state, kind, id); p.close(); if (!r.ok) { toast(r.why); return; } toast(`座驾换成 ${r.name}`); game.changed(); game.save(); after(); };
+    p.body.appendChild(row);
+  }
 }

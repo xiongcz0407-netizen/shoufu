@@ -1,20 +1,21 @@
 // V3-03 出差（设计33 第四之三节）：日程里的「去 X 签约 / 看地 / 见投资人 / 考察」，占 1～3 个游戏日
 // 出发前选带谁 → 交通（私人飞机 / 头等舱）、住（自己的房子 / 地标酒店 / 按档次订一间套房）→ 白天办事（她的属性 + 你的选择）→ 晚上 → 过夜剧情（按爱慕阶段拼片段）→ 早上收尾
 // 存档 s.trip = { rec: { 秘书id: { n, cities: [] } }, n }；片段用过的记 s.storyUsed（core/storylib.js）
-import C from '../config/trips.json?v=c60d881c' with { type: 'json' };
-import { SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
-import { ITEM } from './assets.js?v=c60d881c';
-import { LM, mine as lmMine } from './landmark.js?v=c60d881c';
-import { attrs } from './posts.js?v=c60d881c';
-import { ensureSec, loveStage } from './secretary.js?v=c60d881c';
-import { addFavor, addLove } from './affection.js?v=c60d881c';
-import { pay } from './ledger.js?v=c60d881c';
-import { addFx, isShop } from './manage.js?v=c60d881c';
-import { isTraining } from './training.js?v=c60d881c';
-import { isScouting } from './busy.js?v=c60d881c';
-import * as AG from './agenda.js?v=c60d881c';
-import * as SL from './storylib.js?v=c60d881c';
-import * as STY from './styles.js?v=c60d881c'; // V3-05 出差按场合换衣服
+import C from '../config/trips.json?v=9a2bf56f' with { type: 'json' };
+import { SEC_BY_ID } from '../config/secretaries.js?v=9a2bf56f';
+import { ITEM } from './assets.js?v=9a2bf56f';
+import { rideId, nameOf } from './ride.js?v=9a2bf56f'; // 设计71 座驾
+import { LM, mine as lmMine } from './landmark.js?v=9a2bf56f';
+import { attrs } from './posts.js?v=9a2bf56f';
+import { ensureSec, loveStage } from './secretary.js?v=9a2bf56f';
+import { addFavor, addLove } from './affection.js?v=9a2bf56f';
+import { pay } from './ledger.js?v=9a2bf56f';
+import { addFx, isShop } from './manage.js?v=9a2bf56f';
+import { isTraining } from './training.js?v=9a2bf56f';
+import { isScouting } from './busy.js?v=9a2bf56f';
+import * as AG from './agenda.js?v=9a2bf56f';
+import * as SL from './storylib.js?v=9a2bf56f';
+import * as STY from './styles.js?v=9a2bf56f'; // V3-05 出差按场合换衣服
 export { C as TRIP_CFG };
 
 const pick = (a, r) => a[Math.floor(r() * a.length)];
@@ -37,7 +38,8 @@ export function plan(s, it) {
   const hotel = lmHotel ? LM[lmHotel].name : home ? `${c.name}的家` : c.hotels[tierI];
   const nights = it.days || 1; const flight = plane ? 0 : 2 * (c.abroad ? C.flight.abroad : C.flight.home) * 2; // 两个人、来回
   const room = lmHotel || home ? 0 : ht.night * nights;
-  return { city: c.name, view: c.view, plane, home: !!home, ownHotel: !!lmHotel, hotel, room: ht.name, flight, roomCost: room, cost: flight + room, nights };
+  const planeName = plane ? nameOf('plane', rideId(s, 'plane')) : '';   // 设计71：坐座驾飞机
+  return { city: c.name, view: c.view, plane, planeName, home: !!home, ownHotel: !!lmHotel, hotel, room: ht.name, flight, roomCost: room, cost: flight + room, nights };
 }
 /** 出发：带 secId；choice = 白天那一步选了第几个（0 最好）。返回要播的剧情 + 结果 */
 export function go(s, id, secId, choice, t, rnd = Math.random) {

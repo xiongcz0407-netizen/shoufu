@@ -3,26 +3,27 @@
 // 每件三个按钮：去参加（小场景，ui/agenda.js；宴会、慈善、讲座、私人场合选车 / 表 / 西装 / 女伴）/ 派人代去（效果一半，马上结算）/ 推掉；没有「答应」、没有失约
 // 出差也在邀请箱里，点「出发」起占 N 个游戏日（这期间别的只能派人代去）；外部事件（大项目节点、对手进攻、地产、经营会）用 pushEvent 放进日程
 // 存档 s.agenda = { day 补到第几天, seq, items: [{ id, at, kind, title, tier, host, line, sec, status: invite / done / declined, ext, ref, days, city, purpose, from }], away 出差 { id, until }, net 人脉, gov 政府关系, log, fresh 刚来的（界面提示）, offNew 离线来的几个 }
-import { capAdd } from './cap.js?v=c60d881c';   // 设计79：有上限的列表（config/caps.js）
-import C from '../config/agenda.json?v=c60d881c' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=c60d881c';
-import { SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
-import { RIVALS } from '../config/rivals.js?v=c60d881c';
-import { DAY_MS, dayIndex, addFx, addRep, isShop, dayRev } from './manage.js?v=c60d881c';
-import { postOfSec, attrs } from './posts.js?v=c60d881c';
-import { isTraining } from './training.js?v=c60d881c';
-import { isScouting } from './busy.js?v=c60d881c';
-import { addAttrHook } from './boss.js?v=c60d881c';
-import { addFavor, addLove } from './affection.js?v=c60d881c';
-import { afterDate } from './love.js?v=c60d881c';   // 设计56
-import { addMsg } from './inbox.js?v=c60d881c';
-import { pay } from './ledger.js?v=c60d881c';
-import { netWorth } from './economy.js?v=c60d881c';
-import { rivalState } from './battle.js?v=c60d881c';
-import { ITEM } from './assets.js?v=c60d881c';
-import * as LX from './luxury.js?v=c60d881c';
-import * as STY from './styles.js?v=c60d881c'; // V3-05 女伴按款式
-import * as LT from './late.js?v=c60d881c'; // 开发1 V3-01：大项目节点、对手进攻、地产决策的消息
+import { capAdd } from './cap.js?v=9a2bf56f';   // 设计79：有上限的列表（config/caps.js）
+import C from '../config/agenda.json?v=9a2bf56f' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=9a2bf56f';
+import { SEC_BY_ID } from '../config/secretaries.js?v=9a2bf56f';
+import { RIVALS } from '../config/rivals.js?v=9a2bf56f';
+import { DAY_MS, dayIndex, addFx, addRep, isShop, dayRev } from './manage.js?v=9a2bf56f';
+import { postOfSec, attrs } from './posts.js?v=9a2bf56f';
+import { isTraining } from './training.js?v=9a2bf56f';
+import { isScouting } from './busy.js?v=9a2bf56f';
+import { addAttrHook } from './boss.js?v=9a2bf56f';
+import { addFavor, addLove } from './affection.js?v=9a2bf56f';
+import { afterDate } from './love.js?v=9a2bf56f';   // 设计56
+import { addMsg } from './inbox.js?v=9a2bf56f';
+import { pay } from './ledger.js?v=9a2bf56f';
+import { netWorth } from './economy.js?v=9a2bf56f';
+import { rivalState } from './battle.js?v=9a2bf56f';
+import { ITEM } from './assets.js?v=9a2bf56f';
+import { rideId } from './ride.js?v=9a2bf56f'; // 设计71 座驾
+import * as LX from './luxury.js?v=9a2bf56f';
+import * as STY from './styles.js?v=9a2bf56f'; // V3-05 女伴按款式
+import * as LT from './late.js?v=9a2bf56f'; // 开发1 V3-01：大项目节点、对手进攻、地产决策的消息
 export { C as AGENDA_CFG, DAY_MS };
 
 
@@ -153,7 +154,7 @@ export function wardrobe(s) {
   const one = (k) => LX.mine(s, k).map((id) => ({ id, name: LX.label(LX.L[id]), price: LX.L[id].price })).sort((a, b) => b.price - a.price);
   return { car: cars, watch: one('watch'), suit: one('suit'), sec: Object.keys(s.secs || {}).filter((id) => free(s, id)) };
 }
-export function bestDress(s) { const w = wardrobe(s); return { car: w.car[0] ? w.car[0].id : null, watch: w.watch[0] ? w.watch[0].id : null, suit: w.suit[0] ? w.suit[0].id : null, sec: s.current && w.sec.includes(s.current) ? s.current : w.sec[0] || null }; }
+export function bestDress(s) { const w = wardrobe(s); const rc = rideId(s, 'car'); return { car: rc && w.car.some((x) => x.id === rc) ? rc : w.car[0] ? w.car[0].id : null, /* 设计71：默认开座驾，还能手动挑 */ watch: w.watch[0] ? w.watch[0].id : null, suit: w.suit[0] ? w.suit[0].id : null, sec: s.current && w.sec.includes(s.current) ? s.current : w.sec[0] || null }; }
 const priceOf = (k, id) => (!id ? 0 : k === 'car' ? (ITEM[id] || {}).price || 0 : (LX.L[id] || {}).price || 0);
 /** 打扮系数 0.7～1.25 + 女伴 0～0.25 */
 /** 女伴的衣服对不对路（V3-05）：{ o, name, style, k, line } 或 null */

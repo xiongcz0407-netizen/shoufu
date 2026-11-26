@@ -5,10 +5,10 @@
 //   公司 → 投资：算分红（公司 dividend_out + 投资账户 dividend，代扣 20% 个税）
 // 只能转投资账户里的现金：挂单里冻着的、持仓都不能转。
 // 注资 / 分红那一头在 companytax.js（开发1），用 setCompanyBridge 挂在下面。
-import { pay, post, canPayMust } from './ledger.js?v=c60d881c';
-import { addNetWorthHook } from './economy.js?v=c60d881c';
-import * as CT from './companytax.js?v=c60d881c';   // 开发1：注资 / 分红
-import { divMax } from './cashflow.js?v=c60d881c';
+import { pay, post, canPayMust } from './ledger.js?v=9a2bf56f';
+import { addNetWorthHook } from './economy.js?v=9a2bf56f';
+import * as CT from './companytax.js?v=9a2bf56f';   // 开发1：注资 / 分红
+import { divMax } from './cashflow.js?v=9a2bf56f';
 
 const r2 = (v) => Math.round(v * 100) / 100;
 export const ACC = { personal: '个人账户', invest: '投资账户', company: '公司账户' };

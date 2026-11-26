@@ -3,15 +3,15 @@
 // 利好 / 利空新闻每跳检查、新闻前 30 跳就说（提前说 / 说准按「股票 + 新闻那一跳」定种子只掷一次，点几次都一样）。
 // 机会：要涨停 / 有利好 / 有一波 → 「重要」消息（⅓仓 / 半仓 / 全仓 一点就挂）；手里有的要跌 → 「¥X 以下先卖掉」（卖 ⅓ / 一半 / 全部）。
 // 设计48：提示不进消息，放在 s.mkt.wsTips（股票页看盘卡片下面列）；同一只不重复、最多 3 条；买入点过了收起；「不用了」这次看盘这只不再说。离线不补发：回来还在看盘时间里马上扫一次。结束弹战绩。不看盘就没有任何股票提示（规矩 9）。
-import { capAdd } from './cap.js?v=c60d881c';   // 设计79：有上限的列表（config/caps.js）
-import * as SK from './stocks.js?v=c60d881c';
-import * as TR from './trade.js?v=c60d881c';
-import { attrs as secAttrs } from './posts.js?v=c60d881c';
-import { whyEnergy, doEnergy } from './manage.js?v=c60d881c';
-import { isTraining } from './training.js?v=c60d881c';
-import { SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
-import { posShares, POS_BY, nFor } from './look.js?v=c60d881c';
-import { have as haveItem, useItem } from './coupon.js?v=c60d881c';   // 设计53 投资券
+import { capAdd } from './cap.js?v=9a2bf56f';   // 设计79：有上限的列表（config/caps.js）
+import * as SK from './stocks.js?v=9a2bf56f';
+import * as TR from './trade.js?v=9a2bf56f';
+import { attrs as secAttrs } from './posts.js?v=9a2bf56f';
+import { whyEnergy, doEnergy } from './manage.js?v=9a2bf56f';
+import { isTraining } from './training.js?v=9a2bf56f';
+import { SEC_BY_ID } from '../config/secretaries.js?v=9a2bf56f';
+import { posShares, POS_BY, nFor } from './look.js?v=9a2bf56f';
+import { have as haveItem, useItem } from './coupon.js?v=9a2bf56f';   // 设计53 投资券
 
 const C = SK.SCFG; const W = C.watch; const WS = W.ws; const T = W.tip;
 const TICK = C.tickSec * 1000; const HOUR_TICKS = 3600e3 / TICK;

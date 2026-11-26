@@ -1,10 +1,10 @@
 // 离开期间账单（第 2-16a 项）：跟合同、交割单一样的纸张样式；公司 / 个人两段；下面是秘书替你做了什么
-import { secWork } from '../core/awaybill.js?v=c60d881c';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=c60d881c';
-import { asset, hasAsset } from '../platform/assets.js?v=c60d881c';
-import { game } from '../game.js?v=c60d881c';
-import { h } from './dom.js?v=c60d881c';
-import { openFull } from './shell.js?v=c60d881c';
+import { secWork } from '../core/awaybill.js?v=9a2bf56f';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=9a2bf56f';
+import { asset, hasAsset } from '../platform/assets.js?v=9a2bf56f';
+import { game } from '../game.js?v=9a2bf56f';
+import { h } from './dom.js?v=9a2bf56f';
+import { openFull } from './shell.js?v=9a2bf56f';
 
 const days = (d) => (d >= 30 ? `${Math.floor(d / 30)} 个月 ${Math.round(d % 30)} 天` : `${Math.max(1, Math.round(d))} 天`);
 const dt = (t) => new Date(t).toLocaleString('zh-CN', { hour12: false, month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });

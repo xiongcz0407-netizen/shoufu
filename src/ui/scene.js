@@ -1,9 +1,9 @@
 // V3-02 / V3-03 小场景播放器（不动开发1 的 ui/story.js）：全屏、背景、立绘、一句一句点；'#黑屏' 转场；中间可以停下来让你选（选完接着播选了以后的话）
-// steps：字符串（「」开头当她说话，其余旁白）、{ who, text }、'#黑屏'、{ choice: { q, opts: [label…] }, then(i) → 接下来的 steps }
-import { SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
-import { asset, hasAsset } from '../platform/assets.js?v=c60d881c';
-import { h } from './dom.js?v=c60d881c';
-import { storyPortrait } from './portrait.js?v=c60d881c';   // 设计66：立绘跟主页同一个 layout（开发1 加）
+// steps：字符串（「」开头当她说话，其余旁白）、{ who, text, fx }、'#黑屏'、{ choice: { q, opts: [label…] }, then(i) → 接下来的 steps }
+import { SEC_BY_ID } from '../config/secretaries.js?v=9a2bf56f';
+import { asset, hasAsset } from '../platform/assets.js?v=9a2bf56f';
+import { h } from './dom.js?v=9a2bf56f';
+import { storyPortrait } from './portrait.js?v=9a2bf56f';   // 设计66：立绘跟主页同一个 layout（开发1 加）
 
 export function playScene(steps, opts = {}) {
   return new Promise((done0) => { if (document.querySelector('.story')) { const w = setInterval(() => { if (!document.querySelector('.story')) { clearInterval(w); playScene(steps, opts).then(done0); } }, 500); return; } const done = done0; // V0.2.3：有剧情在放就排队
@@ -30,12 +30,13 @@ export function playScene(steps, opts = {}) {
       if (x && x.outfit) { if (sp) sp.show(x.outfit); if (!x.bg) return next(); }
       if (x && x.bg) { setBg(x.bg, x.label); black.classList.remove('on'); el.classList.remove('dark'); if (sp && x.sec != null) sp.el.style.display = x.sec ? '' : 'none'; return next(); }
       if (x && x.choice) {
-        waiting = true; show('narr', x.choice.q); el.querySelector('.story-hint').style.display = 'none';
+        waiting = true; show(x.choice.who || 'narr', x.choice.q); el.querySelector('.story-hint').style.display = 'none';
         const cb = h('div', 'story-choices'); x.choice.opts.forEach((lab, i) => { const b = h('button', 'btn' + (i === 0 ? ' gold' : ''), lab); b.onclick = (e) => { e.stopPropagation(); cb.remove(); waiting = false; el.querySelector('.story-hint').style.display = ''; q.unshift(...(x.then(i) || [])); next(); }; cb.appendChild(b); });
         el.appendChild(cb); return;
       }
       if (typeof x === 'string') { const her = x.startsWith('「'); if (!black.classList.contains('on') || her) { /* 黑屏上旁白照样显示 */ } show(her && sec ? sec : 'narr', x); if (her && black.classList.contains('on')) { /* 关灯后她说话，屏还黑着 */ } }
       else show(x.who, x.text);
+      if (x && x.fx) { const o = el.querySelector('.story-fx'); if (o) o.remove(); el.appendChild(h('div', 'story-fx', x.fx)); }   // 设计83：约会「♥ +N」
       if (x && x.light) { black.classList.remove('on'); el.classList.remove('dark'); }
     };
     el.addEventListener('click', () => { if (!waiting) next(); });

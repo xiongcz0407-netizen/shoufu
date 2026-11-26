@@ -1,8 +1,8 @@
 // 财务报表（第 13 项，设计15 第三节 + 设计17 第三节）：从流水算利润表、个人收支、纳税、资产清单
-import * as BK from './books.js?v=c60d881c';   // 设计79 第三版：报表数字从累加器拿
-import { CATS } from './ledger.js?v=c60d881c';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=c60d881c';
-import { INDUSTRIES } from '../config/industries.js?v=c60d881c';
+import * as BK from './books.js?v=9a2bf56f';   // 设计79 第三版：报表数字从累加器拿
+import { CATS } from './ledger.js?v=9a2bf56f';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=9a2bf56f';
+import { INDUSTRIES } from '../config/industries.js?v=9a2bf56f';
 
 export const PERIODS = [['day', '今天'], ['month', '本月'], ['year', '本年'], ['all', '全部']];
 /** 时间段起点（游戏日 / 月 / 年，从开局算） */
@@ -74,23 +74,23 @@ export function ledgerView(s, { wallet, cat, by, from }, t) {
 }
 
 // ---------- 第 2-15 项：资产负债表、资产清单 ----------
-import * as EC from './economy.js?v=c60d881c';
-import { depositTotal, loanDebt } from './bank.js?v=c60d881c';
-import { debt as bridgeDebt } from './rivalry.js?v=c60d881c';
-import { equityOwed } from './equity.js?v=c60d881c';
-import { payables } from './accrual.js?v=c60d881c';
-import { fleetValue } from './logistics.js?v=c60d881c';
-import { reValue } from './realestate.js?v=c60d881c';
-import * as AS from './assets.js?v=c60d881c';
-import * as YT from './yacht.js?v=c60d881c';
-import * as LX from './luxury.js?v=c60d881c';
-import * as AQ from './antique.js?v=c60d881c';
-import * as OF from './offshore.js?v=c60d881c';
-import * as SK from './stocks.js?v=c60d881c';
-import * as TR from './trade.js?v=c60d881c'; // 设计43 第二版：挂单中
-import { SEC_BY_ID } from '../config/secretaries.js?v=c60d881c';
-import * as LMK from './landmark.js?v=c60d881c';
-import { paidIn as paidInOf } from './companytax.js?v=c60d881c';
+import * as EC from './economy.js?v=9a2bf56f';
+import { depositTotal, loanDebt } from './bank.js?v=9a2bf56f';
+import { debt as bridgeDebt } from './rivalry.js?v=9a2bf56f';
+import { equityOwed } from './equity.js?v=9a2bf56f';
+import { payables } from './accrual.js?v=9a2bf56f';
+import { fleetValue } from './logistics.js?v=9a2bf56f';
+import { reValue } from './realestate.js?v=9a2bf56f';
+import * as AS from './assets.js?v=9a2bf56f';
+import * as YT from './yacht.js?v=9a2bf56f';
+import * as LX from './luxury.js?v=9a2bf56f';
+import * as AQ from './antique.js?v=9a2bf56f';
+import * as OF from './offshore.js?v=9a2bf56f';
+import * as SK from './stocks.js?v=9a2bf56f';
+import * as TR from './trade.js?v=9a2bf56f'; // 设计43 第二版：挂单中
+import { SEC_BY_ID } from '../config/secretaries.js?v=9a2bf56f';
+import * as LMK from './landmark.js?v=9a2bf56f';
+import { paidIn as paidInOf } from './companytax.js?v=9a2bf56f';
 
 const r2b = (v) => Math.round(v * 100) / 100;
 const tot = (rows) => r2b(rows.reduce((a, r) => a + r[1], 0));
