@@ -3,15 +3,15 @@
 // 利好 / 利空新闻每跳检查、新闻前 30 跳就说（提前说 / 说准按「股票 + 新闻那一跳」定种子只掷一次，点几次都一样）。
 // 机会：要涨停 / 有利好 / 有一波 → 「重要」消息（⅓仓 / 半仓 / 全仓 一点就挂）；手里有的要跌 → 「¥X 以下先卖掉」（卖 ⅓ / 一半 / 全部）。
 // 设计48：提示不进消息，放在 s.mkt.wsTips（股票页看盘卡片下面列）；同一只不重复、最多 3 条；买入点过了收起；「不用了」这次看盘这只不再说。离线不补发：回来还在看盘时间里马上扫一次。结束弹战绩。不看盘就没有任何股票提示（规矩 9）。
-import { capAdd } from './cap.js?v=9a2bf56f';   // 设计79：有上限的列表（config/caps.js）
-import * as SK from './stocks.js?v=9a2bf56f';
-import * as TR from './trade.js?v=9a2bf56f';
-import { attrs as secAttrs } from './posts.js?v=9a2bf56f';
-import { whyEnergy, doEnergy } from './manage.js?v=9a2bf56f';
-import { isTraining } from './training.js?v=9a2bf56f';
-import { SEC_BY_ID } from '../config/secretaries.js?v=9a2bf56f';
-import { posShares, POS_BY, nFor } from './look.js?v=9a2bf56f';
-import { have as haveItem, useItem } from './coupon.js?v=9a2bf56f';   // 设计53 投资券
+import { capAdd } from './cap.js?v=a24b4431';   // 设计79：有上限的列表（config/caps.js）
+import * as SK from './stocks.js?v=a24b4431';
+import * as TR from './trade.js?v=a24b4431';
+import { attrs as secAttrs } from './posts.js?v=a24b4431';
+import { whyEnergy, doEnergy } from './manage.js?v=a24b4431';
+import { isTraining } from './training.js?v=a24b4431';
+import { SEC_BY_ID } from '../config/secretaries.js?v=a24b4431';
+import { posShares, POS_BY, nFor } from './look.js?v=a24b4431';
+import { have as haveItem, useItem } from './coupon.js?v=a24b4431';   // 设计53 投资券
 
 const C = SK.SCFG; const W = C.watch; const WS = W.ws; const T = W.tip;
 const TICK = C.tickSec * 1000; const HOUR_TICKS = 3600e3 / TICK;
@@ -124,7 +124,7 @@ function visible(s, w) {
 const isGood = (x) => x.data.kind !== 'fall' && !x.data.pre && x.data.g >= (x.data.thr != null ? x.data.thr : WS.minG) - 1e-9;   // 设计59：按这个秘书的门槛
 const TITLE = { lu: `${Math.ceil(WS.win / 2)} 分钟内封涨停`, news: '有利好', wave: '能涨一波', fall: '要跌' };
 function send(s, w, d, t) {
-  if (msgs(s).some((x) => x.data.code === d.code) || (w.no && w.no[d.code])) return null;   // 同一只不重复；「不用了」的这次看盘不再说
+  if ((d.kind !== 'fall' ? busyCodes(s).has(d.code) : msgs(s).some((x) => x.data.code === d.code)) || (w.no && w.no[d.code])) return null;   // 同一只不重复；「不用了」的这次看盘不再说；设计84：能买 / 利好预告还要排除挂着单的、手里有的（busyCodes），卖完 / 撤单后又能说
   const who = w.who; const sec = SEC_BY_ID[who] ? SEC_BY_ID[who].name : ''; const m = s.mkt;
   const tip = { id: (m.wsTipSeq = (m.wsTipSeq || 0) + 1), from: who, title: `${sec}：${nm(d.code)}${d.pre ? '有利好，马上要出' : TITLE[d.kind]}`, data: { ...d, at: t }, at: t, seen: false };
   if (d.kind !== 'fall' && !d.pre && d.b != null) tip.data.lowTk = m.tick + 1 + d.b;   // 设计67：低点那一跳出提示时就定下来
@@ -211,7 +211,7 @@ export function scan(s, t = Date.now(), manual = false) {
   const rows = see.map((code) => quick(m, code, F.path[code], wv, LU[code] != null ? LU[code] : null)).filter(Boolean).sort((a, b) => (b.lu - a.lu) || (b.g - a.g) || (a.hit - b.hit));
   const ex = new Set(rows.map((r) => r.code)); let wi = 0;
   for (const r of rows) {
-    if (msgs(s).some((x) => x.data.code === r.code) || (w.no && w.no[r.code])) continue;
+    if (busyCodes(s).has(r.code) || (w.no && w.no[r.code])) continue;   // 设计84：跟 wrongBuy 一样排除有提示的、挂着单的、手里有的
     const right = isRight(s, r.code, m.tick, wv); let d = { kind: r.lu ? 'lu' : 'wave', code: r.code, X: r.X, Y: r.Y, Z: r.Z, g: r.g, lu: r.lu, mins: r.mins, b: r.b, hit: r.hit, thr: r.thr };
     if (!right) { d = wrongBuy(s, w, see, d.kind, wv, ex, wi++); if (!d) continue; }   // 设计53 说错：换成一只其实要跌的，长得一样
     const x = send(s, w, d, t); if (x) { out.push(x); tally(w, !right); }

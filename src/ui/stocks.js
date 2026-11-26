@@ -1,33 +1,33 @@
 // 「财富 → 投资」股票（第 2-09 项，设计12 第八节）：行情 | 持仓 | 投资经理；点一只 → 个股（分时、指标、买卖、新闻、持仓）
-import * as SK from '../core/stocks.js?v=9a2bf56f';
-import * as AS from '../core/assets.js?v=9a2bf56f';
-import * as INB from '../core/inbox.js?v=9a2bf56f';
-import { bossAttrs } from '../core/boss.js?v=9a2bf56f';
-import { holder, isSec } from '../core/posts.js?v=9a2bf56f';
-import { SEC_BY_ID } from '../config/secretaries.js?v=9a2bf56f';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=9a2bf56f';
-import { asset, hasAsset } from '../platform/assets.js?v=9a2bf56f';
-import { game } from '../game.js?v=9a2bf56f';
-import { now } from '../core/clock.js?v=9a2bf56f';
-import { h, openPanel, toast, liveRender } from './dom.js?v=9a2bf56f';
-import { say } from './main-screen.js?v=9a2bf56f';
-import { hintLater } from './guide2.js?v=9a2bf56f';
-import * as LSC from '../core/listing.js?v=9a2bf56f';
-import { selfCard } from './listing.js?v=9a2bf56f';
-import * as TKO from '../core/takeover.js?v=9a2bf56f';
-import * as TR from '../core/trade.js?v=9a2bf56f';
-import { renderTradeTab, orderBlock, ipoLogo } from './trade.js?v=9a2bf56f';
-import { watchBlock, wsCard, setSay, setShowDone, wsTipBar, setGotoTip, secClock, addSecTick } from './look.js?v=9a2bf56f';
-import { registerBadge, registerSegBadge, openTab } from './shell.js?v=9a2bf56f'; // 设计47 看盘改成时间段（开发2）
-import * as WSM from '../core/ws.js?v=9a2bf56f';
-import * as LK from '../core/look.js?v=9a2bf56f';
-import { canPay } from '../core/ledger.js?v=9a2bf56f';
-import * as MG from '../core/mgr.js?v=9a2bf56f'; // 设计44 投资经理自动炒股
-import { upgradeBox } from './upgradebox.js?v=9a2bf56f';
-import { makeLive, toNextSub } from '../core/live.js?v=9a2bf56f';   // 设计55 行情 3 秒刷新
-import { investBar, whyToast, firstNote, totalHtml } from './invest.js?v=9a2bf56f';   // 设计62 投资账户
-import { earn, sgnMoney, sgnPct } from './earn.js?v=9a2bf56f';   // 设计65：挂单写百分比
-import { confirmBox } from './confirm.js?v=9a2bf56f';   // 设计73 持仓卖出
+import * as SK from '../core/stocks.js?v=a24b4431';
+import * as AS from '../core/assets.js?v=a24b4431';
+import * as INB from '../core/inbox.js?v=a24b4431';
+import { bossAttrs } from '../core/boss.js?v=a24b4431';
+import { holder, isSec } from '../core/posts.js?v=a24b4431';
+import { SEC_BY_ID } from '../config/secretaries.js?v=a24b4431';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=a24b4431';
+import { asset, hasAsset } from '../platform/assets.js?v=a24b4431';
+import { game } from '../game.js?v=a24b4431';
+import { now } from '../core/clock.js?v=a24b4431';
+import { h, openPanel, toast, liveRender } from './dom.js?v=a24b4431';
+import { say } from './main-screen.js?v=a24b4431';
+import { hintLater } from './guide2.js?v=a24b4431';
+import * as LSC from '../core/listing.js?v=a24b4431';
+import { selfCard } from './listing.js?v=a24b4431';
+import * as TKO from '../core/takeover.js?v=a24b4431';
+import * as TR from '../core/trade.js?v=a24b4431';
+import { renderTradeTab, orderBlock, ipoLogo } from './trade.js?v=a24b4431';
+import { watchBlock, wsCard, setSay, setShowDone, wsTipBar, setGotoTip, secClock, addSecTick } from './look.js?v=a24b4431';
+import { registerBadge, registerSegBadge, openTab } from './shell.js?v=a24b4431'; // 设计47 看盘改成时间段（开发2）
+import * as WSM from '../core/ws.js?v=a24b4431';
+import * as LK from '../core/look.js?v=a24b4431';
+import { canPay } from '../core/ledger.js?v=a24b4431';
+import * as MG from '../core/mgr.js?v=a24b4431'; // 设计44 投资经理自动炒股
+import { upgradeBox } from './upgradebox.js?v=a24b4431';
+import { makeLive, toNextSub } from '../core/live.js?v=a24b4431';   // 设计55 行情 3 秒刷新
+import { investBar, whyToast, firstNote, totalHtml } from './invest.js?v=a24b4431';   // 设计62 投资账户
+import { earn, sgnMoney, sgnPct } from './earn.js?v=a24b4431';   // 设计65：挂单写百分比
+import { confirmBox } from './confirm.js?v=a24b4431';   // 设计73 持仓卖出
 
 let tab = 'market', sector = '全部', sortBy = 'chg';
 const logo = (c, cls = 'sk-logo') => (SK.BY[c] && SK.BY[c].ipo ? ipoLogo(c, cls) : hasAsset(`assets/stock/logo_${c}.webp`) ? `<img class="${cls}" src="${asset(`assets/stock/logo_${c}.webp`)}" alt="">` : `<i class="${cls} ph">${c}</i>`);
@@ -179,7 +179,7 @@ function mgr(s, wrap, draw, t) {   // 设计44：投资经理自动炒股（每�
   if (!w) { wrap.appendChild(h('div', 'empty', '还没有投资经理：去「秘书 → 职位」任命（智慧高的打星）')); return; }
   const wit = Math.round(SK.mgrWit(s, t));
   wrap.appendChild(h('div', 'mg-who', `${isSec(w) ? `<img src="${asset(`assets/sec/${w}/c1.webp`)}" alt="">` : '<i class="msg-ico">🏦</i>'}<div><b>${isSec(w) ? SEC_BY_ID[w].name : '外包：券商投顾'}</b><small>智慧 ${isSec(w) ? `${s.secs[w].attrs ? s.secs[w].attrs.wit : ''}（算上职位效率 ${wit}）` : '按 50 算'}　每轮看得到 ${MG.seeOf(wit)} 只</small></div>`));
-  wrap.appendChild(h('div', 'tr-gain', '她每天 0 / 6 / 12 / 18 点各炒一轮：看接下来 2 小时的走势，挑最多 3 只（涨停优先），她手上的钱全部平分，一定成交、一定赚。每轮卖完赚的 10% 是她的提成（公司或家族办公室付；外包收「投顾服务费」）。她最多管下一个称号门槛的 10%，超过的赚头每轮自动转回你的个人现金。她的买卖在她自己的账上，不进你的持仓。'));
+  wrap.appendChild(h('div', 'tr-gain', '她每天 0 / 6 / 12 / 18 点各炒一轮：看接下来 2 小时的走势，挑最多 3 只（涨停优先），一股起买、她手上的钱全用上，一定成交、一定赚。每轮卖完赚的 10% 是她的提成（公司或家族办公室付；外包收「投顾服务费」）。她最多管下一个称号门槛的 10%，超过的赚头每轮自动转回你的投资账户。她的买卖在她自己的账上，不进你的持仓。'));
   if (g) {
     wrap.appendChild(h('div', 'sum-card mg-sum', `<div><small>她手上 / 最多管</small><b>${fmtMoney(g.value)}</b><small>/ ${fmtMoney(SK.mgrCap(s))}　本金 ${fmtMoney(g.principal)}</small></div><div><small>累计赚</small><b class="${cls(g.earn || 0)}">${fmtMoney(g.earn || 0)}</b><small>转回你 ${fmtMoney(g.back || 0)}　提成 ${fmtMoney(g.fees || 0)}</small></div>`));
     const nx = MG.nextRound(t); const c = g.cur;

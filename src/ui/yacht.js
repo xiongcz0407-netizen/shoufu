@@ -1,18 +1,18 @@
 // 「资产 → 码头」（第 2-11 项）：上展示（码头背景 + 最贵的那艘）下列表；点一艘 → 详情（参数、编号、税单、包租、卖回）；
 // 「去买游艇」→ 船厂（现货 / 订单配额 / 邀请 / 定制委托）→ 合同 → 签字付款（合同 + 报关单 + 登记证书进档案柜）
-import * as YT from '../core/yacht.js?v=9a2bf56f';
-import * as PW from '../core/postwork.js?v=9a2bf56f';
-import * as INB from '../core/inbox.js?v=9a2bf56f';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=9a2bf56f';
-import { asset, hasAsset } from '../platform/assets.js?v=9a2bf56f';
-import { game } from '../game.js?v=9a2bf56f';
-import { now } from '../core/clock.js?v=9a2bf56f';
-import { h, openPanel, toast, liveRender } from './dom.js?v=9a2bf56f';
-import { openFull } from './shell.js?v=9a2bf56f';
-import { openContract } from './contract.js?v=9a2bf56f';
-import { nextContractNo } from '../core/contracts.js?v=9a2bf56f';
-import { showcase } from './assets.js?v=9a2bf56f';
-import * as BI from './brandinv.js?v=9a2bf56f'; // 设计35 第九节 品牌邀请不过期
+import * as YT from '../core/yacht.js?v=a24b4431';
+import * as PW from '../core/postwork.js?v=a24b4431';
+import * as INB from '../core/inbox.js?v=a24b4431';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=a24b4431';
+import { asset, hasAsset } from '../platform/assets.js?v=a24b4431';
+import { game } from '../game.js?v=a24b4431';
+import { now } from '../core/clock.js?v=a24b4431';
+import { h, openPanel, toast, liveRender } from './dom.js?v=a24b4431';
+import { openFull } from './shell.js?v=a24b4431';
+import { openContract } from './contract.js?v=a24b4431';
+import { nextContractNo } from '../core/contracts.js?v=a24b4431';
+import { showcase } from './assets.js?v=a24b4431';
+import * as BI from './brandinv.js?v=a24b4431'; // 设计35 第九节 品牌邀请不过期
 
 const TIER = ['', '入门', '中档', '高档', '顶级', '顶级'];
 const imgPath = (y) => `assets/yacht/${y.id}.webp`;

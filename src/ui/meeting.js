@@ -1,13 +1,13 @@
 // V2-13 每周经营会 / 董事会界面（设计29 第五节）：消息「开经营会」→ 上周各线 → 秘书汇报 → 分预算（每格 10%）→ 董事会三选一 → 拍板
-import { ACQ_DISC } from '../config/rivals.js?v=9a2bf56f';   // 设计64 并购 → 收购价优惠
-import * as MT from '../core/meeting.js?v=9a2bf56f';
-import * as INB from './inbox.js?v=9a2bf56f';
-import { SEC_BY_ID } from '../config/secretaries.js?v=9a2bf56f';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=9a2bf56f';
-import { asset } from '../platform/assets.js?v=9a2bf56f';
-import { game } from '../game.js?v=9a2bf56f';
-import { now } from '../core/clock.js?v=9a2bf56f';
-import { openPanel, toast } from './dom.js?v=9a2bf56f';
+import { ACQ_DISC } from '../config/rivals.js?v=a24b4431';   // 设计64 并购 → 收购价优惠
+import * as MT from '../core/meeting.js?v=a24b4431';
+import * as INB from './inbox.js?v=a24b4431';
+import { SEC_BY_ID } from '../config/secretaries.js?v=a24b4431';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=a24b4431';
+import { asset } from '../platform/assets.js?v=a24b4431';
+import { game } from '../game.js?v=a24b4431';
+import { now } from '../core/clock.js?v=a24b4431';
+import { openPanel, toast } from './dom.js?v=a24b4431';
 
 const C = MT.MEET_CFG; const DIRS = Object.keys(C.dirs);
 const pct = (x, d = 1) => `${(x * 100).toFixed(d)}%`;

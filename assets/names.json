@@ -2,6 +2,7 @@
  "bg": {
   "bg_auction": "bg_auction_拍卖厅",
   "bg_boutique": "bg_boutique_服装店",
+  "bg_car_night": "bg_car_night_车内夜景",
   "bg_collection": "bg_collection_收藏室",
   "bg_date_1": "bg_date_1_西餐厅",
   "bg_date_2": "bg_date_2_海边",
@@ -13,6 +14,7 @@
   "bg_hotel_morning": "bg_hotel_morning_酒店套房早晨",
   "bg_hotel_night": "bg_hotel_night_酒店套房夜",
   "bg_ipo": "bg_ipo_上市敲钟",
+  "bg_jet_cabin": "bg_jet_cabin_私人飞机舱",
   "bg_love": "bg_love_爱慕剧情",
   "bg_mall": "bg_mall_商场",
   "bg_marina": "bg_marina_码头",

@@ -1,16 +1,16 @@
 // 设计44 投资经理自动炒股（开发2）：每天本地 0 / 6 / 12 / 18 点各一轮。
-// 开轮那一跳：用看盘同一套（core/look.js bestRun / priceRow、SK.future 先算接下来 240 跳）挑最多 3 只，她手上的钱全部平分（第二版：没有风格）；
+// 开轮那一跳：用看盘同一套（core/look.js bestRun / priceRow、SK.future 先算接下来 240 跳）挑最多 3 只，她手上的钱全用上（第二版：没有风格；设计85：一股起买、按顺序分）；
 // 买卖点从真实走势里挑，所以一定成交、一定赚；到了买那一跳记「买进」、卖那一跳记「卖出」，都卖完结算：赚的 10% 是她的提成（照 payerOfPost 谁付；外包也收「投顾服务费」）。
 // 她的账在 s.mkt.mgr：不进玩家持仓、不用条件单、不动玩家现金、不改股价。第二版：她最多管 SK.mgrCap（下一个称号门槛 × 10%），每轮卖完超出的转回投资账户。
 // 每一步只看「这一跳」和固定种子（种子带存档的 gid，每局不一样）：离线补算一跳一跳走过来，跟在线一模一样。
-import * as SK from './stocks.js?v=9a2bf56f';
-import { bestRun, priceRow } from './look.js?v=9a2bf56f';
-import { addMsg } from './inbox.js?v=9a2bf56f';
-import { pay, receive } from './ledger.js?v=9a2bf56f';
-import { addUpHook } from './upnote.js?v=9a2bf56f';
-import { payerOfPost } from './fiscal.js?v=9a2bf56f';
-import { isSec } from './posts.js?v=9a2bf56f';
-import { SEC_BY_ID } from '../config/secretaries.js?v=9a2bf56f';
+import * as SK from './stocks.js?v=a24b4431';
+import { bestRun, priceRow } from './look.js?v=a24b4431';
+import { addMsg } from './inbox.js?v=a24b4431';
+import { pay, receive } from './ledger.js?v=a24b4431';
+import { addUpHook } from './upnote.js?v=a24b4431';
+import { payerOfPost } from './fiscal.js?v=a24b4431';
+import { isSec } from './posts.js?v=a24b4431';
+import { SEC_BY_ID } from '../config/secretaries.js?v=a24b4431';
 
 const C = SK.SCFG; const G = C.mgr; const K = C.watch.look; const LU = C.watch.lu; const F = C.fees;
 const TICK = C.tickSec * 1000;
@@ -52,6 +52,22 @@ export function picks(m, wit, seed) {
   return out.slice(0, G.max);
 }
 
+/** 设计85 分钱（纯计算）：一股起买；按顺序每只分「还剩的钱 ÷ 还剩几只」，买完的零头留给后面的；1 股都买不起就跳过、那份让给后面的；最后剩的零头再按顺序给前面的补股，不够任何一只 1 股的留在她手上。返回 [{ p, n 股, cost 含买入费用 }] */
+export function split(ps, money) {
+  let left = r2(money); const out = [];
+  ps.forEach((p, i) => {
+    const per = left / (ps.length - i);
+    let n = Math.floor(per / (p.bp * (1 + F.commission + F.transfer)));
+    while (n >= 1 && r2(p.bp * n) + buyFee(r2(p.bp * n)) > per + 1e-9) n -= 1;
+    if (n < 1) return;
+    const gross = r2(p.bp * n); const cost = r2(gross + buyFee(gross)); left = r2(left - cost); out.push({ p, n, cost });
+  });
+  // 最后一只是贵股票时剩的零头可能有上万（不够它 1 股）：按顺序给前面买得起的再补几股，剩下的才是「不够任何一只 1 股」的零头
+  const costOf = (bp, n) => { const gr = r2(bp * n); return r2(gr + buyFee(gr)); };
+  for (const x of out) { let k = x.n; while (costOf(x.p.bp, k + 1) - x.cost <= left + 1e-9) k++; if (k > x.n) { const c2 = costOf(x.p.bp, k); left = r2(left - (c2 - x.cost)); x.n = k; x.cost = c2; } }
+  return out;
+}
+
 /** 开一轮：把要买几股、哪一跳买卖定下来（钱数按这一刻她手上的） */
 function openRound(s, g, tk, t) {
   const m = s.mkt; const wit = SK.mgrWit(s, t); const key = roundOf(t);
@@ -59,13 +75,7 @@ function openRound(s, g, tk, t) {
   if (!g.day) g.day = { start: g.value, n: 0, pnl: 0, lu: 0, back: 0 };
   const inv0 = r2(g.value);   // 第二版：手上的钱全投
   const ps = wit > 0 ? picks(m, wit, `MGR${s.gid || ''}:${tk}`) : [];
-  const per = ps.length ? inv0 / ps.length : 0; const legs = [];
-  for (const p of ps) {
-    let n = Math.floor(per / (p.bp * (1 + F.commission + F.transfer)) / 100) * 100;   // 整手
-    while (n >= 100 && r2(p.bp * n) + buyFee(r2(p.bp * n)) > per) n -= 100;
-    if (n < 100) continue;
-    const gross = r2(p.bp * n); legs.push({ code: p.code, X: p.X, Y: p.Y, lu: p.lu, n, bt: tk + 1 + p.bi, st: tk + 1 + p.si, bp: p.bp, sp: p.sp, cost: r2(gross + buyFee(gross)), bought: false, sold: false });
-  }
+  const legs = split(ps, inv0).map(({ p, n, cost }) => ({ code: p.code, X: p.X, Y: p.Y, lu: p.lu, n, bt: tk + 1 + p.bi, st: tk + 1 + p.si, bp: p.bp, sp: p.sp, cost, bought: false, sold: false }));
   const inv = r2(legs.reduce((a, x) => a + x.cost, 0));
   g.cur = { key, at: t, tick: tk, end: tk + K.ticks, wit: Math.round(wit), inv, legs, who: SK.mgrWho(s) };
   if (!legs.length) settle(s, g, tk, t);   // 一只都没有：这轮不动
@@ -91,7 +101,7 @@ function settle(s, g, tk, t) {
   g.hist = [rec, ...(g.hist || [])].slice(0, G.hist);
   // 汇报进「系统」
   const parts = rows.map((r) => `${r.lu ? '🔥 ' : ''}${nm(r.code)} ¥${r.bp.toLocaleString()} 买、¥${r.sp.toLocaleString()} 卖 ${pc(r.pct)}${r.lu ? '（抓到涨停）' : ''}`);
-  let body = rows.length ? `这一轮：${parts.join('；')}。赚 ${fmt(pnl)}${fee >= 0.01 ? `，${sec ? '提成' : '投顾服务费'} ${fmt(fee)}` : ''}${back ? `，转回你 ${fmt(back)}` : ''}，她手上 ${fmt(g.value)}。` : `这一轮没看到好机会，钱没动，她手上 ${fmt(g.value)}。`;
+  let body = rows.length ? `这一轮用了 ${fmt(c.inv)}：${parts.join('；')}。赚 ${fmt(pnl)}${fee >= 0.01 ? `，${sec ? '提成' : '投顾服务费'} ${fmt(fee)}` : ''}${back ? `，转回你 ${fmt(back)}` : ''}，她手上 ${fmt(g.value)}。` : `这一轮没看到好机会，钱没动，她手上 ${fmt(g.value)}。`;
   if (c.key % 10 === 0 && g.prevDay) { const y = g.prevDay; body += `\n昨天 ${y.n} 轮，赚 ${fmt(y.pnl)}，转回你 ${fmt(y.back || 0)}，抓到涨停 ${y.lu} 次。`; g.prevDay = null; }
   addMsg(s, { kind: 'system', type: 'invest_report', from: sec ? who : '', title: `投资经理 · ${new Date(c.at).getHours()} 点这一轮`, body }, t);
   if (luN) { const r = rows.find((x) => x.lu); const ty = sec ? (SEC_BY_ID[who] || {}).type : '知性'; const L = G.luLines[ty] || G.luLines['知性']; g.pop = { at: t, who, code: r.code, pct: r.pct, line: L.replace('{name}', nm(r.code)).replace('{pct}', (r.pct * 100).toFixed(1)) }; }

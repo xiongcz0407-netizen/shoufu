@@ -1,10 +1,10 @@
 // 设计83 第四节 私密约会：恋人（爱慕 ≥ 80）+ 有符合条件的座驾才出现；不收钱；精力 ≥ 10 才能开始，结束精力清空
 // 算一次约会：占免费次数 / 约会券、次数 +1、爱慕 +10、好感 +20（照设计56 门规则，能跨门）
-import { E_COST, energy, doEnergy, whyEnergy } from './manage.js?v=9a2bf56f';
-import { datesWith, dateTickets, DATE_TICKET_MAX, recordDate } from './dates.js?v=9a2bf56f';
-import { isTraining } from './training.js?v=9a2bf56f';
-import { privRideId, rideItem, nameOf } from './ride.js?v=9a2bf56f';
-import { hasPrivLib, pickPriv, stageOf } from './datelib.js?v=9a2bf56f';
+import { E_COST, energy, doEnergy, whyEnergy } from './manage.js?v=a24b4431';
+import { datesWith, dateTickets, DATE_TICKET_MAX, recordDate } from './dates.js?v=a24b4431';
+import { isTraining } from './training.js?v=a24b4431';
+import { privRideId, rideItem, nameOf } from './ride.js?v=a24b4431';
+import { hasPrivLib, pickPriv, stageOf } from './datelib.js?v=a24b4431';
 
 export const PRIV_MIN_LOVE = 80, PRIV_LOVE = 10, PRIV_FAVOR = 20;
 /** key → 座驾哪一类、地点名、背景（第一张没图用第二张） */

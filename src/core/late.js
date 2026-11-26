@@ -3,19 +3,19 @@
 // 2. 大项目节点：科技立项、传媒投拍、跨城市扩张中途要你拍板（限时 30 分钟，不选按默认），结果按决策和秘书属性浮动；地产在 realestate.js（V2-09）
 // 3. 对手主动进攻：老板起每游戏月有概率来一次，应对窗口 30 分钟：商战三回合 / 花钱摆平 / 不理（按比例掉营业额、做空掉股价）
 // 4. 日程：agenda() 列出要你去的事（经营会、项目节点、地产决策、对手进攻），onAgenda(fn) 新事件推给日程表（开发2）
-import { capAdd } from './cap.js?v=9a2bf56f';   // 设计79：有上限的列表（config/caps.js）
-import { setCredit } from './credit.js?v=9a2bf56f';
-import L from '../config/late.json?v=9a2bf56f' with { type: 'json' };
-import * as E from './economy.js?v=9a2bf56f';
-import { addMsg, onAction } from './inbox.js?v=9a2bf56f';
-import { pay } from './ledger.js?v=9a2bf56f';
-import { RIVALS, RIVAL_BY_ID } from '../config/rivals.js?v=9a2bf56f';
-import { IND_BY_ID } from '../config/industries.js?v=9a2bf56f';
-import * as B from './battle.js?v=9a2bf56f';
-import * as W from './war.js?v=9a2bf56f';
-import { holder, isSec, attrs } from './posts.js?v=9a2bf56f';
-import * as MG from './manage.js?v=9a2bf56f';
-import { isTraining } from './training.js?v=9a2bf56f';
+import { capAdd } from './cap.js?v=a24b4431';   // 设计79：有上限的列表（config/caps.js）
+import { setCredit } from './credit.js?v=a24b4431';
+import L from '../config/late.json?v=a24b4431' with { type: 'json' };
+import * as E from './economy.js?v=a24b4431';
+import { addMsg, onAction } from './inbox.js?v=a24b4431';
+import { pay } from './ledger.js?v=a24b4431';
+import { RIVALS, RIVAL_BY_ID } from '../config/rivals.js?v=a24b4431';
+import { IND_BY_ID } from '../config/industries.js?v=a24b4431';
+import * as B from './battle.js?v=a24b4431';
+import * as W from './war.js?v=a24b4431';
+import { holder, isSec, attrs } from './posts.js?v=a24b4431';
+import * as MG from './manage.js?v=a24b4431';
+import { isTraining } from './training.js?v=a24b4431';
 
 export { L as LATE_CFG };
 const MIN = 60e3; const clamp = (x, a, b) => Math.max(a, Math.min(b, x));

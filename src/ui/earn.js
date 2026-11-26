@@ -1,5 +1,5 @@
 // 设计45 / 65（开发2）：「到了赚 +¥X，+x%」红 /「到了亏 −¥X，−x%」绿 —— 持仓页、照她说的挂单、⅓/半/全仓弹框、个股页条件单都用这一个写法
-import { fmtMoney } from '../core/format.js?v=9a2bf56f';
+import { fmtMoney } from '../core/format.js?v=a24b4431';
 export const cls = (v) => (v > 0 ? 'up' : v < 0 ? 'down' : '');   // 红涨绿跌
 export const sgnMoney = (v) => `${v >= 0 ? '+' : '−'}${fmtMoney(Math.abs(v))}`;
 export const sgnPct = (v) => `${v >= 0 ? '+' : '−'}${Math.abs(v * 100).toFixed(Math.abs(v) < 0.001 ? 2 : 1)}%`;

@@ -1,17 +1,17 @@
 // 财富 → 资本（3-02，设计23 第一、二、十节）：公司估值、股东名册、融资（主动约 / 自己找 → 谈判）、对赌
-import { openNegotiate } from './negotiate.js?v=9a2bf56f'; // V2-07 谈估值（开发2 的谈判）
-import * as E from '../core/economy.js?v=9a2bf56f';
-import * as CP from '../core/capital.js?v=9a2bf56f';
-import { SEC_BY_ID } from '../config/secretaries.js?v=9a2bf56f';
-import { fmtMoney } from '../core/format.js?v=9a2bf56f';
-import { asset } from '../platform/assets.js?v=9a2bf56f';
-import { now } from '../core/clock.js?v=9a2bf56f';
-import { game } from '../game.js?v=9a2bf56f';
-import { MONTH_MS } from '../core/gametime.js?v=9a2bf56f';
-import { h, openPanel, toast, liveRender } from './dom.js?v=9a2bf56f';
-import { hintLater } from './guide2.js?v=9a2bf56f';
-import { bump } from '../core/daily.js?v=9a2bf56f';
-import * as DL from '../core/daily.js?v=9a2bf56f';
+import { openNegotiate } from './negotiate.js?v=a24b4431'; // V2-07 谈估值（开发2 的谈判）
+import * as E from '../core/economy.js?v=a24b4431';
+import * as CP from '../core/capital.js?v=a24b4431';
+import { SEC_BY_ID } from '../config/secretaries.js?v=a24b4431';
+import { fmtMoney } from '../core/format.js?v=a24b4431';
+import { asset } from '../platform/assets.js?v=a24b4431';
+import { now } from '../core/clock.js?v=a24b4431';
+import { game } from '../game.js?v=a24b4431';
+import { MONTH_MS } from '../core/gametime.js?v=a24b4431';
+import { h, openPanel, toast, liveRender } from './dom.js?v=a24b4431';
+import { hintLater } from './guide2.js?v=a24b4431';
+import { bump } from '../core/daily.js?v=a24b4431';
+import * as DL from '../core/daily.js?v=a24b4431';
 
 const pct = (x) => `${(x * 100).toFixed(1)}%`;
 /** 别的项挂进资本页的小节（上市 3-04 等，开发2）：fn(el) */

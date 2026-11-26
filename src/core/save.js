@@ -1,17 +1,17 @@
 // 只有一个存档，自动存；带存档版本号，新版本必须能读旧存档
-import { APP_V } from '../version.js?v=9a2bf56f';
-import { mkt, fillNew } from './stocks.js?v=9a2bf56f';
+import { APP_V } from '../version.js?v=a24b4431';
+import { mkt, fillNew } from './stocks.js?v=a24b4431';
 
 export const SAVE_KEY = 'shoufu_save';
 export const SAVE_VERSION = 2; // 第一次发布（V0.1）是 1；2：V0.2 取消境外账户（设计30，core/migrate.js v1to2）
-import { v1to2 } from './migrate.js?v=9a2bf56f';
-import { dropOrphans } from './orphans.js?v=9a2bf56f';
-import { recallEmpty } from './posts.js?v=9a2bf56f';
-import { trimAll } from './cap.js?v=9a2bf56f';   // 设计79：读档整理一次（列表封顶）
-import { buildBooks } from './books.js?v=9a2bf56f';
-import { replayHooks } from './ledger.js?v=9a2bf56f';
-import './slim.js?v=9a2bf56f';
-import './slimday.js?v=9a2bf56f';
+import { v1to2 } from './migrate.js?v=a24b4431';
+import { dropOrphans } from './orphans.js?v=a24b4431';
+import { recallEmpty } from './posts.js?v=a24b4431';
+import { trimAll } from './cap.js?v=a24b4431';   // 设计79：读档整理一次（列表封顶）
+import { buildBooks } from './books.js?v=a24b4431';
+import { replayHooks } from './ledger.js?v=a24b4431';
+import './slim.js?v=a24b4431';
+import './slimday.js?v=a24b4431';
 
 /** 局号：每开一局一个 */
 export const newGid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);

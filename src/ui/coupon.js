@@ -1,15 +1,15 @@
 // 卡包（金券 + 六种券，唯一买券的地方）、顶栏金券数、各处「用券」小块（设计39 第五节、第五之二节，开发2）
 // 各页面只用券不买券：有券写「还有 N 张 · 用一张」，没券写「去卡包买 XX」→ 跳卡包定位到那格（闪金框），右上角「返回」回原页面
 // 开发1 用：potionHtml(s) 精力不够时按钮旁那一小块；bindPotion(el, after) 绑上点击
-import * as CP from '../core/coupon.js?v=9a2bf56f';
-import { IND_BY_ID } from '../config/industries.js?v=9a2bf56f';
-import { dateText, gameDate } from '../core/gametime.js?v=9a2bf56f';
-import { now } from '../core/clock.js?v=9a2bf56f';
-import { game } from '../game.js?v=9a2bf56f';
-import { h, toast, openPanel } from './dom.js?v=9a2bf56f';
-import { openFull, openTab } from './shell.js?v=9a2bf56f';
-import { confirmBox } from './confirm.js?v=9a2bf56f';
-import { asset, hasAsset } from '../platform/assets.js?v=9a2bf56f';
+import * as CP from '../core/coupon.js?v=a24b4431';
+import { IND_BY_ID } from '../config/industries.js?v=a24b4431';
+import { dateText, gameDate } from '../core/gametime.js?v=a24b4431';
+import { now } from '../core/clock.js?v=a24b4431';
+import { game } from '../game.js?v=a24b4431';
+import { h, toast, openPanel } from './dom.js?v=a24b4431';
+import { openFull, openTab } from './shell.js?v=a24b4431';
+import { confirmBox } from './confirm.js?v=a24b4431';
+import { asset, hasAsset } from '../platform/assets.js?v=a24b4431';
 
 const IT = CP.ITEMS;
 /** 图标（设计39 第七节）：有图用图，没有用表情 */
@@ -91,9 +91,9 @@ function goUse(k, close, redraw) {
   if (k === 'auto') { openPickLine(redraw); return; }
   close();
   setTimeout(() => {
-    if (k === 'battle') import('./battle.js?v=9a2bf56f').then((u) => u.openBattle());
+    if (k === 'battle') import('./battle.js?v=a24b4431').then((u) => u.openBattle());
     else if (k === 'invest') { openTab('wealth'); setTimeout(() => { const b = [...document.querySelectorAll('button')].find((x) => x.textContent.trim().startsWith('投资')); if (b) b.click(); }, 300); }   // 设计53：投资券去看盘那里用
-    else if (k === 'event') import('./inbox.js?v=9a2bf56f').then((u) => u.openInbox('biz'));
+    else if (k === 'event') import('./inbox.js?v=a24b4431').then((u) => u.openInbox('biz'));
     else openTab('secretary');
   }, 220);
 }
