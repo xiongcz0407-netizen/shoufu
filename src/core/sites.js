@@ -1,9 +1,9 @@
 // 分店记录（V2-08；设计35 第十二节取消地段；设计82 取消关店）：开分店只选城市，不再有候选铺位、踩点、铺位系数、口碑起点，也不能关店。
 // 每家店基础营业额、租金一样（按城市系数，economy / accrual 里算）；这里只记每家开在哪个城市、花了多少开店费（flow.js shopsOf 按开店顺序排店用）。
 // 存档：s.sites = { lines: { 产业id: [{ city, cost, at }] } }；老存档里记的 type / k / rentK 一律不再用（系数按 1）
-import { IND_BY_ID } from '../config/industries.js?v=a24b4431';
-import { setSiteHooks } from './economy.js?v=a24b4431';
-import { setRentHook } from './accrual.js?v=a24b4431';
+import { IND_BY_ID } from '../config/industries.js?v=06229def';
+import { setSiteHooks } from './economy.js?v=06229def';
+import { setRentHook } from './accrual.js?v=06229def';
 
 export const st = (s) => { const x = (s.sites = s.sites || { lines: {} }); x.lines = x.lines || {}; if (x.pick) x.pick = null; if (x.busy) delete x.busy; return x; };
 export const isSiteLine = (id) => !!(IND_BY_ID[id] && IND_BY_ID[id].retail);

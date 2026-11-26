@@ -1,15 +1,15 @@
-// 卡包（金券 + 六种券，唯一买券的地方）、顶栏金券数、各处「用券」小块（设计39 第五节、第五之二节，开发2）
+// 卡包（金券 + 六种券（设计86 去掉约会券、设计53 加投资券），唯一买券的地方）、顶栏金券数、各处「用券」小块（设计39 第五节、第五之二节，开发2）
 // 各页面只用券不买券：有券写「还有 N 张 · 用一张」，没券写「去卡包买 XX」→ 跳卡包定位到那格（闪金框），右上角「返回」回原页面
 // 开发1 用：potionHtml(s) 精力不够时按钮旁那一小块；bindPotion(el, after) 绑上点击
-import * as CP from '../core/coupon.js?v=a24b4431';
-import { IND_BY_ID } from '../config/industries.js?v=a24b4431';
-import { dateText, gameDate } from '../core/gametime.js?v=a24b4431';
-import { now } from '../core/clock.js?v=a24b4431';
-import { game } from '../game.js?v=a24b4431';
-import { h, toast, openPanel } from './dom.js?v=a24b4431';
-import { openFull, openTab } from './shell.js?v=a24b4431';
-import { confirmBox } from './confirm.js?v=a24b4431';
-import { asset, hasAsset } from '../platform/assets.js?v=a24b4431';
+import * as CP from '../core/coupon.js?v=06229def';
+import { IND_BY_ID } from '../config/industries.js?v=06229def';
+import { dateText, gameDate } from '../core/gametime.js?v=06229def';
+import { now } from '../core/clock.js?v=06229def';
+import { game } from '../game.js?v=06229def';
+import { h, toast, openPanel } from './dom.js?v=06229def';
+import { openFull, openTab } from './shell.js?v=06229def';
+import { confirmBox } from './confirm.js?v=06229def';
+import { asset, hasAsset } from '../platform/assets.js?v=06229def';
 
 const IT = CP.ITEMS;
 /** 图标（设计39 第七节）：有图用图，没有用表情 */
@@ -64,15 +64,6 @@ export function bindAuto(el, id, after) {
 export function ticketHtml(s) { return CP.tickets(s) ? '' : goBuyHtml('battle'); }
 export function bindTicket(el, after) { bindGoBuy(el, after); }
 
-/** 约会面板顶上：今天约过她了用约会券再约（每个秘书每天最多 3 张） */
-export function dateTicketHtml(s, id) {
-  const d = CP.dateState(s, id, now()); if (d.free) return '';
-  if (!d.left) return `<div class="cp-date off">今天跟她约了 ${d.dated} 次，约会券用满 ${IT.date.perSecDay} 张 · <b>明天再约</b></div>`;
-  return d.have ? `<div class="cp-date">今天约过了 · 用约会券再约<small>还有 ${d.have} 张，她今天还能 ${d.left} 次；照样花精力</small></div>`
-    : `<div class="cp-date">今天约过了 · 再约要 1 张约会券<small>她今天还能 ${d.left} 次</small>${goBuyHtml('date')}</div>`;
-}
-export const bindDateTicket = bindGoBuy;
-
 /** 经营页顶上「再来 10 件 · 用 1 张事件券（还有 N 张，今天还能 2 次）」；没券「去卡包买事件券」 */
 export function refillHtml(s) {
   const rf = CP.refillState(s, now());
@@ -84,16 +75,16 @@ export function bindRefill(el, after) {
   bindGoBuy(el, after);
 }
 
-/** 「去用」：药水直接喝；商战券去商战页；约会券、互动券去秘书列表；自动券选哪条线；事件券去经营页 */
+/** 「去用」：药水直接喝；商战券去商战页；互动券去秘书列表；自动券选哪条线；事件券去经营页 */
 function goUse(k, close, redraw) {
   const s = game.state;
   if (k === 'potion') { const r = CP.drink(s, now()); toast(r.ok ? `精力 +${r.energy}` : r.why); saved(redraw); return; }
   if (k === 'auto') { openPickLine(redraw); return; }
   close();
   setTimeout(() => {
-    if (k === 'battle') import('./battle.js?v=a24b4431').then((u) => u.openBattle());
+    if (k === 'battle') import('./battle.js?v=06229def').then((u) => u.openBattle());
     else if (k === 'invest') { openTab('wealth'); setTimeout(() => { const b = [...document.querySelectorAll('button')].find((x) => x.textContent.trim().startsWith('投资')); if (b) b.click(); }, 300); }   // 设计53：投资券去看盘那里用
-    else if (k === 'event') import('./inbox.js?v=a24b4431').then((u) => u.openInbox('biz'));
+    else if (k === 'event') import('./inbox.js?v=06229def').then((u) => u.openInbox('biz'));
     else openTab('secretary');
   }, 220);
 }

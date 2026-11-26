@@ -1,12 +1,12 @@
 // 买房商店里香港 / 海外那几处（第 2-14 项）。设计30：「财富 → 境外」页整个去掉，海外房产到「老板」用个人现金买
-import * as OF from '../core/offshore.js?v=a24b4431';
-import * as INB from '../core/inbox.js?v=a24b4431';
-import { fmtMoney } from '../core/format.js?v=a24b4431';
-import { game } from '../game.js?v=a24b4431';
-import { now } from '../core/clock.js?v=a24b4431';
-import { h, toast } from './dom.js?v=a24b4431';
-import { openContract } from './contract.js?v=a24b4431';
-import { nextContractNo } from '../core/contracts.js?v=a24b4431';
+import * as OF from '../core/offshore.js?v=06229def';
+import * as INB from '../core/inbox.js?v=06229def';
+import { fmtMoney } from '../core/format.js?v=06229def';
+import { game } from '../game.js?v=06229def';
+import { now } from '../core/clock.js?v=06229def';
+import { h, toast } from './dom.js?v=06229def';
+import { openContract } from './contract.js?v=06229def';
+import { nextContractNo } from '../core/contracts.js?v=06229def';
 
 /** 买房商店里香港 / 海外那几处的卡片（ui/assets.js 调） */
 export function abroadCard(it, draw, pic, badges, frameCls) {

@@ -1,17 +1,18 @@
-// 金券和券（设计39 第五节，开发2）。一律「金券买券、在用的地方用券」；券都放 s.items[k]（k = potion / battle / date / auto / event / talk，跟开发1 的 dates / manage / bizevents / battle 读的是同一份），可以攒。
-// 存档 s.coupon = { bal, log: [{ t, n, why }], seen: { title, goal, final: {}, favor: {}, win: {} }, day: { key, sign, tasks, refill, talks: { 秘书id: 用了几张 }, dates: { 秘书id: 用了几张 } } }
+// 金券和券（设计39 第五节，开发2）。一律「金券买券、在用的地方用券」；券都放 s.items[k]（k = potion / battle / auto / event / talk / invest，跟开发1 的 manage / bizevents / battle 读的是同一份；设计86 取消约会券），可以攒。
+// 存档 s.coupon = { bal, log: [{ t, n, why }], seen: { title, goal, final: {}, favor: {}, win: {} }, day: { key, sign, tasks, refill, talks: { 秘书id: 用了几张 } } }
 // 怎么得：全在 tick 里看（签到、每日任务全领完、目标链、升称号、收购最终对手、好感升阶、第一次赢对手），不改别的模块；新开局时把「已经有的」记成看过，不补发。
 // 挂钩默认已经接开发1 的真函数；测试可以用 setCouponHooks 换掉：{ energyAdd, refill, refillState, auto }
-import { capAdd } from './cap.js?v=a24b4431';   // 设计79：有上限的列表（config/caps.js）
-import C from '../config/coupon.json?v=a24b4431' with { type: 'json' };
-import { daily, dayKey, talkExtra } from './affection.js?v=a24b4431';
-import { tasksFor } from './daily.js?v=a24b4431';
-import { gl } from './goals.js?v=a24b4431';
-import { favorStage } from './secretary.js?v=a24b4431';
-import { RIVALS } from '../config/rivals.js?v=a24b4431';
-import { addEnergy, autoActLeft, useAutoTicket } from './manage.js?v=a24b4431';
-import { whyNotMore, more as bizMore, moreLeft } from './bizevents.js?v=a24b4431';
-import { datesWith, dateTickets, DATE_TICKET_MAX } from './dates.js?v=a24b4431';
+import { capAdd } from './cap.js?v=06229def';   // 设计79：有上限的列表（config/caps.js）
+import C from '../config/coupon.json?v=06229def' with { type: 'json' };
+import { daily, dayKey, talkExtra } from './affection.js?v=06229def';
+import { tasksFor } from './daily.js?v=06229def';
+import { gl } from './goals.js?v=06229def';
+import { favorStage } from './secretary.js?v=06229def';
+import { RIVALS } from '../config/rivals.js?v=06229def';
+import { addEnergy, autoActLeft, useAutoTicket } from './manage.js?v=06229def';
+import { whyNotMore, more as bizMore, moreLeft } from './bizevents.js?v=06229def';
+import { addMsg } from './inbox.js?v=06229def';
+import { addLoadFix } from './loadfix.js?v=06229def';
 export { C as COUPON_CFG };
 export const ITEMS = C.items;
 export const ITEM_KEYS = C.order;
@@ -62,7 +63,7 @@ export const buyTickets = (s, t = Date.now(), n = 1) => buy(s, 'battle', n, t);
 export function tick(s, t = Date.now(), rnd = Math.random) {
   const c = cp(s); const d = today(s, t); const out = []; const give = (n, why, g) => { earn(s, n, why, t); const gifts = giveItems(s, g, why, t); out.push({ n, why, gifts }); };
   const dd = daily(s, t);
-  // 签到：每天 5，连签第 7 天 20；第 3 天送 1 瓶药水、第 5 天 3 张商战券、第 7 天 1 张约会券
+  // 签到：每天 5，连签第 7 天 20；第 3 天送 1 瓶药水、第 5 天 3 张商战券、第 7 天 2 瓶药水（设计86）
   if (dd.signed && !d.sign) { d.sign = true; const day = (((s.signin && s.signin.streak) || 1) - 1) % 7 + 1; give(day === 7 ? C.earn.sign7 : C.earn.sign, `签到第 ${day} 天`, C.gift[`sign${day}`]); }
   // 每日任务全部领完：10，30% 送 1 瓶
   const ts = tasksFor(s); if (!d.tasks && ts.length && ts.every((x) => dd.tasks[x.id])) { d.tasks = true; give(C.earn.tasksAll, '每日任务全部做完', rnd() < C.gift.tasksAllP ? C.gift.tasksAll : null); }
@@ -75,7 +76,7 @@ export function tick(s, t = Date.now(), rnd = Math.random) {
   // 第一次赢一个对手：送 3 张商战券（只送券，不给金券）
   c.seen.win = c.seen.win || {};
   for (const [id, x] of Object.entries(s.rivals || {})) if (x && x.wins > 0 && !c.seen.win[id]) { c.seen.win[id] = true; const r = RIVALS.find((y) => y.id === id); give(0, `第一次赢了${r ? r.name : '对手'}`, C.gift.firstWin); }
-  // 秘书好感升阶：每升一阶 10 + 1 张约会券（新来的秘书从她现在的阶段算起）
+  // 秘书好感升阶：每升一阶 10 + 1 瓶药水（设计86）（新来的秘书从她现在的阶段算起）
   for (const [id, x] of Object.entries(s.secs || {})) { const st = favorStage(x.favor || 0); if (c.seen.favor[id] == null) { c.seen.favor[id] = st; continue; } while (c.seen.favor[id] < st) { c.seen.favor[id] += 1; give(C.earn.favorStage, '秘书好感升阶', C.gift.favorStage); } }
   return out;
 }
@@ -121,18 +122,15 @@ export function useAuto(s, line, t = Date.now()) {
   return { ok: true, left: autoActLeft(s, line, t) };
 }
 
-// —— 约会券：规矩在开发1 的 core/dates.js（每个秘书每天免费 1 次，再约用 1 张，每人每天最多 3 张）；这里只给界面看 ——
-/** { dated 今天跟她约了几次, used 今天给她用了几张, left 她今天还能用几张, have 手上几张, free 这次免费 } */
-export function dateState(s, id, t = Date.now()) {
-  const dated = datesWith(s, id, t); const used = Math.max(0, dated - 1);
-  return { dated, used, left: dated ? Math.max(0, DATE_TICKET_MAX - used) : DATE_TICKET_MAX, have: dateTickets(s), free: dated === 0 };
+// —— 设计86：约会券取消。读档时手上剩的按 refund.date（15）每张退成金券、清掉 items.date、「系统」发一条；items.date 清了就不会再退 ——
+export function refundDateTickets(s, t = Date.now()) {
+  if (!s || !s.items || !('date' in s.items)) return 0;
+  const n = Math.max(0, Math.floor(s.items.date || 0)); delete s.items.date; if (!n) return 0;
+  const m = n * C.refund.date; earn(s, m, '约会券取消退回', t);
+  addMsg(s, { kind: 'system', type: 'date_refund', title: '约会券取消了', body: `约会券取消了，你手上的 ${n} 张换成了 ${m} 金券。` }, t);
+  return m;
 }
-export function whyDateTicket(s, id, t = Date.now()) {
-  const d = dateState(s, id, t); if (d.free) return null;
-  if (!d.left) return '明天再约';
-  if (!d.have) return '今天约过了 · 要约会券';
-  return null;
-}
+addLoadFix(refundDateTickets);
 
 /** 今天还能领的金券（金券页「怎么得」标出来） */
 export function todayLeft(s, t = Date.now()) {

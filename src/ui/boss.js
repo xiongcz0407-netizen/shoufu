@@ -1,20 +1,20 @@
-import { avatarKey } from './main-screen.js?v=a24b4431';
-import * as MG from '../core/manage.js?v=a24b4431'; // P-05 精力
-import { asset, hasAsset } from '../platform/assets.js?v=a24b4431';
+import { avatarKey } from './main-screen.js?v=06229def';
+import * as MG from '../core/manage.js?v=06229def'; // P-05 精力
+import { asset, hasAsset } from '../platform/assets.js?v=06229def';
 // 老板页：名字和公司、老板属性、称号进度、穿戴、统计、设置（存档、重新开始在「设置」里，设计22）
-import { TITLES } from '../config/titles.js?v=a24b4431';
-import { RIVALS } from '../config/rivals.js?v=a24b4431';
-import * as E from '../core/economy.js?v=a24b4431';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=a24b4431';
-import { versionText } from '../version.js?v=a24b4431';
-import { now } from '../core/clock.js?v=a24b4431';
-import { game } from '../game.js?v=a24b4431';
-import { h, toast, openPanel } from './dom.js?v=a24b4431';
-import { openFull } from './shell.js?v=a24b4431';
-import { wearHtml } from './luxury.js?v=a24b4431';
-import { appendCloudSettings } from './cloudset.js?v=a24b4431';
-import { inputBox } from './confirm.js?v=a24b4431'; // 设计37 第一节：游戏样式输入框
-import * as RD from '../core/ride.js?v=a24b4431'; // 设计71 座驾
+import { TITLES } from '../config/titles.js?v=06229def';
+import { RIVALS } from '../config/rivals.js?v=06229def';
+import * as E from '../core/economy.js?v=06229def';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=06229def';
+import { versionText } from '../version.js?v=06229def';
+import { now } from '../core/clock.js?v=06229def';
+import { game } from '../game.js?v=06229def';
+import { h, toast, openPanel } from './dom.js?v=06229def';
+import { openFull } from './shell.js?v=06229def';
+import { wearHtml } from './luxury.js?v=06229def';
+import { appendCloudSettings } from './cloudset.js?v=06229def';
+import { inputBox } from './confirm.js?v=06229def'; // 设计37 第一节：游戏样式输入框
+import * as RD from '../core/ride.js?v=06229def'; // 设计71 座驾
 
 // 老板属性（设计09 第一节）由第 12 项提供：返回 [{ name, value, from }]
 let bossAttrs = () => [];
@@ -33,7 +33,7 @@ export function openBoss() {
         <button class="btn rename">改名</button></div>
       ${rideHtml(s)}
       <div class="sd-rec-title">精力</div>
-      <div class="tr-course"><div style="flex:1"><b>${Math.floor(MG.energy(s, t))} / ${MG.energyMax(s)}</b><div class="bar" style="margin-top:6px"><i style="width:${MG.energy(s, t) / MG.energyMax(s) * 100}%"></i></div><div class="tr-gain">每天 0 点回满（打工人 150、小老板 200、老板起 250），中间不回复；门店动作、大事、事件选项、商战各 5，约会 10。${MG.tip(s)}。门店详情里「亲自上阵」花精力；${(s.title || 0) >= 2 ? '老板以后亲自经营效果减半，精力多花在大事上：' : `精力够哪条线都能去。`}</div>
+      <div class="tr-course"><div style="flex:1"><b>${Math.floor(MG.energy(s, t))} / ${MG.energyMax(s)}</b><div class="bar" style="margin-top:6px"><i style="width:${MG.energy(s, t) / MG.energyMax(s) * 100}%"></i></div><div class="tr-gain">每天 0 点回满（打工人 150、小老板 200、老板起 250），中间不回复；门店动作、大事、事件选项、商战各 5，约会 ${MG.E_COST.date}（私密约会要有 ${MG.E_COST.privMin} 才能开始，约完清空）。${MG.tip(s)}。门店详情里「亲自上阵」花精力；${(s.title || 0) >= 2 ? '老板以后亲自经营效果减半，精力多花在大事上：' : `精力够哪条线都能去。`}</div>
         ${(s.title || 0) >= 2 ? `<div class="ind-btns">${['battle', 'deal'].map((k) => `<button class="btn big-act" data-k="${k}" ${MG.whyNotBig(s, k, t) ? 'disabled' : ''}>${MG.MANAGE_CFG.big[k].name}（${MG.MANAGE_CFG.big[k].energy}）${MG.bigBonus(s, k) ? '<br><small>已准备好</small>' : ''}</button>`).join('')}</div>` : ''}</div></div>
       <div class="sd-rec-title">老板属性</div>
       <div class="boss-attrs">${bossAttrs(s).map((a) => `<div><b>${a.value}</b><span>${a.name}</span><small>${a.from}</small></div>`).join('') || '<div class="empty">第 12 项接上（气场、人脉）</div>'}</div>

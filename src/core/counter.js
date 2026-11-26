@@ -1,19 +1,19 @@
 // 亲自站柜台（V2-04，设计28 第一节）：不花精力，在线就能一直做；只在店少、店小的时候有用
 // 顾客排队结账 → 照现实记账：营业额 = 客单价（加购 +30%），赚的（进账）= 客单价 × mul[线][档]，进货成本 = 营业额 − 进账（都走记账，按秒攒成流水）；
 // 柜台小事件（加购、熟客、小偷、找零）、秘书陪站、每天上限（这条线挂机一天营业额的 50%）、请了店长 ×0.5、第三档店不能站；不算进估值（估值看 lineNetMonth，不看流水）
-import C from '../config/counter.json?v=a24b4431' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=a24b4431';
-import { SEC_BY_ID } from '../config/secretaries.js?v=a24b4431';
-import { lookIndex } from './economy.js?v=a24b4431';
-import { accrue } from './ledger.js?v=a24b4431';
-import { track } from './companytax.js?v=a24b4431';
-import { holder, attrs } from './posts.js?v=a24b4431';
-import { isTraining } from './training.js?v=a24b4431';
-import { isScouting } from './busy.js?v=a24b4431';
-import { addFavor } from './affection.js?v=a24b4431';
-import { mark } from './goals.js?v=a24b4431';
-import { dayIndex, dayRev, addRep, isShop } from './manage.js?v=a24b4431';
-import * as PK from './pick.js?v=a24b4431';
+import C from '../config/counter.json?v=06229def' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=06229def';
+import { SEC_BY_ID } from '../config/secretaries.js?v=06229def';
+import { lookIndex } from './economy.js?v=06229def';
+import { accrue } from './ledger.js?v=06229def';
+import { track } from './companytax.js?v=06229def';
+import { holder, attrs } from './posts.js?v=06229def';
+import { isTraining } from './training.js?v=06229def';
+import { isScouting } from './busy.js?v=06229def';
+import { addFavor } from './affection.js?v=06229def';
+import { mark } from './goals.js?v=06229def';
+import { dayIndex, dayRev, addRep, isShop } from './manage.js?v=06229def';
+import * as PK from './pick.js?v=06229def';
 
 export { C as COUNTER_CFG };
 const r2 = (x) => Math.round(x * 100) / 100;

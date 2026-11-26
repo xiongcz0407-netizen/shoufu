@@ -1,17 +1,18 @@
 // 只有一个存档，自动存；带存档版本号，新版本必须能读旧存档
-import { APP_V } from '../version.js?v=a24b4431';
-import { mkt, fillNew } from './stocks.js?v=a24b4431';
+import { APP_V } from '../version.js?v=06229def';
+import { mkt, fillNew } from './stocks.js?v=06229def';
 
 export const SAVE_KEY = 'shoufu_save';
 export const SAVE_VERSION = 2; // 第一次发布（V0.1）是 1；2：V0.2 取消境外账户（设计30，core/migrate.js v1to2）
-import { v1to2 } from './migrate.js?v=a24b4431';
-import { dropOrphans } from './orphans.js?v=a24b4431';
-import { recallEmpty } from './posts.js?v=a24b4431';
-import { trimAll } from './cap.js?v=a24b4431';   // 设计79：读档整理一次（列表封顶）
-import { buildBooks } from './books.js?v=a24b4431';
-import { replayHooks } from './ledger.js?v=a24b4431';
-import './slim.js?v=a24b4431';
-import './slimday.js?v=a24b4431';
+import { v1to2 } from './migrate.js?v=06229def';
+import { dropOrphans } from './orphans.js?v=06229def';
+import { recallEmpty } from './posts.js?v=06229def';
+import { trimAll } from './cap.js?v=06229def';   // 设计79：读档整理一次（列表封顶）
+import { buildBooks } from './books.js?v=06229def';
+import { replayHooks } from './ledger.js?v=06229def';
+import { runLoadFix } from './loadfix.js?v=06229def';   // 各模块挂的读档整理（设计86 约会券退金券在 core/coupon.js）
+import './slim.js?v=06229def';
+import './slimday.js?v=06229def';
 
 /** 局号：每开一局一个 */
 export const newGid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -90,6 +91,7 @@ export function upgrade(raw, t = Date.now()) {
   if (isObj(s.secs)) for (const r of Object.values(s.secs)) if (isObj(r) && r.favor >= 400) r.favor = 499;   // 设计76：好感到知己就满   // 设计72：老存档里的这两项直接丢（不折现）
   if (isObj(s.positions) && isObj(s.inds)) recallEmpty(s, t); /* 设计58（开发1）：还没开的线上的店长撤回 */
   if (isObj(s.mkt)) slimHist(s.mkt);
+  runLoadFix(s, t);   // 设计86：约会券取消，手上剩的每张退 15 金券（core/coupon.js 挂的）
   if (buildBooks(s)) replayHooks(s, (s.ledger || []).slice().sort((a, b) => a.t - b.t || a.id - b.id));   // 设计79 第三版：老存档没有 books，用现有全部明细算一遍（今日日常的计数也补上）
   trimAll(s);   // 再把明细裁到 300、各列表封顶
   s.appV = APP_V;

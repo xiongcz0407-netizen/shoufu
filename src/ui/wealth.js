@@ -1,26 +1,26 @@
 // 「财富 → 财务」（第 13 项，设计15 第三节 + 设计17 第三节、设计18 第四节 5）
 // 横滑标签：总览 | 利润表 | 个人收支 | 资产清单 | 纳税 | 流水 | 档案柜；右上角切 今天 / 本月 / 本年 / 全部
-import * as EQ from '../core/equity.js?v=a24b4431';
-import * as F from '../core/finance.js?v=a24b4431';
-import * as E from '../core/economy.js?v=a24b4431';
-import * as ST from '../core/staff.js?v=a24b4431';
-import * as AC from '../core/accrual.js?v=a24b4431';
-import * as AS from '../core/assets.js?v=a24b4431';
-import * as PO from '../core/posts.js?v=a24b4431';
-import { cityPL } from '../core/citypl.js?v=a24b4431';
-import { cityName } from '../core/cities.js?v=a24b4431';
-import { IND_BY_ID } from '../config/industries.js?v=a24b4431';
-import { CATS, WALLET_NAME } from '../core/ledger.js?v=a24b4431';
-import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=a24b4431';
-import { fmtMoney } from '../core/format.js?v=a24b4431';
-import { asset, hasAsset } from '../platform/assets.js?v=a24b4431';
-import { now } from '../core/clock.js?v=a24b4431';
-import { game } from '../game.js?v=a24b4431';
-import { h, openPanel, liveRender } from './dom.js?v=a24b4431';
-import { giftsTo, spentOn } from './secretary.js?v=a24b4431';
-import { extendFinance } from './wealth2.js?v=a24b4431';
-import { accountsHtml, bindAccounts } from './invest.js?v=a24b4431';   // 设计62 投资账户
-import { sellGain } from './earn.js?v=a24b4431';   // 设计65 小改：合同列表写赚多少
+import * as EQ from '../core/equity.js?v=06229def';
+import * as F from '../core/finance.js?v=06229def';
+import * as E from '../core/economy.js?v=06229def';
+import * as ST from '../core/staff.js?v=06229def';
+import * as AC from '../core/accrual.js?v=06229def';
+import * as AS from '../core/assets.js?v=06229def';
+import * as PO from '../core/posts.js?v=06229def';
+import { cityPL } from '../core/citypl.js?v=06229def';
+import { cityName } from '../core/cities.js?v=06229def';
+import { IND_BY_ID } from '../config/industries.js?v=06229def';
+import { CATS, WALLET_NAME } from '../core/ledger.js?v=06229def';
+import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=06229def';
+import { fmtMoney } from '../core/format.js?v=06229def';
+import { asset, hasAsset } from '../platform/assets.js?v=06229def';
+import { now } from '../core/clock.js?v=06229def';
+import { game } from '../game.js?v=06229def';
+import { h, openPanel, liveRender } from './dom.js?v=06229def';
+import { giftsTo, spentOn } from './secretary.js?v=06229def';
+import { extendFinance } from './wealth2.js?v=06229def';
+import { accountsHtml, bindAccounts } from './invest.js?v=06229def';   // 设计62 投资账户
+import { sellGain } from './earn.js?v=06229def';   // 设计65 小改：合同列表写赚多少
 
 const TABS = [['overview', '总览'], ['pl', '利润表'], ['personal', '个人收支'], ['assets', '资产清单'], ['tax', '纳税'], ['ledger', '流水'], ['archive', '档案柜']];
 let tab = 'overview', period = 'month', lf = { wallet: '', cat: '', by: '' };
@@ -59,8 +59,8 @@ const DRAW = {
       <div class="fn-pie"><i style="background:${pie}"></i><div>${parts.map((x, i) => `<div><em style="background:${colors[i]}"></em>${x[0]} ${pct(x[1] / tot)}</div>`).join('')}</div></div>
       ${cfoComment(s, pl, last && last.profit)}
       <div class="ind-btns"><button class="btn sm fn-inject">注资到公司</button><button class="btn sm gold fn-div">分红到个人</button></div>`;
-    el.querySelector('.fn-inject').onclick = () => import('./company.js?v=a24b4431').then((m) => m.openInject());
-    el.querySelector('.fn-div').onclick = () => import('./company.js?v=a24b4431').then((m) => m.openDividend());
+    el.querySelector('.fn-inject').onclick = () => import('./company.js?v=06229def').then((m) => m.openInject());
+    el.querySelector('.fn-div').onclick = () => import('./company.js?v=06229def').then((m) => m.openDividend());
     bindAccounts(el, () => DRAW.overview(el, game.state, from, now()));   // 设计62：三个账户 + 转账
   },
   pl(el, s, from, t) {

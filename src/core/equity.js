@@ -2,12 +2,12 @@
 // 分期：首付 ≥ 30%（商务总监在任 20%）付完就算收购成功；余款 12 个游戏月每月月底付一期（协议写清每期金额和日期）
 // 没付完的记「应付股权转让款」（负债，身价里减）；逾期按日 0.05% 违约金；连续 3 期付不上 → 对方解除协议：
 // 股权收回、已付的扣 20% 违约金后退回、并进来的店和员工退回去（跳槽的秘书不退）
-import { live } from './rivalgrow.js?v=a24b4431';
-import { INSTALL, RIVAL_BY_ID } from '../config/rivals.js?v=a24b4431';
-import { IND_BY_ID } from '../config/industries.js?v=a24b4431';
-import { pay, receive, canPay, canPayMust } from './ledger.js?v=a24b4431';
-import { MONTH_MS, monthIndex } from './gametime.js?v=a24b4431';
-import { addMsg } from './inbox.js?v=a24b4431';
+import { live } from './rivalgrow.js?v=06229def';
+import { INSTALL, RIVAL_BY_ID } from '../config/rivals.js?v=06229def';
+import { IND_BY_ID } from '../config/industries.js?v=06229def';
+import { pay, receive, canPay, canPayMust } from './ledger.js?v=06229def';
+import { MONTH_MS, monthIndex } from './gametime.js?v=06229def';
+import { addMsg } from './inbox.js?v=06229def';
 
 const r2 = (x) => Math.round(x * 100) / 100;
 export const deals = (s) => (s.equityDeals = s.equityDeals || []);

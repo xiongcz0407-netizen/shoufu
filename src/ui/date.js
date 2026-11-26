@@ -1,25 +1,25 @@
 // 约会：选地点 → 开车去 → 约会画面（背景、她的台词、加了多少）→ 次数解锁
 // 设计83：一场按爱慕阶段从片段库拼（open 1 + chat 2 + end 1，用完才轮回）；恋人以后加「私密约会」（车里 / 私人飞机 / 游艇，两次 3 选 1 → 黑屏 → 精力清空）
-import * as MG from '../core/manage.js?v=a24b4431'; // 设计39 约会花精力
-import { SEC_BY_ID } from '../config/secretaries.js?v=a24b4431';
-import { DATE_PLACES, DATES_PER_DAY, DATE5_LINES, DATE50_TITLE, RARE_NARR, RARE_REACT, ROOFTOP_LINES } from '../config/dates.js?v=a24b4431';
-import * as LMK from '../core/landmark.js?v=a24b4431';
-import { FIRST_DATE_LINES, DATE50_LINES } from '../config/love-stories.js?v=a24b4431';
-import { LINES } from '../config/lines.js?v=a24b4431';
-import * as D from '../core/dates.js?v=a24b4431';
-import { fmtMoney } from '../core/format.js?v=a24b4431';
-import { now } from '../core/clock.js?v=a24b4431';
-import { asset, hasAsset } from '../platform/assets.js?v=a24b4431';
-import { game } from '../game.js?v=a24b4431';
-import { h, openPanel, toast } from './dom.js?v=a24b4431';
-import { playStory } from './story.js?v=a24b4431';
-import { dateTicketHtml, bindDateTicket, potionHtml, bindPotion, openWallet } from './coupon.js?v=a24b4431'; // 设计39 约会券、精力药水（开发2）
-import * as DL from '../core/datelib.js?v=a24b4431';   // 设计83 约会片段库
-import * as PD from '../core/privdate.js?v=a24b4431';  // 设计83 私密约会
-import * as RD from '../core/ride.js?v=a24b4431';      // 设计71 座驾
-import { privOutfit } from '../core/styles.js?v=a24b4431';
-import { playScene } from './scene.js?v=a24b4431';
-import { confirmBox } from './confirm.js?v=a24b4431';
+import * as MG from '../core/manage.js?v=06229def'; // 设计39 约会花精力
+import { SEC_BY_ID } from '../config/secretaries.js?v=06229def';
+import { DATE_PLACES, DATES_PER_DAY, DATE5_LINES, DATE50_TITLE, RARE_NARR, RARE_REACT, ROOFTOP_LINES } from '../config/dates.js?v=06229def';
+import * as LMK from '../core/landmark.js?v=06229def';
+import { FIRST_DATE_LINES, DATE50_LINES } from '../config/love-stories.js?v=06229def';
+import { LINES } from '../config/lines.js?v=06229def';
+import * as D from '../core/dates.js?v=06229def';
+import { fmtMoney } from '../core/format.js?v=06229def';
+import { now } from '../core/clock.js?v=06229def';
+import { asset, hasAsset } from '../platform/assets.js?v=06229def';
+import { game } from '../game.js?v=06229def';
+import { h, openPanel, toast } from './dom.js?v=06229def';
+import { playStory } from './story.js?v=06229def';
+import { potionHtml, bindPotion, openWallet } from './coupon.js?v=06229def'; // 设计39 精力药水（开发2）
+import * as DL from '../core/datelib.js?v=06229def';   // 设计83 约会片段库
+import * as PD from '../core/privdate.js?v=06229def';  // 设计83 私密约会
+import * as RD from '../core/ride.js?v=06229def';      // 设计71 座驾
+import { privOutfit } from '../core/styles.js?v=06229def';
+import { playScene } from './scene.js?v=06229def';
+import { confirmBox } from './confirm.js?v=06229def';
 
 // 车：返回 { tier, name, rarity: 'normal'|'limited'|'unique', count }；没车就打车
 let carFor = () => ({ tier: 0, name: '' });
@@ -33,8 +33,7 @@ export function openDate(secId) {
   const p = openPanel(`和 ${c.name} 去哪？`);
   const car = carFor(s);
   p.body.appendChild(h('div', 'date-top', `${D.dateBtnText(s, secId, t)}　精力还剩 ${Math.floor(MG.energy(s, t))}　${car.tier ? `开 ${car.name} 去（爱慕多加）` : '还没有车，打车去'}　跟她约过 ${s.secs[secId].rec.dates} 次`));
-  if (MG.energy(s, t) < 10) { const el = h('div', 'cp-pot-wrap', `精力不够了　${potionHtml(s)}`); p.body.appendChild(el); bindPotion(el, () => { p.close(); openDate(secId); }); } // 设计39（设计接手开发1）
-  { const tk = dateTicketHtml(s, secId); if (tk) { const el = h('div', 'cp-date-wrap', tk); p.body.appendChild(el); bindDateTicket(el, () => { p.close(); openDate(secId); }); } } // 设计39 约会券（开发2）
+  if (MG.energy(s, t) < MG.E_COST.date) { const el = h('div', 'cp-pot-wrap', `精力不够了　${potionHtml(s)}`); p.body.appendChild(el); bindPotion(el, () => { p.close(); openDate(secId); }); } // 设计39（设计接手开发1）
   const adj = (pl) => D.placeAdj(s, pl.id); // 自己的游艇（第 2-11 项）
   for (const pl of DATE_PLACES) {
     if (D.placeGate(s, pl.id)) continue;   // 地标楼顶：有地标才显示
@@ -52,13 +51,14 @@ export function openDate(secId) {
   if (priv.length) {
     p.body.appendChild(h('div', 'sd-rec-title date-priv-title', '私密约会'));
     for (const key of priv) {
-      const P = PD.PRIV_PLACES[key]; const ride = PD.privRide(s, key); const why = PD.whyNotPriv(s, secId, key, t); const bg = privBg(key); const bgp = `assets/bg/${bg}.webp`;
+      const P = PD.PRIV_PLACES[key]; const ride = PD.privRide(s, key); const why = PD.whyNotPriv(s, secId, key, t); const lowE = MG.energy(s, t) < MG.E_COST.privMin - 1e-9; const bg = privBg(key); const bgp = `assets/bg/${bg}.webp`;
       const row = h('div', 'date-place date-priv', `<div class="date-thumb" style="${hasAsset(bgp) ? `background-image:url('${asset(bgp)}')` : ''}">${hasAsset(bgp) ? '' : P.name}</div>
         <div class="ind-info"><div class="ind-name">${P.name}</div><div class="tr-gain">${key === 'car' ? '开' : '坐'}${ride.name}<br>爱慕 +${PD.PRIV_LOVE}　好感 +${PD.PRIV_FAVOR}　结束后精力清空</div>${why ? `<div class="sc-cond">${why}</div>` : ''}</div>
-        <button class="btn">免费</button>`);
-      const b = row.querySelector('.btn'); b.disabled = !!why;
+        <button class="btn date-priv-go">私密约会<small>要 ${MG.E_COST.privMin} 精力，约完精力清空</small></button>`);
+      const b = row.querySelector('.date-priv-go'); b.disabled = !!why;
       b.onclick = () => { p.close(); goPriv(secId, key); };
       p.body.appendChild(row);
+      if (lowE) { const el = h('div', 'cp-pot-wrap', potionHtml(s)); row.querySelector('.ind-info').appendChild(el); bindPotion(el, () => { p.close(); openDate(secId); }); }   // 设计86：不够 100 照旧给喝药水
     }
   }
 }

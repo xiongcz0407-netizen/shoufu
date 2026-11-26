@@ -1,12 +1,12 @@
 // 好感、爱慕、每天互动、送礼、台词触发规则（设计03 第五节）、吃醋 / 冷落
-import { capAdd } from './cap.js?v=a24b4431';   // 设计79：有上限的列表（config/caps.js）
-import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=a24b4431';
-import { GIFT_BY_ID } from '../config/gifts.js?v=a24b4431';
-import { LINES } from '../config/lines.js?v=a24b4431';
-import { ensureSec, favorStage, loveStage, FAVOR_MAX, FAVOR_FULL_AT, LOVE_STAGES } from './secretary.js?v=a24b4431';
-import { bump } from './daily.js?v=a24b4431';
-import { pay, receive, accrue, canPay } from './ledger.js?v=a24b4431';
-import LOVE from '../config/love.json?v=a24b4431' with { type: 'json' };   // 设计56
+import { capAdd } from './cap.js?v=06229def';   // 设计79：有上限的列表（config/caps.js）
+import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=06229def';
+import { GIFT_BY_ID } from '../config/gifts.js?v=06229def';
+import { LINES } from '../config/lines.js?v=06229def';
+import { ensureSec, favorStage, loveStage, FAVOR_MAX, FAVOR_FULL_AT, LOVE_STAGES } from './secretary.js?v=06229def';
+import { bump } from './daily.js?v=06229def';
+import { pay, receive, accrue, canPay } from './ledger.js?v=06229def';
+import LOVE from '../config/love.json?v=06229def' with { type: 'json' };   // 设计56
 
 export const DAILY_TALKS = 10;      // 每人每天点她涨好感的次数
 export const TALK_FAVOR = 2;
