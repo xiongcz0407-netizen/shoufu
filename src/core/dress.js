@@ -1,11 +1,11 @@
 // 设计74 主页秘书自己换衣服：每个游戏天（游戏时间 0 点那一跳）每个秘书随机换一套；打开游戏时过了一个游戏天就先换好（离线不补换几次，只换一次）
 // 「平时穿的」就是存档里的 r.outfit（设计里叫 wearing）：约会 / 日程 / 出差按场合挑的衣服只传给剧情，不改它，所以场合结束自然回到这套
 // r.wearAt：上次换的游戏天；r.autoDress：衣柜开关「让她自己换衣服」，没写 = 开
-import { outfitsOf } from '../config/outfits.js?v=5e43f185';
-import { owns, canWear } from './outfits.js?v=5e43f185';
-import { styleOf, COSTUME } from './styles.js?v=5e43f185';
-import { ensureSec } from './secretary.js?v=5e43f185';
-import { dayIndex } from './manage.js?v=5e43f185';
+import { outfitsOf } from '../config/outfits.js?v=a184462c';
+import { owns, canWear } from './outfits.js?v=a184462c';
+import { styleOf, COSTUME } from './styles.js?v=a184462c';
+import { ensureSec } from './secretary.js?v=a184462c';
+import { dayIndex } from './manage.js?v=a184462c';
 
 export const autoOn = (s, id) => ensureSec(s, id).autoDress !== false;
 export function setAuto(s, id, on) { ensureSec(s, id).autoDress = !!on; }

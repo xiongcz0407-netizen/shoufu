@@ -1,14 +1,14 @@
 // 银行（设计14 第三节、设计20 第六节，阶段二部分）：存款（活期 / 定期 / 大额存单）、经营贷（专款专用）、开发贷（四证、自有 30%、≤ 总投资 50%、预售先还）、审批、借款合同、月供、逾期罚息、征信
 // 不 import economy（economy 用这里的 deposits / debt）；身价由 setNW 注入
-import B from '../config/bank.json?v=5e43f185' with { type: 'json' };
-import { profitMul } from './calib.js?v=5e43f185';
-import { pay, receive, canPay, canPayMust } from './ledger.js?v=5e43f185';
-import { TAX } from './companytax.js?v=5e43f185';
-import { addContract } from './contracts.js?v=5e43f185';
-import { addMsg, onAction } from './inbox.js?v=5e43f185';
-import { holder, isSec } from './posts.js?v=5e43f185';
-import { MONTH_MS, YEAR_MS, monthIndex } from './gametime.js?v=5e43f185';
-import { re, totalInvest, setLoanHook } from './realestate.js?v=5e43f185';
+import B from '../config/bank.json?v=a184462c' with { type: 'json' };
+import { profitMul } from './calib.js?v=a184462c';
+import { pay, receive, canPay, canPayMust } from './ledger.js?v=a184462c';
+import { TAX } from './companytax.js?v=a184462c';
+import { addContract } from './contracts.js?v=a184462c';
+import { addMsg, onAction } from './inbox.js?v=a184462c';
+import { holder, isSec } from './posts.js?v=a184462c';
+import { MONTH_MS, YEAR_MS, monthIndex } from './gametime.js?v=a184462c';
+import { re, totalInvest, setLoanHook } from './realestate.js?v=a184462c';
 export { B as BANK_CFG };
 
 const MIN = 60e3; const r2 = (x) => Math.round(x * 100) / 100;

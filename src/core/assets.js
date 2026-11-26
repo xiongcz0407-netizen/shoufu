@@ -1,16 +1,16 @@
 // 资产（第 12 项）：车库 / 房产 / 机库。只能个人现金全款，不能贷款、不能抵押
 // 渠道（设计09 第三节）：现货 / 订单（排队）/ 邀请（品牌来电）/ 拍卖 / 定制委托；房子按设计19（验资冻结、四合院拍卖、境外锁）
 // 税费（设计14、设计19）：车辆购置税 + 超豪华车附加 + 上牌；房子契税；飞机关税 + 进口增值税；每年维护 / 物业 / 房产税按秒扣
-import { CARS, PLANES } from '../config/vehicles.js?v=5e43f185';
-import EST from '../config/estates.json?v=5e43f185' with { type: 'json' };
-import { CAR_META, TIER_SPEC } from '../config/carmeta.js?v=5e43f185';
-import { TAX } from './companytax.js?v=5e43f185';
-import { pay, receive, accrue } from './ledger.js?v=5e43f185';
-import { YEAR_MS } from './gametime.js?v=5e43f185';
-import { addContract } from './contracts.js?v=5e43f185';
-import { stewardSellRate, stewardUpkeepMult, stewardQueueMult } from './posts.js?v=5e43f185';
-import { bossAttrs } from './boss.js?v=5e43f185';
-import { taxRec } from './fiscal.js?v=5e43f185';
+import { CARS, PLANES } from '../config/vehicles.js?v=a184462c';
+import EST from '../config/estates.json?v=a184462c' with { type: 'json' };
+import { CAR_META, TIER_SPEC } from '../config/carmeta.js?v=a184462c';
+import { TAX } from './companytax.js?v=a184462c';
+import { pay, receive, accrue } from './ledger.js?v=a184462c';
+import { YEAR_MS } from './gametime.js?v=a184462c';
+import { addContract } from './contracts.js?v=a184462c';
+import { stewardSellRate, stewardUpkeepMult, stewardQueueMult } from './posts.js?v=a184462c';
+import { bossAttrs } from './boss.js?v=a184462c';
+import { taxRec } from './fiscal.js?v=a184462c';
 
 export const HOUSES = EST.houses;
 const ALL = {};
@@ -105,6 +105,11 @@ export function premium(price) {
 
 /** 签合同付款（合同在界面上签）；price：拍卖成交价；channel 记下来（卖的时候看要不要拉黑） */
 export const ORDER = { deposit: 0.1, bigFrom: 5e6 };
+/** 人物01 乔希雅的解锁 flag：称号 ≥ 企业家（title ≥ 3）且手上有任意一架飞机就置上（买飞机时、升称号时查；之前就买了的，升企业家那一刻来）。返回这次有没有置上 */
+export function checkFirstJet(s) {
+  if (!s || !s.flags || s.flags.firstJet1 || !((s.title || 0) >= 3) || !((s.garage && s.garage.planes) || []).length) return false;
+  s.flags.firstJet1 = true; return true;
+}
 export function buy(s, id, t = Date.now(), { price = null, channel = null, skipCheck = false, paid = 0 } = {}) {
   const it = ALL[id];
   if (!skipCheck) { const why = whyNotBuy(s, id, t); if (why) return { ok: false, why }; }
@@ -116,7 +121,7 @@ export function buy(s, id, t = Date.now(), { price = null, channel = null, skipC
   const main = q.rows[0][1];
   if (main + prem - paid >= 0.01) pay(s, { wallet: 'personal', cat: it.kind, amount: main + prem - paid, ref: ct.no, note: paid ? `${label(it)}（尾款，定金已付）` : label(it) }, t);
   const tax = q.total + paid - main - prem; if (tax >= 0.01) taxRec(s, { kind: it.kind === 'house' ? '契税' : it.kind === 'car' ? '车辆购置税等' : '进口关税、增值税', base: main, amount: tax, t }); if (tax >= 0.01) pay(s, { wallet: 'personal', cat: 'tax_personal', amount: tax, ref: ct.no, party: '税务局', note: `${label(it)} ${q.rows.slice(1).filter((r) => !r[0].includes('佣金') && !r[0].includes('定金')).map((r) => r[0]).join('、')}` }, t);
-  g(s)[KEY[it.kind]].push(id);
+  g(s)[KEY[it.kind]].push(id); if (it.kind === 'plane') checkFirstJet(s);   // 人物01：企业家买下第一架飞机，乔希雅来
   const meta = { price: main, at: t, contract: ct.no, channel: channel || channelOf(it) };
   if (rarityOf(it) !== 'normal' && it.limit) meta.no = it.limit === 1 ? 1 : 1 + Math.floor(Math.random() * it.limit);
   g(s).meta[id] = meta;

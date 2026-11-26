@@ -1,17 +1,17 @@
 // 第 P-06 项：财富 → 投资 里的「打新」页签、个股页的条件单、行情顶上的看盘（设计25 第五节）
-import { earnAt, cls, sgnPct } from './earn.js?v=5e43f185';   // 设计65：挂单写百分比
-import { whyToast } from './invest.js?v=5e43f185';   // 设计62：钱不够一键从个人账户转入
-import * as SK from '../core/stocks.js?v=5e43f185';
-import * as TR from '../core/trade.js?v=5e43f185';
-import * as LK from '../core/look.js?v=5e43f185'; // 设计41
-import * as AS from '../core/assets.js?v=5e43f185';
-import { attrs as secAttrs } from '../core/posts.js?v=5e43f185';
-import { SEC_BY_ID } from '../config/secretaries.js?v=5e43f185';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=5e43f185';
-import { profitMul } from '../core/calib.js?v=5e43f185';
-import { game } from '../game.js?v=5e43f185';
-import { now } from '../core/clock.js?v=5e43f185';
-import { h, openPanel, toast } from './dom.js?v=5e43f185';
+import { earnAt, cls, sgnPct } from './earn.js?v=a184462c';   // 设计65：挂单写百分比
+import { whyToast } from './invest.js?v=a184462c';   // 设计62：钱不够一键从个人账户转入
+import * as SK from '../core/stocks.js?v=a184462c';
+import * as TR from '../core/trade.js?v=a184462c';
+import * as LK from '../core/look.js?v=a184462c'; // 设计41
+import * as AS from '../core/assets.js?v=a184462c';
+import { attrs as secAttrs } from '../core/posts.js?v=a184462c';
+import { SEC_BY_ID } from '../config/secretaries.js?v=a184462c';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=a184462c';
+import { profitMul } from '../core/calib.js?v=a184462c';
+import { game } from '../game.js?v=a184462c';
+import { now } from '../core/clock.js?v=a184462c';
+import { h, openPanel, toast } from './dom.js?v=a184462c';
 
 const C = SK.SCFG; const I = C.ipo;
 const COLOR = { 科技: '#3b6fd8', 消费: '#d8823b', 能源: '#3ba86b', 汽车: '#7a5cd6', 金融: '#c9a43b', 传媒: '#d64b7a', 奢侈品: '#8a6a3a' };
@@ -34,7 +34,7 @@ export function orderBlock(s, code, n, rerender) {
       <div class="ord-in"><span class="${kind === 'tp' ? 'up' : kind === 'sl' ? 'down' : ''}">${kind === 'tp' ? '涨到' : '跌到'}</span><input type="text" inputmode="decimal" autocomplete="off" class="ord-px" value="${def.toFixed(2)}"><span>元，${kind === 'buy' ? '买' : '卖'} ${n.toLocaleString()} 股</span><button class="btn sm gold ord-go">挂单</button></div><div class="ord-pct">${ordPct(def)}</div><div class="lk-pos ord-pos">${LK.POS.map((q) => `<button class="btn sm" data-q="${q.k}">${kind === 'buy' ? q.name : q.sell}</button>`).join('')}</div>
       ${mine.map((o) => `<div class="fn-row"><span>${TR.KIND[o.kind]} <b class="${TR.sellTone(s, o)}">${o.px}</b> · ${o.n.toLocaleString()} 股${o.on === false ? '<small>（等前面成交才生效）</small>' : ''}</span><b><button class="btn sm" data-x="${o.id}">撤</button></b></div>`).join('')}`;
     el.querySelectorAll('[data-k]').forEach((b) => (b.onclick = () => { kind = b.dataset.k; draw(); }));
-    el.querySelectorAll('[data-q]').forEach((b) => (b.onclick = () => { const q = LK.POS_BY[b.dataset.q]; const p0 = +el.querySelector('.ord-px').value; const nn = kind === 'buy' ? LK.posShares(s, code, p0, q.k) : Math.floor(TR.sellable(s, code) * q.f); if (!(nn >= 1)) { toast(kind === 'buy' ? '不够 1 股' : '没有能卖的'); return; } const r = TR.addOrder(s, { code, kind, px: p0, n: nn }, now()); if (!r.ok) { whyToast(r.why); return; } done(`挂好了：${TR.KIND[kind]} ${r.order.px} · ${nn.toLocaleString()} 股（${kind === 'buy' ? q.name : q.sell}）`); rerender(); }));   // 设计46：⅓ / 半仓 / 全仓（卖：⅓ / 一半 / 全部）
+    el.querySelectorAll('[data-q]').forEach((b) => (b.onclick = () => { const q = LK.POS_BY[b.dataset.q]; const p0 = +el.querySelector('.ord-px').value; const nn = kind === 'buy' ? LK.posShares(s, code, p0, q.k) : LK.sellShares(TR.sellable(s, code), q.k); if (!(nn >= 1)) { toast(kind === 'buy' ? '不够 1 股' : '没有能卖的'); return; } const r = TR.addOrder(s, { code, kind, px: p0, n: nn }, now()); if (!r.ok) { whyToast(r.why); return; } done(`挂好了：${TR.KIND[kind]} ${r.order.px} · ${nn.toLocaleString()} 股（${kind === 'buy' ? q.name : q.sell}）`); rerender(); }));   // 设计46：⅓ / 半仓 / 全仓（卖：⅓ / 一半 / 全部）
     { const ip = el.querySelector('.ord-px'); ip.oninput = () => { el.querySelector('.ord-pct').innerHTML = ordPct(ip.value); }; }   // 设计65：改价跟着变
     el.querySelector('.ord-go').onclick = () => { const r = TR.addOrder(s, { code, kind, px: +el.querySelector('.ord-px').value, n }, now()); if (!r.ok) { whyToast(r.why); return; } done(`挂好了：${TR.KIND[kind]} ${r.order.px}`); rerender(); };
     el.querySelectorAll('[data-x]').forEach((b) => (b.onclick = () => { const o = m.orders.find((x) => x.id === +b.dataset.x); TR.cancelOrder(s, +b.dataset.x, false, now()); done(o && (o.back || o.backN) ? `撤了，${o.back ? `${fmtMoney(o.back)} 退回投资账户` : `${o.backN.toLocaleString()} 股退回持仓`}` : '撤了'); rerender(); }));

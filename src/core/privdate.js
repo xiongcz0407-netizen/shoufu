@@ -1,14 +1,14 @@
 // 设计83 第四节 私密约会：恋人（爱慕 ≥ 80）+ 有符合条件的座驾才出现；不收钱；设计86：精力 ≥ E_COST.privMin（100）才能开始，结束精力清空，不限次数
 // 算一次约会：次数 +1、爱慕 +10、好感 +20（照设计56 门规则，能跨门）
-import { E_COST, energy, doEnergy } from './manage.js?v=5e43f185';
-import { recordDate } from './dates.js?v=5e43f185';
-import { isTraining } from './training.js?v=5e43f185';
-import { privRideId, rideItem, nameOf } from './ride.js?v=5e43f185';
-import { hasPrivLib, pickPriv, stageOf } from './datelib.js?v=5e43f185';
-import { stockingsOf } from './styles.js?v=5e43f185';
-import { STOCKING_GIFT } from '../config/story/index.js?v=5e43f185';
-import { localDay } from './afterlines.js?v=5e43f185';
-import { addLoadFix } from './loadfix.js?v=5e43f185';
+import { E_COST, energy, doEnergy } from './manage.js?v=a184462c';
+import { recordDate } from './dates.js?v=a184462c';
+import { isTraining } from './training.js?v=a184462c';
+import { privRideId, rideItem, nameOf } from './ride.js?v=a184462c';
+import { hasPrivLib, pickPriv, stageOf } from './datelib.js?v=a184462c';
+import { stockingsOf } from './styles.js?v=a184462c';
+import { STOCKING_GIFT } from '../config/story/index.js?v=a184462c';
+import { localDay } from './afterlines.js?v=a184462c';
+import { addLoadFix } from './loadfix.js?v=a184462c';
 
 export const PRIV_MIN_LOVE = 80, PRIV_LOVE = 10, PRIV_FAVOR = 20;
 /** key → 座驾哪一类、地点名、背景（第一张没图用第二张） */

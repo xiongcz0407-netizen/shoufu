@@ -1,20 +1,20 @@
-import { avatarKey } from './main-screen.js?v=5e43f185';
-import * as MG from '../core/manage.js?v=5e43f185'; // P-05 精力
-import { asset, hasAsset } from '../platform/assets.js?v=5e43f185';
+import { avatarKey } from './main-screen.js?v=a184462c';
+import * as MG from '../core/manage.js?v=a184462c'; // P-05 精力
+import { asset, hasAsset } from '../platform/assets.js?v=a184462c';
 // 老板页：名字和公司、老板属性、称号进度、穿戴、统计、设置（存档、重新开始在「设置」里，设计22）
-import { TITLES } from '../config/titles.js?v=5e43f185';
-import { RIVALS } from '../config/rivals.js?v=5e43f185';
-import * as E from '../core/economy.js?v=5e43f185';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=5e43f185';
-import { versionText } from '../version.js?v=5e43f185';
-import { now } from '../core/clock.js?v=5e43f185';
-import { game } from '../game.js?v=5e43f185';
-import { h, toast, openPanel } from './dom.js?v=5e43f185';
-import { openFull } from './shell.js?v=5e43f185';
-import { wearHtml } from './luxury.js?v=5e43f185';
-import { appendCloudSettings } from './cloudset.js?v=5e43f185';
-import { inputBox } from './confirm.js?v=5e43f185'; // 设计37 第一节：游戏样式输入框
-import * as RD from '../core/ride.js?v=5e43f185'; // 设计71 座驾
+import { TITLES } from '../config/titles.js?v=a184462c';
+import { RIVALS } from '../config/rivals.js?v=a184462c';
+import * as E from '../core/economy.js?v=a184462c';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=a184462c';
+import { versionText } from '../version.js?v=a184462c';
+import { now } from '../core/clock.js?v=a184462c';
+import { game } from '../game.js?v=a184462c';
+import { h, toast, openPanel } from './dom.js?v=a184462c';
+import { openFull } from './shell.js?v=a184462c';
+import { wearHtml } from './luxury.js?v=a184462c';
+import { appendCloudSettings } from './cloudset.js?v=a184462c';
+import { inputBox } from './confirm.js?v=a184462c'; // 设计37 第一节：游戏样式输入框
+import * as RD from '../core/ride.js?v=a184462c'; // 设计71 座驾
 
 // 老板属性（设计09 第一节）由第 12 项提供：返回 [{ name, value, from }]
 let bossAttrs = () => [];

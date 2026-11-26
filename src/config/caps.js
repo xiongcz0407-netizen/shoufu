@@ -35,6 +35,7 @@ export const LOG = {
   'mkt.long.*': { max: 120 },                   // 「长期」走势图也画 120 个点（stocks.json history.longMax）
   'mkt.soldQ': { max: 10 },
   'mkt.wrongQ': { max: 5 },
+  'mkt.ipoPop': { max: 10 },                    // 设计90 中签 / 没中 / 上市弹框（界面拿一次就清）
   'mkt.ws.scans': { max: 160 },
   'mkt.ipo.daily': { max: 30 },
   'mkt.ipo.done': { max: 100 },
@@ -63,7 +64,7 @@ export const BOUND = {
   'media.films': 200, 'tech.products': 200, 'meet.cur.rep': 20, 'meet.cur.stats.rows': 50,
   'mg.lines.*.fx': 100, 'mg.prepaid': 100, 'mg.stock': 100,
   'mkt.guards': 100, 'mkt.hintQ': 50, 'mkt.lu.act': 60, 'mkt.mgr.cur.legs': 20, 'mkt.orders': 500, 'mkt.wk.sells': 200,
-  'mkt.ws.grps': 500, 'mkt.ws.toast': 50, 'mkt.wsLast.grps': 500, 'mkt.wsTips': 50, 'mkt.ipoOn': 60,
+  'mkt.ws.grps': 500, 'mkt.ws.toast': 50, 'mkt.wsLast.grps': 500, 'mkt.wsTips': 50, 'mkt.wsPre': 50, 'mkt.ipoOn': 60,
   'pick.log': 30, 'postMeta.*.notes': 20, 'sites.lines.*': 200, 'upAuto.by': 50, 'upq[].fx': 20,
   'war.log': 60, 'war.plan': 60, 'war.team': 10, 'war.usedSpec': 20,
 };

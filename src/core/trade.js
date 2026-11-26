@@ -1,20 +1,20 @@
 // 第 P-06 项（设计25 第五节）：前期炒股 —— 条件单、打新股、看盘、炒股周报
 // 条件单每跳检查（挂在 stocks.js 的 addStepHook 上，离线补算一样走）；打新、利息、周报按时间走 tick()（在线 ticker 和 core/offcap.js 都叫）
-import { capAdd } from './cap.js?v=5e43f185';   // 设计79：有上限的列表（config/caps.js）
-import * as IDLE from './idle.js?v=5e43f185';   // 设计72
-import { shortWhy } from './invest.js?v=5e43f185';   // 设计62
-import { dropOrphans } from './orphans.js?v=5e43f185';
-import * as SK from './stocks.js?v=5e43f185';
-import { pay, receive } from './ledger.js?v=5e43f185';
-import { addContract } from './contracts.js?v=5e43f185';
-import { addMsg } from './inbox.js?v=5e43f185';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=5e43f185';
-import { profitMul } from './calib.js?v=5e43f185';
-import { isTraining } from './training.js?v=5e43f185';
-import { attrs as secAttrs } from './posts.js?v=5e43f185';
-import { SEC_BY_ID } from '../config/secretaries.js?v=5e43f185';
-import { netWorth } from './economy.js?v=5e43f185';
-import { addAssetHook } from './assets.js?v=5e43f185';
+import { capAdd } from './cap.js?v=a184462c';   // 设计79：有上限的列表（config/caps.js）
+import * as IDLE from './idle.js?v=a184462c';   // 设计72
+import { shortWhy } from './invest.js?v=a184462c';   // 设计62
+import { dropOrphans } from './orphans.js?v=a184462c';
+import * as SK from './stocks.js?v=a184462c';
+import { pay, receive } from './ledger.js?v=a184462c';
+import { addContract } from './contracts.js?v=a184462c';
+import { addMsg } from './inbox.js?v=a184462c';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=a184462c';
+import { profitMul } from './calib.js?v=a184462c';
+import { isTraining } from './training.js?v=a184462c';
+import { attrs as secAttrs } from './posts.js?v=a184462c';
+import { SEC_BY_ID } from '../config/secretaries.js?v=a184462c';
+import { netWorth } from './economy.js?v=a184462c';
+import { addAssetHook } from './assets.js?v=a184462c';
 
 const C = SK.SCFG; const O = C.orders, I = C.ipo, W = C.weekly;
 export const DAY = MONTH_MS / 30;
@@ -151,26 +151,60 @@ export function topUp(s, code, n, t = Date.now()) {
   return { ok: true, n, cost: T.cost, total: q.total, gross: q.gross, fees: q.fees, into: T.box ? 'order' : 'hold', slip: ct };
 }
 /** 玩家自己卖（个股页的卖出 / 全部卖出）：只卖持仓里剩下的 */
-export function sellMine(s, code, n, t = Date.now()) {
+export function sellMine(s, code, n, t = Date.now(), opts = {}) {   // opts.live：按显示价（设计90）
   const k = sellable(s, code); const lk = lockedShares(s, code);
   if (Math.floor(n) > k) return { ok: false, why: `持股只有 ${k.toLocaleString()} 股${lk ? `（另有 ${lk.toLocaleString()} 股在卖单里）` : ''}` };
-  return SK.sell(s, code, n, t);
+  return SK.sell(s, code, n, t, opts);
 }
 
 // ---------- 设计73 持仓一键卖出：这只的全部（可卖持仓 + 挂在卖单里的）按现价（30 秒那一跳）马上卖；没成交的买单、联动组还没买进的那组不动 ----------
 const activeOuts = (s, code) => ((s.mkt && s.mkt.orders) || []).filter((o) => o.code === code && o.kind !== 'buy' && o.on !== false);
 /** 卖之前给弹框看的：{ n 卖几股, px 现价, total 到手, gain 赚（负 = 亏）, outs 要撤几张卖单, why 卖不了的原因 } */
-export function sellAllInfo(s, code) {
+export function sellAllInfo(s, code, t = undefined) {   // 设计90：t = 按哪一刻的显示价（不给 = 现在）
   const my = SK.myShares(s)[code]; const h = s.mkt && s.mkt.hold[code]; const pledged = (h && h.pledged) || 0; const n = my ? my.n - pledged : 0;
   if (!my || n < 1) return { n: 0, why: pledged ? '都质押在银行，不能卖' : '没有这只的持仓' };
-  const q = SK.quote(s, code, n, 'sell'); const why = SK.onBoard(s.mkt, code) === 'down' ? '封在跌停，卖不出（等开板）' : null;   // 跌停照个股页卖出原来的规则
-  return { n, px: SK.price(s, code), total: q.total, gain: r2(q.total - my.cost * n), outs: activeOuts(s, code).length, pledged, why, quote: q };
+  const q = SK.quote(s, code, n, 'sell', SK.livePx(s, code, t)); const why = SK.onBoard(s.mkt, code) === 'down' ? '封在跌停，卖不出（等开板）' : null;   // 跌停照个股页卖出原来的规则
+  return { n, px: q.px, total: q.total, gain: r2(q.total - my.cost * n), outs: activeOuts(s, code).length, pledged, why, quote: q };
 }
 export function sellAll(s, code, t = Date.now()) {
-  const I = sellAllInfo(s, code); if (I.why) return { ok: false, why: I.why };
+  const I = sellAllInfo(s, code, t); if (I.why) return { ok: false, why: I.why };
   for (const o of activeOuts(s, code)) cancelOrder(s, o.id, false, t);   // 卖单先撤、股票并回来
-  const n = sellable(s, code); const r = SK.sell(s, code, n, t, { note: '持仓卖出' });
+  const n = sellable(s, code); const r = SK.sell(s, code, n, t, { note: '持仓卖出', live: true });   // 设计90：按显示价
   return r.ok ? { ...r, n, total: r.quote.total } : r;
+}
+
+// ---------- 设计90 持仓分批卖：10 股 / 一半 / 全部，按现在的价马上卖 ----------
+/** 这只能卖的总股数（含挂在卖单里的，去掉质押） */
+const sellTotal = (s, code) => { const my = SK.myShares(s)[code]; const h = s.mkt && s.mkt.hold[code]; return my ? Math.max(0, my.n - ((h && h.pledged) || 0)) : 0; };
+/** 挂着的卖单按「离成交最远」排：[{ box, outs }]（同一组 / 同一张一份；离成交的距离 = 各张卖单价离现价最近的那个） */
+function sellBoxes(s, code) {
+  const px = SK.price(s, code); const map = new Map();
+  for (const o of activeOuts(s, code)) { const box = shOf(s, o); if (!box.sh || !(box.sh.n > 0)) continue; const e = map.get(box) || { box, outs: [], dist: Infinity }; e.outs.push(o); e.dist = Math.min(e.dist, Math.abs(o.px / px - 1)); map.set(box, e); }
+  return [...map.values()].sort((a, b) => b.dist - a.dist);
+}
+/** 卖之前给弹框看的：{ n 卖几股, total 能卖的总数, fromOrders 要从卖单里扣几股, cancel 要撤几张, px, total 到手, gain, why } */
+export function sellSomeInfo(s, code, n, t = undefined) {
+  const all = sellTotal(s, code); const h = s.mkt && s.mkt.hold[code]; const pledged = (h && h.pledged) || 0;
+  if (all < 1) return { n: 0, all, why: pledged ? '都质押在银行，不能卖' : '没有这只的持仓' };
+  n = Math.max(1, Math.min(all, Math.floor(n))); const my = SK.myShares(s)[code];
+  const why = SK.onBoard(s.mkt, code) === 'down' ? '封在跌停，卖不出（等开板）' : null;
+  let rest = Math.max(0, n - sellable(s, code)); const fromOrders = rest; let cancel = 0;
+  if (n >= all) cancel = activeOuts(s, code).length; else for (const e of sellBoxes(s, code)) { if (rest <= 0) break; const d = Math.min(rest, e.box.sh.n); rest -= d; if (d >= e.box.sh.n) cancel += e.outs.length; }
+  const q = SK.quote(s, code, n, 'sell', SK.livePx(s, code, t));
+  return { n, all, fromOrders, cancel, px: q.px, total: q.total, gain: r2(q.total - my.cost * n), pledged, why, quote: q };
+}
+/** 卖 n 股：先卖没挂单的；不够再从挂着的卖单里扣（离成交最远的先扣，扣完剩下的照旧挂着，减到 0 的撤）；n ≥ 全部 = 设计73 的「全部」 */
+export function sellSome(s, code, n, t = Date.now()) {
+  const I = sellSomeInfo(s, code, n, t); if (I.why) return { ok: false, why: I.why };
+  if (I.n >= I.all) return sellAll(s, code, t);
+  let rest = Math.max(0, I.n - sellable(s, code));
+  for (const e of sellBoxes(s, code)) {
+    if (rest <= 0) break; const d = Math.min(rest, e.box.sh.n); rest -= d;
+    if (d >= e.box.sh.n) { for (const o of e.outs) cancelOrder(s, o.id, false, t); continue; }   // 扣到 0：撤单（股票并回持仓）
+    e.box.sh.n -= d; for (const o of e.outs) o.n -= d; putShares(s, code, { n: d, cost: e.box.sh.cost, at: e.box.sh.at });   // 卖单数量减掉，剩下的照旧挂着
+  }
+  const r = SK.sell(s, code, I.n, t, { note: '持仓卖出', live: true });
+  return r.ok ? { ...r, n: I.n, total: r.quote.total } : r;
 }
 
 /** 设计45 第五版「止盈红、止损绿」：卖单按实际赚亏上色（'up' 红 / 'down' 绿）。比的是这份股票的成本（联动组没成交时比买入价）；不知道成本就按单子种类（止盈红、止损绿） */
@@ -291,6 +325,11 @@ export function whyNotSub(s, t = Date.now()) {
   if (lotsOf(s) < 1) return `前 ${I.avgDays} 个游戏天日均持股市值不到 ${fmt(I.perLot)}，没有申购额度`;
   return null;
 }
+/** 设计90：能申购没申购的新股几只（0 / 1）——打新页签、投资、财富的红点 */
+export const ipoPending = (s, t = Date.now()) => (s.mkt && curIpo(s) && !whyNotSub(s, t) ? 1 : 0);
+/** 设计90：中签 / 没中 / 上市各弹一次（拿一次就清）：[{ k: 'win' | 'miss' | 'list', code, name, n, pop }] */
+export const takeIpoPop = (s) => { const m = s.mkt; const q = (m && m.ipoPop) || []; if (m) m.ipoPop = []; return q; };
+const ipoPop = (s, x) => capAdd(s, 'mkt.ipoPop', (s.mkt.ipoPop = s.mkt.ipoPop || []), x);
 export function subscribe(s, t = Date.now()) {
   const why = whyNotSub(s, t); if (why) return { ok: false, why };
   const c = curIpo(s); c.sub = { lots: lotsOf(s), at: t }; return { ok: true, lots: c.sub.lots };
@@ -314,8 +353,8 @@ function ipoTick(s, t, rnd) {
       if (c.sub) {
         let w = 0; for (let i = 0; i < c.sub.lots; i++) if (rnd() < I.winRate) w++;
         c.win = w;
-        if (w) { const amt = r2(w * I.lotShares * x.price); if (pay(s, { wallet: 'invest', cat: 'ipo_pay', amount: amt, party: x.name, note: `新股中签缴款 ${w} 签 × ${I.lotShares} 股 × ${x.price}` }, at)) { c.paid = w * I.lotShares; addMsg(s, { kind: 'system', type: 'ipo', title: `中签了！${x.name} ${w} 签`, body: `缴款 ${fmt(amt)}，${I.listDay - I.drawDay} 个游戏天后上市` }, at); } else addMsg(s, { kind: 'system', type: 'ipo', title: `${x.name} 中签 ${w} 签，个人现金不够缴款，算放弃`, body: `要 ${fmt(amt)}` }, at); }
-        else addMsg(s, { kind: 'system', type: 'ipo', title: `${x.name}：没中签（申购 ${c.sub.lots} 签）`, body: `每签中签率 ${(I.winRate * 100).toFixed(1)}%` }, at);
+        if (w) { const amt = r2(w * I.lotShares * x.price); if (pay(s, { wallet: 'invest', cat: 'ipo_pay', amount: amt, party: x.name, note: `新股中签缴款 ${w} 签 × ${I.lotShares} 股 × ${x.price}` }, at)) { c.paid = w * I.lotShares; addMsg(s, { kind: 'system', type: 'ipo', title: `中签了！${x.name} ${w} 签`, body: `缴款 ${fmt(amt)}，${I.listDay - I.drawDay} 个游戏天后上市` }, at); ipoPop(s, { k: 'win', code: c.code, name: x.name, n: w * I.lotShares }); } else addMsg(s, { kind: 'system', type: 'ipo', title: `${x.name} 中签 ${w} 签，个人现金不够缴款，算放弃`, body: `要 ${fmt(amt)}` }, at); }
+        else { addMsg(s, { kind: 'system', type: 'ipo', title: `${x.name}：没中签（申购 ${c.sub.lots} 签）`, body: `每签中签率 ${(I.winRate * 100).toFixed(1)}%` }, at); ipoPop(s, { k: 'miss', code: c.code, name: x.name, n: 0 }); }
       }
       continue;
     }
@@ -325,6 +364,7 @@ function ipoTick(s, t, rnd) {
       m.hist[c.code] = [x.price, m.px[c.code]]; m.long[c.code] = [m.px[c.code]]; m.ipoOn.push(c.code);
       if (c.paid) { m.hold[c.code] = { n: c.paid, cost: x.price, at }; const f = m.wk.f[c.code] || (m.wk.f[c.code] = { buy: 0, sell: 0 }); f.buy = r2(f.buy + c.paid * x.price); }
       addMsg(s, { kind: 'system', type: 'ipo', title: `${x.name} 上市，首日 ${pop >= 0 ? '+' : ''}${(pop * 100).toFixed(0)}%${pop < 0 ? '（破发）' : ''}`, body: c.paid ? `你中的 ${c.paid} 股现在值 ${fmt(c.paid * m.px[c.code])}（成本 ${fmt(c.paid * x.price)}）` : '已经进股票列表，可以买卖' }, at);
+      ipoPop(s, { k: 'list', code: c.code, name: x.name, n: c.paid || 0, pop: r2(pop) });   // 设计90
       capAdd(s, 'mkt.ipo.done', ip.done, { code: c.code, sub: c.sub ? c.sub.lots : 0, win: c.win || 0, paid: c.paid || 0, pop: r2(pop) });
       const [lo, hi] = I.everyMonths; ip.next = c.open + (lo + (hi - lo) * SK.hu('IPON' + c.code, 3)) * MONTH_MS; ip.cur = null; ip.idx++;
       continue;

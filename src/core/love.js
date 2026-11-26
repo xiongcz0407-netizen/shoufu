@@ -2,17 +2,17 @@
 // 礼物（1 万以下）只加好感 = 价钱 ÷ 500（两位小数）；奢侈品（名包 + 1 万以上的首饰 / 表 / 酒，100 万以下）只加爱慕 = 价钱 ÷ 1 万（向下取整）
 // 加成：最喜欢的礼物 / 喜欢的牌子 / 最喜欢的奢侈品 ×2，讨厌的礼物 ×0.5，她生日 ×3，叠乘；爱慕到门口为止（affection.addLove）
 // 定情信物：爱慕 ≥ 80 后下一次约会她提起，价钱 = 身价 × 1%（最少 100 万）定死；送出爱慕直接 100（「唯一」）
-import { capPush, capOf } from './cap.js?v=5e43f185';   // 设计79
-import CFG from '../config/love.json?v=5e43f185' with { type: 'json' };
-import { GIFTS } from '../config/gifts.js?v=5e43f185';
-import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=5e43f185';
-import { LINES } from '../config/lines.js?v=5e43f185';
-import { ensureSec, FAVOR_MAX, FAVOR_FULL_AT } from './secretary.js?v=5e43f185';
-import { addFavor, addLove, setOnly, loveCap, favorMult, markWith, invoice, dayKey } from './affection.js?v=5e43f185';
-import { pay, canPay } from './ledger.js?v=5e43f185';
-import { bump } from './daily.js?v=5e43f185';
-import { BAGS, L as LX_L, label, payBag } from './luxury.js?v=5e43f185';
-import { netWorth } from './economy.js?v=5e43f185';
+import { capPush, capOf } from './cap.js?v=a184462c';   // 设计79
+import CFG from '../config/love.json?v=a184462c' with { type: 'json' };
+import { GIFTS } from '../config/gifts.js?v=a184462c';
+import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=a184462c';
+import { LINES } from '../config/lines.js?v=a184462c';
+import { ensureSec, FAVOR_MAX, FAVOR_FULL_AT } from './secretary.js?v=a184462c';
+import { addFavor, addLove, setOnly, loveCap, favorMult, markWith, invoice, dayKey } from './affection.js?v=a184462c';
+import { pay, canPay } from './ledger.js?v=a184462c';
+import { bump } from './daily.js?v=a184462c';
+import { BAGS, L as LX_L, label, payBag } from './luxury.js?v=a184462c';
+import { netWorth } from './economy.js?v=a184462c';
 
 export const LOVE_CFG = CFG;
 const G = CFG.gift, MU = CFG.mult, TK = CFG.token;

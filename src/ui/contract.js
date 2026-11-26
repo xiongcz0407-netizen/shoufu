@@ -1,8 +1,8 @@
 // 合同全屏（设计18 第五节、设计14）：合同纸、编号、甲乙方、标的、金额明细表，往下滚看，底部「签字」→ 签名 + 盖章动画 → 付款
-import { fmtMoney } from '../core/format.js?v=5e43f185';
-import { asset, hasAsset } from '../platform/assets.js?v=5e43f185';
-import { h } from './dom.js?v=5e43f185';
-import { openFull } from './shell.js?v=5e43f185';
+import { fmtMoney } from '../core/format.js?v=a184462c';
+import { asset, hasAsset } from '../platform/assets.js?v=a184462c';
+import { h } from './dom.js?v=a184462c';
+import { openFull } from './shell.js?v=a184462c';
 
 /** opts: { title, no, parties: [[甲方, 名], [乙方, 名]], subject, rows: [[项目, 金额, 说明]], total, terms: [..], signer, onSign(), signText } */
 export function openContract(opts) {

@@ -1,7 +1,7 @@
 // 设计28 第二节 进货挑品 → 设计49（V0.2.15）今日主推自动选：每个游戏天的季节、天气、节日；每条门店线每天自动选最对路的那样，
 // 不用玩家、秘书、店长；离线照样每天有；开第一家店那天就有。营业额统一 +15%（pick.autoRev，不按家数摊、第三档不减半、没有不对路），估值不算。
-import M from '../config/manage.json?v=5e43f185' with { type: 'json' };
-import * as MG from './manage.js?v=5e43f185';
+import M from '../config/manage.json?v=a184462c' with { type: 'json' };
+import * as MG from './manage.js?v=a184462c';
 
 const P = M.pick;
 export { P as PICK_CFG };

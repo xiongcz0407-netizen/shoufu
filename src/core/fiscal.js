@@ -1,15 +1,15 @@
 // 财务补全（第 2-15 项，设计15 V0.2 + 设计17 V0.2）：年度汇算清缴、欠税滞纳金和征信、一般纳税人进项抵扣（房租、杂费、装修设备）、
 // 个人纳税记录（股票、进口、境外所得……）、财务总监报税台词、销售提成、员工满意度、家族办公室
-import { capAdd } from './cap.js?v=5e43f185';   // 设计79：有上限的列表（config/caps.js）
-import * as BK from './books.js?v=5e43f185';   // 设计79 第三版
-import CFG from '../config/fiscal.json?v=5e43f185' with { type: 'json' };
-import { TAX } from './companytax.js?v=5e43f185';
-import { pay, receive } from './ledger.js?v=5e43f185';
-import { holder, isSec } from './posts.js?v=5e43f185';
-import { addMsg } from './inbox.js?v=5e43f185';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=5e43f185';
-import { SEC_BY_ID } from '../config/secretaries.js?v=5e43f185';
-import { IND_BY_ID } from '../config/industries.js?v=5e43f185';
+import { capAdd } from './cap.js?v=a184462c';   // 设计79：有上限的列表（config/caps.js）
+import * as BK from './books.js?v=a184462c';   // 设计79 第三版
+import CFG from '../config/fiscal.json?v=a184462c' with { type: 'json' };
+import { TAX } from './companytax.js?v=a184462c';
+import { pay, receive } from './ledger.js?v=a184462c';
+import { holder, isSec } from './posts.js?v=a184462c';
+import { addMsg } from './inbox.js?v=a184462c';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=a184462c';
+import { SEC_BY_ID } from '../config/secretaries.js?v=a184462c';
+import { IND_BY_ID } from '../config/industries.js?v=a184462c';
 
 export const FICFG = CFG;
 const r2 = (v) => Math.round(v * 100) / 100;

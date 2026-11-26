@@ -1253,3 +1253,8 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 /* 设计83 私密约会 */
 .date-priv-title { margin-top: 14px; color: #ff8aa5; }
 .date-priv { border-color: #6b3a4a; }
+/* 设计90 持仓卖出：10 股 / 一半 / 全部 */
+.sa-opt { width: 100%; display: flex; align-items: center; text-align: left; margin-top: 8px; }
+.sa-opt i { font-style: normal; opacity: .6; margin-left: 8px; }
+.sa-opt .up { color: #ff5a5a; } .sa-opt .down { color: #3ccf7a; }
+.panel .sa-line { font-size: 14px; margin-bottom: 4px; } .panel .sa-sub, .sa-opt .sa-sub { font-size: 12px; opacity: .7; margin-top: 4px; }
