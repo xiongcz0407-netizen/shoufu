@@ -1,29 +1,34 @@
 // 设计83 第四节 私密约会：恋人（爱慕 ≥ 80）+ 有符合条件的座驾才出现；不收钱；设计86：精力 ≥ E_COST.privMin（100）才能开始，结束精力清空，不限次数
 // 算一次约会：次数 +1、爱慕 +10、好感 +20（照设计56 门规则，能跨门）
-import { E_COST, energy, doEnergy } from './manage.js?v=a184462c';
-import { recordDate } from './dates.js?v=a184462c';
-import { isTraining } from './training.js?v=a184462c';
-import { privRideId, rideItem, nameOf } from './ride.js?v=a184462c';
-import { hasPrivLib, pickPriv, stageOf } from './datelib.js?v=a184462c';
-import { stockingsOf } from './styles.js?v=a184462c';
-import { STOCKING_GIFT } from '../config/story/index.js?v=a184462c';
-import { localDay } from './afterlines.js?v=a184462c';
-import { addLoadFix } from './loadfix.js?v=a184462c';
+import { E_COST, energy, doEnergy } from './manage.js?v=5f2b1b8c';
+import { recordDate } from './dates.js?v=5f2b1b8c';
+import { isTraining } from './training.js?v=5f2b1b8c';
+import { privRideId, rideItem, nameOf } from './ride.js?v=5f2b1b8c';
+import { homeInfo } from './home.js?v=5f2b1b8c';   // 设计95 住哪套（设计94）
+import { hasPrivPlace, pickPriv, stageOf } from './datelib.js?v=5f2b1b8c';
+import { stockingsOf } from './styles.js?v=5f2b1b8c';
+import { STOCKING_GIFT } from '../config/story/index.js?v=5f2b1b8c';
+import { localDay } from './afterlines.js?v=5f2b1b8c';
+import { addLoadFix } from './loadfix.js?v=5f2b1b8c';
 
 export const PRIV_MIN_LOVE = 80, PRIV_LOVE = 10, PRIV_FAVOR = 20;
 /** key → 座驾哪一类、地点名、背景（第一张没图用第二张） */
 export const PRIV_PLACES = {
+  home: { kind: 'house', name: '家里', bg: ['bg_home_night', 'bg_home_small', 'bg_hotel_night'] },   // 设计95：排第一；big → bg_home_night，不是 big → bg_home_small，没图退 bg_hotel_night
   car: { kind: 'car', name: '车里', bg: ['bg_car_night', 'bg_date_4'] },
   jet: { kind: 'plane', name: '私人飞机', bg: ['bg_jet_cabin', 'bg_hangar'] },
   yacht: { kind: 'yacht', name: '游艇', bg: ['bg_date_3'] },
 };
 /** 这一处私密约会用哪台：{ id, name, cabin } 或 null（没符合条件的 → 不出现） */
 export function privRide(s, key) {
+  if (key === 'home') { const h = homeInfo(s); return h && { ...h, cabin: h.big ? 'big' : 'small' }; }   // 设计95：{ id, name 去括号, city, big }
   const P = PRIV_PLACES[key]; const id = privRideId(s, P.kind); if (!id) return null;
   const it = rideItem(P.kind, id); return { id, name: nameOf(P.kind, id), cabin: P.kind === 'plane' ? it.cabin || 'small' : null };
 }
-/** 出不出现：恋人 + 有片段库 + 有符合条件的那台 */
-export const privShown = (s, id, key) => !!(s.secs[id] && s.secs[id].love >= PRIV_MIN_LOVE && hasPrivLib(id) && privRide(s, key));
+/** 出不出现：恋人 + 这位秘书有这一处的场景（设计95：家里剧情没写完的不出）+ 有符合条件的那台 / 那套房子 */
+export const privShown = (s, id, key) => !!(s.secs[id] && s.secs[id].love >= PRIV_MIN_LOVE && hasPrivPlace(id, key) && privRide(s, key));
+/** 设计95 背景候选：家里按大小选大平层 / 小户型夜景，再退酒店夜景；其他照 PRIV_PLACES */
+export const privBgList = (key, ride) => (key === 'home' ? (ride && ride.big ? ['bg_home_night', 'bg_hotel_night'] : ['bg_home_small', 'bg_hotel_night']) : PRIV_PLACES[key].bg);
 export const privList = (s, id) => Object.keys(PRIV_PLACES).filter((k) => privShown(s, id, k));
 /** 能不能开始（出现了以后的原因：上课、精力不到 privMin） */
 export function whyNotPriv(s, id, key, t) {
@@ -42,19 +47,25 @@ export function goPriv(s, id, key, t, rnd = Math.random, outfit = null) {
   const r = recordDate(s, id, t, `私密约会 · ${P.name}`, PRIV_LOVE, PRIV_FAVOR);
   // 设计87：私密约会次数；她穿的那套有丝袜就送你（挑一段跟上次不同的）；设计89：记下哪天、送没送（第二天的台词）
   const rec = s.secs[id].rec; rec.privDates = (rec.privDates || 0) + 1; s.stats.privDates = (s.stats.privDates || 0) + 1;
-  const stk = outfit ? stockingsOf(id, outfit) : null; let gift = [];
+  const { stk, gift } = afterPriv(s, id, t, outfit, rnd);
+  return { ok: true, scene: pk.scene, idx: pk.idx, ride, place: P, stage, outfit: outfit || null, stk, gift, ...r };
+}
+/** 设计87 / 89 私密约会以后（设计96 主动要求也用）：她穿的那套有丝袜就送（挑一段跟上次不同的），记下哪天、送没送（第二天的台词）。返回 { stk, gift } */
+export function afterPriv(s, id, t, outfit, rnd = Math.random) {
+  const rec = s.secs[id].rec; const stk = outfit ? stockingsOf(id, outfit) : null; let gift = [];
   if (stk) {
     rec.stockings = (rec.stockings || 0) + 1; s.stats.stockings = (s.stats.stockings || 0) + 1;
     const L = STOCKING_GIFT[id] || [];
     if (L.length) { const ids = L.map((_, i) => i).filter((i) => L.length < 2 || i !== rec.lastStk); const k = ids[Math.floor(rnd() * ids.length)]; rec.lastStk = k; gift = L[k].filter((x) => x).map((x) => x.replace(/\{丝袜\}/g, stk)); }
   }
   rec.privDay = localDay(t); rec.privStk = !!stk;
-  return { ok: true, scene: pk.scene, idx: pk.idx, ride, place: P, stage, outfit: outfit || null, stk, gift, ...r };
+  return { stk, gift };
 }
 /** 设计87「她的记录」里私密约会那两行：恋人以前不显示私密约会；没送过丝袜不显示那行。返回 [[名字, 值]] */
 export function privRecordRows(r) {
   const out = []; if (!r || !(r.love >= PRIV_MIN_LOVE)) return out;
   out.push(['私密约会', `${(r.rec && r.rec.privDates) || 0} 次`]);
+  out.push(['主动要求', `${(r.rec && r.rec.askCount) || 0} 次`]);   // 设计96：不算进私密约会次数
   if (r.rec && r.rec.stockings) out.push(['送你丝袜', `${r.rec.stockings} 双`]);
   return out;
 }

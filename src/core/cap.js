@@ -3,7 +3,7 @@
    capAdd(s, key, list, item)：按 config/caps.js 的登记表（上限、新的在前还是在后、汇总函数）
    trimAll(s)：把存档里登记过的列表都整理到上限以内（读档、每个游戏天、上传前太大时）
    capCfg.scale：上限打几折（云端传不上时砍一半：shrinkHalf） */
-import { LOG, BOUND, UNLISTED_MAX } from '../config/caps.js?v=a184462c';
+import { LOG, BOUND, UNLISTED_MAX } from '../config/caps.js?v=5f2b1b8c';
 
 export const capCfg = { scale: 1 };
 const FOLDS = {}; const ONADD = {};

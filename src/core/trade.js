@@ -1,20 +1,20 @@
 // 第 P-06 项（设计25 第五节）：前期炒股 —— 条件单、打新股、看盘、炒股周报
 // 条件单每跳检查（挂在 stocks.js 的 addStepHook 上，离线补算一样走）；打新、利息、周报按时间走 tick()（在线 ticker 和 core/offcap.js 都叫）
-import { capAdd } from './cap.js?v=a184462c';   // 设计79：有上限的列表（config/caps.js）
-import * as IDLE from './idle.js?v=a184462c';   // 设计72
-import { shortWhy } from './invest.js?v=a184462c';   // 设计62
-import { dropOrphans } from './orphans.js?v=a184462c';
-import * as SK from './stocks.js?v=a184462c';
-import { pay, receive } from './ledger.js?v=a184462c';
-import { addContract } from './contracts.js?v=a184462c';
-import { addMsg } from './inbox.js?v=a184462c';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=a184462c';
-import { profitMul } from './calib.js?v=a184462c';
-import { isTraining } from './training.js?v=a184462c';
-import { attrs as secAttrs } from './posts.js?v=a184462c';
-import { SEC_BY_ID } from '../config/secretaries.js?v=a184462c';
-import { netWorth } from './economy.js?v=a184462c';
-import { addAssetHook } from './assets.js?v=a184462c';
+import { capAdd } from './cap.js?v=5f2b1b8c';   // 设计79：有上限的列表（config/caps.js）
+import * as IDLE from './idle.js?v=5f2b1b8c';   // 设计72
+import { shortWhy } from './invest.js?v=5f2b1b8c';   // 设计62
+import { dropOrphans } from './orphans.js?v=5f2b1b8c';
+import * as SK from './stocks.js?v=5f2b1b8c';
+import { pay, receive } from './ledger.js?v=5f2b1b8c';
+import { addContract } from './contracts.js?v=5f2b1b8c';
+import { addMsg } from './inbox.js?v=5f2b1b8c';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=5f2b1b8c';
+import { profitMul } from './calib.js?v=5f2b1b8c';
+import { isTraining } from './training.js?v=5f2b1b8c';
+import { attrs as secAttrs } from './posts.js?v=5f2b1b8c';
+import { SEC_BY_ID } from '../config/secretaries.js?v=5f2b1b8c';
+import { netWorth } from './economy.js?v=5f2b1b8c';
+import { addAssetHook } from './assets.js?v=5f2b1b8c';
 
 const C = SK.SCFG; const O = C.orders, I = C.ipo, W = C.weekly;
 export const DAY = MONTH_MS / 30;

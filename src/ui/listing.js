@@ -1,17 +1,17 @@
 // 「财富 → 资本」里的「上市」一节（第 3-04 项）+ 「投资」页最上面你自己的股票 + 敲钟剧情
-import * as LS from '../core/listing.js?v=a184462c';
-import { stakeOf } from '../core/economy.js?v=a184462c';
-import { SEC_BY_ID } from '../config/secretaries.js?v=a184462c';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=a184462c';
-import { game } from '../game.js?v=a184462c';
-import { now } from '../core/clock.js?v=a184462c';
-import { h, toast } from './dom.js?v=a184462c';
-import { MONTH_MS } from '../core/gametime.js?v=a184462c';
-import { playStory } from './story.js?v=a184462c';
-import { asset, hasAsset } from '../platform/assets.js?v=a184462c';
-import { CAPITAL_SECTIONS } from './capital.js?v=a184462c';
-import { HINTS } from './guide.js?v=a184462c';
-import { hintLater } from './guide2.js?v=a184462c';
+import * as LS from '../core/listing.js?v=5f2b1b8c';
+import { stakeOf } from '../core/economy.js?v=5f2b1b8c';
+import { SEC_BY_ID } from '../config/secretaries.js?v=5f2b1b8c';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=5f2b1b8c';
+import { game } from '../game.js?v=5f2b1b8c';
+import { now } from '../core/clock.js?v=5f2b1b8c';
+import { h, toast } from './dom.js?v=5f2b1b8c';
+import { MONTH_MS } from '../core/gametime.js?v=5f2b1b8c';
+import { playStory } from './story.js?v=5f2b1b8c';
+import { asset, hasAsset } from '../platform/assets.js?v=5f2b1b8c';
+import { CAPITAL_SECTIONS } from './capital.js?v=5f2b1b8c';
+import { HINTS } from './guide.js?v=5f2b1b8c';
+import { hintLater } from './guide2.js?v=5f2b1b8c';
 
 HINTS.ipo = '上市：选板块（主板、科创板、港股、纳斯达克，条件不一样）→ 选券商 → 股改 → 辅导 1 个游戏月 → 审核 1～2 个游戏月（可能问询，派财务总监回复）→ 选发行比例 → 路演 → 敲钟。募资进公司账户，你的持股被稀释；上市以后身价按市值 × 持股，锁定期过了才能减持。';
 const pct = (x, d = 1) => `${(x * 100).toFixed(d)}%`;
@@ -73,7 +73,7 @@ export function selfCard(s, full = false) {
 function bell(s) {
   const L = s.listing; L.justListed = false; game.save();
   const secs = Object.keys(s.secs || {}).slice(0, 4); const X = L.listed;
-  const say = { 知性: '这一路的账，我都记着呢。恭喜你，老板。', 清冷: '……这一天，我会记很久。恭喜您。', 高冷: '……还行。别骄傲，市值要守住。', 元气: '老板！！我们上市啦！我要把这张照片裱起来！', 绿茶: '老板好厉害～今晚的庆功宴，我坐你旁边好不好？', 傲娇: '哼，早就说你能行。……恭喜。' };
+  const say = { 知性: '这一路的账，我都记着呢。恭喜你，老板。', 清冷: '……这一天，我会记很久。恭喜您。', 天然呆: '上市了。……我查了，今天的成交量是平时的四十倍。恭喜。真的。', 妩媚: '上市了！卡——这条过了。……今天的你，是全场的主角。', 高冷: '……还行。别骄傲，市值要守住。', 元气: '老板！！我们上市啦！我要把这张照片裱起来！', 绿茶: '老板好厉害～今晚的庆功宴，我坐你旁边好不好？', 傲娇: '哼，早就说你能行。……恭喜。' };
   playStory([{ who: 'narr', text: `${LS.BOARDS[X.board].name}，上午九点半。大屏上亮起「${X.name}（${X.code}）」，发行价 ${X.issuePx} 元。` }, { who: 'me', text: '（握住锤子，深吸一口气）' }, { who: 'narr', text: '当——！钟声响起，台下掌声一片。' }, ...secs.map((id) => ({ who: id, text: say[SEC_BY_ID[id].type] || '恭喜老板！' })), { who: 'narr', text: `市值 ${fmtMoney(LS.marketCap(s))}。从今天起，你的公司在股票列表里了。` }],
     { sec: secs[0], title: '敲钟', bg: hasAsset('assets/bg/bg_ipo.webp') ? asset('assets/bg/bg_ipo.webp') : null, bgLabel: '交易所上市大厅' });   // 背景 bg_ipo_上市敲钟（在出）
 }

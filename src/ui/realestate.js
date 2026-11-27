@@ -1,22 +1,23 @@
 // 地产详情（公司 → 产业 → 地产，全屏）：土地市场 | 我的项目 | 持有物业；举牌在底部抽屉
-import { openNegotiate } from './negotiate.js?v=a184462c'; // V2-07 谈地（开发2 的谈判）
-import { bigBonus } from '../core/manage.js?v=a184462c';
-import * as RE from '../core/realestate.js?v=a184462c';
-import * as ST from '../core/staff.js?v=a184462c';
-import * as PO from '../core/posts.js?v=a184462c';
-import { SEC_BY_ID } from '../config/secretaries.js?v=a184462c';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=a184462c';
-import { now } from '../core/clock.js?v=a184462c';
-import { game } from '../game.js?v=a184462c';
-import { h, openPanel, toast, liveRender } from './dom.js?v=a184462c';
-import { openFull } from './shell.js?v=a184462c';
-import { openHire, cityRows, bindCityRows } from './company.js?v=a184462c';
-import { openPost } from './posts.js?v=a184462c';
-import { asset, hasAsset } from '../platform/assets.js?v=a184462c';
-import { MONTH_MS } from '../core/gametime.js?v=a184462c';
-import { gm } from '../core/calib.js?v=a184462c';
-import { hint } from './guide.js?v=a184462c';
-import { hintLater } from './guide2.js?v=a184462c';
+import { openNegotiate } from './negotiate.js?v=5f2b1b8c'; // V2-07 谈地（开发2 的谈判）
+import { bigBonus } from '../core/manage.js?v=5f2b1b8c';
+import * as RE from '../core/realestate.js?v=5f2b1b8c';
+import * as ST from '../core/staff.js?v=5f2b1b8c';
+import * as PO from '../core/posts.js?v=5f2b1b8c';
+import { SEC_BY_ID } from '../config/secretaries.js?v=5f2b1b8c';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=5f2b1b8c';
+import { now } from '../core/clock.js?v=5f2b1b8c';
+import { game } from '../game.js?v=5f2b1b8c';
+import { h, openPanel, toast, liveRender } from './dom.js?v=5f2b1b8c';
+import { openFull } from './shell.js?v=5f2b1b8c';
+import { openHire, cityRows, bindCityRows } from './company.js?v=5f2b1b8c';
+import { CITY_IDS } from '../core/cities.js?v=5f2b1b8c';   // 设计92 小修：城市分公司（N/7）
+import { openPost } from './posts.js?v=5f2b1b8c';
+import { asset, hasAsset } from '../platform/assets.js?v=5f2b1b8c';
+import { MONTH_MS } from '../core/gametime.js?v=5f2b1b8c';
+import { gm } from '../core/calib.js?v=5f2b1b8c';
+import { hint } from './guide.js?v=5f2b1b8c';
+import { hintLater } from './guide2.js?v=5f2b1b8c';
 
 const C = RE.RE_CFG;
 const city = (k) => C.cities[k].name;
@@ -55,7 +56,7 @@ function summary(body, s, t) {
   row.querySelector('.mgr').onclick = () => openPost('manager_realestate');
   row.querySelector('.hire').onclick = () => openHire('realestate');
   body.appendChild(row);
-  cityRows.ind = null; { const c = h('details', 'cities', `<summary class="tr-gain">城市分公司（${Object.keys(s.cities || {}).length}/4）：要在哪个城市拿地，先注册那里的分公司 ›</summary>${cityRows(s, null)}`); c.open = citiesOpen; c.ontoggle = () => { citiesOpen = c.open; }; bindCityRows(c, s, null, () => {}); body.appendChild(c); }
+  cityRows.ind = null; { const c = h('details', 'cities', `<summary class="tr-gain">城市分公司（${Object.keys(s.cities || {}).length}/${CITY_IDS.length}）：要在哪个城市拿地，先注册那里的分公司 ›</summary>${cityRows(s, null)}`); c.open = citiesOpen; c.ontoggle = () => { citiesOpen = c.open; }; bindCityRows(c, s, null, () => {}); body.appendChild(c); }
   body.appendChild(h('div', 'tr-gain', `去化率 = 楼市 ${Math.round(H.sell * 100)}% × 在岗 × 经理加成，现在约 <b>${Math.round(RE.sellRate(s) * 100)}%</b>。每个在做的项目一套班子（项目经理 1、工程 5、置业顾问 8、财务 2）；施工外包给总包，算成本不算员工。`));
 }
 

@@ -440,6 +440,7 @@ body.desktop { --safe-t: 20px; }
 .sc2-post.none { border-color: #34425c; color: var(--paper); opacity: .5; }
 /* 秘书详情全屏：上半立绘、下半面板、底部动作条 */
 .page-head b small.sd-sub { display: block; font-size: 11px; font-weight: 400; color: var(--paper); opacity: .6; }
+.ty-tag { font-style: normal; padding: 0 5px; border-radius: 6px; color: #fff; background: var(--ty); opacity: 1; } /* 人物02 新类型标签 */
 .full-body.sd-full { display: flex; flex-direction: column; overflow: hidden; }
 .sd-hero { position: relative; flex: 0 0 40%; overflow: hidden; background: #18223a center / cover no-repeat; }
 .sd-stage { position: absolute; left: 0; right: 0; top: 4%; height: 190%; } /* 舞台比可见区高，只露上半身 */
@@ -477,6 +478,7 @@ body.desktop { --safe-t: 20px; }
 .pick { display: flex; gap: 8px; align-items: center; text-align: left; background: #2a231d; border: 1px solid #4a3d30; border-radius: 10px; padding: 6px; color: var(--paper); min-height: 44px; }
 .pick.on { border-color: var(--gold); } .pick img { width: 40px; height: 40px; border-radius: 20px; object-fit: cover; object-position: top; } .pick img.ic { object-fit: contain; border-radius: 0; }
 .pick b { font-size: 14px; } .pick small { display: block; font-size: 11px; opacity: .7; } .star { color: var(--gold); }
+.pc-best { font-style: normal; font-size: 10px; color: var(--gold); margin-left: 2px; } /* 设计99 对口 +10% */
 
 /* 第 8 项：礼物 36 件 */
 .gift-tabs { margin: 8px 0; }
@@ -1250,6 +1252,12 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 .ride-info small { color: var(--muted, #b9a88f); font-size: 12px; }
 .ride-info b { font-size: 14px; }
 .ride-pick { display: flex; align-items: center; gap: 10px; }
+/* 设计94 老板页穿戴：表、西装照座驾一行 */
+.ride-thumb .wear-img { width: 100%; height: 100%; object-fit: contain; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; text-align: center; }
+.ride-row .btn.mine-go { width: auto; padding: 0 10px; white-space: nowrap; }
+.mine-pick .ride-info { flex: 1; text-align: left; }
+.mine-pick .ride-thumb { width: 56px; height: 56px; }
+.mine-pick.off { opacity: .45; }
 /* 设计83 私密约会 */
 .date-priv-title { margin-top: 14px; color: #ff8aa5; }
 .date-priv { border-color: #6b3a4a; }
@@ -1258,3 +1266,16 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 .sa-opt i { font-style: normal; opacity: .6; margin-left: 8px; }
 .sa-opt .up { color: #ff5a5a; } .sa-opt .down { color: #3ccf7a; }
 .panel .sa-line { font-size: 14px; margin-bottom: 4px; } .panel .sa-sub, .sa-opt .sa-sub { font-size: 12px; opacity: .7; margin-top: 4px; }
+/* 设计92：开分店选城市，开满的城市灰掉 */
+.tr-course.city-full { opacity: 0.55; }
+.city-cnt { color: #9fb3c8; margin-left: 4px; }
+
+/* 设计96 主动要求：她的卡片 */
+.ask-mask { position: absolute; inset: 0; z-index: 95; display: flex; align-items: flex-end; justify-content: center; background: rgba(0, 0, 0, .55); }
+.ask-card { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
+.ask-img { position: absolute; bottom: 150px; left: 50%; transform: translateX(-50%); height: 72%; object-fit: contain; pointer-events: none; }
+.ask-box { position: relative; width: calc(100% - 24px); margin: 0 12px 18px; background: linear-gradient(180deg, #1f2a40, #121a28); border: 1.5px solid var(--gold); border-radius: 14px; padding: 14px 16px 12px; color: var(--paper); box-shadow: 0 0 24px rgba(240, 201, 106, .35); }
+.ask-name { color: var(--gold); font-weight: 700; margin-bottom: 6px; }
+.ask-knock p { margin: 0 0 6px; line-height: 1.6; }
+.ask-btns { display: flex; gap: 10px; margin-top: 10px; }
+.ask-btns .btn { flex: 1; height: 42px; }

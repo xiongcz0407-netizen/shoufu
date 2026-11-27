@@ -1,12 +1,14 @@
 // 设计83 约会剧情片段库：设计/剧情/约会_<id>.json（普通约会按爱慕阶段拼一场）、私密约会_<id>.json（车里 / 私人飞机 / 游艇，两次 3 选 1）
 // 用过的片段 / 场景记在 s.secs[id].rec.dateUsed（键：s<阶段><o|c|e>、car、jet、yacht 是下标数组；s<阶段>h 是最近 10 场的组合），这一组用完才轮回（config/caps.js 登记）
-import { DATE_LIB, PRIV_LIB } from '../config/story/index.js?v=a184462c';
-import { ensureSec, loveStage } from './secretary.js?v=a184462c';
+import { DATE_LIB, PRIV_LIB } from '../config/story/index.js?v=5f2b1b8c';
+import { ensureSec, loveStage } from './secretary.js?v=5f2b1b8c';
 
 export const SLOTS = { open: 1, chat: 2, end: 1 };   // 一场：开场 1 段、聊 2 段（不重复）、结尾 1 段
 export const PRIV_KEYS = ['car', 'jet', 'yacht'];
 export const hasDateLib = (id) => !!(DATE_LIB[id] && DATE_LIB[id].stages);
 export const hasPrivLib = (id) => !!(PRIV_LIB[id] && PRIV_LIB[id].places);
+/** 设计95：这位秘书有这一处的场景 */
+export const hasPrivPlace = (id, key) => hasPrivLib(id) && Array.isArray(PRIV_LIB[id].places[key]) && PRIV_LIB[id].places[key].length > 0;
 export const stageOf = (love) => loveStage(love || 0);
 const usedOf = (s, id, key) => { const r = ensureSec(s, id).rec; r.dateUsed = r.dateUsed || {}; return (r.dateUsed[key] = r.dateUsed[key] || []); };
 
@@ -27,8 +29,8 @@ export function pickN(eligible, used, k, rnd = Math.random) {
   return out;
 }
 
-/** 占位：{地点} {车} {飞机} {游艇} */
-export const fill = (x, vars) => x.replace(/\{(地点|车|飞机|游艇)\}/g, (m, k) => (vars[k] != null && vars[k] !== '' ? vars[k] : { 地点: '这里', 车: '车', 飞机: '飞机', 游艇: '游艇' }[k]));
+/** 占位：{地点} {车} {飞机} {游艇}；设计95 {房子} {城市}。Arvin 11-27：剧情里车、飞机、游艇、房子不写型号，旧占位一律换通用叫法 */
+export const fill = (x, vars) => x.replace(/\{(地点|车|飞机|游艇|房子|城市)\}/g, (m, k) => (vars[k] != null && vars[k] !== '' ? vars[k] : { 地点: '这里', 车: '车', 飞机: '飞机', 游艇: '游艇', 房子: '你家', 城市: '这座城市' }[k]));
 
 /** 普通约会这一场的片段：{ open: [行…], chat: [[行…], [行…]], end: [行…] }；没有片段库 → null
  *  跟最近 10 场（同一阶段）一模一样的组合、拼出来不在 8～14 行的组合不要：重挑（最多 20 次），组合记在 s<阶段>h */
@@ -56,7 +58,7 @@ export function buildDate(s, id, stage, vars = {}, rnd = Math.random) {
 export function pickPriv(s, id, key, stage, cabin = null, rnd = Math.random) {
   if (!hasPrivLib(id)) return null;
   const pool = PRIV_LIB[id].places[key] || [];
-  const ok = pool.map((x, i) => i).filter((i) => (pool[i].min || 0) <= stage && (!pool[i].cabin || pool[i].cabin === cabin));
+  const ok = pool.map((x, i) => i).filter((i) => (pool[i].min || 0) <= stage && (!pool[i].cabin || pool[i].cabin === cabin) && (!pool[i].big || cabin === 'big'));   // 设计95：big 场景只在大房子
   if (!ok.length) return null;
   const [i] = pickN(ok, usedOf(s, id, key), 1, rnd);
   return { idx: i, scene: pool[i] };
@@ -78,14 +80,17 @@ export function checkDateFile(d, who) {
 }
 export function checkPrivFile(d, who) {
   const bad = []; if (!d || d.who !== who) bad.push(`who 不对（${d && d.who}）`);
-  for (const key of PRIV_KEYS) {
+  for (const key of [...PRIV_KEYS, 'home']) {
     const pool = d && d.places && d.places[key];
+    if (key === 'home' && pool == null) continue;   // 设计95：家里剧情可以还没写
     if (!Array.isArray(pool) || !pool.length) { bad.push(`缺 ${key}`); continue; }
-    if (!pool.some((x) => !x.cabin && (x.min || 0) <= 4)) bad.push(`${key} 没有恋人阶段、哪种都能用的场景`);
+    if (!pool.some((x) => !x.cabin && !x.big && (x.min || 0) <= 4)) bad.push(`${key} 没有恋人阶段、哪种都能用的场景`);
+    if (key === 'home' && pool.filter((x) => !x.big).length < 3) bad.push('home 不写 big 的要至少 3 场');
     pool.forEach((x, i) => {
       const at = `${key}[${i}]`;
       if (typeof x.min !== 'number' || x.min < 0 || x.min > 5) bad.push(`${at} min 不对`);
       if (x.cabin != null && x.cabin !== 'big' && x.cabin !== 'small') bad.push(`${at} cabin 只能是 big 或 small`);
+      if (x.big != null && x.big !== true) bad.push(`${at} big 只能写 true`);
       if (!strArr(x.open)) bad.push(`${at} open 不对`);
       for (const q of ['q1', 'q2']) {
         const Q = x[q]; if (!Q || !strArr(Q.ask)) { bad.push(`${at} ${q}.ask 不对`); continue; }

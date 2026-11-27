@@ -1,10 +1,11 @@
 // 公司交税（设计15 第二节 1）：增值税 + 附加每游戏月；企业所得税每游戏季度预缴；分红代扣 20% 个税
-import { capAdd } from './cap.js?v=a184462c';   // 设计79：有上限的列表（config/caps.js）
-import * as BK from './books.js?v=a184462c';   // 设计79 第三版
-import TAX from '../config/tax.json?v=a184462c' with { type: 'json' };
-import { pay, receive, canPay } from './ledger.js?v=a184462c';
-import { MONTH_MS } from './gametime.js?v=a184462c';
-import { addContract } from './contracts.js?v=a184462c';
+import { capAdd } from './cap.js?v=5f2b1b8c';   // 设计79：有上限的列表（config/caps.js）
+import * as BK from './books.js?v=5f2b1b8c';   // 设计79 第三版
+import TAX from '../config/tax.json?v=5f2b1b8c' with { type: 'json' };
+import { pay, receive, canPay } from './ledger.js?v=5f2b1b8c';
+import { MONTH_MS } from './gametime.js?v=5f2b1b8c';
+import { addContract } from './contracts.js?v=5f2b1b8c';
+import { plOf } from './pl.js?v=5f2b1b8c';   // 设计93：月度利润按利润表口径
 export { TAX };
 
 const sum = (o) => Object.values(o || {}).reduce((a, b) => a + b, 0);
@@ -70,7 +71,15 @@ export function vatOf(s) {
   const sr = (TAX.surcharge['城建税'] + TAX.surcharge['教育费附加'] + TAX.surcharge['地方教育附加']) * (small && TAX.surcharge.smallHalf ? 0.5 : 1);
   return { vat, surcharge: vat * sr, small, sr, rev };
 }
-/** 月底：增值税 + 附加；返回 { vat, surcharge, small, rev, profit }（利润按权责：营收 − 进货 − 本月全部人工房租 − 税） */
+/** 设计93：账本里已经记了、但没走 period / qtr 的税前费用（秘书培训、上市 / 集团中介费、地产营销和事故赔偿），付的地方叫一下，进本季度应纳税所得额 */
+export function deduct(s, amt) { if (!(amt > 0)) return; s.period = s.period || {}; s.period.other = (s.period.other || 0) + amt; }
+/** 设计93：这个月的利润表（月底结算口径：(月初, 月底]，就是 F.companyPL 那一套），在月底交完增值税、本季度所得税之前算 */
+export function monthPL(s, monthIdx) {
+  const rows = BK.rowsOf(BK.cellsOfMonth(s, monthIdx, 'excl'));
+  for (const [k, x] of Object.entries(s.accruals || {})) if (x.amount >= 0.01) rows.push({ wallet: x.wallet, dir: x.dir || 'in', cat: x.cat, amount: x.amount, note: x.note || k, memo: false });
+  return plOf(rows);
+}
+/** 月底：增值税 + 附加；返回 { vat, surcharge, small, rev, profit }。设计93：profit = 这个月利润表的净利润（含秘书培训、外包、事故、福利、中介费等），s.monthly 多记 train */
 export function monthTax(s, monthIdx, t) {
   const p = s.period || {};
   if (!s.vatGeneral && sum((s.yearAcc || {}).rev) > TAX.vat.smallLimitYear) s.vatGeneral = true; // 超 500 万转一般纳税人
@@ -80,8 +89,9 @@ export function monthTax(s, monthIdx, t) {
   if (surcharge >= 0.01) settle(s, { kind: '附加税', label, base: vat, rate: sr, amount: surcharge, note: `城建税 + 教育费附加${small ? '（小规模减半）' : ''}` }, t);
   s.qtr = s.qtr || {}; s.qtr.surcharge = (s.qtr.surcharge || 0) + surcharge; s.qtr.labor = (s.qtr.labor || 0) + ((s.period && s.period.labor) || 0); s.qtr.rent = (s.qtr.rent || 0) + ((s.period && s.period.rent) || 0);
   s.qtr.other = (s.qtr.other || 0) + ((s.period && s.period.other) || 0);
-  const res = { vat, surcharge, small, rev, cogs: sum(p.cogs), profit: rev - sum(p.cogs) - (p.labor || 0) - (p.rent || 0) - vat - surcharge - (p.other || 0) };
-  capAdd(s, 'monthly', (s.monthly = s.monthly || []), { m: monthIdx, rev, cogs: sum(p.cogs), labor: (p.labor || 0), rent: (p.rent || 0), tax: vat + surcharge, profit: res.profit });
+  const pl = monthPL(s, monthIdx);
+  const res = { vat, surcharge, small, rev, cogs: sum(p.cogs), profit: pl.profit, train: pl.train };
+  capAdd(s, 'monthly', (s.monthly = s.monthly || []), { m: monthIdx, rev, cogs: sum(p.cogs), labor: (p.labor || 0), rent: (p.rent || 0), tax: vat + surcharge, train: pl.train, profit: res.profit });
   s.period = {};
   return res;
 }

@@ -1,17 +1,18 @@
 // 集团架构和节税（第 3-06 项，设计23 第六节）：控股公司 + 子公司、个人持股平台、高新技术企业、境外红筹架构、集团合并报表
 // 企业所得税按子公司各算（companytax.quarterTax 的挂钩 setCitHook；年度汇算 fiscal.setAnnualHook）
-import * as BK from './books.js?v=a184462c';   // 设计79 第三版
-import CFG from '../config/group.json?v=a184462c' with { type: 'json' };
-import { pay, receive, canPay } from './ledger.js?v=a184462c';
-import { addContract } from './contracts.js?v=a184462c';
-import { MONTH_MS, YEAR_MS, monthIndex } from './gametime.js?v=a184462c';
-import { TAX, setCitHook } from './companytax.js?v=a184462c';
-import { taxRec, setAnnualHook } from './fiscal.js?v=a184462c';
-import { gm } from './calib.js?v=a184462c';
-import { addMsg } from './inbox.js?v=a184462c';
-import { holder, isSec } from './posts.js?v=a184462c';
-import { IND_BY_ID } from '../config/industries.js?v=a184462c';
-import { liveProducts } from './tech.js?v=a184462c';
+import * as BK from './books.js?v=5f2b1b8c';   // 设计79 第三版
+import CFG from '../config/group.json?v=5f2b1b8c' with { type: 'json' };
+import { pay, receive, canPay } from './ledger.js?v=5f2b1b8c';
+import { addContract } from './contracts.js?v=5f2b1b8c';
+import { MONTH_MS, YEAR_MS, monthIndex } from './gametime.js?v=5f2b1b8c';
+import { TAX, setCitHook } from './companytax.js?v=5f2b1b8c';
+import * as CT from './companytax.js?v=5f2b1b8c';   // 设计93 挂钩（开发1）
+import { taxRec, setAnnualHook } from './fiscal.js?v=5f2b1b8c';
+import { gm } from './calib.js?v=5f2b1b8c';
+import { addMsg } from './inbox.js?v=5f2b1b8c';
+import { holder, isSec } from './posts.js?v=5f2b1b8c';
+import { IND_BY_ID } from '../config/industries.js?v=5f2b1b8c';
+import { liveProducts } from './tech.js?v=5f2b1b8c';
 
 export const GCFG = CFG;
 const r2 = (v) => Math.round(v * 100) / 100;
@@ -48,7 +49,7 @@ export function startHolding(s, t) {
   const why = whyNotHolding(s); if (why) return { ok: false, why };
   const cost = holdingCost(s);
   const ct = addContract(s, { prefix: 'SL', kind: 'group', title: '公司设立登记（控股架构）', parties: [['股东', s.bossName || '老板'], ['登记机关', '市场监督管理局']], subject: `设立${holdingName(s)}，原公司各产业线分拆为全资子公司`, rows: [['控股公司注册、章程、律师费', CFG.holding.fee, ''], [`子公司注册 × ${lines(s).length}`, CFG.holding.subFee * lines(s).length, '每家 2 万']], total: cost, wallet: 'company' }, t);
-  pay(s, { wallet: 'company', cat: 'filing', amount: cost, ref: ct.no, party: '律师事务所', by: cfoBy(s), note: `设立${holdingName(s)}和子公司` }, t);
+  pay(s, { wallet: 'company', cat: 'filing', amount: cost, ref: ct.no, party: '律师事务所', by: cfoBy(s), note: `设立${holdingName(s)}和子公司` }, t); CT.deduct(s, cost); /* 设计93：中介费税前扣 */
   grp(s).holding = { at: t + CFG.holding.months * MONTH_MS, from: t, ready: false, contract: ct.no };
   return { ok: true, at: grp(s).holding.at };
 }
@@ -61,7 +62,7 @@ export function whyNotPlatform(s) {
 }
 export function startPlatform(s, t) {
   const why = whyNotPlatform(s); if (why) return { ok: false, why };
-  pay(s, { wallet: 'company', cat: 'filing', amount: CFG.platform.fee, party: '律师事务所', by: cfoBy(s), note: `设立${baseName(s)}${CFG.platform.name}` }, t);
+  pay(s, { wallet: 'company', cat: 'filing', amount: CFG.platform.fee, party: '律师事务所', by: cfoBy(s), note: `设立${baseName(s)}${CFG.platform.name}` }, t); CT.deduct(s, CFG.platform.fee); /* 设计93：中介费税前扣 */
   grp(s).platform = { at: t + CFG.platform.months * MONTH_MS, from: t, ready: false }; return { ok: true };
 }
 // ---------- 高新技术企业 ----------
@@ -90,7 +91,7 @@ export function whyNotHitech(s, t) {
 export function applyHitech(s, t) {
   const why = whyNotHitech(s, t); if (why) return { ok: false, why };
   const c = hitechCheck(s, t);
-  pay(s, { wallet: 'company', cat: 'filing', amount: CFG.hitech.fee, party: '高新认定代理机构', by: cfoBy(s), note: '高新技术企业认定（专利、审计、申报材料）' }, t);
+  pay(s, { wallet: 'company', cat: 'filing', amount: CFG.hitech.fee, party: '高新认定代理机构', by: cfoBy(s), note: '高新技术企业认定（专利、审计、申报材料）' }, t); CT.deduct(s, CFG.hitech.fee); /* 设计93：中介费税前扣 */
   grp(s).hitech = { at: t + CFG.hitech.months * MONTH_MS, from: t, ready: false, scope: c.scope }; return { ok: true };
 }
 // ---------- 境外红筹 ----------
@@ -105,7 +106,7 @@ export function whyNotRed(s) {
 export function startRed(s, t) {
   const why = whyNotRed(s); if (why) return { ok: false, why };
   const st = nextRedStep(s); const R = grp(s).red;
-  pay(s, { wallet: 'company', cat: 'filing', amount: st.fee, party: st.key === 'safe37' ? '外汇管理局' : '境外律师事务所', by: cfoBy(s), note: `红筹架构：${st.name}` }, t);
+  pay(s, { wallet: 'company', cat: 'filing', amount: st.fee, party: st.key === 'safe37' ? '外汇管理局' : '境外律师事务所', by: cfoBy(s), note: `红筹架构：${st.name}` }, t); CT.deduct(s, st.fee); /* 设计93：中介费税前扣 */
   R.step = st.key; R.at = t + CFG.redchip.months * MONTH_MS; return { ok: true, step: st };
 }
 /** 红筹分红：境内子公司 → 开曼（预提所得税 5%）→ 你的个人现金（个税 20%）。设计30：没有香港中间控股、没有境外账户 */

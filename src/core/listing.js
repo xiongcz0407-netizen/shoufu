@@ -1,19 +1,20 @@
 // 上市（第 3-04 项，设计23 第四节）：四个板块条件 → 选券商 → 股改 → 辅导 → 申报审核（可能问询）→ 发行定价 → 路演 → 敲钟
 // 上市后：你的公司进股票列表（自己一只，跟大盘和利润走）；身价 = 市值 × 你的持股；锁定期后每 3 个游戏月最多减持 1%（限售股 20% 个税）；每年年报 + 分红
-import { capAdd } from './cap.js?v=a184462c';   // 设计79：有上限的列表（config/caps.js）
-import * as BK from './books.js?v=a184462c';   // 设计79 第三版
-import CFG from '../config/listing.json?v=a184462c' with { type: 'json' };
-import { pay, receive, canPay, canPayMust } from './ledger.js?v=a184462c';
-import { addContract } from './contracts.js?v=a184462c';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=a184462c';
-import { taxRec } from './fiscal.js?v=a184462c';
-import { gm } from './calib.js?v=a184462c';
-import { addMsg } from './inbox.js?v=a184462c';
-import { holder, isSec } from './posts.js?v=a184462c';
-import { companyEquity, earningsValue, stakeOf, addNetWorthHook } from './economy.js?v=a184462c';
-import { cap, ipoPower } from './capital.js?v=a184462c';
-import { room } from './cashflow.js?v=a184462c'; // V0.2.3
-import * as SK from './stocks.js?v=a184462c';
+import { capAdd } from './cap.js?v=5f2b1b8c';   // 设计79：有上限的列表（config/caps.js）
+import * as BK from './books.js?v=5f2b1b8c';   // 设计79 第三版
+import CFG from '../config/listing.json?v=5f2b1b8c' with { type: 'json' };
+import { pay, receive, canPay, canPayMust } from './ledger.js?v=5f2b1b8c';
+import { addContract } from './contracts.js?v=5f2b1b8c';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=5f2b1b8c';
+import { taxRec } from './fiscal.js?v=5f2b1b8c';
+import { gm } from './calib.js?v=5f2b1b8c';
+import { addMsg } from './inbox.js?v=5f2b1b8c';
+import { holder, isSec } from './posts.js?v=5f2b1b8c';
+import { companyEquity, earningsValue, stakeOf, addNetWorthHook } from './economy.js?v=5f2b1b8c';
+import { cap, ipoPower } from './capital.js?v=5f2b1b8c';
+import { room } from './cashflow.js?v=5f2b1b8c'; // V0.2.3
+import * as SK from './stocks.js?v=5f2b1b8c';
+import { deduct as deductTax } from './companytax.js?v=5f2b1b8c';   // 设计93 挂钩（开发1）：中介费税前扣
 
 export const LCFG = CFG;
 export const BOARDS = CFG.boards;
@@ -63,7 +64,7 @@ export function start(s, board, bi, t) {
   const why = whyNotStart(s, board, t); if (why) return { ok: false, why };
   const B = BOARDS[board]; const br = B.brokers[bi] || B.brokers[0];
   const ct = addContract(s, { prefix: 'BJ', kind: 'ipo', title: '保荐协议 + 承销协议', parties: [['发行人', s.companyName || '我的公司'], ['保荐机构', br[0]]], subject: `${B.name}首次公开发行股票并上市`, rows: [[CFG.reform.name, CFG.reform.fee, '现在付'], ['承销保荐费', 0, `募资额的 ${+(br[1] * 100).toFixed(1)}%，发行时从募资里扣`]], total: CFG.reform.fee, wallet: 'company' }, t);
-  pay(s, { wallet: 'company', cat: 'filing', amount: CFG.reform.fee, ref: ct.no, party: '会计师、评估师、律师', by: cfoSec(s) || '', note: CFG.reform.name }, t);
+  pay(s, { wallet: 'company', cat: 'filing', amount: CFG.reform.fee, ref: ct.no, party: '会计师、评估师、律师', by: cfoSec(s) || '', note: CFG.reform.name }, t); deductTax(s, CFG.reform.fee); /* 设计93 */
   Object.assign(lst(s), { stage: 'reform', board, broker: br, at: t + CFG.reform.min * 60e3, contract: ct.no, from: t, inqAt: null, left: 0 });
   return { ok: true };
 }

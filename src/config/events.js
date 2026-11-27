@@ -46,7 +46,7 @@ export const EVENTS = [
   },
   {
     id: 'jobfair', name: '招聘会', from: 'current', once: true,
-    when: { minTitle: 2, netWorth: 1e7 },
+    when: { minTitle: 2, netWorth: 1e8 }, /* 设计97：老板门槛 1 亿 */
     notify: '老板，市里的人才招聘会还剩一个展位，要不要去？',
     msg: { title: '人才招聘会', body: '市人社局办的高端人才招聘会，展位费 2 万（公司账户，算招聘费）。' },
     story: [

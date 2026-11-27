@@ -1,14 +1,14 @@
 // 培养（设计35 第八节）：选人 → 选课；付钱属性立刻加上（一句台词 + 飘字），可以「再上一节」或「上到 N」一次买多节
-import { SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=a184462c';
-import { GRAD_LINES } from '../config/courses.js?v=a184462c';
-import * as T from '../core/training.js?v=a184462c';
-import { fmtMoney } from '../core/format.js?v=a184462c';
-import { asset, hasAsset } from '../platform/assets.js?v=a184462c';
-import { now } from '../core/clock.js?v=a184462c';
-import { game } from '../game.js?v=a184462c';
-import { h, openPanel, toast } from './dom.js?v=a184462c';
-import { effectsOf, diffOf } from '../core/secfx.js?v=a184462c'; // 设计37 第三节：属性管什么
-import { upgradeBox } from './upgradebox.js?v=a184462c';
+import { SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=5f2b1b8c';
+import { GRAD_LINES } from '../config/courses.js?v=5f2b1b8c';
+import * as T from '../core/training.js?v=5f2b1b8c';
+import { fmtMoney } from '../core/format.js?v=5f2b1b8c';
+import { asset, hasAsset } from '../platform/assets.js?v=5f2b1b8c';
+import { now } from '../core/clock.js?v=5f2b1b8c';
+import { game } from '../game.js?v=5f2b1b8c';
+import { h, openPanel, toast } from './dom.js?v=5f2b1b8c';
+import { effectsOf, diffOf } from '../core/secfx.js?v=5f2b1b8c'; // 设计37 第三节：属性管什么
+import { upgradeBox } from './upgradebox.js?v=5f2b1b8c';
 
 const AN = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 const gainText = (g) => Object.entries(g).filter(([, v]) => v > 0).map(([k, v]) => `${AN[k]}+${v}`).join(' ');
@@ -20,7 +20,7 @@ export function openTraining() { pickSec(); }
 export function pickSec(done) {
   const s = game.state;
   const p = openPanel('给谁上课？');
-  p.body.appendChild(h('div', 'tr-gain', '付了学费属性立刻加上；属性越高越贵（擅长那项 8 折、多 +1）'));
+  p.body.appendChild(h('div', 'tr-gain', '付了学费属性立刻加上；属性越高越贵（最多 3 倍），每门课有能练到的上限（擅长那项 8 折、多 +1）'));
   const grid = h('div', 'sw-grid');
   for (const id of Object.keys(s.secs)) {
     const c = h('button', 'sw-card', `<img src="${asset(`assets/sec/${id}/c1.webp`)}" alt=""><span>${SEC_BY_ID[id].name}</span>`);
@@ -42,6 +42,13 @@ function celebrate(box, secId, row, gain) {
   if (row) { const f = h('div', 'tr-up', gainText(gain)); row.appendChild(f); setTimeout(() => f.remove(), 1300); }
 }
 
+/** 设计91：按钮写结果「花 ¥X，智慧 48 → 50」 */
+function resText(s, secId, cid) {
+  const A = s.secs[secId].attrs; const g = T.courseGain(s, secId, cid);
+  const ch = Object.keys(g).filter((k) => g[k] > 0).map((k) => `${AN[k]} ${A[k]} → ${A[k] + g[k]}`).join('，');
+  return `花 ${fmtMoney(T.coursePrice(s, secId, cid))}${ch ? '，' + ch : ''}`;
+}
+
 /** 课程表画进 el（培训面板和秘书详情「培养」分段共用）；每上一节调 done */
 export function renderCourses(el, secId, done) {
   const box = h('div', 'tr-box'); el.appendChild(box);
@@ -55,14 +62,15 @@ export function renderCourses(el, secId, done) {
       ${fxKey ? fxTable(s, secId, fxKey) : ''}`;
     box.querySelectorAll('.tr-q').forEach((b) => (b.onclick = () => { fxKey = fxKey === b.dataset.q ? null : b.dataset.q; draw(fx); }));
     for (const c of T.availableCourses(s)) {
-      const why = T.whyNot(s, secId, c.id); const m = mainOf(c); const cur = r.attrs[m];
+      const why = T.whyNot(s, secId, c.id); const m = mainOf(c); const cur = r.attrs[m]; const cap = T.capOf(c); const capped = why && why === T.capWhy(c);   // 设计91：最多练到
       const step = Math.max(1, T.courseGain(s, secId, c.id)[m] || 1);
-      if (!(target[c.id] > cur)) target[c.id] = Math.min(100, cur + step * 5); // 默认上 5 节
+      if (!(target[c.id] > cur)) target[c.id] = Math.min(cap, cur + step * 5); // 默认上 5 节（不超过这门课的上限）
+      target[c.id] = Math.min(cap, target[c.id]);
       const q = T.quoteTo(s, secId, c.id, target[c.id]);
       const ic = `assets/ui/icon_course_${c.id}.webp`;
-      const row = h('div', 'tr-course tr-c2', `<div class="tr-head">${hasAsset(ic) ? `<img class="course-ic" src="${asset(ic)}" alt="">` : ''}<div style="flex:1"><b>${c.name}</b><div class="tr-gain">每节 ${gainText(T.courseGain(s, secId, c.id)) || '已满'}</div></div>
-        <button class="btn gold tr-one" ${why ? 'disabled' : ''}>${fx === c.id ? '再上一节' : '上一节'}<br><small>${why || fmtMoney(T.coursePrice(s, secId, c.id))}</small></button></div>
-        ${cur < 100 ? `<div class="tr-to"><span>上到 ${AN[m]}</span><button class="btn tr-dn">−</button><b>${target[c.id]}</b><button class="btn tr-upb">＋</button>
+      const row = h('div', 'tr-course tr-c2', `<div class="tr-head">${hasAsset(ic) ? `<img class="course-ic" src="${asset(ic)}" alt="">` : ''}<div style="flex:1"><b>${c.name}</b><div class="tr-gain">${fmtMoney(T.coursePrice(s, secId, c.id))} · ${gainText(T.courseGain(s, secId, c.id)) || gainText(c.gain)}（最多到 ${cap}）</div>${capped ? `<div class="sc-cond">${why}</div>` : ''}</div>
+        <button class="btn gold tr-one" ${why ? 'disabled' : ''}>${fx === c.id ? '再上一节' : '上一节'}<br><small>${capped ? '到上限了' : why || resText(s, secId, c.id)}</small></button></div>
+        ${cur < cap ? `<div class="tr-to"><span>上到 ${AN[m]}</span><button class="btn tr-dn">−</button><b>${target[c.id]}</b><button class="btn tr-upb">＋</button>
         <button class="btn tr-many" ${q.n && !T.whyNot(s, secId, c.id) ? '' : 'disabled'}>${q.n} 节 · ${fmtMoney(q.total)}</button></div>` : ''}`);
       row.dataset.c = c.id;
       row.querySelector('.tr-one').onclick = () => {
@@ -72,7 +80,7 @@ export function renderCourses(el, secId, done) {
       };
       const dn = row.querySelector('.tr-dn'), up = row.querySelector('.tr-upb'), many = row.querySelector('.tr-many');
       if (dn) dn.onclick = () => { target[c.id] = Math.max(cur + step, target[c.id] - step * 5); draw(fx); };
-      if (up) up.onclick = () => { target[c.id] = Math.min(100, target[c.id] + step * 5); draw(fx); };
+      if (up) up.onclick = () => { target[c.id] = Math.min(cap, target[c.id] + step * 5); draw(fx); };
       if (many) many.onclick = () => {
         const A0 = { ...game.state.secs[secId].attrs }; const res = T.learnTo(game.state, secId, c.id, target[c.id], now()); if (!res.ok) { toast(res.why); return; }
         lvBox(game.state, secId, c, A0, res.n);
@@ -98,5 +106,5 @@ function lvBox(s, secId, c, A0, n) {
   const why = T.whyNot(s, secId, c.id);
   gains.push('工资会跟着涨一点（属性越高，她要的月薪越高）');
   upgradeBox({ what: `${SEC_BY_ID[secId].name} ${ks.map((k) => `${AN[k]} ${A0[k]} → ${A1[k]}`).join('，')}${n > 1 ? `（连上 ${n} 节「${c.name}」）` : ''}`, sub: '提升了这些能力', gains,
-    next: why === '这项已经满了' ? `${AN[ks[0]]}到顶了` : `下一节「${c.name}」${fmtMoney(T.coursePrice(s, secId, c.id))}` });
+    next: why === '这项已经满了' ? `${AN[ks[0]]}到顶了` : why === T.capWhy(c) ? why : `下一节「${c.name}」${fmtMoney(T.coursePrice(s, secId, c.id))}` });   // 设计91：练到这门课的上限，写去上哪门
 }

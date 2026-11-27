@@ -1,8 +1,8 @@
 // 财务报表（第 13 项，设计15 第三节 + 设计17 第三节）：从流水算利润表、个人收支、纳税、资产清单
-import * as BK from './books.js?v=a184462c';   // 设计79 第三版：报表数字从累加器拿
-import { CATS } from './ledger.js?v=a184462c';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=a184462c';
-import { INDUSTRIES } from '../config/industries.js?v=a184462c';
+import * as BK from './books.js?v=5f2b1b8c';   // 设计79 第三版：报表数字从累加器拿
+import { CATS } from './ledger.js?v=5f2b1b8c';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=5f2b1b8c';
+import { INDUSTRIES } from '../config/industries.js?v=5f2b1b8c';
 
 export const PERIODS = [['day', '今天'], ['month', '本月'], ['year', '本年'], ['all', '全部']];
 /** 时间段起点（游戏日 / 月 / 年，从开局算） */
@@ -29,24 +29,9 @@ const net = (rows) => rows.reduce((a, r) => a + (r.dir === 'in' ? -r.amount : r.
 const byCat = (rows, cats) => rows.filter((r) => !r.memo && cats.includes(r.cat));
 /** 公司利润表 */
 export const companyPL = (s, from, t) => plOf(periodRows(s, from, t));
-/** 利润表：给一段时间的流水（假流水或明细都行）就能算（设计79：测试拿完整明细对数也用这个） */
-export function plOf(all) {
-  const rows = all.filter((r) => r.wallet === 'company' && !r.memo);
-  const revRows = byCat(rows, ['revenue', 'acquired_revenue', 'presale', 'rent_co']);
-  const byInd = INDUSTRIES.map((c) => ({ id: c.id, name: c.name, rev: sum(revRows.filter((r) => r.note.startsWith(c.name))), cogs: net(byCat(rows, ['cogs', 'land', 'construction']).filter((r) => r.note.startsWith(c.name))) })).filter((x) => x.rev || x.cogs);
-  const L = {
-    staff: sum(byCat(rows, ['payroll'])), sec: sum(byCat(rows, ['sec_salary']).filter((r) => r.note === '秘书工资')),
-    bonus: sum(byCat(rows, ['bonus', 'commission'])) + sum(byCat(rows, ['sec_salary']).filter((r) => r.note !== '秘书工资')),
-    social: sum(byCat(rows, ['social'])), hire: sum(byCat(rows, ['recruit', 'agency', 'severance'])),
-  };
-  L.total = L.staff + L.sec + L.bonus + L.social + L.hire;
-  const rev = sum(revRows), other = sum(byCat(rows, ['battle_bonus', 'refund']));
-  const cogs = net(byCat(rows, ['cogs', 'land', 'construction'])), rent = sum(byCat(rows, ['rent'])), opex = sum(byCat(rows, ['opex'])), tax = sum(byCat(rows, ['tax_company'])) - sum(byCat(rows, ['tax_refund']));
-  const dep = sum(all.filter((r) => r.cat === 'depreciation')); // 折旧是备忘行（不动钱），利润表要扣
-  const misc = sum(byCat(rows, ['training', 'outsource', 'loss', 'welfare', 're_cost', 'rnd', 'film_cost', 'filing', 'interest'])) + dep;
-  const profit = rev + other - cogs - L.total - rent - opex - tax - misc;
-  return { rev, other, cogs, labor: L, rent, opex, tax, misc, profit, byInd, capex: sum(byCat(rows, ['expand', 'acquire', 'fleet'])), dep };
-}
+/** 利润表：在 core/pl.js（设计93：月底算月度利润也要用，拆出来免得循环引用） */
+export { plOf } from './pl.js?v=5f2b1b8c';
+import { plOf } from './pl.js?v=5f2b1b8c';
 /** 个人收支 */
 export const personal = (s, from, t) => personalOf(periodRows(s, from, t));
 export function personalOf(all) {
@@ -74,23 +59,23 @@ export function ledgerView(s, { wallet, cat, by, from }, t) {
 }
 
 // ---------- 第 2-15 项：资产负债表、资产清单 ----------
-import * as EC from './economy.js?v=a184462c';
-import { depositTotal, loanDebt } from './bank.js?v=a184462c';
-import { debt as bridgeDebt } from './rivalry.js?v=a184462c';
-import { equityOwed } from './equity.js?v=a184462c';
-import { payables } from './accrual.js?v=a184462c';
-import { fleetValue } from './logistics.js?v=a184462c';
-import { reValue } from './realestate.js?v=a184462c';
-import * as AS from './assets.js?v=a184462c';
-import * as YT from './yacht.js?v=a184462c';
-import * as LX from './luxury.js?v=a184462c';
-import * as AQ from './antique.js?v=a184462c';
-import * as OF from './offshore.js?v=a184462c';
-import * as SK from './stocks.js?v=a184462c';
-import * as TR from './trade.js?v=a184462c'; // 设计43 第二版：挂单中
-import { SEC_BY_ID } from '../config/secretaries.js?v=a184462c';
-import * as LMK from './landmark.js?v=a184462c';
-import { paidIn as paidInOf } from './companytax.js?v=a184462c';
+import * as EC from './economy.js?v=5f2b1b8c';
+import { depositTotal, loanDebt } from './bank.js?v=5f2b1b8c';
+import { debt as bridgeDebt } from './rivalry.js?v=5f2b1b8c';
+import { equityOwed } from './equity.js?v=5f2b1b8c';
+import { payables } from './accrual.js?v=5f2b1b8c';
+import { fleetValue } from './logistics.js?v=5f2b1b8c';
+import { reValue } from './realestate.js?v=5f2b1b8c';
+import * as AS from './assets.js?v=5f2b1b8c';
+import * as YT from './yacht.js?v=5f2b1b8c';
+import * as LX from './luxury.js?v=5f2b1b8c';
+import * as AQ from './antique.js?v=5f2b1b8c';
+import * as OF from './offshore.js?v=5f2b1b8c';
+import * as SK from './stocks.js?v=5f2b1b8c';
+import * as TR from './trade.js?v=5f2b1b8c'; // 设计43 第二版：挂单中
+import { SEC_BY_ID } from '../config/secretaries.js?v=5f2b1b8c';
+import * as LMK from './landmark.js?v=5f2b1b8c';
+import { paidIn as paidInOf } from './companytax.js?v=5f2b1b8c';
 
 const r2b = (v) => Math.round(v * 100) / 100;
 const tot = (rows) => r2b(rows.reduce((a, r) => a + r[1], 0));

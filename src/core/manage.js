@@ -1,20 +1,20 @@
 // P-05 前期核心玩法·经营（设计25 第一、三节）：老板精力、每家店四个亲自经营动作（可带秘书）、口碑、店长 / 秘书自动经营、大盘行情、老板以后的大事
 // 「店」= 一条门店线（便利店 / 餐饮 / 服装）；营业额、进货的加成通过 economy.setManageHooks 挂进去
-import { credit } from './credit.js?v=a184462c'; // V3-01 亲自拍板攒投入度
-import M from '../config/manage.json?v=a184462c' with { type: 'json' };
-import AD from '../config/ads.json?v=a184462c' with { type: 'json' }; // V0.2.5 口碑底线 = 广告升的口碑
-import { IND_BY_ID } from '../config/industries.js?v=a184462c';
-import { SEC_BY_ID } from '../config/secretaries.js?v=a184462c';
-import { YEAR_MS, MONTH_MS } from './gametime.js?v=a184462c';
-import { industryRevenue, setManageHooks } from './economy.js?v=a184462c';
-import { setRateAdjFn } from './bank.js?v=a184462c';
-import { pay, receive, canPay } from './ledger.js?v=a184462c';
-import { holder, isSec, attrs } from './posts.js?v=a184462c';
-import { bossAttrs } from './boss.js?v=a184462c';
-import { dayKey } from './affection.js?v=a184462c';
-import { isTraining } from './training.js?v=a184462c';
-import { mark, energyBonus, onReward } from './goals.js?v=a184462c'; // P-06 目标链（开发2）：做到了打勾、精力上限、奖励
-import { wage } from './staff.js?v=a184462c';
+import { credit } from './credit.js?v=5f2b1b8c'; // V3-01 亲自拍板攒投入度
+import M from '../config/manage.json?v=5f2b1b8c' with { type: 'json' };
+import AD from '../config/ads.json?v=5f2b1b8c' with { type: 'json' }; // V0.2.5 口碑底线 = 广告升的口碑
+import { IND_BY_ID } from '../config/industries.js?v=5f2b1b8c';
+import { SEC_BY_ID } from '../config/secretaries.js?v=5f2b1b8c';
+import { YEAR_MS, MONTH_MS } from './gametime.js?v=5f2b1b8c';
+import { industryRevenue, setManageHooks } from './economy.js?v=5f2b1b8c';
+import { setRateAdjFn } from './bank.js?v=5f2b1b8c';
+import { pay, receive, canPay } from './ledger.js?v=5f2b1b8c';
+import { holder, isSec, attrs } from './posts.js?v=5f2b1b8c';
+import { bossAttrs } from './boss.js?v=5f2b1b8c';
+import { dayKey } from './affection.js?v=5f2b1b8c';
+import { isTraining } from './training.js?v=5f2b1b8c';
+import { mark, energyBonus, onReward } from './goals.js?v=5f2b1b8c'; // P-06 目标链（开发2）：做到了打勾、精力上限、奖励
+import { wage } from './staff.js?v=5f2b1b8c';
 
 export { M as MANAGE_CFG };
 export const DAY_MS = YEAR_MS / M.daysPerYear;

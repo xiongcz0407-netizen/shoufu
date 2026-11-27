@@ -1,18 +1,18 @@
 // 地产（设计20 第二节 1）：拿地（挂牌竞价）→ 四证 → 开工 → 分 3 批预售（监管账户）→ 交房清算（增值税、土地增值税、所得税）；商业综合体可以持有收租
 // 不 import economy（economy 要用这里的 reValue 算身价）
-import { capAdd, capPush, capOf } from './cap.js?v=a184462c';   // 设计79
-import { whyCushion } from './cashflow.js?v=a184462c'; // V0.2.3 留够两个月工资
-import { credit } from './credit.js?v=a184462c'; // V3-01 亲自拍板攒投入度
-import C from '../config/realestate.json?v=a184462c' with { type: 'json' };
-import { pay, receive, canPay } from './ledger.js?v=a184462c';
-import { payTaxItem, TAX } from './companytax.js?v=a184462c';
-import { addContract } from './contracts.js?v=a184462c';
-import { staffFactor, establishment, fire, PAY } from './staff.js?v=a184462c';
-import { addMsg, onAction } from './inbox.js?v=a184462c';
-import { cityOpen, cityName as cityNm } from './cities.js?v=a184462c';
-import { managerRevMult, holder, isSec } from './posts.js?v=a184462c';
-import { MONTH_MS, monthIndex } from './gametime.js?v=a184462c';
-import { gm } from './calib.js?v=a184462c';
+import { capAdd, capPush, capOf } from './cap.js?v=5f2b1b8c';   // 设计79
+import { whyCushion } from './cashflow.js?v=5f2b1b8c'; // V0.2.3 留够两个月工资
+import { credit } from './credit.js?v=5f2b1b8c'; // V3-01 亲自拍板攒投入度
+import C from '../config/realestate.json?v=5f2b1b8c' with { type: 'json' };
+import { pay, receive, canPay } from './ledger.js?v=5f2b1b8c';
+import { payTaxItem, TAX, deduct as deductTax } from './companytax.js?v=5f2b1b8c';   // 设计93：deductTax 挂钩
+import { addContract } from './contracts.js?v=5f2b1b8c';
+import { staffFactor, establishment, fire, PAY } from './staff.js?v=5f2b1b8c';
+import { addMsg, onAction } from './inbox.js?v=5f2b1b8c';
+import { cityOpen, cityName as cityNm } from './cities.js?v=5f2b1b8c';
+import { managerRevMult, holder, isSec } from './posts.js?v=5f2b1b8c';
+import { MONTH_MS, monthIndex } from './gametime.js?v=5f2b1b8c';
+import { gm } from './calib.js?v=5f2b1b8c';
 export { C as RE_CFG };
 
 const MIN = 60e3;
@@ -338,14 +338,14 @@ export function decide(s, pid, kind, key, t) {
   p.pend = p.pend.filter((x) => x !== pend); const m = (s.inbox || []).find((x) => x.id === pend.msg); let text = '';
   if (kind === 'price' || kind === 'mkt') {
     const k = D[kind][key] ? key : D.defaults[kind]; p.dec[kind] = k; text = `${p.name}：${D[kind][k].name}`;
-    if (kind === 'mkt' && D.mkt[k].cost) { const est = Math.round(priceOf(s, p) * (p.gfa - p.sold) * D.mkt[k].cost); if (est > 0) { pay(s, { wallet: 'company', cat: 're_cost', amount: est, force: true, party: '营销公司', note: `地产 ${p.name} ${D.mkt[k].name}` }, t); text += `，花了 ${Math.round(est / 1e4)} 万`; } }
+    if (kind === 'mkt' && D.mkt[k].cost) { const est = Math.round(priceOf(s, p) * (p.gfa - p.sold) * D.mkt[k].cost); if (est > 0) { pay(s, { wallet: 'company', cat: 're_cost', amount: est, force: true, party: '营销公司', note: `地产 ${p.name} ${D.mkt[k].name}` }, t); deductTax(s, est); /* 设计93 */ text += `，花了 ${Math.round(est / 1e4)} 万`; } }
   } else {
     const e = D.events[kind]; const o = e.options.find((x) => x.key === key) || e.options.find((x) => x.key === e.default); text = `${e.title}：${o.label}`;
     const fx = o.fx; const hit = fx.chance == null || rng(p.id * 131 + Math.floor(t / 1000) % 1e6)() < fx.chance;
     if (fx.build) { const add = Math.round(p.build * fx.build); p.build += add; text += `，建安多 ${Math.round(add / 1e4)} 万`; }
     if (hit && fx.sellMul) { p.dec.sellMul = (p.dec.sellMul || 1) * fx.sellMul; text += '，口碑受影响，之后去化变慢'; }
-    if (hit && fx.payBuild) { const c = Math.round(p.build * fx.payBuild); pay(s, { wallet: 'company', cat: 're_cost', amount: c, force: true, party: kind === 'inspect' ? '整改 / 罚款' : e.title, note: `地产 ${p.name} ${e.title}` }, t); text += `，花了 ${Math.round(c / 1e4)} 万`; }
-    if (hit && fx.payReceived) { const c = Math.round((p.received || 0) * fx.payReceived); if (c > 0) { pay(s, { wallet: 'company', cat: 're_cost', amount: c, force: true, party: '业主', note: `地产 ${p.name} 业主赔偿` }, t); text += `，赔了 ${Math.round(c / 1e4)} 万`; } }
+    if (hit && fx.payBuild) { const c = Math.round(p.build * fx.payBuild); pay(s, { wallet: 'company', cat: 're_cost', amount: c, force: true, party: kind === 'inspect' ? '整改 / 罚款' : e.title, note: `地产 ${p.name} ${e.title}` }, t); deductTax(s, c); /* 设计93 */ text += `，花了 ${Math.round(c / 1e4)} 万`; }
+    if (hit && fx.payReceived) { const c = Math.round((p.received || 0) * fx.payReceived); if (c > 0) { pay(s, { wallet: 'company', cat: 're_cost', amount: c, force: true, party: '业主', note: `地产 ${p.name} 业主赔偿` }, t); deductTax(s, c); /* 设计93 */ text += `，赔了 ${Math.round(c / 1e4)} 万`; } }
     if (hit && fx.delayMonths && p.buildEnd) { p.buildEnd += fx.delayMonths * MONTH_MS; p.at = nextAt(p); text += `，竣工晚 ${fx.delayMonths} 个月`; }
     if (fx.chance != null && !hit) text += '，这回运气好，没出事';
   }

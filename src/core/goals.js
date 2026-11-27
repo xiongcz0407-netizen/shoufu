@@ -1,11 +1,11 @@
 // 第 P-06 项（设计25 第四节）：新手目标链 12 个 —— 主页顶上一条「当前目标」，做完自动领奖、弹一段剧情；做完整条链换成「下一个称号还差什么」
 // 亲自上阵、经营事件、口碑、店长是开发1（P-05）的东西：那边做到了叫 mark(s, 'act' | 'event' | 'rep60' | 'manager')；口碑奖励、店长工资减半通过 onReward 挂钩交给那边，没挂钩先记在 s.goals.pending
-import CFG from '../config/goals.json?v=a184462c' with { type: 'json' };
-import { receive, addPostHook } from './ledger.js?v=a184462c';
-import { netWorth, promoteRival } from './economy.js?v=a184462c';
-import { addFavor, addLove } from './affection.js?v=a184462c';
-import { TITLES } from '../config/titles.js?v=a184462c';
-import { RIVALS } from '../config/rivals.js?v=a184462c';
+import CFG from '../config/goals.json?v=5f2b1b8c' with { type: 'json' };
+import { receive, addPostHook } from './ledger.js?v=5f2b1b8c';
+import { netWorth, promoteRival } from './economy.js?v=5f2b1b8c';
+import { addFavor, addLove } from './affection.js?v=5f2b1b8c';
+import { TITLES } from '../config/titles.js?v=5f2b1b8c';
+import { RIVALS } from '../config/rivals.js?v=5f2b1b8c';
 
 export const GCFG = CFG; export const LIST = CFG.list;
 export function gl(s) { return (s.goals = s.goals || { i: 0, marks: {}, energy: 0, pending: {}, fresh: [], doneAt: {} }); }
@@ -74,7 +74,7 @@ export function check(s, t = Date.now()) {
 }
 /** 做完整条链以后：下一个称号还差什么 → { title, need, nw, rival, rivalName, acquired } */
 export function nextTitle(s) {
-  const cur = TITLES[s.title || 0]; const nx = TITLES[(s.title || 0) + 1]; if (!nx || (cur && cur.last)) return null;   // 大亨是这一版最后一个称号（last），后面的不开放
+  const cur = TITLES[s.title || 0]; const nx = TITLES[(s.title || 0) + 1]; if (!nx || (cur && cur.last)) return null;   // 商界名流是这一版最后一个称号（last），后面的不开放
   const rv = promoteRival(s); const r = rv && RIVALS.find((x) => x.id === rv);
   return { title: nx.name, need: nx.need, nw: netWorth(s), rival: rv, rivalName: r ? r.name : '', acquired: !!(rv && (s.flags.acquired || {})[rv]) };
 }

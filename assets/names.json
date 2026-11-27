@@ -11,6 +11,8 @@
   "bg_finance": "bg_finance_财务室",
   "bg_garage": "bg_garage_车库",
   "bg_hangar": "bg_hangar_机库",
+  "bg_home_night": "bg_home_night_大平层夜景",
+  "bg_home_small": "bg_home_small_小户型夜景",
   "bg_hotel_morning": "bg_hotel_morning_酒店套房早晨",
   "bg_hotel_night": "bg_hotel_night_酒店套房夜",
   "bg_ipo": "bg_ipo_上市敲钟",
@@ -199,6 +201,12 @@
   "gift_34": "gift_34_珠宝套装",
   "gift_35": "gift_35_名贵腕表套盒",
   "gift_36": "gift_36_星空投影灯",
+  "gift_37": "gift_37_钻石脚链",
+  "gift_38": "gift_38_机械键盘",
+  "gift_39": "gift_39_拼装积木",
+  "gift_40": "gift_40_胶片相机",
+  "gift_41": "gift_41_钻石耳骨夹",
+  "gift_42": "gift_42_红宝石耳坠",
   "token_s01_shen": "token_s01_shen_白鳄鱼皮凯莉定制",
   "token_s02_su": "token_s02_su_蓝钻戒指",
   "token_s03_lin": "token_s03_lin_珍珠发冠",
@@ -208,7 +216,9 @@
   "token_s08_xu": "token_s08_xu_黄钻戒指",
   "token_s09_xia": "token_s09_xia_金钥匙吊坠",
   "token_s10_lu": "token_s10_lu_夜空蓝钻手链",
-  "token_s11_qiao": "token_s11_qiao_粉钻月牙项链"
+  "token_s11_qiao": "token_s11_qiao_粉钻月牙项链",
+  "token_s12_wen": "token_s12_wen_铂金戒指HelloWorld",
+  "token_s13_bai": "token_s13_bai_金色场记板吊坠项链"
  },
  "stock": {
   "logo_ALB": "logo_ALB_阿狸巴巴",

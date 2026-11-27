@@ -1,7 +1,7 @@
 // 城市和分公司（设计20 第二节 5）：总部上海；新城市先注册分公司（5 分钟 + 代办费）；门店按城市分，工资、房租、收入、开店费乘城市系数
 // 只依赖 ledger（staff / economy / realestate 都要用这里）
-import C from '../config/cities.json?v=a184462c' with { type: 'json' };
-import { pay, canPay } from './ledger.js?v=a184462c';
+import C from '../config/cities.json?v=5f2b1b8c' with { type: 'json' };
+import { pay, canPay } from './ledger.js?v=5f2b1b8c';
 export { C as CITY_CFG };
 export const CITY_IDS = Object.keys(C.cities);
 export const cityName = (c) => C.cities[c].name;
@@ -43,3 +43,22 @@ export function lineK(s, id) {
   let a = 0; for (const [c, n] of Object.entries(lineCities(s, id))) a += n * cityK(c);
   return a / x.branches;
 }
+
+// —— 设计92：每条门店线在每个城市最多开几家（cities.json cap，7 城加起来 = 120 = maxBranch）——
+/** 这个城市每条门店线最多几家（没写 cap 的不限） */
+export const cityCap = (c) => (C.cities[c] && C.cities[c].cap != null ? C.cities[c].cap : Infinity);
+/** 这条线在这个城市现在几家 */
+export const cityCount = (s, id, c) => lineCities(s, id)[c] || 0;
+/** 这条线还能不能在这个城市开（家数 < cap）；收购并进来的店不走这里，不受挡；超过上限的老店不关，只是不能再开 */
+export const canOpenIn = (s, id, c) => !!C.cities[c] && cityCount(s, id, c) < cityCap(c);
+/** 还没开满的城市：系数高的在前，系数一样按配置顺序 */
+export const roomCities = (s, id) => CITY_IDS.filter((c) => canOpenIn(s, id, c)).sort((a, b) => cityK(b) - cityK(a) || CITY_IDS.indexOf(a) - CITY_IDS.indexOf(b));
+/** 托管 / 秘书 / 不指定城市时开在哪：没开满的里系数最高的，同系数先挑已经有分公司的；全满 = null */
+export function pickCity(s, id, t = Date.now()) {
+  const r = roomCities(s, id); if (!r.length) return null;
+  const top = cityK(r[0]); const same = r.filter((c) => cityK(c) === top);
+  return same.find((c) => cityOpen(s, c, t)) || r.find((c) => cityOpen(s, c, t) && cityK(c) === top) || r[0];
+}
+/** 选城市列表的顺序：没开满的照配置顺序在前，开满的排最后 */
+export const cityOrder = (s, id) => (id ? [...CITY_IDS.filter((c) => canOpenIn(s, id, c)), ...CITY_IDS.filter((c) => !canOpenIn(s, id, c))] : CITY_IDS);
+

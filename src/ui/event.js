@@ -1,12 +1,12 @@
 // 事件弹层（2-01）：消息中心「事件」点「去看看」→ 剧情 + 选择
-import * as EV from '../core/events.js?v=a184462c';
-import { EVENT_BY_ID } from '../config/events.js?v=a184462c';
-import { game } from '../game.js?v=a184462c';
-import { now } from '../core/clock.js?v=a184462c';
-import { playStory } from './story.js?v=a184462c';
-import { asset, hasAsset } from '../platform/assets.js?v=a184462c';
-import { toast } from './dom.js?v=a184462c';
-import { fmtMoney } from '../core/format.js?v=a184462c';
+import * as EV from '../core/events.js?v=5f2b1b8c';
+import { EVENT_BY_ID } from '../config/events.js?v=5f2b1b8c';
+import { game } from '../game.js?v=5f2b1b8c';
+import { now } from '../core/clock.js?v=5f2b1b8c';
+import { playStory } from './story.js?v=5f2b1b8c';
+import { asset, hasAsset } from '../platform/assets.js?v=5f2b1b8c';
+import { toast } from './dom.js?v=5f2b1b8c';
+import { fmtMoney } from '../core/format.js?v=5f2b1b8c';
 
 const BG = { teambuild: 'bg_teambuild', crisis: 'bg_finance', jobfair: 'bg_meeting' }; // 有背景图的用图；设计78：没图的不传，story.js 用当前办公室兜底
 

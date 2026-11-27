@@ -130,7 +130,18 @@
   "branchBase": 0.5,
   "hostEverySec": 60,
   "defaultBudget": 200000,
-  "defaultPaybackH": 3
+  "defaultPaybackH": 3,
+  "attrsByInd": {
+   "tech": [
+    "wit",
+    "manage"
+   ],
+   "media": [
+    "charm",
+    "social"
+   ]
+  },
+  "_attrsByInd": "设计100：科技店长看智慧 + 管理、娱乐传媒店长看魅力 + 交际；其他线店长只看管理"
  },
  "cfo": {
   "errBelow": 30,
@@ -191,48 +202,45 @@
  },
  "best": {
   "s08_xu": [
-   "cfo",
-   "invest",
-   "collector"
+   "cfo"
   ],
   "s04_gu": [
-   "cfo",
-   "invest",
+   "invest"
+  ],
+  "s02_su": [
+   "ipo"
+  ],
+  "s05_jiang": [
    "collector"
   ],
-  "s10_lu": [
-   "manager"
+  "s01_shen": [
+   "biz"
+  ],
+  "s11_qiao": [
+   "steward"
   ],
   "s09_xia": [
    "manager"
   ],
-  "s05_jiang": [
-   "biz",
-   "steward"
-  ],
-  "s07_tang": [
-   "biz",
-   "steward"
-  ],
-  "s01_shen": [
-   "biz",
-   "steward"
-  ],
-  "s02_su": [
-   "ipo",
-   "invest"
-  ],
-  "s11_qiao": [
-   "steward",
+  "s10_lu": [
    "manager"
   ],
   "s03_lin": [
-   "manager",
-   "steward"
+   "manager"
   ],
   "s06_ye": [
-   "manager",
-   "steward"
+   "manager"
+  ],
+  "s07_tang": [
+   "manager"
+  ],
+  "s12_wen": [
+   "manager_tech"
+  ],
+  "s13_bai": [
+   "manager_media"
   ]
- }
+ },
+ "bestBoost": 1.1,
+ "_best": "设计99：每人一个擅长职位，6 个总监类各一人不重复，其余 5 人是店长（manager = 便利店、餐饮、服装、地产、物流店长）；设计100：manager_tech / manager_media 留给 s12_wen / s13_bai。坐在对口职位上本事 ×bestBoost"
 }

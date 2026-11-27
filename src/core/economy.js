@@ -1,24 +1,24 @@
 // 经济：产钱、升级、分店、派驻、身价、离线收益（纯函数，node 测试能跑）
-import { YEAR_MS } from './gametime.js?v=a184462c'; // V0.2.10 一个月 = 现实 12 小时
-import { whyCushion } from './cashflow.js?v=a184462c'; // V0.2.3 留够两个月工资（设计35）
-import { INDUSTRIES, IND_BY_ID, SEC_BONUS_PER_POINT, BRANCH_CAP, LOOK3_TITLE } from '../config/industries.js?v=a184462c';
-import * as CB from './calib.js?v=a184462c';
-import CAP from '../config/capital.json?v=a184462c' with { type: 'json' };
-import { TITLES } from '../config/titles.js?v=a184462c';
-import { pay, receive, accrue, canPay } from './ledger.js?v=a184462c';
-import { staffFactor, staffUp, PAY, estTotal } from './staff.js?v=a184462c';
-import { track } from './companytax.js?v=a184462c';
-import { payables } from './accrual.js?v=a184462c';
-import { visionIncome } from './boss.js?v=a184462c';
-import { managerRevMult, managerCostMult, stat } from './posts.js?v=a184462c';
-import { reValue } from './realestate.js?v=a184462c';
-import { logiRevPerSec, linkCogsMult, fleetValue } from './logistics.js?v=a184462c';
-import { techRevPerSec, techLink } from './tech.js?v=a184462c';
-import { liveRevPerSec, mediaLink } from './media.js?v=a184462c';
-import { lineK, lineCities, cityOpen, cityK, cityName, CITY_CFG } from './cities.js?v=a184462c';
-import { revK, debt } from './rivalry.js?v=a184462c';
-import { depositTotal, loanDebt, setNW } from './bank.js?v=a184462c';
-import { equityOwed } from './equity.js?v=a184462c';
+import { YEAR_MS } from './gametime.js?v=5f2b1b8c'; // V0.2.10 一个月 = 现实 12 小时
+import { whyCushion } from './cashflow.js?v=5f2b1b8c'; // V0.2.3 留够两个月工资（设计35）
+import { INDUSTRIES, IND_BY_ID, SEC_BONUS_PER_POINT, BRANCH_CAP, LOOK3_TITLE } from '../config/industries.js?v=5f2b1b8c';
+import * as CB from './calib.js?v=5f2b1b8c';
+import CAP from '../config/capital.json?v=5f2b1b8c' with { type: 'json' };
+import { TITLES } from '../config/titles.js?v=5f2b1b8c';
+import { pay, receive, accrue, canPay } from './ledger.js?v=5f2b1b8c';
+import { staffFactor, staffUp, PAY, estTotal } from './staff.js?v=5f2b1b8c';
+import { track } from './companytax.js?v=5f2b1b8c';
+import { payables } from './accrual.js?v=5f2b1b8c';
+import { visionIncome } from './boss.js?v=5f2b1b8c';
+import { managerRevMult, managerCostMult, stat } from './posts.js?v=5f2b1b8c';
+import { reValue } from './realestate.js?v=5f2b1b8c';
+import { logiRevPerSec, linkCogsMult, fleetValue } from './logistics.js?v=5f2b1b8c';
+import { techRevPerSec, techLink } from './tech.js?v=5f2b1b8c';
+import { liveRevPerSec, mediaLink } from './media.js?v=5f2b1b8c';
+import { lineK, lineCities, cityOpen, cityK, cityName, CITY_CFG, canOpenIn, roomCities, pickCity, registerCity, cityCap, cityCount } from './cities.js?v=5f2b1b8c';
+import { revK, debt } from './rivalry.js?v=5f2b1b8c';
+import { depositTotal, loanDebt, setNW } from './bank.js?v=5f2b1b8c';
+import { equityOwed } from './equity.js?v=5f2b1b8c';
 
 /** 存档里的产业：{ store: { level, branches, spent, sec, staff, agency, openedAt } } */
 export function newIndustry(t = Date.now()) { return { level: 1, branches: 1, spent: 0, sec: null, staff: {}, agency: {}, openedAt: t }; }
@@ -26,10 +26,10 @@ export function newIndustry(t = Date.now()) { return { level: 1, branches: 1, sp
 const MONTH_SEC = YEAR_MS / 12 / 1000; // 游戏一个月的秒数（跟 gametime.json yearHours 走）
 /** 升级费：门店三条线按真实经济（core/calib.js，升级是每家店都升，乘家数）；别的线照旧 */
 export const upgradeCost = (cfg, level, branches = 1) => cfg.retail ? Math.ceil(CB.upCostPerStore(cfg, level) * Math.max(1, branches)) : Math.ceil(cfg.upCost * Math.pow(cfg.upGrow, level - 1));
-/** 开分店费：门店 = 单店投资（现在的样子）× 城市系数 × 1.12^已有家数（设计21）；物流照旧 */
+/** 开分店费：门店 = 单店投资（现在的样子）× 城市系数（设计92 起不随家数涨）；物流照旧 */
 export const branchCost = (cfg, branches, city, level = 1) => branches === 0 && cfg.firstCost ? cfg.firstCost /* V0.2.1 第一家摊位 1 万 */ : cfg.retail ? Math.ceil(CB.branchCostAt(cfg, level, branches, city ? cityK(city) : 1)) : Math.ceil(cfg.branchCost * Math.pow(cfg.branchGrow, branches - 1) * (city ? cityK(city) : 1)); // 开店费乘城市系数
 export const upCostOf = (s, id) => upgradeCost(IND_BY_ID[id], s.inds[id].level, s.inds[id].branches);
-export const brCostOf = (s, id, city) => Math.ceil(branchCost(IND_BY_ID[id], s.inds[id].branches, city, s.inds[id].level) * meetBr(s, id)); // V2-13 经营会「扩张」打折
+export const brCostOf = (s, id, city) => Math.ceil(branchCost(IND_BY_ID[id], s.inds[id].branches, city === undefined && IND_BY_ID[id].retail ? pickCity(s, id) : city, s.inds[id].level) * meetBr(s, id)); // V2-13 经营会「扩张」打折；设计92：门店不指定城市 = 自动挑的那个城市
 export function lookIndex(cfg, level) { let i = 0; cfg.looks.forEach((lv, k) => { if (level >= lv) i = k; }); return i; }
 
 /** 秘书属性（培养后的）；s.secs[id].attrs 有就用，没有用配置起点 */
@@ -188,7 +188,7 @@ export function whyNotUpgrade(s, id) {
   for (let j = cfg.looks.length - 1; j > 0; j--) if (ind.level + 1 >= cfg.looks[j] && s.title < (lt[j] || 0)) return `升到 ${cfg.looks[j]} 级（${cfg.lookNames[j]}）要「${TITLES[lt[j]].name}」称号`;
   return null;
 }
-export function whyNotBranch(s, id) { const ind = s.inds[id]; if (!ind || ['project', 'product', 'media'].includes(IND_BY_ID[id].kind)) return '这条线不开分店'; if (ind.branches >= maxBranches(s, id)) return ind.branches >= IND_BY_ID[id].maxBranch ? '分店满了' : `现在最多 ${maxBranches(s, id)} 家（升称号能多开）`; return whyNeed(s, id, ind.branches ? 'needBranch' : 'needFirst'); }
+export function whyNotBranch(s, id) { const ind = s.inds[id]; if (!ind || ['project', 'product', 'media'].includes(IND_BY_ID[id].kind)) return '这条线不开分店'; if (ind.branches >= maxBranches(s, id)) return ind.branches >= IND_BY_ID[id].maxBranch ? '分店满了' : `现在最多 ${maxBranches(s, id)} 家（升称号能多开）`; if (IND_BY_ID[id].retail && !roomCities(s, id).length) return '每个城市都开满了'; /* 设计92 */ return whyNeed(s, id, ind.branches ? 'needBranch' : 'needFirst'); }
 /** V0.2.3 升级带口碑（core/manage.js 挂进来） */
 /** V0.2.5 升级框（core/upbuild.js 挂进来）：升之前拍一张快照，升完按快照写「前 → 后」 */
 let upSnap = () => null, upDone = () => {}; export const setUpNoteHooks = (snap, done) => { upSnap = snap; upDone = done; };
@@ -199,12 +199,21 @@ export function upgrade(s, id, t = Date.now(), by = '') {
   const snap = upSnap(s, id); if (!payInd(s, ind, upCostOf(s, id), id, `升到 ${ind.level + 1} 级`, t, by)) return false;
   ind.level += 1; upHook(s, id); upDone(s, id, 'lv', snap, by, t); return true; /* V0.2.5 升级框（设计37 第三节） */
 }
-export function openBranch(s, id, t = Date.now(), by = '', city = CITY_CFG.hq) {
+/** 设计92：门店线在这个城市不能开的原因（开满了）；不是门店线 / 能开 = null */
+export function whyNotCity(s, id, city) {
+  if (!IND_BY_ID[id] || !IND_BY_ID[id].retail || canOpenIn(s, id, city)) return null;
+  return `${cityName(city)}已开满 ${cityCap(city)} 家`;
+}
+/** 开分店。city 不给：门店线自动挑没开满、系数高的城市（托管、秘书、自动玩都走这里；那个城市还没分公司就先注册），别的线开在总部 */
+export function openBranch(s, id, t = Date.now(), by = '', city = null) {
   const ind = s.inds[id]; const cfg = IND_BY_ID[id];
-  if (!ind || whyNotBranch(s, id) || !cityOpen(s, city, t)) return false; // 新城市先注册分公司
-  const cs = lineCities(s, id);
+  if (!ind || whyNotBranch(s, id)) return false;
+  const auto = city == null; if (auto) city = cfg.retail ? pickCity(s, id, t) : CITY_CFG.hq;
+  if (!city || whyNotCity(s, id, city)) return false; /* 设计92：这个城市开满了 */
   const cost = Math.ceil(branchCost(cfg, ind.branches, city, ind.level) * meetBr(s, id)); // V2-13 扩张打折；V2-08：开店费记进分店记录
   if (whyCushion(s, cost)) return false; /* V0.2.3 留够两个月工资 */
+  if (!cityOpen(s, city, t)) { if (!auto || !registerCity(s, city, t, by).ok || !cityOpen(s, city, t)) return false; } // 新城市先注册分公司（手动开要先在界面上注册）
+  const cs = lineCities(s, id);
   const snap = upSnap(s, id); if (!payInd(s, ind, cost, id, `开第 ${ind.branches + 1} 家店（${cityName(city)}）`, t, by)) return false;
   ind.branches += 1; cs[city] = (cs[city] || 0) + 1; s.stats.maxStoreBranches = Math.max(s.stats.maxStoreBranches || 0, s.inds.store ? s.inds.store.branches : 0);
   if (siteOpen) siteOpen(s, id, city, t, cost); // V2-08 记铺位（core/sites.js）
@@ -250,7 +259,7 @@ export function offlineIncome(s, awaySec, secCfgById, t1 = s._now || Date.now())
   return { sec: awaySec, gain, capped: false };
 }
 
-/** 能不能升称号：身价到线 + 收购了 TITLES[下一个].rival（每档不同：小老板 = 味道工坊、老板 = 恒远、企业家 = 华荣、大亨 = 天穹，设计21 第九节）
+/** 能不能升称号：身价到线 + 收购了 TITLES[下一个].rival（每档不同：小老板 = 味道工坊、老板 = 恒远、企业家 = 华荣、商界名流 = 天穹，设计21 第九节）
  *  旧档：第 10 项写的 s.flags.finalBeaten[title] 也算 */
 export function promoteRival(s) { const next = TITLES[s.title + 1]; return next ? next.rival : null; }
 export function canPromote(s) {
@@ -263,5 +272,5 @@ export function canPromote(s) {
 }
 
 // 资产的验资要看身价（避免互相 import）
-import { setNetWorthFn } from './assets.js?v=a184462c';
+import { setNetWorthFn } from './assets.js?v=5f2b1b8c';
 setNetWorthFn(netWorth); setNW(netWorth);

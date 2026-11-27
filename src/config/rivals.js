@@ -11,7 +11,8 @@ export const RIVALS = [
   { id: 'hengyuan', name: '恒远集团', ind: '零售 / 服装', boss: '赵恒远', bossImg: 'boss_zhao', bossAge: 58, desc: '本地老牌董事长，老谋深算、看不起年轻人',
     growReal: 0.05, stage: 1, level: 3, profit: 6e6, pe: 2, power: 1.2e7, /* 设计38：620 万 → 1200 万（门槛 120%） */ skill: 34, reward: 2e4, final: true, effect: { early: ['fashion'] }, merge: { store: 3, fashion: 1 } },
   // 每个称号收购不同的最终对手（设计21 第九节 2）：估值按门槛配（下一档门槛 × 70%），利润 = 估值 ÷ 市盈率
-  // 打工人：鑫鑫（练手，30 万，不卡称号）、味道工坊（最终，70 万，林知夏）；小老板：恒远集团（最终，500 万 = 老板门槛 50%，沈清妍）；老板：华荣 3.5 亿；企业家：天穹 50 亿（3-08 Arvin 定：企业家 5 亿、大亨 100 亿，华荣、天穹跟着抬，实力 power 同比例抬）
+  // 设计97（11-27 Arvin 定）：只改门槛，对手全部回到改前（战力、估值 / profit、收购价都不放大）
+  // 打工人：鑫鑫（练手，30 万，不卡称号）、味道工坊（最终，70 万，林知夏）；小老板：恒远集团（最终，500 万 = 老板门槛 50%，沈清妍）；老板：华荣 3.5 亿；企业家：天穹 50 亿（3-08 Arvin 定：企业家 5 亿、商界名流 100 亿，华荣、天穹跟着抬，实力 power 同比例抬）
   // 第二批（老板阶段，设计20 第三节）。估值 = 年利润 × 行业市盈率（地产 6、物流 15、科技 30、传媒 20）
   // turf：在哪个城市跟你抢哪条线（你那个城市的同行门店收入 −5%，收购了就没了）
   { id: 'jifeng', name: '疾风快运', ind: '物流', boss: '孙铁军', bossImg: 'boss_sun', bossAge: 46, desc: '退伍军人创业，强硬、说一不二，好面子不好骗',
@@ -26,7 +27,7 @@ export const RIVALS = [
   { id: 'yunzhan', name: '云栈科技', ind: '科技', boss: '陈一舟', bossImg: 'boss_chen', bossAge: 37, desc: '技术天才创始人，傲、不懂人情、只认技术',
     growReal: 0.15, stage: 3, level: 2, profit: 3.8e6, pe: 30, power: 1e8, skill: 60, reward: 3e5, effect: { techProduct: { dir: 'cloud', q: 0.9 }, levelUp: { tech: 3 } } },
   { id: 'tianqiong', name: '天穹集团', ind: '科技 + 传媒', boss: '秦啸天', bossImg: 'boss_qin', bossAge: 56, desc: '帝国掌门人，霸道、手段狠、会反击',
-    growReal: 0.125, stage: 3, level: 3, profit: 1.2e8, pe: 25, power: 3e9, /* 设计38：120 亿 → 30 亿（门槛 30%，对手会长到最多 2 倍，收购时约 60 亿）；V0.2.5 广告改成永久升级（满了营业额 2.4 倍）以后 B / C 到大亨 3.8 / 3.2 年，天穹 42 亿 → 120 亿（设计37 第二节 ⑪）；V3-01 调数值：28 亿 → 18 亿；V0.2.5 托管广告每天按 10% 效果、交际打折以后 B 快了，再到 42 亿；V0.2.3 手续立刻、商战 10 分钟回、收购不冷却以后 B / C 快了，起始估值回到 28 亿（设计35 第十一节） */ skill: 70, reward: 5e5, final: true, effect: { techProduct: { dir: 'ai', q: 0.8 }, levelUp: { tech: 3, media: 3 }, boost: { media: 0.2 } } },
+    growReal: 0.125, stage: 3, level: 3, profit: 1.2e8, pe: 25, power: 3e9, /* 设计38：120 亿 → 30 亿（门槛 30%，对手会长到最多 2 倍，收购时约 60 亿）；V0.2.5 广告改成永久升级（满了营业额 2.4 倍）以后 B / C 到商界名流 3.8 / 3.2 年，天穹 42 亿 → 120 亿（设计37 第二节 ⑪）；V3-01 调数值：28 亿 → 18 亿；V0.2.5 托管广告每天按 10% 效果、交际打折以后 B 快了，再到 42 亿；V0.2.3 手续立刻、商战 10 分钟回、收购不冷却以后 B / C 快了，起始估值回到 28 亿（设计35 第十一节） */ skill: 70, reward: 5e5, final: true, effect: { techProduct: { dir: 'ai', q: 0.8 }, levelUp: { tech: 3, media: 3 }, boost: { media: 0.2 } } },
 ];
 for (const r of RIVALS) if (r.profit && r.pe) r.value = r.profit * r.pe;
 // 瑞霖资本（投行，不能收购）：企业家阶段「融资谈判」，赢一次 → 苏曼琳加入 + 一笔过桥融资（利率按谈的结果）

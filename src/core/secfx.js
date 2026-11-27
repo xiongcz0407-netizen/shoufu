@@ -2,16 +2,16 @@
 // 每一项：attrs 看哪几项（多项取平均）、name 名字、post 在什么职位才生效（null = 任何时候都算）、need 没生效时写的「当上 X 后」、
 // val(A, ctx) → 显示的值（A = 假设的属性，ctx = { eff 职位效率 }）。升级框拿「前 → 后」，培养页「?」列整张表。
 // 改了游戏里的公式，这里要跟着改（test/secfx.test.mjs 拿真函数对过几项）。
-import { attrs as secAttrs, postOfSec, kindOf, efficiency } from './posts.js?v=a184462c';
-import { MANAGE_CFG } from './manage.js?v=a184462c';
-import { WAR } from './war.js?v=a184462c';
-import { AGENDA_CFG, scheduler } from './agenda.js?v=a184462c';
-import { TECH_CFG } from './tech.js?v=a184462c';
-import P from '../config/posts.json?v=a184462c' with { type: 'json' };
-import LX from '../config/luxury.json?v=a184462c' with { type: 'json' };
-import AU from '../config/auction.json?v=a184462c' with { type: 'json' };
-import NG from '../config/negotiate.json?v=a184462c' with { type: 'json' };
-import { SCFG as STK_CFG, seeCount as seeN } from './stocks.js?v=a184462c';   // 设计54 看得到几只
+import { attrs as secAttrs, postOfSec, kindOf, efficiency, postAttrs, bestFor } from './posts.js?v=5f2b1b8c';
+import { MANAGE_CFG } from './manage.js?v=5f2b1b8c';
+import { WAR } from './war.js?v=5f2b1b8c';
+import { AGENDA_CFG, scheduler } from './agenda.js?v=5f2b1b8c';
+import { TECH_CFG } from './tech.js?v=5f2b1b8c';
+import P from '../config/posts.json?v=5f2b1b8c' with { type: 'json' };
+import LX from '../config/luxury.json?v=5f2b1b8c' with { type: 'json' };
+import AU from '../config/auction.json?v=5f2b1b8c' with { type: 'json' };
+import NG from '../config/negotiate.json?v=5f2b1b8c' with { type: 'json' };
+import { SCFG as STK_CFG, seeCount as seeN } from './stocks.js?v=5f2b1b8c';   // 设计54 看得到几只
 
 export const ATTR_NAME = { charm: '魅力', wit: '智慧', social: '交际', manage: '管理' };
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -26,7 +26,7 @@ export const EFFECTS = [
   // —— 工资（四项都算，属性越高要得越多）——
   { attrs: ['charm', 'wit', 'social', 'manage'], post: null, name: '要的月薪（市场价）', val: (A, c) => salaryAt(c.s, c.id, A) },
   // —— 店长（这条线）——
-  { attrs: ['manage'], post: 'manager', need: '当上店长后', name: '这条线营业额', val: (A, c) => `+${pct(A.manage / 100 * c.eff * P.manager.revK)}` },
+  { attrs: ['manage'], post: 'manager', need: '当上店长后', name: '这条线营业额', val: (A, c) => `+${pct(avg(A, postAttrs(c.key || 'manager')) / 100 * c.eff * P.manager.revK)}` },
   { attrs: ['manage'], post: 'manager', need: '当上店长后', name: '这条线进货成本', val: (A, c) => `−${pct(A.manage / 100 * c.eff * P.manager.costK)}` },
   { attrs: ['manage'], post: 'manager', need: '当上店长后', name: '每天自动砍价、拉熟客的效果', val: (A) => { const M = MANAGE_CFG.auto; return pct((M.base + A.manage / M.per) * (1 + A.manage / M.secPer)); } },
   { attrs: ['manage'], post: 'manager', need: '当上店长后', name: '月底出事故', val: (A) => (A.manage < P.manager.accidentBelow ? `管理到 ${P.manager.accidentBelow} 就不会（还差 ${P.manager.accidentBelow - A.manage}）` : '已经不会') },
@@ -68,7 +68,7 @@ export const EFFECTS = [
 function salaryAt(s, id, A) {
   if (!s || !id) return '';
   if (!s.title && P.starterSalary) return '打工人阶段固定';
-  const key = postOfSec(s, id); const kind = key ? kindOf(key) : null; const ks = kind && P.posts[kind] ? P.posts[kind].attrs : ['charm', 'wit', 'social', 'manage'];
+  const key = postOfSec(s, id); const kind = key ? kindOf(key) : null; const ks = postAttrs(key);
   const base = kind ? P.posts[kind].base : P.assistantBase; const k = P.salaryAttrBase + avg(A, ks) / 100 * P.salaryAttrK;
   return `¥${(Math.round(base * k * (P.scaleByTitle[s.title] ?? 1) / 10) * 10).toLocaleString()}`;
 }
@@ -78,16 +78,16 @@ function where(s, id, post) {
   if (post === 'scheduler') return { on: scheduler(s) === id, eff: 1 };
   const key = postOfSec(s, id); if (!key) return { on: false, eff: 1 };
   const ok = post.startsWith('manager_') ? key === post : kindOf(key) === post;
-  return { on: ok, eff: ok ? efficiency(s, id, key) : 1 };
+  return { on: ok, eff: ok ? efficiency(s, id, key) * (bestFor(id, key) ? (P.bestBoost || 1) : 1) : 1, key: ok ? key : null }; // 设计99：对口 ×1.1
 }
 /** 这位秘书、某项属性（或几项）的效果表：[{ name, on, need, val }]；A 不给就用她现在的属性 */
 export function effectsOf(s, id, keys, A = secAttrs(s, id)) {
   const ks = [].concat(keys);
-  return EFFECTS.filter((e) => e.attrs.some((k) => ks.includes(k))).map((e) => { const w = where(s, id, e.post); return { name: e.name, on: w.on, need: e.need || '', val: e.val(A, { eff: w.eff, s, id }) }; });
+  return EFFECTS.filter((e) => e.attrs.some((k) => ks.includes(k))).map((e) => { const w = where(s, id, e.post); return { name: e.name, on: w.on, need: e.need || '', val: e.val(A, { eff: w.eff, s, id, key: w.key }) }; });
 }
 /** 升级框用：属性从 A0 变到 A1，列每一项「前 → 后」（生效的在前；没变的不列；整项没作用的标 need） */
 export function diffOf(s, id, A0, A1) {
   const ks = Object.keys(ATTR_NAME).filter((k) => (A0[k] || 0) !== (A1[k] || 0));
-  const out = EFFECTS.filter((e) => e.attrs.some((k) => ks.includes(k)) && e.val(A0, { eff: 1, s, id }) !== '').map((e) => { const w = where(s, id, e.post); return { name: e.name, on: w.on, need: e.need || '', from: e.val(A0, { eff: w.eff, s, id }), to: e.val(A1, { eff: w.eff, s, id }) }; });
+  const out = EFFECTS.filter((e) => e.attrs.some((k) => ks.includes(k)) && e.val(A0, { eff: 1, s, id }) !== '').map((e) => { const w = where(s, id, e.post); return { name: e.name, on: w.on, need: e.need || '', from: e.val(A0, { eff: w.eff, s, id, key: w.key }), to: e.val(A1, { eff: w.eff, s, id, key: w.key }) }; });
   return out.filter((x) => x.from !== x.to).sort((a, b) => b.on - a.on);
 }

@@ -1,29 +1,30 @@
 // 「公司 → 职位」（设计16 第六节、设计18 第四节 1）：组织架构图（你在最上，下面一排职位卡：头像 / 空缺 / 外包），
 // 点职位卡 → 底部抽屉：选人（最适合的打星）、外包、撤职、授权额度、店长托管（月预算 + 回本期）、资产管家出租、看她的月报
-import * as ADS from '../core/ads.js?v=a184462c'; // V0.2.5 自动升级广告
-import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=a184462c';
-import { IND_BY_ID } from '../config/industries.js?v=a184462c';
-import * as PO from '../core/posts.js?v=a184462c';
-import * as MG from '../core/manage.js?v=a184462c';
-import { noteUp } from '../core/upnote.js?v=a184462c'; // V0.2.5 升级框
-import * as PW from '../core/postwork.js?v=a184462c';
-import * as T from '../core/training.js?v=a184462c';
-import { fmtMoney } from '../core/format.js?v=a184462c';
-import { asset, hasAsset } from '../platform/assets.js?v=a184462c';
-import { now } from '../core/clock.js?v=a184462c';
-import { game } from '../game.js?v=a184462c';
-import { h, openPanel, toast, liveRender } from './dom.js?v=a184462c';
-import { avatarKey } from './main-screen.js?v=a184462c';
+import * as ADS from '../core/ads.js?v=5f2b1b8c'; // V0.2.5 自动升级广告
+import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=5f2b1b8c';
+import { IND_BY_ID } from '../config/industries.js?v=5f2b1b8c';
+import * as PO from '../core/posts.js?v=5f2b1b8c';
+import * as MG from '../core/manage.js?v=5f2b1b8c';
+import { noteUp } from '../core/upnote.js?v=5f2b1b8c'; // V0.2.5 升级框
+import * as PW from '../core/postwork.js?v=5f2b1b8c';
+import * as T from '../core/training.js?v=5f2b1b8c';
+import { fmtMoney } from '../core/format.js?v=5f2b1b8c';
+import { asset, hasAsset } from '../platform/assets.js?v=5f2b1b8c';
+import { now } from '../core/clock.js?v=5f2b1b8c';
+import { game } from '../game.js?v=5f2b1b8c';
+import { h, openPanel, toast, liveRender } from './dom.js?v=5f2b1b8c';
+import { avatarKey } from './main-screen.js?v=5f2b1b8c';
 
 const AN = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 const icon = (k, cls = 'pc-ic') => (hasAsset(`assets/ui/${k}.webp`) ? `<img class="${cls}" src="${asset(`assets/ui/${k}.webp`)}" alt="">` : '');
-const attrText = (kind) => PO.POSTS_CFG.posts[kind].attrs.map((a) => AN[a]).join(' + ');
+const attrText = (key) => PO.postAttrs(key).map((a) => AN[a]).join(' + '); // 设计100：科技 / 娱乐传媒店长看别的属性
+const BOOST = `对口 +${Math.round(((PO.POSTS_CFG.bestBoost || 1) - 1) * 100)}%`; // 设计99
 /** V0.2.5（设计37 第三节）上任 / 换人：职位效率前 → 后（交接期过了以后的） */
 const effAt = (s, key) => PO.power(s, key, now() + (PO.POSTS_CFG.handoverMin || 0) * 60e3 + 1);
 const effSnap = (s, key) => { const id = PO.indOf(key); return { p: effAt(s, key), rev: id ? PO.managerRevMult(s, id) : 0, auto: id && s.inds[id] ? MG.autoEff(s, id) : 0 }; };
 function effNote(s, key, who, a) {
   const id = PO.indOf(key); const kind = PO.kindOf(key); const pct = (x) => `${Math.round(x * 100)}%`; const fx = [];
-  const nm = who === PO.OUT ? '外包' : `${SEC_BY_ID[who].name}（${attrText(kind)} ${Math.round(PO.mainAttr(s, who, kind))}）`;
+  const nm = who === PO.OUT ? '外包' : `${SEC_BY_ID[who].name}（${attrText(key)} ${Math.round(PO.mainAttr(s, who, key))}）`;
   if (id && s.inds[id]) { fx.push(`${IND_BY_ID[id].name}营业额 +${pct(a.rev - 1)} → +${pct(PO.managerRevMult(s, id) - 1)}`); fx.push(`这条线自动经营效率 ${pct(a.auto)} → ${pct(MG.autoEff(s, id))}`); }
   else fx.push(`职位效率 ${pct(a.p)} → ${pct(effAt(s, key))}`);
   return { title: '上任', what: `${PO.postName(key)}：${nm}`, fx, next: who === PO.OUT ? '换成秘书能做得更好' : '她上课练属性，效率还能涨' };
@@ -37,8 +38,9 @@ function card(s, key) {
   if (lk) body = `<div class="pc-who">🔒</div><small>${lk}</small>`;
   else if (PO.isSec(who)) {
     const e = PO.efficiency(s, who, key, now());
-    body = `<img class="pc-av" src="${asset(`assets/sec/${who}/${s.secs[who].outfit}.webp`)}" alt=""><div class="pc-who">${SEC_BY_ID[who].name}${PO.bestFor(who, kind) ? ' ★' : ''}</div>
-      <small>${attrText(kind)} ${Math.round(PO.mainAttr(s, who, kind))} · 效率 ${Math.round(e * 100)}%</small>
+    body = `<img class="pc-av" src="${asset(`assets/sec/${who}/${s.secs[who].outfit}.webp`)}" alt=""><div class="pc-who">${SEC_BY_ID[who].name}${PO.bestFor(who, key) ? ` ★<em class="pc-best">${BOOST}</em>` : ''}</div>
+      <small>${attrText(key)} ${Math.round(PO.mainAttr(s, who, key))} · 效率 ${Math.round(e * 100)}%</small>
+      <small>本事 ${Math.round(PO.power(s, key, now()) * 100)}${PO.bestFor(who, key) ? '（含对口）' : ''}</small>
       <small class="pc-gain">${kind === 'manager' ? `本月 +${fmtMoney(st.gain)} / 省 ${fmtMoney(st.save)}` : kind === 'cfo' ? `本月申报 ${st.filed} 次` : kind === 'biz' ? '商战、收购、预警' : kind === 'ipo' ? '融资谈判、对赌、上市' : `出租 ${Object.keys(s.rented || {}).length} 件`}</small>`;
   } else if (who === PO.OUT) body = `${icon('icon_outsource', 'pc-av ic')}<div class="pc-who">外包</div><small>${PO.POSTS_CFG.outsource[kind].name}</small>`;
   else body = `<div class="pc-av ph">？</div><div class="pc-who">空缺</div><small>${kind === 'cfo' ? '税要你自己申报' : kind === 'manager' ? '你自己管' : kind === 'biz' ? '对手反击没预警' : kind === 'ipo' ? '融资自己谈' : '没人打理'}</small>`;
@@ -69,14 +71,14 @@ export function openPost(key) {
   const render = () => {
     const s = game.state; const who = PO.holder(s, key); const m = PO.postMeta(s, key); const cfg = PO.POSTS_CFG.posts[kind];
     p.body.innerHTML = '';
-    p.body.appendChild(h('div', 'tr-gain', ({ manager: `管这条线：收入 ×(1 + 管理 × 0.8)、进货成本 ×(1 − 管理 × 0.15)；拉熟客护口碑；打开托管后按预算和回本期自己升级、开分店；每月经营月报。管理低于 30 每月可能出小事故。`, cfo: '自动申报纳税（没人管要你自己点申报，过期有滞纳金）；现金流预警；分红建议；智慧 ≥ 40 提醒小型微利企业线；智慧低于 30 申报偶尔算错要补税。', biz: '商务总监：商战胜率加一点、收购价最多便宜 3%（看交际、魅力）；对手要挖人、抢地时一半以上能提前稳住；跟瑞霖谈融资时利率更低。阶段二后面还管品牌关系、配货额度。', steward: '维护费打折；帮你出租豪宅、飞机托管包机（租金进个人现金，代扣 20%）；代办验资排队；卖东西议价到最高 80%；每月资产月报。' })[kind] + `<br>看「${attrText(kind)}」；基本月薪 ${fmtMoney(cfg.base)}`));
+    p.body.appendChild(h('div', 'tr-gain', ({ manager: `管这条线：收入 ×(1 + 本事 × 0.8)、进货成本 ×(1 − 本事 × 0.15)（本事 = ${attrText(key)} ÷ 100 × 效率，坐对口职位再 ×1.1）；拉熟客护口碑；打开托管后按预算和回本期自己升级、开分店；每月经营月报。管理低于 30 每月可能出小事故。`, cfo: '自动申报纳税（没人管要你自己点申报，过期有滞纳金）；现金流预警；分红建议；智慧 ≥ 40 提醒小型微利企业线；智慧低于 30 申报偶尔算错要补税。', biz: '商务总监：商战胜率加一点、收购价最多便宜 3%（看交际、魅力）；对手要挖人、抢地时一半以上能提前稳住；跟瑞霖谈融资时利率更低。阶段二后面还管品牌关系、配货额度。', steward: '维护费打折；帮你出租豪宅、飞机托管包机（租金进个人现金，代扣 20%）；代办验资排队；卖东西议价到最高 80%；每月资产月报。' })[kind] + `<br>看「${attrText(key)}」；基本月薪 ${fmtMoney(cfg.base)}`));
     // 选人
     p.body.appendChild(h('div', 'sd-rec-title', '谁来当'));
     const list = h('div', 'pick-list');
     for (const c of SECRETARIES) {
       if (!s.secs[c.id]) continue;
       const cur = PO.postOfSec(s, c.id); const on = who === c.id;
-      const b = h('button', 'pick' + (on ? ' on' : ''), `<img src="${asset(`assets/sec/${c.id}/${s.secs[c.id].outfit}.webp`)}" alt=""><div><b>${c.name}${PO.bestFor(c.id, kind) ? ' <span class="star">★</span>' : ''}</b><small>${attrText(kind)} ${Math.round(PO.mainAttr(s, c.id, kind))}${T.isTraining(s, c.id) ? ' · 上课中' : ''}</small><small>${on ? '现在是她' : cur ? '在当' + PO.postName(cur) : '没职位'} · 月薪约 ${fmtMoney(salaryIf(s, c.id, key))}</small></div>`);
+      const b = h('button', 'pick' + (on ? ' on' : ''), `<img src="${asset(`assets/sec/${c.id}/${s.secs[c.id].outfit}.webp`)}" alt=""><div><b>${c.name}${PO.bestFor(c.id, key) ? ` <span class="star">★ ${BOOST}</span>` : ''}</b><small>${attrText(key)} ${Math.round(PO.mainAttr(s, c.id, key))}${T.isTraining(s, c.id) ? ' · 上课中' : ''}</small><small>${on ? '现在是她' : cur ? '在当' + PO.postName(cur) : '没职位'} · 月薪约 ${fmtMoney(salaryIf(s, c.id, key))}</small></div>`);
       b.onclick = () => { if (on) return; const b0 = effSnap(s, key); PO.assign(s, key, c.id, now()); noteUp(s, effNote(s, key, c.id, b0), now()); toast(`${c.name}当${PO.postName(key)}了`); game.changed(); game.save(); render(); };
       list.appendChild(b);
     }

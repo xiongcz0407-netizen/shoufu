@@ -1,11 +1,11 @@
 // 秘书职位（设计16）和秘书工资（设计17 第二节）：数据、任免、效率、加成、工资、谈加薪
 // 注意：不 import economy（economy 要用这里的店长加成）
-import P from '../config/posts.json?v=a184462c' with { type: 'json' };
-import { SEC_BY_ID } from '../config/secretaries.js?v=a184462c';
-import { IND_BY_ID } from '../config/industries.js?v=a184462c';
-import { MONTH_MS } from './gametime.js?v=a184462c';
-import { addMsg } from './inbox.js?v=a184462c';
-import { POST_LINES } from '../config/post-lines.js?v=a184462c';
+import P from '../config/posts.json?v=5f2b1b8c' with { type: 'json' };
+import { SEC_BY_ID } from '../config/secretaries.js?v=5f2b1b8c';
+import { IND_BY_ID } from '../config/industries.js?v=5f2b1b8c';
+import { MONTH_MS } from './gametime.js?v=5f2b1b8c';
+import { addMsg } from './inbox.js?v=5f2b1b8c';
+import { POST_LINES } from '../config/post-lines.js?v=5f2b1b8c';
 export { P as POSTS_CFG };
 
 export const OUT = 'outsource';
@@ -42,13 +42,25 @@ const meta = (s, key) => { s.postMeta = s.postMeta || {}; return (s.postMeta[key
 export const postMeta = meta;
 
 export const attrs = (s, id) => (s.secs[id] && s.secs[id].attrs) || (() => { const c = SEC_BY_ID[id]; return { charm: c.attrs[0], wit: c.attrs[1], social: c.attrs[2], manage: c.attrs[3] }; })();
-/** 某职位看的主属性（两项的取平均） */
-export function mainAttr(s, id, kind) {
-  const a = attrs(s, id); const ks = kind && P.posts[kind] ? P.posts[kind].attrs : ['charm', 'wit', 'social', 'manage'];
+/** 某职位看哪几项属性（设计100：科技店长看智慧 + 管理、娱乐传媒店长看魅力 + 交际，其他线店长只看管理） */
+export function postAttrs(key) {
+  if (!key) return ['charm', 'wit', 'social', 'manage'];
+  const ind = indOf(key); const by = (P.manager && P.manager.attrsByInd) || {};
+  if (ind && by[ind]) return by[ind];
+  return P.posts[kindOf(key)] ? P.posts[kindOf(key)].attrs : ['charm', 'wit', 'social', 'manage'];
+}
+/** 某职位看的主属性（两项的取平均）；key 可以是职位 key（manager_tech）或种类（manager） */
+export function mainAttr(s, id, key) {
+  const a = attrs(s, id); const ks = postAttrs(key);
   return ks.reduce((x, k) => x + a[k], 0) / ks.length;
 }
-/** 最适合的职位打星 */
-export const bestFor = (id, kind) => (P.best[id] || []).includes(kind);
+/** 设计99/100：对口用的职位名：科技、娱乐传媒店长是 manager_tech / manager_media，其他线店长都是 manager */
+export const bestKey = (key) => { const ind = indOf(key); return ind ? (((P.manager && P.manager.attrsByInd) || {})[ind] ? key : 'manager') : key; };
+/** 设计99：坐在擅长的职位上（对口）打星、本事 ×1.1 */
+export const bestFor = (id, key) => (P.best[id] || []).includes(bestKey(key));
+/** 她擅长的职位（每人一个，设计99） */
+export const bestPostOf = (id) => (P.best[id] || [])[0] || null;
+export const bestPostName = (k) => (!k ? '' : k === 'manager' ? '店长' : k.startsWith('manager_') ? `${(IND_BY_ID[indOf(k)] || {}).name || ''}店长` : P.posts[k] ? P.posts[k].name : '');
 
 /** 效率：好感信任 ×1.1、知己 ×1.2；冷落 3 天 ×0.7；上课 ×0.5；刚换人 10 分钟 ×0.5；拒绝加薪一个游戏月 ×0.9 */
 export function efficiency(s, id, key, t = nowOf(s)) {
@@ -64,12 +76,12 @@ export function efficiency(s, id, key, t = nowOf(s)) {
   if (s.cap && s.cap.options && s.cap.options[id]) e *= (s.cap.optionEff || 1.1); // 拿了期权（3-03）
   return e;
 }
-/** 职位上的人的本事（0～1.x）= 主属性 / 100 × 效率；外包按配置；空缺 0 */
+/** 职位上的人的本事（0～1.x）= 主属性 / 100 × 效率 × 对口；外包按配置；空缺 0 */
 export function power(s, key, t = nowOf(s)) {
   const who = holder(s, key); const kind = kindOf(key);
   if (!who) return 0;
   if (who === OUT) return kind === 'manager' ? P.outsource.manager.manage / 100 : kind === 'biz' || kind === 'ipo' ? 0.3 : 0; // 商务咨询公司、FA 按 30 算
-  return mainAttr(s, who, kind) / 100 * efficiency(s, who, key, t);
+  return mainAttr(s, who, key) / 100 * efficiency(s, who, key, t) * (bestFor(who, key) ? (P.bestBoost || 1) : 1); // 设计99：对口 ×1.1
 }
 /** 店长加成：收入 ×(1 + 本事 × 0.8)、进货成本 ×(1 − 本事 × 0.15) */
 export const managerRevMult = (s, indId) => 1 + power(s, 'manager_' + indId) * P.manager.revK;
@@ -98,7 +110,7 @@ export function marketSalary(s, id) {
   if (!s.title && P.starterSalary) return P.starterSalary; // 打工人阶段：店员工资
   const key = postOfSec(s, id); const kind = key ? kindOf(key) : null;
   const base = kind ? P.posts[kind].base : P.assistantBase;
-  const k = P.salaryAttrBase + mainAttr(s, id, kind) / 100 * P.salaryAttrK;
+  const k = P.salaryAttrBase + mainAttr(s, id, key || null) / 100 * P.salaryAttrK;
   return Math.round(base * k * (P.scaleByTitle[s.title] ?? 1) / 10) * 10;
 }
 /** 她现在的月薪（谈好的；没谈过按市场价） */

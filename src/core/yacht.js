@@ -3,12 +3,12 @@
 // 凭证：买卖合同 + 进口货物报关单 + 船舶登记证书；税：关税 10%、消费税 10%（8～90 米）、进口增值税 13%、登记检验费
 // 持有：每年维护、船员、泊位托管约船价 10%（资产管家打折）；交给资产管家包租，每游戏月收租（代扣 20% 个税）
 // 老板属性：气场 + 人脉；约会「游艇」去自己的（不花钱，按档次加成）
-import CFG from '../config/yacht.json?v=a184462c' with { type: 'json' };
-import { pay, receive, accrue } from './ledger.js?v=a184462c';
-import { YEAR_MS, monthIndex } from './gametime.js?v=a184462c';
-import { addContract } from './contracts.js?v=a184462c';
-import { stewardSellRate, stewardUpkeepMult, stewardQueueMult, holder, isSec } from './posts.js?v=a184462c';
-import { isRented, setRent } from './postwork.js?v=a184462c';
+import CFG from '../config/yacht.json?v=5f2b1b8c' with { type: 'json' };
+import { pay, receive, accrue } from './ledger.js?v=5f2b1b8c';
+import { YEAR_MS, monthIndex } from './gametime.js?v=5f2b1b8c';
+import { addContract } from './contracts.js?v=5f2b1b8c';
+import { stewardSellRate, stewardUpkeepMult, stewardQueueMult, holder, isSec } from './posts.js?v=5f2b1b8c';
+import { isRented, setRent } from './postwork.js?v=5f2b1b8c';
 
 export const YCFG = CFG;
 export const YACHTS = CFG.yachts.map((y) => ({ ...y, kind: 'yacht' }));
@@ -16,7 +16,7 @@ export const Y = Object.fromEntries(YACHTS.map((y) => [y.id, y]));
 export const label = (y) => `${y.brand} ${y.model}`;
 export const rarityOf = (y) => (y.limit === 1 ? 'unique' : y.limit ? 'limited' : 'normal');
 export const CH_NAME = { spot: '现货', order: '订单配额', invite: '邀请', custom: '定制委托' };
-const TITLE_NAME = ['打工人', '小老板', '老板', '企业家', '大亨'];
+const TITLE_NAME = ['打工人', '小老板', '老板', '企业家', '商界名流'];
 const fmt = (n) => (n >= 1e8 ? `${+(n / 1e8).toFixed(2)}亿` : n >= 1e4 ? `${+(n / 1e4).toFixed(1)}万` : `${Math.round(n)}`);
 
 function g(s) { s.garage = s.garage || { cars: [], planes: [], houses: [] }; s.garage.meta = s.garage.meta || {}; s.garage.yachts = s.garage.yachts || []; return s.garage; }
@@ -170,11 +170,11 @@ export function dateAdj(s) {
 }
 
 // ---------- 挂进资产、老板属性、约会（这几个文件只开了挂钩，游艇的东西都在这里） ----------
-import { addAssetHook, recalc, ITEM } from './assets.js?v=a184462c';
-import { addAttrHook, bossAttrs } from './boss.js?v=a184462c';
-import { addPlaceAdj } from './dates.js?v=a184462c';
-import { taxRec, payerOfPost } from './fiscal.js?v=a184462c';
-import { profitMul } from './calib.js?v=a184462c';
+import { addAssetHook, recalc, ITEM } from './assets.js?v=5f2b1b8c';
+import { addAttrHook, bossAttrs } from './boss.js?v=5f2b1b8c';
+import { addPlaceAdj } from './dates.js?v=5f2b1b8c';
+import { taxRec, payerOfPost } from './fiscal.js?v=5f2b1b8c';
+import { profitMul } from './calib.js?v=5f2b1b8c';
 addAssetHook({ value, upkeep: upkeepYearAll, count: (s) => mine(s).length });
 addAttrHook(attrs);
 setNetworkFn((s) => bossAttrs(s).network);

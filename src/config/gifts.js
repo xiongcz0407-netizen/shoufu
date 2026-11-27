@@ -39,6 +39,11 @@ export const GIFTS = [
   { id: 'gift_35', name: '名贵腕表套盒', tier: 4, price: 1000000, favor: 16 },
   { id: 'gift_36', name: '星空投影灯', tier: 2, price: 3000, favor: 6 },
   { id: 'gift_37', name: '钻石脚链', tier: 4, price: 250000, favor: 14 },   // 人物01 乔希雅最喜欢的奢侈品
+  { id: 'gift_38', name: '机械键盘', tier: 2, price: 1500, favor: 5 },   // 人物02 温语棠最喜欢
+  { id: 'gift_39', name: '拼装积木', tier: 2, price: 1000, favor: 5 },   // 人物02 温语棠最喜欢
+  { id: 'gift_40', name: '胶片相机', tier: 3, price: 5000, favor: 8 },   // 人物02 白若溪最喜欢
+  { id: 'gift_41', name: '钻石耳骨夹', tier: 4, price: 150000, favor: 13 },   // 人物02 温语棠最喜欢的奢侈品
+  { id: 'gift_42', name: '红宝石耳坠', tier: 4, price: 450000, favor: 15 },   // 人物02 白若溪最喜欢的奢侈品
 ];
 export const GIFT_BY_NAME = Object.fromEntries(GIFTS.map((g) => [g.name, g]));
 export const GIFT_BY_ID = Object.fromEntries(GIFTS.map((g) => [g.id, g]));

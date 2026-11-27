@@ -1,9 +1,9 @@
 // V3-05 衣服有用（设计33 第四之五节）：设计/剧情/衣服款式.json（每人 c1～c11 的款式和名字，tools/story_sync.mjs 拷进来）
 // 场合要什么款式：她肯穿的里挑同款最贵的，没有就按退的顺序；扮装只在私下（出差回酒店、恋人以上、20%）
-import { OUTFIT_STYLES } from '../config/story/index.js?v=a184462c';
-import { outfitsOf, priceOf } from '../config/outfits.js?v=a184462c';
-import { canWear } from './outfits.js?v=a184462c';
-import { ensureSec, loveStage } from './secretary.js?v=a184462c';
+import { OUTFIT_STYLES } from '../config/story/index.js?v=5f2b1b8c';
+import { outfitsOf, priceOf } from '../config/outfits.js?v=5f2b1b8c';
+import { canWear } from './outfits.js?v=5f2b1b8c';
+import { ensureSec, loveStage } from './secretary.js?v=5f2b1b8c';
 export { OUTFIT_STYLES };
 
 export const COSTUME = '扮装';
@@ -53,5 +53,6 @@ export function privOutfit(s, id, key, rnd = Math.random) {
   const r = ensureSec(s, id); const cos = outfitsOf(id).filter((x) => canWear(s, id, x.id) && styleOf(id, x.id) === COSTUME).map((x) => x.id);
   if (cos.length && loveStage(r.love) >= 5 && rnd() < 0.2) return cos[Math.floor(rnd() * cos.length)];
   if (key === 'car') return r.outfit || 'c1';
+  if (key === 'home') return pick(s, id, 'hotel').o;   // 设计95 家里：居家 → 度假 → 休闲 → 晚装
   return pick(s, id, key === 'jet' ? 'privJet' : 'privYacht').o;
 }

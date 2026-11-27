@@ -1,18 +1,19 @@
 // 主界面：背景（跟称号换）、顶部条、立绘、台词气泡、底部 5 个按钮
-import { asset, hasAsset } from '../platform/assets.js?v=a184462c';
-import { onTap } from '../platform/input.js?v=a184462c';
-import { TITLES } from '../config/titles.js?v=a184462c';
-import { SEC_BY_ID } from '../config/secretaries.js?v=a184462c';
-import { fmtMoney, fmtNum } from '../core/format.js?v=a184462c';
-import { gameDate, dateText } from '../core/gametime.js?v=a184462c';
-import * as PK from '../core/pick.js?v=a184462c'; // V2-03 进货挑品
-import { bell as bellOf } from '../core/inbox.js?v=a184462c';
-import { now as nowFn } from '../core/clock.js?v=a184462c';
-import { game } from '../game.js?v=a184462c';
-import { h, openPanel, toast } from './dom.js?v=a184462c';
-import { createPortrait } from './portrait.js?v=a184462c';
-import { audio } from '../platform/audio.js?v=a184462c';
-import { voiceFile } from '../config/lines.js?v=a184462c';
+import * as RL from '../core/richlist.js?v=5f2b1b8c'; // 设计98 称号后带财富榜名次
+import { asset, hasAsset } from '../platform/assets.js?v=5f2b1b8c';
+import { onTap } from '../platform/input.js?v=5f2b1b8c';
+import { TITLES } from '../config/titles.js?v=5f2b1b8c';
+import { SEC_BY_ID } from '../config/secretaries.js?v=5f2b1b8c';
+import { fmtMoney, fmtNum } from '../core/format.js?v=5f2b1b8c';
+import { gameDate, dateText } from '../core/gametime.js?v=5f2b1b8c';
+import * as PK from '../core/pick.js?v=5f2b1b8c'; // V2-03 进货挑品
+import { bell as bellOf } from '../core/inbox.js?v=5f2b1b8c';
+import { now as nowFn } from '../core/clock.js?v=5f2b1b8c';
+import { game } from '../game.js?v=5f2b1b8c';
+import { h, openPanel, toast } from './dom.js?v=5f2b1b8c';
+import { createPortrait } from './portrait.js?v=5f2b1b8c';
+import { audio } from '../platform/audio.js?v=5f2b1b8c';
+import { voiceFile } from '../config/lines.js?v=5f2b1b8c';
 
 export const NAV = [
   { key: 'industry', name: '产业', icon: 'icon_industry' },
@@ -197,9 +198,9 @@ function refresh(s) {
   const bell = bellOf(s);
   ui.top.querySelector('.tb-bell .dot').style.display = bell.red ? '' : 'none';
   const c = ui.top.querySelector('.tb-bell .cnt'); c.textContent = bell.badge; c.style.display = !bell.red && bell.badge ? '' : 'none';
+  { const tn = Date.now(); if (s.title !== ui.lastTitle || !(tn - (ui.badgeAt || 0) < 3000)) { ui.badgeAt = tn; const b = ui.top.querySelector('.tb-badge'); const tx = RL.titleText(s); if (b.textContent !== tx) { b.textContent = tx; b.classList.toggle('ranked', tx.length > TITLES[s.title].name.length); } } }   // 设计98：前 50 名称号后带名次（3 秒刷一次）
   if (s.title !== ui.lastTitle) {
     ui.lastTitle = s.title;
-    ui.top.querySelector('.tb-badge').textContent = TITLES[s.title].name;
     const k = bgKeyFor(s.title);
     ui.bg.style.backgroundImage = k ? `url("${asset(`assets/bg/${k}.webp`)}")` : 'none';
   }

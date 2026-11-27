@@ -1,6 +1,6 @@
 // 设计37 第一节：游戏样式的确认框 / 输入框，替换浏览器自带的确认框和输入框（深底金边；危险操作红按钮）
 // confirmBox(text, { title, ok, cancel, danger }) → Promise<boolean>；inputBox(title, fields: [{ label, value, max }]) → Promise<值数组 | null>
-import { h } from './dom.js?v=a184462c';
+import { h } from './dom.js?v=5f2b1b8c';
 
 const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const host = () => document.querySelector('#phone') || document.body;

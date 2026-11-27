@@ -1,17 +1,17 @@
 // V3-03 出差界面：选带谁去（她这趟要用的属性、爱慕阶段、有没有专属剧情）→ 看交通住宿和花费 → 出发：白天办事（选一次）→ 晚上 → 过夜 → 早上
-import * as TP from '../core/trip.js?v=a184462c';
-import * as AG from '../core/agenda.js?v=a184462c';
-import * as SL from '../core/storylib.js?v=a184462c';
-import * as STY from '../core/styles.js?v=a184462c';
-import { SEC_BY_ID } from '../config/secretaries.js?v=a184462c';
-import { attrs } from '../core/posts.js?v=a184462c';
-import { ensureSec, loveStage, LOVE_STAGES } from '../core/secretary.js?v=a184462c';
-import { fmtMoney } from '../core/format.js?v=a184462c';
-import { asset } from '../platform/assets.js?v=a184462c';
-import { game } from '../game.js?v=a184462c';
-import { now } from '../core/clock.js?v=a184462c';
-import { openPanel, toast } from './dom.js?v=a184462c';
-import { playScene } from './scene.js?v=a184462c';
+import * as TP from '../core/trip.js?v=5f2b1b8c';
+import * as AG from '../core/agenda.js?v=5f2b1b8c';
+import * as SL from '../core/storylib.js?v=5f2b1b8c';
+import * as STY from '../core/styles.js?v=5f2b1b8c';
+import { SEC_BY_ID } from '../config/secretaries.js?v=5f2b1b8c';
+import { attrs } from '../core/posts.js?v=5f2b1b8c';
+import { ensureSec, loveStage, LOVE_STAGES } from '../core/secretary.js?v=5f2b1b8c';
+import { fmtMoney } from '../core/format.js?v=5f2b1b8c';
+import { asset } from '../platform/assets.js?v=5f2b1b8c';
+import { game } from '../game.js?v=5f2b1b8c';
+import { now } from '../core/clock.js?v=5f2b1b8c';
+import { openPanel, toast } from './dom.js?v=5f2b1b8c';
+import { playScene } from './scene.js?v=5f2b1b8c';
 
 const C = TP.TRIP_CFG; const ATTR = { charm: '魅力', wit: '智慧', social: '交际', manage: '管理' };
 export function openTrip(it) {
@@ -34,7 +34,7 @@ function run(it, secId) {
   const s = game.state; const P = TP.plan(s, it); const pu = C.purposes[it.purpose]; const name = SEC_BY_ID[secId].name;
   const sub = (x) => x.replace(/\{sec\}/g, name).replace(/\{城市\}/g, P.city).replace(/\{夜景\}/g, P.view).replace(/\{酒店\}/g, P.hotel);
   const before = SL.lineOf(secId, 'trip_before', Math.random, ''); // V3-04 台词扩充：出差前
-  const steps = [...(before ? [{ who: secId, text: before }] : []), ...(P.plane && P.planeName ? [`你们登上了你的${P.planeName}。`] : []), P.plane ? sub(C.plane) : sub(C.firstClass), `落地${P.city}。`, {
+  const steps = [...(before ? [{ who: secId, text: before }] : []), ...(P.plane ? ['你们登上了你的私人飞机。'] : [])   /* Arvin 11-27：剧情里不写型号 */, P.plane ? sub(C.plane) : sub(C.firstClass), `落地${P.city}。`, {
     choice: { q: sub(pu.q), opts: pu.opts.map((o) => sub(o[0])) },
     then: (i) => {
       const r = TP.go(game.state, it.id, secId, i, now()); if (!r.ok) { toast(r.why); return []; }

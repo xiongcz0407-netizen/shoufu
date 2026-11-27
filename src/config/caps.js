@@ -52,6 +52,7 @@ export const BOUND = {
   'logi.lots': 2000,                            // 车队每批车（折旧要用）
   'garage.cars': 300, 'garage.houses': 300, 'garage.planes': 300, 'garage.yachts': 300,
   'secs.*.rec.dateUsed.*': 10,                  // 设计83 约会片段 / 私密约会场景用过的下标（每组最多 5 段，用完一轮清掉）
+  'ask.seen': 20,                               // 设计96 这次上线来过的秘书（上线时清空）
   'secs.*.owned': 200, 'secs.*.worn': 200, 'secs.*.rec.cities': 100,
   'agenda.items': 50, 'antq.items': 500, 'antq.orders': 50, 'lux.given': 500, 'lux.own': 500, 'lux.orders': 50, 'coupon.gifts': 300,
   'awayBill.*': 300, 'awayBill.capital[]': 10, 'awayBill.work[].cats': 200, 'awayBill.work[].msgs': 300,   // 离线账单（每次回来换一张）

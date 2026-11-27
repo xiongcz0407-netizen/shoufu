@@ -1,19 +1,17 @@
-// 培养课程（汇总第四节 1）。gain：加哪些属性；unlockTitle：哪个称号解锁
-// 价格 = 2000 × 1.12^当前属性值；时间 = 10 分钟 × 1.04^当前属性值（当前属性值按 gain 里第一项算）
+// 培养课程（汇总第四节 1；设计91 现实价格）。gain：加哪些属性；unlockTitle：哪个称号解锁；price：基础价（属性 0 时）；cap：这门课最多练到（加的属性到了就不再加）
+// 价格 = price × (1 + (PRICE_TOP − 1) × 当前属性 ÷ 100)（当前属性按 gain 里第一项算；擅长那项 8 折）；上课立刻学完，不限次数
 export const COURSES = [
-  { id: 'read', name: '读书进修', gain: { wit: 2 }, unlockTitle: 0 },
-  { id: 'meeting', name: '项目例会', gain: { manage: 2 }, unlockTitle: 0 },
-  { id: 'dinner', name: '商务饭局', gain: { social: 2 }, unlockTitle: 0 },
-  { id: 'etiquette', name: '形象礼仪课', gain: { charm: 2 }, unlockTitle: 0 },
-  { id: 'yoga', name: '健身瑜伽', gain: { charm: 1, manage: 1 }, unlockTitle: 1 },
-  { id: 'negotiate', name: '谈判特训', gain: { social: 2, charm: 1 }, unlockTitle: 2 },
-  { id: 'mba', name: '海外 MBA', gain: { wit: 3, manage: 1 }, unlockTitle: 3 },
-  { id: 'gala', name: '高端酒会', gain: { social: 3, charm: 1 }, unlockTitle: 4 },
+  { id: 'read', name: '读书进修', gain: { wit: 2 }, unlockTitle: 0, price: 2000, cap: 50 },
+  { id: 'meeting', name: '项目例会', gain: { manage: 2 }, unlockTitle: 0, price: 5000, cap: 50 },
+  { id: 'dinner', name: '商务饭局', gain: { social: 2 }, unlockTitle: 0, price: 20000, cap: 50 },
+  { id: 'etiquette', name: '形象礼仪课', gain: { charm: 2 }, unlockTitle: 0, price: 10000, cap: 50 },
+  { id: 'yoga', name: '健身瑜伽', gain: { charm: 1, manage: 1 }, unlockTitle: 1, price: 10000, cap: 60 },
+  { id: 'negotiate', name: '谈判特训', gain: { social: 2, charm: 1 }, unlockTitle: 2, price: 50000, cap: 75 },
+  { id: 'mba', name: '海外 MBA', gain: { wit: 3, manage: 2 }, unlockTitle: 3, price: 800000, cap: 100 },
+  { id: 'gala', name: '高端酒会', gain: { social: 3, charm: 2 }, unlockTitle: 4, price: 200000, cap: 100 },
 ];
 export const COURSE_BY_ID = Object.fromEntries(COURSES.map((c) => [c.id, c]));
-export const BASE_SLOTS = 2;       // 开局培训位，每升一个称号 +1
-export const PRICE_BASE = 2000, PRICE_GROW = 1.12;
-export const TIME_BASE_SEC = 600, TIME_GROW = 1.04;
+export const PRICE_TOP = 3;        // 设计91：属性 100 时价格是基础价的几倍（0 是 1 倍、50 是 2 倍）
 export const BEST_DISCOUNT = 0.8;  // 擅长那项 8 折、多 +1
 // 结业台词（每人一句，按性格）
 export const GRAD_LINES = {
@@ -28,4 +26,6 @@ export const GRAD_LINES = {
   s04_gu: '课程不错，我顺便做了一份可以用在公司的方案。',
   s02_su: '结束了。下次给我报难一点的。',
   s11_qiao: '学完了。……我记下了。',
+  s12_wen: '学完了。……已读，已掌握。',
+  s13_bai: '学会啦。……这场戏，我拿下了。',
 };
