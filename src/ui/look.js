@@ -1,21 +1,21 @@
 // 设计41 / 46 / 47 看盘界面（开发2）：看盘那一块（开始 / 结束；设计63 去掉了「现在看一眼」）、看盘消息弹框（10 股 / 半仓 / 全仓，设计90）、照她说的挂单（条件单表）、消息「重要」里的按钮
-import { earnAt } from './earn.js?v=5f2b1b8c';   // 设计65：挂单写百分比
-import { whyToast } from './invest.js?v=5f2b1b8c';   // 设计62：钱不够一键从个人账户转入
-import * as SK from '../core/stocks.js?v=5f2b1b8c';
-import * as TR from '../core/trade.js?v=5f2b1b8c';
-import * as LK from '../core/look.js?v=5f2b1b8c';
-import * as I from '../core/inbox.js?v=5f2b1b8c';
-import { SEC_BY_ID } from '../config/secretaries.js?v=5f2b1b8c';
-import { fmtMoney } from '../core/format.js?v=5f2b1b8c';
-import { asset, hasAsset } from '../platform/assets.js?v=5f2b1b8c';
-import { game } from '../game.js?v=5f2b1b8c';
-import { now } from '../core/clock.js?v=5f2b1b8c';
-import { h, openPanel, toast } from './dom.js?v=5f2b1b8c';
-import { addActionUi } from './inbox.js?v=5f2b1b8c';
-import * as WSM from '../core/ws.js?v=5f2b1b8c';   // 设计47
-import { attrs as secAttrs } from '../core/posts.js?v=5f2b1b8c';
-import { isTraining } from '../core/training.js?v=5f2b1b8c';
-import { itemIcon, goBuyHtml, bindGoBuy } from './coupon.js?v=5f2b1b8c';   // 设计53 投资券
+import { earnAt } from './earn.js?v=701a82d3';   // 设计65：挂单写百分比
+import { whyToast } from './invest.js?v=701a82d3';   // 设计62：钱不够一键从个人账户转入
+import * as SK from '../core/stocks.js?v=701a82d3';
+import * as TR from '../core/trade.js?v=701a82d3';
+import * as LK from '../core/look.js?v=701a82d3';
+import * as I from '../core/inbox.js?v=701a82d3';
+import { SEC_BY_ID } from '../config/secretaries.js?v=701a82d3';
+import { fmtMoney } from '../core/format.js?v=701a82d3';
+import { asset, hasAsset } from '../platform/assets.js?v=701a82d3';
+import { game } from '../game.js?v=701a82d3';
+import { now } from '../core/clock.js?v=701a82d3';
+import { h, openPanel, toast } from './dom.js?v=701a82d3';
+import { addActionUi } from './inbox.js?v=701a82d3';
+import * as WSM from '../core/ws.js?v=701a82d3';   // 设计47
+import { attrs as secAttrs } from '../core/posts.js?v=701a82d3';
+import { isTraining } from '../core/training.js?v=701a82d3';
+import { itemIcon, goBuyHtml, bindGoBuy } from './coupon.js?v=701a82d3';   // 设计53 投资券
 
 const W = SK.SCFG.watch; const WSC = W.ws;
 const SCAN_MIN = WSC.scanTicks * SK.SCFG.tickSec / 60;   // 设计67：每 2.5 分钟自动看一次（不取整）

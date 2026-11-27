@@ -1,11 +1,11 @@
 // 公司交税（设计15 第二节 1）：增值税 + 附加每游戏月；企业所得税每游戏季度预缴；分红代扣 20% 个税
-import { capAdd } from './cap.js?v=5f2b1b8c';   // 设计79：有上限的列表（config/caps.js）
-import * as BK from './books.js?v=5f2b1b8c';   // 设计79 第三版
-import TAX from '../config/tax.json?v=5f2b1b8c' with { type: 'json' };
-import { pay, receive, canPay } from './ledger.js?v=5f2b1b8c';
-import { MONTH_MS } from './gametime.js?v=5f2b1b8c';
-import { addContract } from './contracts.js?v=5f2b1b8c';
-import { plOf } from './pl.js?v=5f2b1b8c';   // 设计93：月度利润按利润表口径
+import { capAdd } from './cap.js?v=701a82d3';   // 设计79：有上限的列表（config/caps.js）
+import * as BK from './books.js?v=701a82d3';   // 设计79 第三版
+import TAX from '../config/tax.json?v=701a82d3' with { type: 'json' };
+import { pay, receive, canPay } from './ledger.js?v=701a82d3';
+import { MONTH_MS } from './gametime.js?v=701a82d3';
+import { addContract } from './contracts.js?v=701a82d3';
+import { plOf } from './pl.js?v=701a82d3';   // 设计93：月度利润按利润表口径
 export { TAX };
 
 const sum = (o) => Object.values(o || {}).reduce((a, b) => a + b, 0);

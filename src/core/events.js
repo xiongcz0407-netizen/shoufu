@@ -1,11 +1,11 @@
 // 事件系统（设计20 第四节）：配置驱动。条件 → 消息中心（kind 'event'）→ 剧情 + 选择 → 花钱 / 好感 / 剧情标记
-import { capAdd } from './cap.js?v=5f2b1b8c';   // 设计79：有上限的列表（config/caps.js）
-import { EVENTS, EVENT_BY_ID, EVENT_GAP_MIN } from '../config/events.js?v=5f2b1b8c';
-import { addMsg } from './inbox.js?v=5f2b1b8c';
-import { pay, receive, canPay } from './ledger.js?v=5f2b1b8c';
-import { netWorth } from './economy.js?v=5f2b1b8c';
-import { totalStaff } from './staff.js?v=5f2b1b8c';
-import { addFavor } from './affection.js?v=5f2b1b8c';
+import { capAdd } from './cap.js?v=701a82d3';   // 设计79：有上限的列表（config/caps.js）
+import { EVENTS, EVENT_BY_ID, EVENT_GAP_MIN } from '../config/events.js?v=701a82d3';
+import { addMsg } from './inbox.js?v=701a82d3';
+import { pay, receive, canPay } from './ledger.js?v=701a82d3';
+import { netWorth } from './economy.js?v=701a82d3';
+import { totalStaff } from './staff.js?v=701a82d3';
+import { addFavor } from './affection.js?v=701a82d3';
 
 const MIN = 60e3;
 const ev = (s, id) => { s.events = s.events || {}; return (s.events[id] = s.events[id] || { done: false, msg: 0, snoozeUntil: 0, times: 0 }); };

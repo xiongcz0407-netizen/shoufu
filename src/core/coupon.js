@@ -2,17 +2,17 @@
 // 存档 s.coupon = { bal, log: [{ t, n, why }], seen: { title, goal, final: {}, favor: {}, win: {} }, day: { key, sign, tasks, refill, talks: { 秘书id: 用了几张 } } }
 // 怎么得：全在 tick 里看（签到、每日任务全领完、目标链、升称号、收购最终对手、好感升阶、第一次赢对手），不改别的模块；新开局时把「已经有的」记成看过，不补发。
 // 挂钩默认已经接开发1 的真函数；测试可以用 setCouponHooks 换掉：{ energyAdd, refill, refillState, auto }
-import { capAdd } from './cap.js?v=5f2b1b8c';   // 设计79：有上限的列表（config/caps.js）
-import C from '../config/coupon.json?v=5f2b1b8c' with { type: 'json' };
-import { daily, dayKey, talkExtra } from './affection.js?v=5f2b1b8c';
-import { tasksFor } from './daily.js?v=5f2b1b8c';
-import { gl } from './goals.js?v=5f2b1b8c';
-import { favorStage } from './secretary.js?v=5f2b1b8c';
-import { RIVALS } from '../config/rivals.js?v=5f2b1b8c';
-import { addEnergy, autoActLeft, useAutoTicket } from './manage.js?v=5f2b1b8c';
-import { whyNotMore, more as bizMore, moreLeft } from './bizevents.js?v=5f2b1b8c';
-import { addMsg } from './inbox.js?v=5f2b1b8c';
-import { addLoadFix } from './loadfix.js?v=5f2b1b8c';
+import { capAdd } from './cap.js?v=701a82d3';   // 设计79：有上限的列表（config/caps.js）
+import C from '../config/coupon.json?v=701a82d3' with { type: 'json' };
+import { daily, dayKey, talkExtra } from './affection.js?v=701a82d3';
+import { tasksFor } from './daily.js?v=701a82d3';
+import { gl } from './goals.js?v=701a82d3';
+import { favorStage } from './secretary.js?v=701a82d3';
+import { RIVALS } from '../config/rivals.js?v=701a82d3';
+import { addEnergy, autoActLeft, useAutoTicket } from './manage.js?v=701a82d3';
+import { whyNotMore, more as bizMore, moreLeft } from './bizevents.js?v=701a82d3';
+import { addMsg } from './inbox.js?v=701a82d3';
+import { addLoadFix } from './loadfix.js?v=701a82d3';
 export { C as COUPON_CFG };
 export const ITEMS = C.items;
 export const ITEM_KEYS = C.order;

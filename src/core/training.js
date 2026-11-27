@@ -1,15 +1,15 @@
 // 培养：课程价格、立刻学完（设计35 第八节：不再等时间、没有培训位；存档里正在上的课读档时直接结业）；设计91：每门课现实价格 + 最多练到，不限次数
-import { COURSES, COURSE_BY_ID, PRICE_TOP, BEST_DISCOUNT } from '../config/courses.js?v=5f2b1b8c';
-import { SEC_BY_ID } from '../config/secretaries.js?v=5f2b1b8c';
-import { ensureSec } from './secretary.js?v=5f2b1b8c';
-import { bump } from './daily.js?v=5f2b1b8c';
-import { pay, canPay } from './ledger.js?v=5f2b1b8c';
-import { deduct as deductTax } from './companytax.js?v=5f2b1b8c';   // 设计93 挂钩（开发1）
+import { COURSES, COURSE_BY_ID, PRICE_TOP, BEST_DISCOUNT } from '../config/courses.js?v=701a82d3';
+import { SEC_BY_ID } from '../config/secretaries.js?v=701a82d3';
+import { ensureSec } from './secretary.js?v=701a82d3';
+import { bump } from './daily.js?v=701a82d3';
+import { pay, canPay } from './ledger.js?v=701a82d3';
+import { deduct as deductTax } from './companytax.js?v=701a82d3';   // 设计93 挂钩（开发1）
 
 export const ATTR_MAX = 100;
 /** 设计35 第八节：上课立刻学完，一律不占人（商战 / 踩点 / 出差 / 职位效率都不受影响） */
 export const isTraining = () => false;
-export const availableCourses = (s) => COURSES.filter((c) => s.title >= c.unlockTitle);
+export const availableCourses = (s) => COURSES.slice();   // 设计101：不锁称号，开局全部能上（只看上限和钱）
 
 const mainAttr = (course) => Object.keys(course.gain)[0];
 const hasBest = (secId, course) => SEC_BY_ID[secId].best in course.gain;
@@ -37,7 +37,7 @@ export function courseGain(s, secId, courseId) {
 /** 不能上的原因；能上返回 null */
 export function whyNot(s, secId, courseId) {
   const c = COURSE_BY_ID[courseId];
-  if (!c || s.title < c.unlockTitle) return '课程还没解锁';
+  if (!c) return '没有这门课';
   if (!s.secs[secId]) return '还没有这个秘书';
   if (Object.values(courseGain(s, secId, courseId)).every((v) => v <= 0)) return capWhy(c);   // 设计91：这门课加的几项都到上限才灰掉
   if (!canPay(s, 'company', coursePrice(s, secId, courseId))) return '公司账户不够';
@@ -70,7 +70,7 @@ export function quoteTo(s, secId, courseId, target) {
 /** 一次买到 target：钱不够整单不买 */
 export function learnTo(s, secId, courseId, target, t = Date.now()) {
   const c = COURSE_BY_ID[courseId];
-  if (!c || s.title < c.unlockTitle) return { ok: false, why: '课程还没解锁' };
+  if (!c) return { ok: false, why: '没有这门课' };
   const q = quoteTo(s, secId, courseId, target);
   if (!q.n) return { ok: false, why: '已经到了' };
   if (!canPay(s, 'company', q.total)) return { ok: false, why: `公司账户不够（要 ${q.total}）` };

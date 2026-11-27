@@ -1,13 +1,13 @@
 // 「资产 → 收藏」（第 2-13 项）：收藏室（我的藏品）| 古玩市场 | 拍卖会 | 私洽
-import * as AQ from '../core/antique.js?v=5f2b1b8c';
-import * as INB from '../core/inbox.js?v=5f2b1b8c';
-import { SEC_BY_ID } from '../config/secretaries.js?v=5f2b1b8c';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=5f2b1b8c';
-import { asset, hasAsset } from '../platform/assets.js?v=5f2b1b8c';
-import { game } from '../game.js?v=5f2b1b8c';
-import { now } from '../core/clock.js?v=5f2b1b8c';
-import { h, openPanel, toast } from './dom.js?v=5f2b1b8c';
-import { renderAuctionHouse } from './auction.js?v=5f2b1b8c';
+import * as AQ from '../core/antique.js?v=701a82d3';
+import * as INB from '../core/inbox.js?v=701a82d3';
+import { SEC_BY_ID } from '../config/secretaries.js?v=701a82d3';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=701a82d3';
+import { asset, hasAsset } from '../platform/assets.js?v=701a82d3';
+import { game } from '../game.js?v=701a82d3';
+import { now } from '../core/clock.js?v=701a82d3';
+import { h, openPanel, toast } from './dom.js?v=701a82d3';
+import { renderAuctionHouse } from './auction.js?v=701a82d3';
 
 const pic = (x, cls = 'as-img') => (hasAsset(`assets/antique/${x.id}.webp`) ? `<img class="${cls}" src="${asset(`assets/antique/${x.id}.webp`)}" alt="">` : `<div class="${cls} as-ph">${x.name}<small>${AQ.CH_NAME[x.channel]}</small></div>`);
 const RAR = { limited: ['badge_limited', '限量'], unique: ['badge_unique', '孤品'] };

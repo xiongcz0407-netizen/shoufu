@@ -2,8 +2,8 @@
    - 合同 contracts 留 100 份全文，更早的进 s.contractsOld 只留摘要 { no, t, title, party, total, old: true }（留 200 份）
    - 完税凭证 taxes 加进来时顺手记进 books.tax（cap.js 的 onAdd）
    - 做完的地产项目留最近 20 个（还挂着贷款的不动） */
-import { setFold, setOnAdd, addTrim, capPush, capOf } from './cap.js?v=5f2b1b8c';
-import { bookTax } from './books.js?v=5f2b1b8c';
+import { setFold, setOnAdd, addTrim, capPush, capOf } from './cap.js?v=701a82d3';
+import { bookTax } from './books.js?v=701a82d3';
 
 export const contractStub = (c) => ({ no: c.no, t: c.t, title: c.title, party: ((c.parties || []).find(([k]) => /乙方|对方|卖方|出让|贷款人|银行/.test(k)) || (c.parties || [])[1] || [, ''])[1] || '', total: c.total, old: true });
 export function foldContracts(s, old) { const L = (s.contractsOld = s.contractsOld || []); for (const c of old) capPush(L, c.old ? c : contractStub(c), capOf('contractsOld')); }   // 摘要也有上限（再早的丢掉）

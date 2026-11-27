@@ -2,16 +2,16 @@
 // s.ask = { day 本地日, at 今天累计在线多少秒来, on 今天累计在线秒数, done 今天来过了, seen [这次上线来过的 id], pending { id, idx } 卡片挂着还没答, last { id: 上次来的时间 } }
 // 一天一个：当天累计在线 5～40 分钟里的随机时刻；精力 < 100 先等；看剧情 / 商战 / 约会 / 弹框时不来（busy）
 // 人选：恋人（爱慕 ≥ 80）、有主动要求剧情（她现在阶段能用的）、没在上课 / 外派、这次上线没来过；最近来过的往后排（轮着来）
-import { ASK_LIB } from '../config/story/index.js?v=5f2b1b8c';
-import { SECRETARIES } from '../config/secretaries.js?v=5f2b1b8c';
-import { E_COST, energy, doEnergy } from './manage.js?v=5f2b1b8c';
-import { recordDate } from './dates.js?v=5f2b1b8c';
-import { canBring } from './trip.js?v=5f2b1b8c';
-import { pickN, stageOf } from './datelib.js?v=5f2b1b8c';
-import { ensureSec } from './secretary.js?v=5f2b1b8c';
-import { PRIV_MIN_LOVE, PRIV_LOVE, PRIV_FAVOR, afterPriv } from './privdate.js?v=5f2b1b8c';
-import { localDay } from './afterlines.js?v=5f2b1b8c';
-import { addLoadFix } from './loadfix.js?v=5f2b1b8c';
+import { ASK_LIB } from '../config/story/index.js?v=701a82d3';
+import { SECRETARIES } from '../config/secretaries.js?v=701a82d3';
+import { E_COST, energy, doEnergy } from './manage.js?v=701a82d3';
+import { recordDate } from './dates.js?v=701a82d3';
+import { canBring } from './trip.js?v=701a82d3';
+import { pickN, stageOf } from './datelib.js?v=701a82d3';
+import { ensureSec } from './secretary.js?v=701a82d3';
+import { PRIV_MIN_LOVE, PRIV_LOVE, PRIV_FAVOR, afterPriv } from './privdate.js?v=701a82d3';
+import { localDay } from './afterlines.js?v=701a82d3';
+import { addLoadFix } from './loadfix.js?v=701a82d3';
 
 export const ASK_MIN = 5, ASK_MAX = 40;   // 分钟
 export const ASK_PLACE = '主动要求';

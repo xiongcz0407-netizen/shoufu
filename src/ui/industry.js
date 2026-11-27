@@ -1,16 +1,16 @@
 // 产业面板：升级、开分店、派驻秘书；产业图按等级换样子
-import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=5f2b1b8c';
-import { TITLES } from '../config/titles.js?v=5f2b1b8c';
-import * as PQ from '../core/prereq.js?v=5f2b1b8c'; // V2-12 前置条件
-import { shortText, moneyGap, doUpgrade } from './company.js?v=5f2b1b8c';
-import { askFill } from './fill.js?v=5f2b1b8c'; // V0.2.2 // V0.2.1 灰按钮写原因
-import { SEC_BY_ID } from '../config/secretaries.js?v=5f2b1b8c';
-import * as E from '../core/economy.js?v=5f2b1b8c';
-import { fmtMoney } from '../core/format.js?v=5f2b1b8c';
-import { asset, hasAsset } from '../platform/assets.js?v=5f2b1b8c';
-import { game } from '../game.js?v=5f2b1b8c';
-import { now } from '../core/clock.js?v=5f2b1b8c';
-import { h, openPanel, toast } from './dom.js?v=5f2b1b8c';
+import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=701a82d3';
+import { TITLES } from '../config/titles.js?v=701a82d3';
+import * as PQ from '../core/prereq.js?v=701a82d3'; // V2-12 前置条件
+import { shortText, moneyGap, doUpgrade } from './company.js?v=701a82d3';
+// V0.2.1 灰按钮写原因
+import { SEC_BY_ID } from '../config/secretaries.js?v=701a82d3';
+import * as E from '../core/economy.js?v=701a82d3';
+import { fmtMoney } from '../core/format.js?v=701a82d3';
+import { asset, hasAsset } from '../platform/assets.js?v=701a82d3';
+import { game } from '../game.js?v=701a82d3';
+import { now } from '../core/clock.js?v=701a82d3';
+import { h, openPanel, toast } from './dom.js?v=701a82d3';
 
 export function openIndustry(host) {
   const p = host || openPanel('我的产业');
@@ -49,7 +49,7 @@ export function openIndustry(host) {
         </div>`);
       card.dataset.id = cfg.id;
       card.querySelector('.up').onclick = () => doUpgrade(cfg.id, render);
-      card.querySelector('.br').onclick = () => { if (E.openBranch(s, cfg.id, now())) { toast(`${cfg.name}开到 ${ind.branches} 家了`); game.changed(); render(); askFill(cfg.id); } };
+      card.querySelector('.br').onclick = () => { if (E.openBranch(s, cfg.id, now())) { toast(`${cfg.name}开到 ${ind.branches} 家了`); game.changed(); render(); /* 设计102：不弹招人 */ } };
       card.querySelector('.sec').onclick = () => pickSec(cfg.id, render);
       list.appendChild(card);
     }

@@ -1,25 +1,25 @@
 // 约会：选地点 → 开车去 → 约会画面（背景、她的台词、加了多少）→ 次数解锁
 // 设计83：一场按爱慕阶段从片段库拼（open 1 + chat 2 + end 1，用完才轮回）；恋人以后加「私密约会」（车里 / 私人飞机 / 游艇，两次 3 选 1 → 黑屏 → 精力清空）
-import * as MG from '../core/manage.js?v=5f2b1b8c'; // 设计39 约会花精力
-import { SEC_BY_ID } from '../config/secretaries.js?v=5f2b1b8c';
-import { DATE_PLACES, DATES_PER_DAY, DATE5_LINES, DATE50_TITLE, RARE_NARR, RARE_REACT, ROOFTOP_LINES } from '../config/dates.js?v=5f2b1b8c';
-import * as LMK from '../core/landmark.js?v=5f2b1b8c';
-import { FIRST_DATE_LINES, DATE50_LINES } from '../config/love-stories.js?v=5f2b1b8c';
-import { LINES } from '../config/lines.js?v=5f2b1b8c';
-import * as D from '../core/dates.js?v=5f2b1b8c';
-import { fmtMoney } from '../core/format.js?v=5f2b1b8c';
-import { now } from '../core/clock.js?v=5f2b1b8c';
-import { asset, hasAsset } from '../platform/assets.js?v=5f2b1b8c';
-import { game } from '../game.js?v=5f2b1b8c';
-import { h, openPanel, toast } from './dom.js?v=5f2b1b8c';
-import { playStory } from './story.js?v=5f2b1b8c';
-import { potionHtml, bindPotion, openWallet } from './coupon.js?v=5f2b1b8c'; // 设计39 精力药水（开发2）
-import * as DL from '../core/datelib.js?v=5f2b1b8c';   // 设计83 约会片段库
-import * as PD from '../core/privdate.js?v=5f2b1b8c';  // 设计83 私密约会
-import * as RD from '../core/ride.js?v=5f2b1b8c';      // 设计71 座驾
-import { privOutfit } from '../core/styles.js?v=5f2b1b8c';
-import { playScene } from './scene.js?v=5f2b1b8c';
-import { confirmBox } from './confirm.js?v=5f2b1b8c';
+import * as MG from '../core/manage.js?v=701a82d3'; // 设计39 约会花精力
+import { SEC_BY_ID } from '../config/secretaries.js?v=701a82d3';
+import { DATE_PLACES, DATES_PER_DAY, DATE5_LINES, DATE50_TITLE, RARE_NARR, RARE_REACT, ROOFTOP_LINES } from '../config/dates.js?v=701a82d3';
+import * as LMK from '../core/landmark.js?v=701a82d3';
+import { FIRST_DATE_LINES, DATE50_LINES } from '../config/love-stories.js?v=701a82d3';
+import { LINES } from '../config/lines.js?v=701a82d3';
+import * as D from '../core/dates.js?v=701a82d3';
+import { fmtMoney } from '../core/format.js?v=701a82d3';
+import { now } from '../core/clock.js?v=701a82d3';
+import { asset, hasAsset } from '../platform/assets.js?v=701a82d3';
+import { game } from '../game.js?v=701a82d3';
+import { h, openPanel, toast } from './dom.js?v=701a82d3';
+import { playStory } from './story.js?v=701a82d3';
+import { potionHtml, bindPotion, openWallet } from './coupon.js?v=701a82d3'; // 设计39 精力药水（开发2）
+import * as DL from '../core/datelib.js?v=701a82d3';   // 设计83 约会片段库
+import * as PD from '../core/privdate.js?v=701a82d3';  // 设计83 私密约会
+import * as RD from '../core/ride.js?v=701a82d3';      // 设计71 座驾
+import { privOutfit } from '../core/styles.js?v=701a82d3';
+import { playScene } from './scene.js?v=701a82d3';
+import { confirmBox } from './confirm.js?v=701a82d3';
 
 // 车：返回 { tier, name, rarity: 'normal'|'limited'|'unique', count }；没车就打车
 let carFor = () => ({ tier: 0, name: '' });

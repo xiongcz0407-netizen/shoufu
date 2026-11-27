@@ -1,20 +1,20 @@
 // 上市（第 3-04 项，设计23 第四节）：四个板块条件 → 选券商 → 股改 → 辅导 → 申报审核（可能问询）→ 发行定价 → 路演 → 敲钟
 // 上市后：你的公司进股票列表（自己一只，跟大盘和利润走）；身价 = 市值 × 你的持股；锁定期后每 3 个游戏月最多减持 1%（限售股 20% 个税）；每年年报 + 分红
-import { capAdd } from './cap.js?v=5f2b1b8c';   // 设计79：有上限的列表（config/caps.js）
-import * as BK from './books.js?v=5f2b1b8c';   // 设计79 第三版
-import CFG from '../config/listing.json?v=5f2b1b8c' with { type: 'json' };
-import { pay, receive, canPay, canPayMust } from './ledger.js?v=5f2b1b8c';
-import { addContract } from './contracts.js?v=5f2b1b8c';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=5f2b1b8c';
-import { taxRec } from './fiscal.js?v=5f2b1b8c';
-import { gm } from './calib.js?v=5f2b1b8c';
-import { addMsg } from './inbox.js?v=5f2b1b8c';
-import { holder, isSec } from './posts.js?v=5f2b1b8c';
-import { companyEquity, earningsValue, stakeOf, addNetWorthHook } from './economy.js?v=5f2b1b8c';
-import { cap, ipoPower } from './capital.js?v=5f2b1b8c';
-import { room } from './cashflow.js?v=5f2b1b8c'; // V0.2.3
-import * as SK from './stocks.js?v=5f2b1b8c';
-import { deduct as deductTax } from './companytax.js?v=5f2b1b8c';   // 设计93 挂钩（开发1）：中介费税前扣
+import { capAdd } from './cap.js?v=701a82d3';   // 设计79：有上限的列表（config/caps.js）
+import * as BK from './books.js?v=701a82d3';   // 设计79 第三版
+import CFG from '../config/listing.json?v=701a82d3' with { type: 'json' };
+import { pay, receive, canPay, canPayMust } from './ledger.js?v=701a82d3';
+import { addContract } from './contracts.js?v=701a82d3';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=701a82d3';
+import { taxRec } from './fiscal.js?v=701a82d3';
+import { gm } from './calib.js?v=701a82d3';
+import { addMsg } from './inbox.js?v=701a82d3';
+import { holder, isSec } from './posts.js?v=701a82d3';
+import { companyEquity, earningsValue, stakeOf, addNetWorthHook } from './economy.js?v=701a82d3';
+import { cap, ipoPower } from './capital.js?v=701a82d3';
+import { room } from './cashflow.js?v=701a82d3'; // V0.2.3
+import * as SK from './stocks.js?v=701a82d3';
+import { deduct as deductTax } from './companytax.js?v=701a82d3';   // 设计93 挂钩（开发1）：中介费税前扣
 
 export const LCFG = CFG;
 export const BOARDS = CFG.boards;

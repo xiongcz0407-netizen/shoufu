@@ -1,8 +1,8 @@
 // 设计71 座驾：s.ride = { car, plane, yacht }（资产 id）。没设过 / 设过的那台卖掉了 = 用这一类里最贵的那台（跟以前一样）
 // 设计83 私密约会：座驾不符合条件（敞篷车、直升机 / 2 座以下）→ 这一类里符合条件的最贵那台；一台都没有 → null
-import { ITEM, bestCar } from './assets.js?v=5f2b1b8c';
-import * as YT from './yacht.js?v=5f2b1b8c';
-import { isRented } from './postwork.js?v=5f2b1b8c';
+import { ITEM, bestCar } from './assets.js?v=701a82d3';
+import * as YT from './yacht.js?v=701a82d3';
+import { isRented } from './postwork.js?v=701a82d3';
 
 export const KINDS = ['car', 'plane', 'yacht'];
 export const KIND_NAME = { car: '车', plane: '飞机', yacht: '游艇' };

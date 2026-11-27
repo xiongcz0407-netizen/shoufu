@@ -1,18 +1,18 @@
 // 只有一个存档，自动存；带存档版本号，新版本必须能读旧存档
-import { APP_V } from '../version.js?v=5f2b1b8c';
-import { mkt, fillNew } from './stocks.js?v=5f2b1b8c';
+import { APP_V } from '../version.js?v=701a82d3';
+import { mkt, fillNew } from './stocks.js?v=701a82d3';
 
 export const SAVE_KEY = 'shoufu_save';
 export const SAVE_VERSION = 2; // 第一次发布（V0.1）是 1；2：V0.2 取消境外账户（设计30，core/migrate.js v1to2）
-import { v1to2 } from './migrate.js?v=5f2b1b8c';
-import { dropOrphans } from './orphans.js?v=5f2b1b8c';
-import { recallEmpty } from './posts.js?v=5f2b1b8c';
-import { trimAll } from './cap.js?v=5f2b1b8c';   // 设计79：读档整理一次（列表封顶）
-import { buildBooks } from './books.js?v=5f2b1b8c';
-import { replayHooks } from './ledger.js?v=5f2b1b8c';
-import { runLoadFix } from './loadfix.js?v=5f2b1b8c';   // 各模块挂的读档整理（设计86 约会券退金券在 core/coupon.js）
-import './slim.js?v=5f2b1b8c';
-import './slimday.js?v=5f2b1b8c';
+import { v1to2 } from './migrate.js?v=701a82d3';
+import { dropOrphans } from './orphans.js?v=701a82d3';
+import { recallEmpty } from './posts.js?v=701a82d3';
+import { trimAll } from './cap.js?v=701a82d3';   // 设计79：读档整理一次（列表封顶）
+import { buildBooks } from './books.js?v=701a82d3';
+import { replayHooks } from './ledger.js?v=701a82d3';
+import { runLoadFix } from './loadfix.js?v=701a82d3';   // 各模块挂的读档整理（设计86 约会券退金券在 core/coupon.js）
+import './slim.js?v=701a82d3';
+import './slimday.js?v=701a82d3';
 
 /** 局号：每开一局一个 */
 export const newGid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
