@@ -1,23 +1,23 @@
 // 地产详情（公司 → 产业 → 地产，全屏）：土地市场 | 我的项目 | 持有物业；举牌在底部抽屉
-import { openNegotiate } from './negotiate.js?v=3839f433'; // V2-07 谈地（开发2 的谈判）
-import { bigBonus } from '../core/manage.js?v=3839f433';
-import * as RE from '../core/realestate.js?v=3839f433';
-import * as ST from '../core/staff.js?v=3839f433';
-import * as PO from '../core/posts.js?v=3839f433';
-import { SEC_BY_ID } from '../config/secretaries.js?v=3839f433';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=3839f433';
-import { now } from '../core/clock.js?v=3839f433';
-import { game } from '../game.js?v=3839f433';
-import { h, openPanel, toast, liveRender } from './dom.js?v=3839f433';
-import { openFull } from './shell.js?v=3839f433';
-import { openHire, cityRows, bindCityRows } from './company.js?v=3839f433';
-import { CITY_IDS } from '../core/cities.js?v=3839f433';   // 设计92 小修：城市分公司（N/7）
-import { openPost } from './posts.js?v=3839f433';
-import { asset, hasAsset } from '../platform/assets.js?v=3839f433';
-import { MONTH_MS } from '../core/gametime.js?v=3839f433';
-import { gm } from '../core/calib.js?v=3839f433';
-import { hint } from './guide.js?v=3839f433';
-import { hintLater } from './guide2.js?v=3839f433';
+import { openNegotiate } from './negotiate.js?v=b846574c'; // V2-07 谈地（开发2 的谈判）
+import { bigBonus } from '../core/manage.js?v=b846574c';
+import * as RE from '../core/realestate.js?v=b846574c';
+import * as ST from '../core/staff.js?v=b846574c';
+import * as PO from '../core/posts.js?v=b846574c';
+import { SEC_BY_ID } from '../config/secretaries.js?v=b846574c';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=b846574c';
+import { now } from '../core/clock.js?v=b846574c';
+import { game } from '../game.js?v=b846574c';
+import { h, openPanel, toast, liveRender } from './dom.js?v=b846574c';
+import { openFull } from './shell.js?v=b846574c';
+import { openHire, cityRows, bindCityRows } from './company.js?v=b846574c';
+import { CITY_IDS } from '../core/cities.js?v=b846574c';   // 设计92 小修：城市分公司（N/7）
+import { openPost } from './posts.js?v=b846574c';
+import { asset, hasAsset } from '../platform/assets.js?v=b846574c';
+import { MONTH_MS } from '../core/gametime.js?v=b846574c';
+import { gm } from '../core/calib.js?v=b846574c';
+import { hint } from './guide.js?v=b846574c';
+import { hintLater } from './guide2.js?v=b846574c';
 
 const C = RE.RE_CFG;
 const city = (k) => C.cities[k].name;

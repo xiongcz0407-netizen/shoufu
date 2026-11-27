@@ -1,19 +1,19 @@
 // 亲自站柜台（V2-04，设计28 第一节）：上半屏门店图 + 店名 / 今天主推 / 天气；下半屏柜台顾客排队（最多 4 个）；底部今天的统计和「离开柜台」
 // 离开页面就停（离线没有）；同一时间只能站一家店
-import * as CT from '../core/counter.js?v=3839f433';
-import { IND_BY_ID } from '../config/industries.js?v=3839f433';
-import { SEC_BY_ID } from '../config/secretaries.js?v=3839f433';
-import { fmtMoney } from '../core/format.js?v=3839f433';
-import { asset, hasAsset } from '../platform/assets.js?v=3839f433';
-import { game } from '../game.js?v=3839f433';
-import { now } from '../core/clock.js?v=3839f433';
-import { h, toast } from './dom.js?v=3839f433';
-import { openFull } from './shell.js?v=3839f433';
-import { isStoryPlaying } from './story.js?v=3839f433';
-import { openPanel } from './dom.js?v=3839f433';
-import * as I from '../core/inbox.js?v=3839f433';
-import { actOn } from './inbox.js?v=3839f433';
-import * as AGD from '../core/agenda.js?v=3839f433';
+import * as CT from '../core/counter.js?v=b846574c';
+import { IND_BY_ID } from '../config/industries.js?v=b846574c';
+import { SEC_BY_ID } from '../config/secretaries.js?v=b846574c';
+import { fmtMoney } from '../core/format.js?v=b846574c';
+import { asset, hasAsset } from '../platform/assets.js?v=b846574c';
+import { game } from '../game.js?v=b846574c';
+import { now } from '../core/clock.js?v=b846574c';
+import { h, toast } from './dom.js?v=b846574c';
+import { openFull } from './shell.js?v=b846574c';
+import { isStoryPlaying } from './story.js?v=b846574c';
+import { openPanel } from './dom.js?v=b846574c';
+import * as I from '../core/inbox.js?v=b846574c';
+import { actOn } from './inbox.js?v=b846574c';
+import * as AGD from '../core/agenda.js?v=b846574c';
 
 // V0.2.3（设计35 第四节）：离开柜台连击保留 2 分钟，2 分钟内回来接着算
 const KEEP_MS = 2 * 60e3; let kept = null;
@@ -57,7 +57,7 @@ export function openCounter(id) {
   p.body.classList.add('ct-body');
   const qwrap = h('div', 'ct-qwrap'); qwrap.append(q, fl);
   p.body.append(top, alert, secs, cap, qwrap, foot);
-  alert.onclick = () => { const x = pendingThing(game.state, now()); if (!x) return; if (x.kind === 'agenda') { import('./agenda.js?v=3839f433').then((A) => A.openAgenda()); return; } openThing(x.m); };
+  alert.onclick = () => { const x = pendingThing(game.state, now()); if (!x) return; if (x.kind === 'agenda') { import('./agenda.js?v=b846574c').then((A) => A.openAgenda()); return; } openThing(x.m); };
   /** 在柜台上面弹事件卡（同消息里那张，选项一样），选完回柜台 */
   const openThing = (m) => {
     const s = game.state; const from = SEC_BY_ID[m.from];

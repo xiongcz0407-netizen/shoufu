@@ -1293,3 +1293,5 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 .ua-in { position: relative; } .ua-in .ua-num { width: 100%; padding: 10px 56px 10px 10px; border-radius: 8px; border: 1px solid #34425c; background: #18223a; color: var(--paper); font-size: 16px; box-sizing: border-box; }
 .ua-in .ua-unit { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--gold); font-weight: 700; }
 .ua-eq { min-height: 18px; margin: 4px 2px 8px; font-size: 13px; opacity: .75; } .ua-eq.neg { color: #ff6b6b; opacity: 1; }
+/* 设计111 投拍进度条下面的分段 */
+.md-segs { display: flex; align-items: center; gap: 4px; margin-top: 3px; font-size: 11px; opacity: .6; } .md-segs span.on { color: var(--gold); font-weight: 700; opacity: 1; } .md-segs em { font-style: normal; opacity: .6; } .md-segs small { margin-left: auto; }

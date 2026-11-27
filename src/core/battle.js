@@ -1,37 +1,37 @@
 // 商战和收购：胜率、开战、赢满 3 次收购、收购效果、升称号
-import { capAdd } from './cap.js?v=3839f433';   // 设计79：有上限的列表（config/caps.js）
-import { whyCushion } from './cashflow.js?v=3839f433'; // V0.2.3 留够两个月工资
-import { credit } from './credit.js?v=3839f433'; // V3-01 亲自拍板攒投入度
-import { MONTH_MS, gameDate, dateText } from './gametime.js?v=3839f433';
-import { downRate, downOf, schedule, openDeal } from './equity.js?v=3839f433';
-import { gm } from './calib.js?v=3839f433';
-import { whyNotMa, maLoan } from './bank.js?v=3839f433';
-import { needsBoard } from './capital.js?v=3839f433';   // 设计64：董事会一律通过，只在协议上留一行
-import { live, onBattle } from './rivalgrow.js?v=3839f433'; // P-00 对手也在长大
-import { bigBonus, useBig, whyEnergy, doEnergy, energy, E_COST } from './manage.js?v=3839f433'; // P-05 老板亲自带队 / 亲自谈判
-import { ACQ_NEGO, RIVAL_BY_ID, RIVALS, PROJECTS, WINS_TO_ACQUIRE, TEAM_MAX, ACQ_DISC, INTEL_PER_LOSS, INTEL_MAX } from '../config/rivals.js?v=3839f433';
-import { TITLES } from '../config/titles.js?v=3839f433';
-import { fmtMoney } from './format.js?v=3839f433';
-import { addMsg } from './inbox.js?v=3839f433';   // 设计64 待签协议
-import { netWorth, unlockIfReady, earningsValue } from './economy.js?v=3839f433';
-import { ensureSec } from './secretary.js?v=3839f433';
-import { addFavor, daily } from './affection.js?v=3839f433';
-import { isTraining } from './training.js?v=3839f433';
-import { isScouting } from './busy.js?v=3839f433'; // V2-08 踩点占用（开发2）
-import { auraBattle, networkAcquire, visionBattle } from './boss.js?v=3839f433';
-import { bump } from './daily.js?v=3839f433';
-import { pay, receive, accrue, canPay } from './ledger.js?v=3839f433';
-import { TAX } from './companytax.js?v=3839f433';
-import { addContract } from './contracts.js?v=3839f433';
-import { IND_BY_ID } from '../config/industries.js?v=3839f433';
-import { establishment, staffUp } from './staff.js?v=3839f433';
-import { bizBattle, bizAcquire, grantBridge } from './rivalry.js?v=3839f433';
-import { logi, LOGI_CFG } from './logistics.js?v=3839f433';
-import { addAcquiredProject } from './realestate.js?v=3839f433';
-import { tech, TECH_CFG } from './tech.js?v=3839f433';
-import { lookOf } from './staff.js?v=3839f433';
-import { reValue } from './realestate.js?v=3839f433';
-import { fleetValue } from './logistics.js?v=3839f433';
+import { capAdd } from './cap.js?v=b846574c';   // 设计79：有上限的列表（config/caps.js）
+import { whyCushion } from './cashflow.js?v=b846574c'; // V0.2.3 留够两个月工资
+import { credit } from './credit.js?v=b846574c'; // V3-01 亲自拍板攒投入度
+import { MONTH_MS, gameDate, dateText } from './gametime.js?v=b846574c';
+import { downRate, downOf, schedule, openDeal } from './equity.js?v=b846574c';
+import { gm } from './calib.js?v=b846574c';
+import { whyNotMa, maLoan } from './bank.js?v=b846574c';
+import { needsBoard } from './capital.js?v=b846574c';   // 设计64：董事会一律通过，只在协议上留一行
+import { live, onBattle } from './rivalgrow.js?v=b846574c'; // P-00 对手也在长大
+import { bigBonus, useBig, whyEnergy, doEnergy, energy, E_COST } from './manage.js?v=b846574c'; // P-05 老板亲自带队 / 亲自谈判
+import { ACQ_NEGO, RIVAL_BY_ID, RIVALS, PROJECTS, WINS_TO_ACQUIRE, TEAM_MAX, ACQ_DISC, INTEL_PER_LOSS, INTEL_MAX } from '../config/rivals.js?v=b846574c';
+import { TITLES } from '../config/titles.js?v=b846574c';
+import { fmtMoney } from './format.js?v=b846574c';
+import { addMsg } from './inbox.js?v=b846574c';   // 设计64 待签协议
+import { netWorth, unlockIfReady, earningsValue } from './economy.js?v=b846574c';
+import { ensureSec } from './secretary.js?v=b846574c';
+import { addFavor, daily } from './affection.js?v=b846574c';
+import { isTraining } from './training.js?v=b846574c';
+import { isScouting } from './busy.js?v=b846574c'; // V2-08 踩点占用（开发2）
+import { auraBattle, networkAcquire, visionBattle } from './boss.js?v=b846574c';
+import { bump } from './daily.js?v=b846574c';
+import { pay, receive, accrue, canPay } from './ledger.js?v=b846574c';
+import { TAX } from './companytax.js?v=b846574c';
+import { addContract } from './contracts.js?v=b846574c';
+import { IND_BY_ID } from '../config/industries.js?v=b846574c';
+import { establishment, staffUp } from './staff.js?v=b846574c';
+import { bizBattle, bizAcquire, grantBridge } from './rivalry.js?v=b846574c';
+import { logi, LOGI_CFG } from './logistics.js?v=b846574c';
+import { addAcquiredProject } from './realestate.js?v=b846574c';
+import { tech, TECH_CFG, addAcqTeam } from './tech.js?v=b846574c';
+import { lookOf } from './staff.js?v=b846574c';
+import { reValue } from './realestate.js?v=b846574c';
+import { fleetValue } from './logistics.js?v=b846574c';
 
 const PROJ = Object.fromEntries(PROJECTS.map((p) => [p.id, p]));
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -51,7 +51,11 @@ export function payBattle(s, t) { if (tickets(s) > 0) { s.items.battle -= 1; ret
 /** 还能打几次（券 + 精力够几次），给 autoplay / 界面看 */
 export const battlesLeft = (s, t) => tickets(s) + Math.floor(energy(s, t) / E_COST.battle + 1e-9);
 /** 现在能打的对手：当前阶段、没收购过的 */
-export const activeRivals = (s) => RIVALS.filter((r) => r.stage === s.title || (r.stage < s.title && !rv(s, r.id).acquired));
+export const activeRivals = (s) => RIVALS.filter((r) => !(r.id === 'ruilin' && ruilinDone(s)) && (r.stage === s.title || (r.stage < s.title && !rv(s, r.id).acquired)));   // 设计110：拿下的瑞霖不算
+/** 设计110：苏曼琳来了以后瑞霖资本算「已拿下」（跟已收购一样灰掉、不能再打）；过桥融资 s.bridge 照旧 */
+export const ruilinDone = (s) => !!(s.secs && s.secs.s02_su);
+export const rivalDone = (s, id) => !!rv(s, id).acquired || (id === 'ruilin' && ruilinDone(s));
+export const doneTag = (s, id) => (rv(s, id).acquired ? '已收购' : rivalDone(s, id) ? '已拿下' : '');
 
 function teamAttr(s, team, key) {
   if (!team.length) return 0;
@@ -73,6 +77,7 @@ export function intelBonus(s, rivalId) {
 export function whyNotBattle(s, rivalId, team, t) {
   const r = RIVAL_BY_ID[rivalId];
   if (!r || rv(s, rivalId).acquired) return '已经收购了';
+  if (rivalId === 'ruilin' && ruilinDone(s)) return '已经拿下了';   // 设计110
   { const w = whyNoBattlePay(s, t); if (w) return w; }
   if (!team.length) return '至少带一个人';
   if (team.length > TEAM_MAX) return `最多带 ${TEAM_MAX} 个人`;
@@ -178,8 +183,9 @@ export function acquire(s, rivalId, team, t, rnd = Math.random, plan = 'full', l
   const v0 = reValue(s) + fleetValue(s); // 并进来的项目、车队另算进身价，估值里扣掉，免得算两遍
   if (e.fleetUnits && s.inds.logistics) { const truck = LOGI_CFG.fleet.kinds.truck; const n = Math.ceil(e.fleetUnits / truck.units); logi(s).lots.push({ kind: 'truck', n, cost: Math.round(n * truck.price / LOGI_CFG.fleet.vatDiv * 0.7), t, dep: 0 }); } // 车队按七成账面价值并进来
   for (const sp of e.reProjects || []) if (s.inds.realestate) addAcquiredProject(s, sp, r.name, t);
-  if (e.techProduct && s.inds.tech) { const X = tech(s); X.seq += 1; X.products.push({ id: X.seq, dir: e.techProduct.dir, name: `${TECH_CFG.directions[e.techProduct.dir].name}（原${r.name}）`, scale: TECH_CFG.marketByLook[lookOf(s, 'tech')], stage: 'live', start: t, at: t, launch: t - gm(TECH_CFG.directions[e.techProduct.dir].rampMonths) * MONTH_MS, /* 收购来的产品已经爬到顶 */ cost: 0, q: e.techProduct.q, users: 0, revTotal: 0 }); }
+  if (e.techProduct && s.inds.tech) { const X = tech(s); X.seq += 1; X.products.push({ id: X.seq, dir: e.techProduct.dir, name: `${TECH_CFG.directions[e.techProduct.dir].name}（原${r.name}）`, scale: TECH_CFG.marketByLook[lookOf(s, 'tech')], stage: 'live', start: t, at: t, launch: t - gm(TECH_CFG.directions[e.techProduct.dir].rampMonths) * MONTH_MS, /* 收购来的产品已经爬到顶 */ cost: 0, q: e.techProduct.q, users: 0, revTotal: 0, acqFrom: r.id }); }
   for (const [ind, n] of Object.entries(e.levelUp || {})) if (s.inds[ind]) { s.inds[ind].level += n; staffUp(s, ind); } // 团队一起并进来
+  if (e.techProduct && s.inds.tech) addAcqTeam(s, tech(s).products.find((p) => p.acqFrom === r.id && !p.acqTeam));   // 设计109：产品的团队一起过来（按满额营收 ÷ 人均上限，人立刻到岗）
   if (e.rights) receive(s, { wallet: 'company', cat: 'revenue', amount: e.rights, party: '视频平台', note: `娱乐传媒 ${r.name}片库版权授权` }, t);
   if (e.early) { s.flags.earlyUnlock = s.flags.earlyUnlock || {}; for (const k of e.early) s.flags.earlyUnlock[k] = true; unlockIfReady(s); }
   if (r.final) { s.flags.finalBeaten = s.flags.finalBeaten || {}; s.flags.finalBeaten[r.stage] = true; }

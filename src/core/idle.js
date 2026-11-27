@@ -1,11 +1,11 @@
 // 设计72 投资账户闲钱自动生息（开发2）：投资账户可用余额（s.invest，挂单冻结的、股票、投资经理那份都已经不在里面）按年化 idleRate（游戏年）每跳入账
 // 挂在 core/trade.js 的每跳钩子上（stocks.js addStepHook），离线补跳一样走；余额每跳马上加（接着生息），流水按游戏天补一条（ledger bookAccrued，钱包 invest，类别 investInterest，免个税）——不管在线、离线、补几段，一天就是一条
 // 存档 s.mkt.idle = { total 累计, day 哪个游戏天, today 今天（还没记流水的就是它） }；收益流水（设计40）每个游戏天合成一行（只在线时）
-import ICFG from '../config/invest.js?v=3839f433';
-import SCFG from '../config/stocks.json?v=3839f433' with { type: 'json' };
-import { bookAccrued } from './ledger.js?v=3839f433';
-import { YEAR_MS, gameDate } from './gametime.js?v=3839f433';
-import { dailyLine } from './flow.js?v=3839f433';
+import ICFG from '../config/invest.js?v=b846574c';
+import SCFG from '../config/stocks.json?v=b846574c' with { type: 'json' };
+import { bookAccrued } from './ledger.js?v=b846574c';
+import { YEAR_MS, gameDate } from './gametime.js?v=b846574c';
+import { dailyLine } from './flow.js?v=b846574c';
 
 const TICK = SCFG.tickSec * 1000;
 export const TICKS_PER_YEAR = YEAR_MS / TICK;

@@ -1,22 +1,22 @@
 // 财富 → 银行：征信、存款、贷款（经营贷、开发贷、股票质押、艺术品质押）、私人银行；申请和存款在底部抽屉
-import ECO from '../config/economy.json?v=3839f433' with { type: 'json' };
+import ECO from '../config/economy.json?v=b846574c' with { type: 'json' };
 const PM = ECO.profitMul;
 /** 利率后面的小字：游戏年利率 = 现实 × 赚钱倍数（验收 2-16b） */
 const rn = (r) => `<small class="rate-note">（游戏年利率；现实 ${(r / PM * 100).toFixed(2).replace(/\.?0+$/, '')}% × 赚钱倍数 ${PM}）</small>`;
-import * as BK from '../core/bank.js?v=3839f433';
-import * as RE from '../core/realestate.js?v=3839f433';
-import * as PL from '../core/pledge.js?v=3839f433';
-import * as SK from '../core/stocks.js?v=3839f433';
-import * as AQ from '../core/antique.js?v=3839f433';
-import * as LS from '../core/listing.js?v=3839f433';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=3839f433';
-import { asset, hasAsset } from '../platform/assets.js?v=3839f433';
-import { now } from '../core/clock.js?v=3839f433';
-import { game } from '../game.js?v=3839f433';
-import { h, openPanel, toast, liveRender } from './dom.js?v=3839f433';
-import { hint } from './guide.js?v=3839f433';
-import { hintLater } from './guide2.js?v=3839f433';
-import { confirmBox } from './confirm.js?v=3839f433'; // 设计37 第一节：游戏样式确认框
+import * as BK from '../core/bank.js?v=b846574c';
+import * as RE from '../core/realestate.js?v=b846574c';
+import * as PL from '../core/pledge.js?v=b846574c';
+import * as SK from '../core/stocks.js?v=b846574c';
+import * as AQ from '../core/antique.js?v=b846574c';
+import * as LS from '../core/listing.js?v=b846574c';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=b846574c';
+import { asset, hasAsset } from '../platform/assets.js?v=b846574c';
+import { now } from '../core/clock.js?v=b846574c';
+import { game } from '../game.js?v=b846574c';
+import { h, openPanel, toast, liveRender } from './dom.js?v=b846574c';
+import { hint } from './guide.js?v=b846574c';
+import { hintLater } from './guide2.js?v=b846574c';
+import { confirmBox } from './confirm.js?v=b846574c'; // 设计37 第一节：游戏样式确认框
 
 const C = BK.BANK_CFG;
 const logo = (k) => (hasAsset(`assets/org/${C.banks[k].logo}.webp`) ? `<img class="bk-logo" src="${asset(`assets/org/${C.banks[k].logo}.webp`)}" alt="">` : `<div class="bk-logo ph">${C.banks[k].name.slice(0, 2)}</div>`);

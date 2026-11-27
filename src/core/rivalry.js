@@ -1,12 +1,12 @@
 // 对手第二、三批的玩法（设计20 第三节）：瑞霖过桥融资、对手反击（挖人 / 抢地）、按城市抢地盘、商务总监加成
 // 不 import economy / battle
-import { RIVALS, RIVAL_BY_ID, COUNTER, TURF_HIT, RUILIN } from '../config/rivals.js?v=3839f433';
-import { pay, receive } from './ledger.js?v=3839f433';
-import { addMsg } from './inbox.js?v=3839f433';
-import { holder, isSec, power } from './posts.js?v=3839f433';
-import { MONTH_MS, monthIndex } from './gametime.js?v=3839f433';
-import { cityK, cityName } from './cities.js?v=3839f433';
-import { tickRivalGrow, turfCities, counterBonus } from './rivalgrow.js?v=3839f433';
+import { RIVALS, RIVAL_BY_ID, COUNTER, TURF_HIT, RUILIN } from '../config/rivals.js?v=b846574c';
+import { pay, receive } from './ledger.js?v=b846574c';
+import { addMsg } from './inbox.js?v=b846574c';
+import { holder, isSec, power } from './posts.js?v=b846574c';
+import { MONTH_MS, monthIndex } from './gametime.js?v=b846574c';
+import { cityK, cityName } from './cities.js?v=b846574c';
+import { tickRivalGrow, turfCities, counterBonus } from './rivalgrow.js?v=b846574c';
 export { RUILIN };
 
 const r2 = (x) => Math.round(x * 100) / 100;

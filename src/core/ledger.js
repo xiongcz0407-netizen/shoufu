@@ -30,15 +30,15 @@ export const CATS = {
   transfer_in: ['转入', 'personal'], transfer_out: ['转出', 'personal'], // 设计62：个人 ↔ 投资账户转账（两头各记一笔，wallet 写明是哪个账户）
 };
 export const KEEP_GAME_YEARS = 3;
-import { capAdd } from './cap.js?v=3839f433';   // 设计79
-import { bookRow } from './books.js?v=3839f433';   // 设计79 第三版：记账时顺手累加（s.books），数字都从这里拿
+import { capAdd } from './cap.js?v=b846574c';   // 设计79
+import { bookRow } from './books.js?v=b846574c';   // 设计79 第三版：记账时顺手累加（s.books），数字都从这里拿
 /** 每记一笔都要顺手做的事（今日日常计数、新手目标的免费课等）：fn(s, row) */
 const POST_HOOKS = [];
 export const addPostHook = (fn, replay = false) => { POST_HOOKS.push({ fn, replay }); };   // replay：老存档迁移时也拿全部明细跑一遍（只放纯计数的）
 export function replayHooks(s, rows) { for (const r of rows) for (const h of POST_HOOKS) if (h.replay) h.fn(s, r); }
 /** 设计79：明细只留最近 300 条给人看；同时记进 books、跑挂钩 */
 function record(s, row) { capAdd(s, 'ledger', (s.ledger = s.ledger || []), row); bookRow(s, row); for (const h of POST_HOOKS) h.fn(s, row); return row; }
-import BANKCFG from '../config/bank.json?v=3839f433' with { type: 'json' };
+import BANKCFG from '../config/bank.json?v=b846574c' with { type: 'json' };
 const USE_CATS = BANKCFG.useCats;
 
 const bal = (s, w) => (w === 'company' ? s.company : w === 'offshore' ? (s.offshore || 0) : w === 'invest' ? (s.invest || 0) : s.cash);

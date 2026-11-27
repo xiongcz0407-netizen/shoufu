@@ -3,27 +3,27 @@
 // 每件三个按钮：去参加（小场景，ui/agenda.js；宴会、慈善、讲座、私人场合选车 / 表 / 西装 / 女伴）/ 派人代去（效果一半，马上结算）/ 推掉；没有「答应」、没有失约
 // 出差也在邀请箱里，点「出发」起占 N 个游戏日（这期间别的只能派人代去）；外部事件（大项目节点、对手进攻、地产、经营会）用 pushEvent 放进日程
 // 存档 s.agenda = { day 补到第几天, seq, items: [{ id, at, kind, title, tier, host, line, sec, status: invite / done / declined, ext, ref, days, city, purpose, from }], away 出差 { id, until }, net 人脉, gov 政府关系, log, fresh 刚来的（界面提示）, offNew 离线来的几个 }
-import { capAdd } from './cap.js?v=3839f433';   // 设计79：有上限的列表（config/caps.js）
-import C from '../config/agenda.json?v=3839f433' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=3839f433';
-import { SEC_BY_ID } from '../config/secretaries.js?v=3839f433';
-import { RIVALS } from '../config/rivals.js?v=3839f433';
-import { DAY_MS, dayIndex, addFx, addRep, isShop, dayRev } from './manage.js?v=3839f433';
-import { postOfSec, attrs } from './posts.js?v=3839f433';
-import { isTraining } from './training.js?v=3839f433';
-import { isScouting } from './busy.js?v=3839f433';
-import { addAttrHook } from './boss.js?v=3839f433';
-import { addFavor, addLove } from './affection.js?v=3839f433';
-import { afterDate } from './love.js?v=3839f433';   // 设计56
-import { addMsg } from './inbox.js?v=3839f433';
-import { pay } from './ledger.js?v=3839f433';
-import { netWorth } from './economy.js?v=3839f433';
-import { rivalState } from './battle.js?v=3839f433';
-import { ITEM } from './assets.js?v=3839f433';
-import { rideId } from './ride.js?v=3839f433'; // 设计71 座驾
-import * as LX from './luxury.js?v=3839f433';
-import * as STY from './styles.js?v=3839f433'; // V3-05 女伴按款式
-import * as LT from './late.js?v=3839f433'; // 开发1 V3-01：大项目节点、对手进攻、地产决策的消息
+import { capAdd } from './cap.js?v=b846574c';   // 设计79：有上限的列表（config/caps.js）
+import C from '../config/agenda.json?v=b846574c' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=b846574c';
+import { SEC_BY_ID } from '../config/secretaries.js?v=b846574c';
+import { RIVALS } from '../config/rivals.js?v=b846574c';
+import { DAY_MS, dayIndex, addFx, addRep, isShop, dayRev } from './manage.js?v=b846574c';
+import { postOfSec, attrs } from './posts.js?v=b846574c';
+import { isTraining } from './training.js?v=b846574c';
+import { isScouting } from './busy.js?v=b846574c';
+import { addAttrHook } from './boss.js?v=b846574c';
+import { addFavor, addLove } from './affection.js?v=b846574c';
+import { afterDate } from './love.js?v=b846574c';   // 设计56
+import { addMsg } from './inbox.js?v=b846574c';
+import { pay } from './ledger.js?v=b846574c';
+import { netWorth } from './economy.js?v=b846574c';
+import { rivalState } from './battle.js?v=b846574c';
+import { ITEM } from './assets.js?v=b846574c';
+import { rideId } from './ride.js?v=b846574c'; // 设计71 座驾
+import * as LX from './luxury.js?v=b846574c';
+import * as STY from './styles.js?v=b846574c'; // V3-05 女伴按款式
+import * as LT from './late.js?v=b846574c'; // 开发1 V3-01：大项目节点、对手进攻、地产决策的消息
 export { C as AGENDA_CFG, DAY_MS };
 
 

@@ -8,10 +8,10 @@
    设计79：存档上传前 gzip 压缩，云端文件写成 { "z": 1, "d": "<base64>" }（读的时候认 z: 1 解压，老的明文照读；浏览器没有 CompressionStream 就照旧传明文）；
      读文件用原始内容方式（Accept: application/vnd.github.raw，能读到 100 MB），sha 要用时再取（meta）；
      压缩后超过 5 MB 才算太大：先把有上限的列表砍一半再传（core/cap.js shrinkHalf），砍到 1/16 还传不上才报 size */
-import { GH_SAVE } from '../ghcfg.js?v=3839f433';
-import { storage } from '../platform/storage.js?v=3839f433';
-import { SAVE_KEY, deserialize } from './save.js?v=3839f433';
-import { shrinkHalf } from './cap.js?v=3839f433';
+import { GH_SAVE } from '../ghcfg.js?v=b846574c';
+import { storage } from '../platform/storage.js?v=b846574c';
+import { SAVE_KEY, deserialize } from './save.js?v=b846574c';
+import { shrinkHalf } from './cap.js?v=b846574c';
 
 export const GAP = 60000;        // 两次上传至少隔多久（GitHub 接口频率限制）
 export const NAME_MAX = 8;

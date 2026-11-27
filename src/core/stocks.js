@@ -3,19 +3,19 @@
 // 每跳 ln P += β·M（大盘，牛 / 熊 / 震荡）+ B（板块）+ σ·ε + κ·(ln F − ln P) + 新闻跳空；随机数 = hash(名字, 跳数)，固定种子
 // 设计62：只能用投资账户的钱买（个人现金先转进投资账户）；佣金、过户费、卖出印花税、大单滑点；交割单进档案柜；分红按持有时间扣个税；持股 5% 举牌公告，30% 进度
 // 投资经理（秘书职位）：你划一笔钱 + 风格（稳健 / 平衡 / 进取）+ 止损线，按大盘走 + 她的超额（智慧）；新闻前一跳有概率提前给判断
-import { capAdd } from './cap.js?v=3839f433';   // 设计79：有上限的列表（config/caps.js）
-import CFG from '../config/stocks.json?v=3839f433' with { type: 'json' };
-import { pay, receive } from './ledger.js?v=3839f433';
-import { addContract } from './contracts.js?v=3839f433';
-import { addAssetHook } from './assets.js?v=3839f433';
-import { shortWhy } from './invest.js?v=3839f433';   // 设计62 投资账户（身价挂钩、钱不够的说法）
-import { holder, isSec, attrs as secAttrs, efficiency, OUT } from './posts.js?v=3839f433';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=3839f433';
+import { capAdd } from './cap.js?v=b846574c';   // 设计79：有上限的列表（config/caps.js）
+import CFG from '../config/stocks.json?v=b846574c' with { type: 'json' };
+import { pay, receive } from './ledger.js?v=b846574c';
+import { addContract } from './contracts.js?v=b846574c';
+import { addAssetHook } from './assets.js?v=b846574c';
+import { shortWhy } from './invest.js?v=b846574c';   // 设计62 投资账户（身价挂钩、钱不够的说法）
+import { holder, isSec, attrs as secAttrs, efficiency, OUT } from './posts.js?v=b846574c';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=b846574c';
 const YEAR_H = YEAR_MS / 3600e3; // 游戏一年 = 现实多少小时（V0.2.10：144）
-import { taxRec, payerOfPost } from './fiscal.js?v=3839f433';
-import { profitMul } from './calib.js?v=3839f433';
-import { TITLES } from '../config/titles.js?v=3839f433';
-import { now as clockNow } from './clock.js?v=3839f433';   // 设计90：手动买卖按「现在」的显示价
+import { taxRec, payerOfPost } from './fiscal.js?v=b846574c';
+import { profitMul } from './calib.js?v=b846574c';
+import { TITLES } from '../config/titles.js?v=b846574c';
+import { now as clockNow } from './clock.js?v=b846574c';   // 设计90：手动买卖按「现在」的显示价
 
 export const SCFG = CFG;
 export const STOCKS = CFG.stocks;
@@ -220,9 +220,9 @@ export const addStepHook = (fn) => { STEP_HOOKS.push(fn); };
 
 // ---------- 买卖 ----------
 /** 报价：side buy / sell，n 股 → { px 现价, exec 成交价（含滑点）, gross, commission, transfer, stamp, fees, total（买要付 / 卖到手）, impact } */
-export function quote(s, code, n, side, px = null) {   // 设计90：px 给了按这个价（手动买卖 = 显示价 livePx）
+export function quote(s, code, n, side, px = null, opts = {}) {   // 设计90：px 给了按这个价（手动买卖 = 显示价 livePx）；设计108：opts.noImpact 不算大单滑点（看盘单）
   const F = CFG.fees; const p = px > 0 ? px : price(s, code); const cap = marketCap(s, code); const amt = p * n;
-  const impact = amt / cap > F.impactFrom ? amt / cap * F.impactK : 0;
+  const impact = !opts.noImpact && amt / cap > F.impactFrom ? amt / cap * F.impactK : 0;
   const exec = r2(p * (side === 'buy' ? 1 + impact : 1 - impact)); const gross = r2(exec * n);
   const commission = r2(Math.max(F.minCommission, gross * F.commission)); const transfer = r2(gross * F.transfer); const stamp = side === 'sell' ? r2(gross * F.stamp) : 0;
   const fees = r2(commission + transfer + stamp);
@@ -256,7 +256,7 @@ export function buy(s, code, n, t = Date.now(), opts = {}) {   // opts.live：�
   if (!(mkt(s, t).px[code] > 0)) return { ok: false, why: '还没上市' };
   if (onBoard(mkt(s, t), code) === 'up') return { ok: false, why: '封在涨停，买不进（等开板）' };   // 设计41 第九节
   const m0 = mkt(s, t); const have = (m0.hold[code] || { n: 0 }).n; if ((have + n) / (BY[code].shares * 1e8) >= CFG.stake.notice - 1e-12) return { ok: false, why: `个人最多买到 ${CFG.stake.notice * 100}% 以下（只算投资）；要举牌、要约、控股，用「公司买」` };   // 验收阶段三：个人买只算投资
-  const q = quote(s, code, n, 'buy', opts.live ? showPx(mkt(s, t), code, t) : null); if (freeCash(s) < q.total) return { ok: false, why: shortWhy(q.total - freeCash(s)), short: q.total - freeCash(s) };
+  const q = quote(s, code, n, 'buy', opts.px > 0 ? opts.px : opts.live ? showPx(mkt(s, t), code, t) : null, { noImpact: !!opts.noImpact }); if (freeCash(s) < q.total - 1e-6) return { ok: false, why: shortWhy(q.total - freeCash(s)), short: q.total - freeCash(s) };
   const ct = slip(s, code, n, 'buy', q, t);
   pay(s, { wallet: 'invest', cat: 'stock_buy', amount: q.gross, ref: ct.no, party: '证券账户', note: `买入 ${BY[code].name} ${n} 股` }, t);
   pay(s, { wallet: 'invest', cat: 'stock_fee', amount: q.fees, ref: ct.no, party: '华太正券', note: `${BY[code].name} 佣金、过户费` }, t);
@@ -282,7 +282,7 @@ export function sell(s, code, n, t = Date.now(), opts = {}) {   // opts.note：�
   const m = mkt(s, t); const h = m.hold[code]; n = Math.floor(n); if (!h || h.n < n || n < 1) return { ok: false, why: '没有这么多股' };
   if (onBoard(m, code) === 'down') return { ok: false, why: '封在跌停，卖不出（等开板）' };   // 设计41 第九节
   if (h.pledged && n > h.n - h.pledged) return { ok: false, why: `有 ${h.pledged} 股质押在银行，不能卖` }; // 3-01 股票质押（开发1 加的挂钩）
-  const q = quote(s, code, n, 'sell', opts.live ? showPx(m, code, t) : null); const cost = r2(h.cost * n); const gain = r2(q.total - cost);   // 设计62：先算好，交割单和 m.pl 用同一个 gain
+  const q = quote(s, code, n, 'sell', opts.px > 0 ? opts.px : opts.live ? showPx(m, code, t) : null, { noImpact: !!opts.noImpact }); const cost = r2(h.cost * n); const gain = r2(q.total - cost);   // 设计62：先算好，交割单和 m.pl 用同一个 gain；设计108：看盘止盈 / 止损按单子上的价、不算滑点
   const ct = slip(s, code, n, 'sell', q, t, plRows(cost, gain));
   taxRec(s, { kind: '证券交易印花税', base: q.gross, rate: CFG.fees.stamp, amount: q.stamp, t });
   receive(s, { wallet: 'invest', cat: 'stock_sell', amount: q.gross, ref: ct.no, party: '证券账户', note: `${opts.note ? `${opts.note}：` : ''}卖出 ${BY[code].name} ${n} 股（A 股差价免个税）` }, t);

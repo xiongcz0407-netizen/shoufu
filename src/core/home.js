@@ -1,7 +1,7 @@
 // 设计94 / 95「住哪套」：s.home = 房子 id。只有国内 / 香港的能住（海外要飞过去）；出租中的不能住
 // homeId：选了的那套还在手上、国内 / 香港、没出租 → 用它；否则国内 / 香港没出租的最贵那套；都没有 → null
-import { ITEM } from './assets.js?v=3839f433';
-import { isRented } from './postwork.js?v=3839f433';
+import { ITEM } from './assets.js?v=b846574c';
+import { isRented } from './postwork.js?v=b846574c';
 
 export const HOME_REGIONS = ['china', 'hk'];
 export const BIG_AREA = 400;   // 面积 ≥ 400 ㎡ 算大房子（大平层、顶层、别墅）

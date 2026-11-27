@@ -1,13 +1,13 @@
 // 员工（设计17 第一节）：只是数字。按产业线 → 岗位记在岗人数；编制跟门店样子走
-import { capAdd } from './cap.js?v=3839f433';   // 设计79：有上限的列表（config/caps.js）
-import PAY from '../config/payroll.json?v=3839f433' with { type: 'json' };
-import ECO from '../config/economy.json?v=3839f433' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=3839f433';
-import { pay, canPay, canPayMust, post } from './ledger.js?v=3839f433';
-import { YEAR_MS } from './gametime.js?v=3839f433';
-import { salaryOf, isSec } from './posts.js?v=3839f433';
-import { lineK } from './cities.js?v=3839f433';
-import { payerOfSec, satisfaction, turnoverMult } from './fiscal.js?v=3839f433';
+import { capAdd } from './cap.js?v=b846574c';   // 设计79：有上限的列表（config/caps.js）
+import PAY from '../config/payroll.json?v=b846574c' with { type: 'json' };
+import ECO from '../config/economy.json?v=b846574c' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=b846574c';
+import { pay, canPay, canPayMust, post } from './ledger.js?v=b846574c';
+import { YEAR_MS } from './gametime.js?v=b846574c';
+import { salaryOf, isSec } from './posts.js?v=b846574c';
+import { lineK } from './cities.js?v=b846574c';
+import { payerOfSec, satisfaction, turnoverMult } from './fiscal.js?v=b846574c';
 export { PAY };
 
 const look = (ind) => { const c = IND_BY_ID[ind.id]; let i = 0; c.looks.forEach((lv, k) => { if (ind.level >= lv) i = k; }); return i; };
@@ -22,6 +22,7 @@ export function establishment(s, id) {
   const k = IND_BY_ID[id].kind === 'scale' ? x.level : 1; // 物流：每升一级多一份人（件量跟着人走）
   const own = ownerRun(s, id) ? PAY.staffing[id][0] : {}; // 第一家小店老板自己看（设计21 第四节）：少招一家小店的人
   for (const [r, n] of Object.entries(tpl)) { const v = n * x.branches * k - (own[r] || 0); if (v > 0) out[r] = v; }
+  for (const [r, n] of Object.entries(x.acqEst || {})) if (n > 0) out[r] = (out[r] || 0) + n;   // 设计109：收购时一起过来的团队（升级换样子照旧叠加）
   return out;
 }
 /** 老板自己看第一家店：开局那条线、小老板为止（economy.json start） */

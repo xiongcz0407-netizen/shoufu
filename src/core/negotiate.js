@@ -5,9 +5,9 @@
 //   negotiate(s, opts, strategy) → 成交价或 null（谈崩）：econsim / 挂机用，自动出价到底线附近
 // kind = buy：你要买（价越低越好），底线 = 对方最低肯卖的价；sell：你要卖（价越高越好），底线 = 对方最高肯出的价
 // base = 对方开价；range = 底线落在 base × [lo, hi] 之间（性格 pos 决定偏哪头）
-import C from '../config/negotiate.json?v=3839f433' with { type: 'json' };
-import { attrs } from './posts.js?v=3839f433';
-import { isTraining } from './training.js?v=3839f433';
+import C from '../config/negotiate.json?v=b846574c' with { type: 'json' };
+import { attrs } from './posts.js?v=b846574c';
+import { isTraining } from './training.js?v=b846574c';
 
 export { C as NEGO_CFG };
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));

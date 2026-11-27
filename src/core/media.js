@@ -1,15 +1,15 @@
 // 娱乐传媒（设计20 第二节 4）：直播分成（平台 50%、主播再分 50%）、投拍电影 / 剧（偏态票房、真实分账、限薪令）、文化事业建设费 3%、联动
 // 不 import economy
-import { whyCushion } from './cashflow.js?v=3839f433'; // V0.2.3 留够两个月工资
-import M from '../config/media.json?v=3839f433' with { type: 'json' };
-import { headCap, gm } from './calib.js?v=3839f433';
-import { pay, receive, canPay } from './ledger.js?v=3839f433';
-import { payTaxItem, track } from './companytax.js?v=3839f433';
-import { onDutyRole, onDuty, lookOf } from './staff.js?v=3839f433';
-import { holder, isSec, attrs } from './posts.js?v=3839f433';
-import { MONTH_MS, monthIndex } from './gametime.js?v=3839f433';
-import { addMsg } from './inbox.js?v=3839f433';
-import { addContract } from './contracts.js?v=3839f433';
+import { whyCushion } from './cashflow.js?v=b846574c'; // V0.2.3 留够两个月工资
+import M from '../config/media.json?v=b846574c' with { type: 'json' };
+import { headCap, gm } from './calib.js?v=b846574c';
+import { pay, receive, canPay } from './ledger.js?v=b846574c';
+import { payTaxItem, track } from './companytax.js?v=b846574c';
+import { onDutyRole, onDuty, lookOf } from './staff.js?v=b846574c';
+import { holder, isSec, attrs } from './posts.js?v=b846574c';
+import { MONTH_MS, monthIndex } from './gametime.js?v=b846574c';
+import { addMsg } from './inbox.js?v=b846574c';
+import { addContract } from './contracts.js?v=b846574c';
 export { M as MEDIA_CFG };
 /** 一部片各段的游戏月（现实 ÷ profitMul，最少 1） */
 export const filmMonths = (kind) => { const m = M.months[kind]; return { shoot: gm(m.shoot), post: gm(m.post), release: gm(m.release) }; };
@@ -33,6 +33,15 @@ const rng = (seed) => { let a = seed >>> 0; return () => { a = (a + 0x6d2b79f5) 
 /** 这个游戏月观众爱看什么（每月换） */
 export const hotGenre = (s, t) => M.genres[Math.floor(rng((s.createdAt % 1e9) + monthIndex(s, t) * 131)() * M.genres.length)];
 export const slots = (s) => (s.inds.media ? Math.floor(onDutyRole(s, 'media', 'producer') / M.producersPerProject) : 0);
+/** 设计111：投拍进度（照地产项目）。p = (现在 − 开机) ÷ (开机到上映 / 播出结束)，夹 0～1；segs 分段（电视剧没有后期）；left 这一步还剩多少毫秒 */
+export function filmProgress(f, t) {
+  const m = filmMonths(f.kind); const total = (m.shoot + m.post + m.release) * MONTH_MS;
+  const p = f.stage === 'done' ? 1 : Math.max(0, Math.min(1, total > 0 ? (t - f.start) / total : 1));
+  const tv = f.kind !== 'film';
+  const segs = [['shoot', '拍摄'], ...(m.post ? [['post', '后期']] : []), ['release', tv ? '播出' : '上映']];
+  const stageName = { shoot: '拍摄中', post: '后期中', release: tv ? '播出中' : '上映中', done: '已结算' }[f.stage] || '';
+  return { p, segs, cur: f.stage, stageName, left: f.stage === 'done' ? 0 : Math.max(0, (f.at || 0) - t) };
+}
 export const shooting = (s) => media(s).films.filter((f) => f.stage !== 'done');
 export function costOf(o) {
   const K = M.kinds[o.kind]; const d = M.directors[o.dir], c = M.casts[o.cast], p = M.publicity[o.pub];

@@ -1,7 +1,7 @@
 // 秘书立绘：按人物外框缩放、下边对齐；呼吸、点一下弹一下（取消眨眼：不加载、不显示 *_blink.webp；meta.json 里的 blink 字段留着不用）
 // 设计66：全身秘书（fullBody）的 cN.webp 打包时已经裁到大腿（tools/assets.py，meta.json 每套可写 crop），这里照旧按外框摆，跟老秘书一样大；
 //   只有衣柜要看全身：setFull(true) 换成原尺寸 cN_full.webp、用 meta 里的 full.bbox
-import { asset, getSecMeta, hasAsset } from '../platform/assets.js?v=3839f433';
+import { asset, getSecMeta, hasAsset } from '../platform/assets.js?v=b846574c';
 
 /** 设计66 第七节第 1 条补：剧情、秘书加入、日程 / 出差小场景、约会、商战结果里的立绘跟主页走同一个 layout——
  *  按 meta.json 的人物外框居中、下边贴底（全身秘书的 cN.webp 打包时已经裁到大腿，meta 里的 crop 也在那里生效）；老秘书按外框整个人居中。

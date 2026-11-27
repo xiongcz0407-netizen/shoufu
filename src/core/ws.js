@@ -3,16 +3,16 @@
 // 利好 / 利空新闻每跳检查、新闻前 30 跳就说（提前说 / 说准按「股票 + 新闻那一跳」定种子只掷一次，点几次都一样）。
 // 机会：要涨停 / 有利好 / 有一波 → 「重要」消息（10 股 / 半仓 / 全仓 一点就挂）；手里有的要跌 → 「¥X 以下先卖掉」（卖 10 股 / 一半 / 全部）。
 // 设计48：提示不进消息，放在 s.mkt.wsTips（股票页看盘卡片下面列）；同一只不重复、最多 3 条；买入点过了收起；「不用了」这次看盘这只不再说。离线不补发：回来还在看盘时间里马上扫一次。结束弹战绩。不看盘就没有任何股票提示（规矩 9）。
-import { capAdd } from './cap.js?v=3839f433';   // 设计79：有上限的列表（config/caps.js）
-import * as SK from './stocks.js?v=3839f433';
-import * as TR from './trade.js?v=3839f433';
-import { attrs as secAttrs } from './posts.js?v=3839f433';
-import { whyEnergy, doEnergy } from './manage.js?v=3839f433';
-import { isTraining } from './training.js?v=3839f433';
-import { SEC_BY_ID } from '../config/secretaries.js?v=3839f433';
-import { posShares, POS_BY, nFor, sellShares } from './look.js?v=3839f433';
-import { have as haveItem, useItem } from './coupon.js?v=3839f433';   // 设计53 投资券
-import { addLoadFix } from './loadfix.js?v=3839f433';
+import { capAdd } from './cap.js?v=b846574c';   // 设计79：有上限的列表（config/caps.js）
+import * as SK from './stocks.js?v=b846574c';
+import * as TR from './trade.js?v=b846574c';
+import { attrs as secAttrs } from './posts.js?v=b846574c';
+import { whyEnergy, doEnergy } from './manage.js?v=b846574c';
+import { isTraining } from './training.js?v=b846574c';
+import { SEC_BY_ID } from '../config/secretaries.js?v=b846574c';
+import { posShares, POS_BY, nFor, sellShares } from './look.js?v=b846574c';
+import { have as haveItem, useItem } from './coupon.js?v=b846574c';   // 设计53 投资券
+import { addLoadFix } from './loadfix.js?v=b846574c';
 
 const C = SK.SCFG; const W = C.watch; const WS = W.ws; const T = W.tip;
 const TICK = C.tickSec * 1000; const HOUR_TICKS = 3600e3 / TICK;
@@ -310,7 +310,7 @@ export function lookOnce(s, t = Date.now()) {
 /** 买的：10 股 / 半仓 / 全仓（设计90）一点挂上三张联动单（用点的那一刻的价；到低点那跳 + 2 跳没成交撤、钱退回；挂单起 win 跳（5 分钟）没卖掉按现价卖） */
 export function placeWs(s, msg, k, t = Date.now()) {
   const d = msg.data;
-  const n = posShares(s, d.code, d.X, k); if (n < 1) return { ok: false, why: '不够 1 股' };
+  const n = posShares(s, d.code, d.X, k, undefined, { noImpact: true }); if (n < 1) return { ok: false, why: '不够 1 股' };   // 设计108：看盘单不算滑点
   const r = placeLegs(s, msg, [{ code: d.code, kind: 'buy', px: d.X, n, role: 'in' }, { code: d.code, kind: 'tp', px: d.Y, n, role: 'out' }, { code: d.code, kind: 'sl', px: d.Z, n, role: 'out' }], t);
   return r.ok ? { ...r, n, pos: POS_BY[k].name } : r;
 }

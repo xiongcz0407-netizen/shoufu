@@ -1,21 +1,21 @@
 // 设计41 / 46 / 47 看盘界面（开发2）：看盘那一块（开始 / 结束；设计63 去掉了「现在看一眼」）、看盘消息弹框（10 股 / 半仓 / 全仓，设计90）、照她说的挂单（条件单表）、消息「重要」里的按钮
-import { earnAt } from './earn.js?v=3839f433';   // 设计65：挂单写百分比
-import { whyToast } from './invest.js?v=3839f433';   // 设计62：钱不够一键从个人账户转入
-import * as SK from '../core/stocks.js?v=3839f433';
-import * as TR from '../core/trade.js?v=3839f433';
-import * as LK from '../core/look.js?v=3839f433';
-import * as I from '../core/inbox.js?v=3839f433';
-import { SEC_BY_ID } from '../config/secretaries.js?v=3839f433';
-import { fmtMoney } from '../core/format.js?v=3839f433';
-import { asset, hasAsset } from '../platform/assets.js?v=3839f433';
-import { game } from '../game.js?v=3839f433';
-import { now } from '../core/clock.js?v=3839f433';
-import { h, openPanel, toast } from './dom.js?v=3839f433';
-import { addActionUi } from './inbox.js?v=3839f433';
-import * as WSM from '../core/ws.js?v=3839f433';   // 设计47
-import { attrs as secAttrs } from '../core/posts.js?v=3839f433';
-import { isTraining } from '../core/training.js?v=3839f433';
-import { itemIcon, goBuyHtml, bindGoBuy } from './coupon.js?v=3839f433';   // 设计53 投资券
+import { earnAt } from './earn.js?v=b846574c';   // 设计65：挂单写百分比
+import { whyToast } from './invest.js?v=b846574c';   // 设计62：钱不够一键从个人账户转入
+import * as SK from '../core/stocks.js?v=b846574c';
+import * as TR from '../core/trade.js?v=b846574c';
+import * as LK from '../core/look.js?v=b846574c';
+import * as I from '../core/inbox.js?v=b846574c';
+import { SEC_BY_ID } from '../config/secretaries.js?v=b846574c';
+import { fmtMoney } from '../core/format.js?v=b846574c';
+import { asset, hasAsset } from '../platform/assets.js?v=b846574c';
+import { game } from '../game.js?v=b846574c';
+import { now } from '../core/clock.js?v=b846574c';
+import { h, openPanel, toast } from './dom.js?v=b846574c';
+import { addActionUi } from './inbox.js?v=b846574c';
+import * as WSM from '../core/ws.js?v=b846574c';   // 设计47
+import { attrs as secAttrs } from '../core/posts.js?v=b846574c';
+import { isTraining } from '../core/training.js?v=b846574c';
+import { itemIcon, goBuyHtml, bindGoBuy } from './coupon.js?v=b846574c';   // 设计53 投资券
 
 const W = SK.SCFG.watch; const WSC = W.ws;
 const SCAN_MIN = WSC.scanTicks * SK.SCFG.tickSec / 60;   // 设计67：每 2.5 分钟自动看一次（不取整）
@@ -29,7 +29,7 @@ const busy = () => !!document.querySelector('.story, .panel-mask, .full, .naming
 /** 设计46 / 90：10 股 / 半仓 / 全仓 三个按钮（10 股固定；半仓全仓按这一刻的投资账户现金算；不够 1 股的灰掉；三个都不够写「钱不够」） */
 function posBtns(s, code, px, i = 0, edit = false, lock = false, tp = null) {   // 设计65：tp 给了就在每个按钮下面写「到了赚 +¥X，+x%」
   const ed = edit ? `<button class="btn sm lk-edit" data-i="${i}" ${lock ? 'disabled' : ''}>改</button>` : '';
-  const ops = LK.posOptions(s, code, px); if (!ops.some((o) => o.n >= 1)) return `<div class="lk-pos"><span class="lk-none">钱不够</span>${ed}</div>`;
+  const ops = LK.posOptions(s, code, px, { noImpact: true });   /* 设计108 */ if (!ops.some((o) => o.n >= 1)) return `<div class="lk-pos"><span class="lk-none">钱不够</span>${ed}</div>`;
   return `<div class="lk-pos">${ops.map((o) => `<button class="btn sm ${o.n >= 1 && !lock ? 'gold' : ''}" data-i="${i}" data-q="${o.k}" ${o.n >= 1 && !lock ? '' : 'disabled'}>${o.name}<small>${o.n >= 1 ? `${fmtMoney(o.amt)}·${o.n.toLocaleString()}股` : '不够 1 股'}</small>${o.n >= 1 && tp ? `<small class="lk-earn">${earnAt(tp, px, o.n)}</small>` : ''}</button>`).join('')}${ed}</div>`;
 }
 
@@ -43,11 +43,11 @@ export function openOrderSheet(legs, title, onPlace) {
   const draw = () => {
     p.body.innerHTML = `<div class="tr-gain">这几张连在一起：${L[0].kind === 'buy' ? '买进成交以后，止盈、止损才生效；一张成交，另一张自动撤' : '卖出成交以后，抄底那张才生效'}。价和股数都能改。</div>
       ${L.map((x, i) => `<div class="lk-leg"><span class="${x.kind === 'buy' ? '' : TR.toneOf(x.px, L[0].kind === 'buy' ? L[0].px : ((SK.myShares(game.state)[x.code] || {}).cost ?? null), x.kind)}">${TR.KIND[x.kind]}${x.role === 'out' ? '<small>（等前面成交）</small>' : ''}</span><input type="text" inputmode="decimal" autocomplete="off" data-p="${i}" value="${x.px.toFixed(2)}"><span>元</span><input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-n="${i}" value="${x.n}"><span>股</span></div>${x.kind !== 'buy' ? `<div class="lk-pct" data-pc="${i}">${pctOf(i)}</div>` : ''}${i === 0 ? `<div class="lk-pos">${LK.POS.map((q) => `<button class="btn sm" data-q="${q.k}">${x.kind === 'buy' ? q.name : q.sell}</button>`).join('')}</div>` : ''}`).join('')}
-      <div class="tr-gain">约 ${fmtMoney(L[0].px * L[0].n)}${L[0].kind === 'buy' ? `（挂上就从投资账户扣 ${fmtMoney(TR.buyCost(game.state, L[0].code, L[0].px, L[0].n))}，现在 ${fmtMoney(TR.availCash(game.state))}）` : ''}</div>
+      <div class="tr-gain">约 ${fmtMoney(L[0].px * L[0].n)}${L[0].kind === 'buy' ? `（挂上就从投资账户扣 ${fmtMoney(TR.buyCost(game.state, L[0].code, L[0].px, L[0].n, { noImpact: true }))}，现在 ${fmtMoney(TR.availCash(game.state))}）` : ''}</div>
       <button class="btn gold lk-go" style="width:100%">挂单</button>`;
     p.body.querySelectorAll('[data-p]').forEach((el) => { el.oninput = () => { const v = +el.value; if (v > 0) { L[+el.dataset.p].px = v; repct(); } }; el.onchange = () => { L[+el.dataset.p].px = +el.value; repct(); }; });
     p.body.querySelectorAll('[data-n]').forEach((el) => (el.onchange = () => { const n = Math.max(1, Math.floor(+el.value)); for (const x of L) x.n = n; draw(); }));
-    p.body.querySelectorAll('[data-q]').forEach((b) => (b.onclick = () => { const s = game.state; const x = L[0]; const q = LK.POS_BY[b.dataset.q]; const n = x.kind === 'buy' ? LK.posShares(s, x.code, x.px, q.k) : LK.sellShares(TR.sellable(s, x.code), q.k); if (n < 1) { toast(x.kind === 'buy' ? '不够 1 股' : '没有能卖的'); return; } for (const y of L) y.n = n; draw(); }));   // 设计46：⅓ / 半 / 全
+    p.body.querySelectorAll('[data-q]').forEach((b) => (b.onclick = () => { const s = game.state; const x = L[0]; const q = LK.POS_BY[b.dataset.q]; const n = x.kind === 'buy' ? LK.posShares(s, x.code, x.px, q.k, undefined, { noImpact: true }) : LK.sellShares(TR.sellable(s, x.code), q.k); if (n < 1) { toast(x.kind === 'buy' ? '不够 1 股' : '没有能卖的'); return; } for (const y of L) y.n = n; draw(); }));   // 设计46：⅓ / 半 / 全
     p.body.querySelector('.lk-go').onclick = () => { const r = onPlace(L); if (!r.ok) { whyToast(r.why); return; } p.close(); done('挂好了，离线也会触发'); };
   };
   draw(); return p;

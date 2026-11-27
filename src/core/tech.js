@@ -1,14 +1,16 @@
 // 科技（设计20 第二节 3）：产品项目（立项 → 研发 → 上线 → S 曲线 → 止损）、研发费用加计扣除 100%、软件即征即退、联动管理效率 +3%
 // 不 import economy
-import { whyCushion } from './cashflow.js?v=3839f433'; // V0.2.3 留够两个月工资
-import T from '../config/tech.json?v=3839f433' with { type: 'json' };
-import { headCap, gm } from './calib.js?v=3839f433';
-import { pay, receive, canPay } from './ledger.js?v=3839f433';
-import { holder, isSec, attrs } from './posts.js?v=3839f433';
-import { bossAttrs } from './boss.js?v=3839f433';
-import { lookOf, establishment, wage, PAY, onDuty } from './staff.js?v=3839f433';
-import { MONTH_MS, monthIndex } from './gametime.js?v=3839f433';
-import { addMsg } from './inbox.js?v=3839f433';
+import { whyCushion } from './cashflow.js?v=b846574c'; // V0.2.3 留够两个月工资
+import T from '../config/tech.json?v=b846574c' with { type: 'json' };
+import { headCap, gm } from './calib.js?v=b846574c';
+import { pay, receive, canPay } from './ledger.js?v=b846574c';
+import { holder, isSec, attrs } from './posts.js?v=b846574c';
+import { bossAttrs } from './boss.js?v=b846574c';
+import { lookOf, establishment, wage, PAY, onDuty } from './staff.js?v=b846574c';
+import { MONTH_MS, monthIndex } from './gametime.js?v=b846574c';
+import { addLoadFix } from './loadfix.js?v=b846574c';   // 设计109：老存档补收购团队
+import { RIVALS } from '../config/rivals.js?v=b846574c';
+import { addMsg } from './inbox.js?v=b846574c';
 export { T as TECH_CFG };
 
 const MIN = 60e3; const MONTH_SEC = MONTH_MS / 1000;
@@ -98,3 +100,32 @@ export function tickTech(s, t) {
   }
   return ev;
 }
+
+// ---------- 设计109：收购来的产品自带团队 ----------
+/** 这款产品满额每游戏月营收（用户到顶 × 客单 × 等级加成） */
+export const fullMonthRev = (s, p) => userCap(p) * T.directions[p.dir].arpu * (1 + T.levelRev * ((s.inds.tech && s.inds.tech.level) || 1));
+/** 撑满它要多少人 = 满额月营收 ÷ 人均上限（向上取整） */
+export const acqHeads = (s, p) => Math.ceil(fullMonthRev(s, p) / headCap('tech', lookOf(s, 'tech'), T.real));
+/** n 个人按现在样子的岗位比例分（最大余数法，合计正好 n） */
+export function splitByTpl(s, n) {
+  const tpl = PAY.staffing.tech[lookOf(s, 'tech')]; const tot = Object.values(tpl).reduce((a, b) => a + b, 0);
+  const rows = Object.entries(tpl).map(([r, k]) => { const x = n * k / tot; return [r, Math.floor(x), x - Math.floor(x)]; });
+  let left = n - rows.reduce((a, [, v]) => a + v, 0); rows.sort((a, b) => b[2] - a[2]); for (const row of rows) { if (left <= 0) break; row[1] += 1; left -= 1; }
+  return Object.fromEntries(rows.filter(([, v]) => v > 0).map(([r, v]) => [r, v]));
+}
+/** 把团队并进来：加进 s.inds.tech.acqEst（编制）、人立刻到岗（不走招聘、不收招聘费）；一款产品只并一次（p.acqTeam 记人数）。返回加了几个人 */
+export function addAcqTeam(s, p) {
+  const x = s.inds.tech; if (!x || !p || p.acqTeam) return 0;
+  const n = acqHeads(s, p); const add = splitByTpl(s, n); x.acqEst = x.acqEst || {}; x.staff = x.staff || {};
+  for (const [r, v] of Object.entries(add)) { x.acqEst[r] = (x.acqEst[r] || 0) + v; x.staff[r] = (x.staff[r] || 0) + v; }
+  p.acqTeam = n; return n;
+}
+/** 收购来的产品：新的带 p.acqFrom；老存档按名字「（原XX）」认 */
+const acqProductOf = (s, r) => (s.tech ? s.tech.products.find((p) => p.stage !== 'closed' && (p.acqFrom === r.id || (!p.acqFrom && p.name && p.name.endsWith(`（原${r.name}）`)))) : null);
+/** 读档：已经收购了带产品的对手（云栈、天穹），产品还没并团队的补上（Arvin 11-27 存档：云服务 19.3 万用户只算了 3.7%） */
+export function fixAcqTeams(s) {
+  if (!s || !s.inds || !s.inds.tech || !s.tech || !s.rivals) return 0; let n = 0;
+  for (const r of RIVALS) if (r.effect && r.effect.techProduct && s.rivals[r.id] && s.rivals[r.id].acquired) { const p = acqProductOf(s, r); if (p && !p.acqTeam) { p.acqFrom = p.acqFrom || r.id; n += addAcqTeam(s, p); } }
+  return n;
+}
+addLoadFix((s) => { fixAcqTeams(s); });
