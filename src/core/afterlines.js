@@ -1,5 +1,5 @@
 // 设计89 私密约会第二天的互动台词：私密约会那天（rec.privDay，本地 YYYY-MM-DD）的下一个自然日，点她先从 AFTER_LINES[id] 里挑没用过的（stk 的只在 rec.privStk 为真时进池子），用完回平常台词
-import { AFTER_LINES } from '../config/story/index.js?v=f00c2612';
+import { AFTER_LINES } from '../config/story/index.js?v=3839f433';
 export { AFTER_LINES };
 
 const pad = (n) => String(n).padStart(2, '0');

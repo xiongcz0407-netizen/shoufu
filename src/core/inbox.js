@@ -1,4 +1,4 @@
-import { capAdd } from './cap.js?v=f00c2612';   // 设计79：有上限的列表（config/caps.js）
+import { capAdd } from './cap.js?v=3839f433';   // 设计79：有上限的列表（config/caps.js）
 // 消息中心数据（设计18；设计39 改成「重要 | 经营 | 月报 | 邀请拍卖 | 系统」五个页签，消息自己的 kind 不变，按 tabOf 分页）
 // 消息：{ id, t, kind, title, body, from, read, status: 'open'|'approved'|'rejected'|'done', actions: [{key,label}], type, data }
 export const KINDS = { request: '请示', event: '事件', report: '月报', invite: '邀请拍卖', system: '系统' };

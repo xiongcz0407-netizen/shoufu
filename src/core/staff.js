@@ -1,13 +1,13 @@
 // 员工（设计17 第一节）：只是数字。按产业线 → 岗位记在岗人数；编制跟门店样子走
-import { capAdd } from './cap.js?v=f00c2612';   // 设计79：有上限的列表（config/caps.js）
-import PAY from '../config/payroll.json?v=f00c2612' with { type: 'json' };
-import ECO from '../config/economy.json?v=f00c2612' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=f00c2612';
-import { pay, canPay, canPayMust, post } from './ledger.js?v=f00c2612';
-import { YEAR_MS } from './gametime.js?v=f00c2612';
-import { salaryOf, isSec } from './posts.js?v=f00c2612';
-import { lineK } from './cities.js?v=f00c2612';
-import { payerOfSec, satisfaction, turnoverMult } from './fiscal.js?v=f00c2612';
+import { capAdd } from './cap.js?v=3839f433';   // 设计79：有上限的列表（config/caps.js）
+import PAY from '../config/payroll.json?v=3839f433' with { type: 'json' };
+import ECO from '../config/economy.json?v=3839f433' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=3839f433';
+import { pay, canPay, canPayMust, post } from './ledger.js?v=3839f433';
+import { YEAR_MS } from './gametime.js?v=3839f433';
+import { salaryOf, isSec } from './posts.js?v=3839f433';
+import { lineK } from './cities.js?v=3839f433';
+import { payerOfSec, satisfaction, turnoverMult } from './fiscal.js?v=3839f433';
 export { PAY };
 
 const look = (ind) => { const c = IND_BY_ID[ind.id]; let i = 0; c.looks.forEach((lv, k) => { if (ind.level >= lv) i = k; }); return i; };

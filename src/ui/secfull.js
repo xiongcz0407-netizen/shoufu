@@ -1,15 +1,15 @@
 // 设计66 第七节第 3 条 + 第八节：秘书详情 → 衣柜 → 全屏看她
 // 下面的面板和动作条滑走，立绘占满屏幕（全身、原尺寸图）；底部向上箭头 / 从底部往上滑 / 返回键 = 退出。
 // 1 倍时左右滑换衣服（只在她买了、能穿的里换），单击弹一下说一句（算互动次数）；两指缩放、双击、拖动见 zoomview.js
-import { SEC_BY_ID } from '../config/secretaries.js?v=f00c2612';
-import { outfitsOf } from '../config/outfits.js?v=f00c2612';
-import * as STY from '../core/styles.js?v=f00c2612';
-import * as O from '../core/outfits.js?v=f00c2612';
-import { asset, getSecMeta, hasAsset } from '../platform/assets.js?v=f00c2612';
-import { game } from '../game.js?v=f00c2612';
-import { h } from './dom.js?v=f00c2612';
-import { pushBack } from './shell.js?v=f00c2612';
-import { createZoomView } from './zoomview.js?v=f00c2612';
+import { SEC_BY_ID } from '../config/secretaries.js?v=3839f433';
+import { outfitsOf } from '../config/outfits.js?v=3839f433';
+import * as STY from '../core/styles.js?v=3839f433';
+import * as O from '../core/outfits.js?v=3839f433';
+import { asset, getSecMeta, hasAsset } from '../platform/assets.js?v=3839f433';
+import { game } from '../game.js?v=3839f433';
+import { h } from './dom.js?v=3839f433';
+import { pushBack } from './shell.js?v=3839f433';
+import { createZoomView } from './zoomview.js?v=3839f433';
 
 /** 这位秘书这一套的全屏图：全身秘书用原尺寸 cN_full.webp，老秘书用 cN.webp */
 export const fullSrc = (id, o) => (SEC_BY_ID[id] && SEC_BY_ID[id].fullBody && hasAsset(`assets/sec/${id}/${o}_full.webp`) ? `assets/sec/${id}/${o}_full.webp` : `assets/sec/${id}/${o}.webp`);

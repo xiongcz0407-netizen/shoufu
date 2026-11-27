@@ -1,24 +1,24 @@
 // 经济：产钱、升级、分店、派驻、身价、离线收益（纯函数，node 测试能跑）
-import { YEAR_MS } from './gametime.js?v=f00c2612'; // V0.2.10 一个月 = 现实 12 小时
-import { whyCushion } from './cashflow.js?v=f00c2612'; // V0.2.3 留够两个月工资（设计35）
-import { INDUSTRIES, IND_BY_ID, SEC_BONUS_PER_POINT, BRANCH_CAP, LOOK3_TITLE } from '../config/industries.js?v=f00c2612';
-import * as CB from './calib.js?v=f00c2612';
-import CAP from '../config/capital.json?v=f00c2612' with { type: 'json' };
-import { TITLES } from '../config/titles.js?v=f00c2612';
-import { pay, receive, accrue, canPay } from './ledger.js?v=f00c2612';
-import { staffFactor, staffUp, PAY, estTotal } from './staff.js?v=f00c2612';
-import { track } from './companytax.js?v=f00c2612';
-import { payables } from './accrual.js?v=f00c2612';
-import { visionIncome } from './boss.js?v=f00c2612';
-import { managerRevMult, managerCostMult, stat } from './posts.js?v=f00c2612';
-import { reValue } from './realestate.js?v=f00c2612';
-import { logiRevPerSec, linkCogsMult, fleetValue } from './logistics.js?v=f00c2612';
-import { techRevPerSec, techLink } from './tech.js?v=f00c2612';
-import { liveRevPerSec, mediaLink } from './media.js?v=f00c2612';
-import { lineK, lineCities, cityOpen, cityK, cityName, CITY_CFG, canOpenIn, roomCities, pickCity, registerCity, cityCap, cityCount } from './cities.js?v=f00c2612';
-import { revK, debt } from './rivalry.js?v=f00c2612';
-import { depositTotal, loanDebt, setNW } from './bank.js?v=f00c2612';
-import { equityOwed } from './equity.js?v=f00c2612';
+import { YEAR_MS } from './gametime.js?v=3839f433'; // V0.2.10 一个月 = 现实 12 小时
+import { whyCushion } from './cashflow.js?v=3839f433'; // V0.2.3 留够两个月工资（设计35）
+import { INDUSTRIES, IND_BY_ID, SEC_BONUS_PER_POINT, BRANCH_CAP, LOOK3_TITLE } from '../config/industries.js?v=3839f433';
+import * as CB from './calib.js?v=3839f433';
+import CAP from '../config/capital.json?v=3839f433' with { type: 'json' };
+import { TITLES } from '../config/titles.js?v=3839f433';
+import { pay, receive, accrue, canPay } from './ledger.js?v=3839f433';
+import { staffFactor, staffUp, PAY, estTotal } from './staff.js?v=3839f433';
+import { track } from './companytax.js?v=3839f433';
+import { payables } from './accrual.js?v=3839f433';
+import { visionIncome } from './boss.js?v=3839f433';
+import { managerRevMult, managerCostMult, stat } from './posts.js?v=3839f433';
+import { reValue } from './realestate.js?v=3839f433';
+import { logiRevPerSec, linkCogsMult, fleetValue } from './logistics.js?v=3839f433';
+import { techRevPerSec, techLink } from './tech.js?v=3839f433';
+import { liveRevPerSec, mediaLink } from './media.js?v=3839f433';
+import { lineK, lineCities, cityOpen, cityK, cityName, CITY_CFG, canOpenIn, roomCities, pickCity, registerCity, cityCap, cityCount } from './cities.js?v=3839f433';
+import { revK, debt } from './rivalry.js?v=3839f433';
+import { depositTotal, loanDebt, setNW } from './bank.js?v=3839f433';
+import { equityOwed } from './equity.js?v=3839f433';
 
 /** 存档里的产业：{ store: { level, branches, spent, sec, staff, agency, openedAt } } */
 export function newIndustry(t = Date.now()) { return { level: 1, branches: 1, spent: 0, sec: null, staff: {}, agency: {}, openedAt: t }; }
@@ -272,5 +272,5 @@ export function canPromote(s) {
 }
 
 // 资产的验资要看身价（避免互相 import）
-import { setNetWorthFn } from './assets.js?v=f00c2612';
+import { setNetWorthFn } from './assets.js?v=3839f433';
 setNetWorthFn(netWorth); setNW(netWorth);

@@ -1,5 +1,5 @@
 // 利润表（设计93 从 core/finance.js 拆出来：core/companytax.js 月底算 s.monthly 也用这个，同一个口径）
-import { INDUSTRIES } from '../config/industries.js?v=f00c2612';
+import { INDUSTRIES } from '../config/industries.js?v=3839f433';
 const sum = (rows) => rows.reduce((a, r) => a + r.amount, 0);
 const net = (rows) => rows.reduce((a, r) => a + (r.dir === 'in' ? -r.amount : r.amount), 0); /* 支出类别里的冲回（备货卖掉冲回进货成本）算负数 */
 const byCat = (rows, cats) => rows.filter((r) => !r.memo && cats.includes(r.cat));

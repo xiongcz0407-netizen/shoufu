@@ -1,6 +1,6 @@
 // 设计88 爱慕剧情每人不同：有 LOVE_STAGES[id][阶段] 就照 lines 播（「」开头她说，其余旁白）；没有用 love-stories.js 的通用版
-import { LOVE_STAGES } from '../config/story/index.js?v=f00c2612';
-import { LOVE_STAGE_STORIES } from '../config/love-stories.js?v=f00c2612';
+import { LOVE_STAGES } from '../config/story/index.js?v=3839f433';
+import { LOVE_STAGE_STORIES } from '../config/love-stories.js?v=3839f433';
 export { LOVE_STAGES };
 
 /** 第 st 阶段（1 心动 … 5 唯一）的剧情：{ title, steps: [{ who, text }] } 或 null。accept = 唯一阶段收下定情信物那句（设计56） */

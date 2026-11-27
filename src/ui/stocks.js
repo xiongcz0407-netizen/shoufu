@@ -1,33 +1,33 @@
 // 「财富 → 投资」股票（第 2-09 项，设计12 第八节）：行情 | 持仓 | 投资经理；点一只 → 个股（分时、指标、买卖、新闻、持仓）
-import * as SK from '../core/stocks.js?v=f00c2612';
-import * as AS from '../core/assets.js?v=f00c2612';
-import * as INB from '../core/inbox.js?v=f00c2612';
-import { bossAttrs } from '../core/boss.js?v=f00c2612';
-import { holder, isSec } from '../core/posts.js?v=f00c2612';
-import { SEC_BY_ID } from '../config/secretaries.js?v=f00c2612';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=f00c2612';
-import { asset, hasAsset } from '../platform/assets.js?v=f00c2612';
-import { game } from '../game.js?v=f00c2612';
-import { now } from '../core/clock.js?v=f00c2612';
-import { h, openPanel, toast, liveRender } from './dom.js?v=f00c2612';
-import { say } from './main-screen.js?v=f00c2612';
-import { hintLater } from './guide2.js?v=f00c2612';
-import * as LSC from '../core/listing.js?v=f00c2612';
-import { selfCard } from './listing.js?v=f00c2612';
-import * as TKO from '../core/takeover.js?v=f00c2612';
-import * as TR from '../core/trade.js?v=f00c2612';
-import { renderTradeTab, orderBlock, ipoLogo } from './trade.js?v=f00c2612';
-import { watchBlock, wsCard, setSay, setShowDone, wsTipBar, setGotoTip, secClock, addSecTick } from './look.js?v=f00c2612';
-import { registerBadge, registerSegBadge, openTab } from './shell.js?v=f00c2612'; // 设计47 看盘改成时间段（开发2）
-import * as WSM from '../core/ws.js?v=f00c2612';
-import * as LK from '../core/look.js?v=f00c2612';
-import { canPay } from '../core/ledger.js?v=f00c2612';
-import * as MG from '../core/mgr.js?v=f00c2612'; // 设计44 投资经理自动炒股
-import { upgradeBox } from './upgradebox.js?v=f00c2612';
-import { makeLive, toNextSub } from '../core/live.js?v=f00c2612';   // 设计55 行情 3 秒刷新
-import { investBar, whyToast, firstNote, totalHtml } from './invest.js?v=f00c2612';   // 设计62 投资账户
-import { earn, sgnMoney, sgnPct } from './earn.js?v=f00c2612';   // 设计65：挂单写百分比
-import { confirmBox } from './confirm.js?v=f00c2612';   // 设计73 持仓卖出
+import * as SK from '../core/stocks.js?v=3839f433';
+import * as AS from '../core/assets.js?v=3839f433';
+import * as INB from '../core/inbox.js?v=3839f433';
+import { bossAttrs } from '../core/boss.js?v=3839f433';
+import { holder, isSec } from '../core/posts.js?v=3839f433';
+import { SEC_BY_ID } from '../config/secretaries.js?v=3839f433';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=3839f433';
+import { asset, hasAsset } from '../platform/assets.js?v=3839f433';
+import { game } from '../game.js?v=3839f433';
+import { now } from '../core/clock.js?v=3839f433';
+import { h, openPanel, toast, liveRender } from './dom.js?v=3839f433';
+import { say } from './main-screen.js?v=3839f433';
+import { hintLater } from './guide2.js?v=3839f433';
+import * as LSC from '../core/listing.js?v=3839f433';
+import { selfCard } from './listing.js?v=3839f433';
+import * as TKO from '../core/takeover.js?v=3839f433';
+import * as TR from '../core/trade.js?v=3839f433';
+import { renderTradeTab, orderBlock, ipoLogo } from './trade.js?v=3839f433';
+import { watchBlock, wsCard, setSay, setShowDone, wsTipBar, setGotoTip, secClock, addSecTick } from './look.js?v=3839f433';
+import { registerBadge, registerSegBadge, openTab } from './shell.js?v=3839f433'; // 设计47 看盘改成时间段（开发2）
+import * as WSM from '../core/ws.js?v=3839f433';
+import * as LK from '../core/look.js?v=3839f433';
+import { canPay } from '../core/ledger.js?v=3839f433';
+import * as MG from '../core/mgr.js?v=3839f433'; // 设计44 投资经理自动炒股
+import { upgradeBox } from './upgradebox.js?v=3839f433';
+import { makeLive, toNextSub } from '../core/live.js?v=3839f433';   // 设计55 行情 3 秒刷新
+import { investBar, whyToast, firstNote, totalHtml } from './invest.js?v=3839f433';   // 设计62 投资账户
+import { earn, sgnMoney, sgnPct } from './earn.js?v=3839f433';   // 设计65：挂单写百分比
+import { confirmBox } from './confirm.js?v=3839f433';   // 设计73 持仓卖出
 
 let tab = 'market', sector = '全部', sortBy = 'chg';
 const logo = (c, cls = 'sk-logo') => (SK.BY[c] && SK.BY[c].ipo ? ipoLogo(c, cls) : hasAsset(`assets/stock/logo_${c}.webp`) ? `<img class="${cls}" src="${asset(`assets/stock/logo_${c}.webp`)}" alt="">` : `<i class="${cls} ph">${c}</i>`);
@@ -139,13 +139,13 @@ function hold(s, wrap, redraw) {
 }
 /** 设计73 持仓一键卖出：按钮（跌停灰掉、写原因） */
 function sellAllBtn(s, code, cls) { const I = TR.sellAllInfo(s, code); if (!I.n && !I.why) return ''; return `<button class="btn sm ${cls}" ${I.why ? 'disabled' : ''}>卖出${I.why ? `<small>${I.why.startsWith('封在跌停') ? '跌停卖不出' : I.why}</small>` : ''}</button>`; }
-/** 设计73 / 90 卖出弹框：10 股 / 一半 / 全部，按现在的价（显示价）马上卖；每个写到手多少、赚红亏绿；要从卖单里扣的写清楚 */
+/** 设计73 / 90 / 107 卖出弹框：10 股 / 一半 / 只留 10 股 / 全部，按现在的价（显示价）马上卖；每个写到手多少、赚红亏绿；要从卖单里扣的写清楚 */
 export function openSellAll(code, after) {
   const s0 = game.state; const I0 = TR.sellAllInfo(s0, code); const x = SK.BY[code]; if (I0.why) { toast(I0.why); return; }
   const p = openPanel(`卖出 · ${x.name}`);
   const draw = () => {
     const s = game.state; const all = TR.sellAllInfo(s, code); if (!all.n) { p.close(); return; }
-    const rows = LK.POS.map((q) => { const n = LK.sellShares(all.n, q.k); const I = TR.sellSomeInfo(s, code, n); const g = I.gain >= 0 ? `<b class="up">赚 ${fmtMoney(I.gain)}</b>` : `<b class="down">亏 ${fmtMoney(-I.gain)}</b>`;
+    const rows = LK.SELL_POS.map((q) => { const n = LK.sellShares(all.n, q.k); if (q.k === 'keep10' && !n) return `<button class="tr-course sa-opt" data-k="keep10" disabled><div style="flex:1"><b>只留 10 股</b><div class="tr-gain">不到 10 股</div></div></button>`;   /* 设计107 */ const I = TR.sellSomeInfo(s, code, n); const g = I.gain >= 0 ? `<b class="up">赚 ${fmtMoney(I.gain)}</b>` : `<b class="down">亏 ${fmtMoney(-I.gain)}</b>`;
       const note = q.k === 'all' ? (I.cancel ? `会撤掉挂着的卖单（${I.cancel} 张），股票并回来一起卖` : '') : I.fromOrders ? `其中 ${I.fromOrders.toLocaleString()} 股从挂着的卖单里扣，${I.cancel ? `${I.cancel} 张扣完撤掉，` : ''}剩下的照旧到点卖` : '';
       return `<button class="tr-course sa-opt" data-k="${q.k}" data-n="${n}" ${I.why ? 'disabled' : ''}><div style="flex:1"><b>${q.k === 'ten' ? `${n.toLocaleString()} 股` : `${q.sell} · ${n.toLocaleString()} 股`}</b><div class="tr-gain">到手 <b>${fmtMoney(I.total)}</b>，${g}</div>${note ? `<div class="sa-sub">${note}</div>` : ''}</div><i>›</i></button>`; }).join('');
     p.body.innerHTML = `<div class="sa-line">现价 <b data-px="${code}">${yuan(SK.livePx(s, code))}</b>　能卖 ${all.n.toLocaleString()} 股${TR.lockedShares(s, code) ? `（其中 ${TR.lockedShares(s, code).toLocaleString()} 股在卖单里）` : ''}</div>${rows}<div class="sa-sub">按点下去那一刻的价马上卖；佣金、过户费、印花税已经算在里面；钱进投资账户${all.pledged ? `；另有 ${all.pledged.toLocaleString()} 股质押在银行，不能卖` : ''}</div>`;

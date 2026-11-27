@@ -2,17 +2,18 @@
 // 礼物（1 万以下）只加好感 = 价钱 ÷ 500（两位小数）；奢侈品（名包 + 1 万以上的首饰 / 表 / 酒，100 万以下）只加爱慕 = 价钱 ÷ 1 万（向下取整）
 // 加成：最喜欢的礼物 / 喜欢的牌子 / 最喜欢的奢侈品 ×2，讨厌的礼物 ×0.5，她生日 ×3，叠乘；爱慕到门口为止（affection.addLove）
 // 定情信物：爱慕 ≥ 80 后下一次约会她提起，价钱 = 身价 × 1%（最少 100 万）定死；送出爱慕直接 100（「唯一」）
-import { capPush, capOf } from './cap.js?v=f00c2612';   // 设计79
-import CFG from '../config/love.json?v=f00c2612' with { type: 'json' };
-import { GIFTS } from '../config/gifts.js?v=f00c2612';
-import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=f00c2612';
-import { LINES } from '../config/lines.js?v=f00c2612';
-import { ensureSec, FAVOR_MAX, FAVOR_FULL_AT } from './secretary.js?v=f00c2612';
-import { addFavor, addLove, setOnly, loveCap, favorMult, markWith, invoice, dayKey } from './affection.js?v=f00c2612';
-import { pay, canPay } from './ledger.js?v=f00c2612';
-import { bump } from './daily.js?v=f00c2612';
-import { BAGS, L as LX_L, label, payBag } from './luxury.js?v=f00c2612';
-import { netWorth } from './economy.js?v=f00c2612';
+import { capPush, capOf } from './cap.js?v=3839f433';   // 设计79
+import CFG from '../config/love.json?v=3839f433' with { type: 'json' };
+import { GIFTS } from '../config/gifts.js?v=3839f433';
+import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=3839f433';
+import { LINES } from '../config/lines.js?v=3839f433';
+import { ensureSec, FAVOR_MAX, FAVOR_FULL_AT } from './secretary.js?v=3839f433';
+import { addFavor, addLove, setOnly, loveCap, favorMult, markWith, invoice, dayKey } from './affection.js?v=3839f433';
+import { pay, canPay } from './ledger.js?v=3839f433';
+import { bump } from './daily.js?v=3839f433';
+import { BAGS, L as LX_L, label, payBag } from './luxury.js?v=3839f433';
+import { netWorth } from './economy.js?v=3839f433';
+import { addLoadFix } from './loadfix.js?v=3839f433';   // 设计106 还没送的信物重定价
 
 export const LOVE_CFG = CFG;
 const G = CFG.gift, MU = CFG.mult, TK = CFG.token;
@@ -102,11 +103,25 @@ export function giveLux(s, id, luxId, t = Date.now()) {
 // ---------- 定情信物 ----------
 export const tokenOf = (id) => TK.items[id] || null;
 /** 定价：身价 × 1%，最少 100 万，取整到万 */
-export const tokenPrice = (s) => Math.max(TK.min, Math.round(netWorth(s) * TK.pct / TK.round) * TK.round);
+/** 设计106：身价 nw 时定情信物的价钱：15 亿以下 = 身价 × 1%（最少 100 万，取整到万）；tiers 里身价 ≥ 门槛的取最高那档（1,500 万 / 2,000 万 / 3,000 万） */
+export function tokenPriceAt(nw) {
+  let p = Math.max(TK.min, Math.round(nw * TK.pct / TK.round) * TK.round);
+  for (const [at, price] of TK.tiers || []) if (nw >= at) p = price;
+  return p;
+}
+export const tokenPrice = (s) => tokenPriceAt(netWorth(s));
+/** 设计106 读档：已经提起、还没送的按新规矩重定价（提起时身价 = 原价 ÷ 1%）；送过的不动。重定过 / 新规矩定的打 tiered，不再重算 */
+export function retoken(s) {
+  for (const r of Object.values(s.secs || {})) {
+    const k = r && r.token; if (!k || k.given || k.tiered) continue;
+    k.price = tokenPriceAt(k.price / TK.pct); k.tiered = true;
+  }
+}
+addLoadFix(retoken);
 /** 约会结束时调（from = 这次约会前的爱慕）：爱慕 ≥ 80 以后的下一次约会，她提起信物，价钱这时定死。返回 { name, line, price } 或 null */
 export function afterDate(s, id, from, t = Date.now()) {
   const r = ensureSec(s, id); const k = tokenOf(id); if (!r || !k || r.token || from < TK.askAt || r.love >= 100) return null;
-  r.token = { price: tokenPrice(s), at: t, given: null };
+  r.token = { price: tokenPrice(s), at: t, given: null, tiered: true };   // 设计106：按分档定死
   return { name: k.name, line: k.origin, price: r.token.price };
 }
 /** 信物那一栏：{ state: hidden（80 前剪影）/ wait（80 了，等下一次约会提起）/ ready（能买）/ given（送过了）, name, price, img } */

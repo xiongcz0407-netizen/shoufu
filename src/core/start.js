@@ -1,8 +1,8 @@
 // 开局（设计21 第四节）：打工几年攒了 20 万，拿 15 万注册公司、开第一家小店，老板自己看店
 // 钱全走记账：个人存款进来 → 注资到公司 → 公司付开店费
-import ECO from '../config/economy.json?v=f00c2612' with { type: 'json' };
-import { IND_BY_ID } from '../config/industries.js?v=f00c2612';
-import { receive, pay } from './ledger.js?v=f00c2612';
+import ECO from '../config/economy.json?v=3839f433' with { type: 'json' };
+import { IND_BY_ID } from '../config/industries.js?v=3839f433';
+import { receive, pay } from './ledger.js?v=3839f433';
 
 /** 新开局才做一次（s.flags.startFunds） */
 export function startFunds(s, t) {

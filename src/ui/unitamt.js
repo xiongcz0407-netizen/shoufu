@@ -1,7 +1,7 @@
 // 设计103：单位按钮 + 只填数字的金额框（资金页签注资 / 分红、注资弹框；开发2 的转账弹框也可以用）
-import * as UA from '../core/unitamt.js?v=f00c2612';
-import { fmtMoney } from '../core/format.js?v=f00c2612';
-import { h } from './dom.js?v=f00c2612';
+import * as UA from '../core/unitamt.js?v=3839f433';
+import { fmtMoney } from '../core/format.js?v=3839f433';
+import { h } from './dom.js?v=3839f433';
 
 /** max：最多能转（数字，或返回数字的函数）；onChange(state)：每次算完回调（state = { v, empty, over, ok, max }）
  *  返回 { el, state() }。打开时输入框是空的；点进输入框就清空；换单位不清数字 */

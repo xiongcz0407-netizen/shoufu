@@ -1,12 +1,12 @@
 // 设计41 秘书看盘给价（开发2）：价钱算法（bestRun / priceRow / lookRows / tipPlan）、她的战绩、设计46 仓位、设计45 持仓页数据。
 // 设计47 起：秘书主动的新闻提醒、一次性「看盘」都去掉了，看盘改成时间段（core/ws.js 用这里的算法发消息）
 // 看盘：lookNow 用 SK.future 把接下来 240 跳先算出来（跟真实走的一样），挑真实会到的低点 L、之后的高点 H 定价，一定能成交
-import * as SK from './stocks.js?v=f00c2612';
-import * as TR from './trade.js?v=f00c2612';
-import { addMsg } from './inbox.js?v=f00c2612';
-import { attrs as secAttrs } from './posts.js?v=f00c2612';
-import { whyEnergy, doEnergy } from './manage.js?v=f00c2612';
-import { SEC_BY_ID } from '../config/secretaries.js?v=f00c2612';
+import * as SK from './stocks.js?v=3839f433';
+import * as TR from './trade.js?v=3839f433';
+import { addMsg } from './inbox.js?v=3839f433';
+import { attrs as secAttrs } from './posts.js?v=3839f433';
+import { whyEnergy, doEnergy } from './manage.js?v=3839f433';
+import { SEC_BY_ID } from '../config/secretaries.js?v=3839f433';
 
 const W = SK.SCFG.watch; const TICK = SK.SCFG.tickSec * 1000;
 const up2 = (v) => Math.ceil(v * 100 - 1e-7) / 100;     // 买入价往上取整到分
@@ -22,7 +22,10 @@ export function nFor(s, code, px, amt) { if (!(px > 0) || !(amt >= px)) return 0
 /** 某个仓位买几股：10 股 = 固定 10 股（现金连手续费不够 10 股就 0）；半仓 / 全仓 金额 = 现金 × f，股数 = 金额 ÷ 买价往下取整，连买入费用一起不超过金额 */
 export function posShares(s, code, px, k, cash = Math.max(0, TR.availCash(s))) { const q = POS_BY[k]; if (q.n) return px > 0 && TR.buyCost(s, code, px, q.n) <= cash + 1e-9 ? q.n : 0; return nFor(s, code, px, cash * q.f); }
 /** 设计90：卖的「10 股 / 一半 / 全部」：have 股里卖几股（10 股不够就卖剩下的；一半向下取整、至少 1 股） */
-export function sellShares(have, k) { const q = POS_BY[k]; have = Math.max(0, Math.floor(have || 0)); if (!have) return 0; if (q.n) return Math.min(q.n, have); return q.f >= 1 ? have : Math.max(1, Math.floor(have * q.f)); }
+/** 设计107：持仓卖出单独多一项「只留 10 股」（卖 have − 10）；POS 买卖共用，不加进去；看盘卖出不用这个 */
+export const KEEP10 = { k: 'keep10', sell: '只留 10 股', keep: 10 };
+export const SELL_POS = [POS_BY.ten, POS_BY.half, KEEP10, POS_BY.all];
+export function sellShares(have, k) { if (k === KEEP10.k) return Math.max(0, Math.floor(have || 0) - KEEP10.keep); const q = POS_BY[k]; have = Math.max(0, Math.floor(have || 0)); if (!have) return 0; if (q.n) return Math.min(q.n, have); return q.f >= 1 ? have : Math.max(1, Math.floor(have * q.f)); }
 /** 三个按钮：[{ k, name, n, amt }]（n = 0 = 不够 1 股） */
 export const posOptions = (s, code, px) => POS.map((x) => { const n = posShares(s, code, px, x.k); return { k: x.k, name: x.name, n, amt: Math.round(n * px * 100) / 100 }; });
 const sharesFor = (s, code, px) => nFor(s, code, px, Math.max(0, TR.availCash(s)) / 3);   // 一次最多 3 只的默认股数：现金 ⅓（按钮上的 ⅓ 仓设计90 去掉了，这里只是默认值，三只一定都挂得上）
@@ -141,5 +144,5 @@ export function holdView(s, t = Date.now()) {
 function etaView(g, kind) { const T = SK.SCFG.tickSec * 1000; if (!g || g.etaBuy == null || g.sellBy == null) return null; return { kind, at: (kind === 'buy' ? g.etaBuy : g.etaSell) * T, by: g.sellBy * T }; }
 /** 撤一组卖单（同组的止盈止损一起撤，股票回到持仓） */
 export function cancelSell(s, ids, t = Date.now()) { let n = 0; for (const id of ids) { const o = (s.mkt.orders || []).find((x) => x.id === id); if (TR.cancelOrder(s, id, false, t)) n = Math.max(n, (o && o.backN) || 0); } return n; }
-import './ws.js?v=f00c2612'; // 设计47：看盘改成时间段（挂进 stocks.js advance）
-import './mgr.js?v=f00c2612'; // 设计44：投资经理每天 4 轮（挂进 stocks.js advance）
+import './ws.js?v=3839f433'; // 设计47：看盘改成时间段（挂进 stocks.js advance）
+import './mgr.js?v=3839f433'; // 设计44：投资经理每天 4 轮（挂进 stocks.js advance）
