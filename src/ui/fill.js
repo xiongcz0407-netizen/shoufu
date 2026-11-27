@@ -1,10 +1,10 @@
 // 产业详情里的「补满」按钮（V0.2.2）；开店那一刻问招不招人的弹框设计102 删掉了
-import * as ST from '../core/staff.js?v=701a82d3';
-import { PAY } from '../core/staff.js?v=701a82d3';
-import { IND_BY_ID } from '../config/industries.js?v=701a82d3';
-import { now } from '../core/clock.js?v=701a82d3';
-import { game } from '../game.js?v=701a82d3';
-import { toast } from './dom.js?v=701a82d3';
+import * as ST from '../core/staff.js?v=f00c2612';
+import { PAY } from '../core/staff.js?v=f00c2612';
+import { IND_BY_ID } from '../config/industries.js?v=f00c2612';
+import { now } from '../core/clock.js?v=f00c2612';
+import { game } from '../game.js?v=f00c2612';
+import { toast } from './dom.js?v=f00c2612';
 
 /** 一键补满，弹一句结果 */
 export function doFill(id) {

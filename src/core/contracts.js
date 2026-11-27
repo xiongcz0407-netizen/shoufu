@@ -1,4 +1,4 @@
-import { capAdd } from './cap.js?v=701a82d3';   // 设计79：有上限的列表（config/caps.js）
+import { capAdd } from './cap.js?v=f00c2612';   // 设计79：有上限的列表（config/caps.js）
 // 合同存档（设计14）：所有签过的合同进档案柜（第 13 项财富 → 档案柜）
 export function addContract(s, c, t = Date.now()) {
   s.contractSeq = (s.contractSeq || 0) + 1;

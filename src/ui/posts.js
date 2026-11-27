@@ -1,19 +1,19 @@
 // 「公司 → 职位」（设计16 第六节、设计18 第四节 1）：组织架构图（你在最上，下面一排职位卡：头像 / 空缺 / 外包），
 // 点职位卡 → 底部抽屉：选人（最适合的打星）、外包、撤职、授权额度、店长托管（月预算 + 回本期）、资产管家出租、看她的月报
-import * as ADS from '../core/ads.js?v=701a82d3'; // V0.2.5 自动升级广告
-import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=701a82d3';
-import { IND_BY_ID } from '../config/industries.js?v=701a82d3';
-import * as PO from '../core/posts.js?v=701a82d3';
-import * as MG from '../core/manage.js?v=701a82d3';
-import { noteUp } from '../core/upnote.js?v=701a82d3'; // V0.2.5 升级框
-import * as PW from '../core/postwork.js?v=701a82d3';
-import * as T from '../core/training.js?v=701a82d3';
-import { fmtMoney } from '../core/format.js?v=701a82d3';
-import { asset, hasAsset } from '../platform/assets.js?v=701a82d3';
-import { now } from '../core/clock.js?v=701a82d3';
-import { game } from '../game.js?v=701a82d3';
-import { h, openPanel, toast, liveRender } from './dom.js?v=701a82d3';
-import { avatarKey } from './main-screen.js?v=701a82d3';
+import * as ADS from '../core/ads.js?v=f00c2612'; // V0.2.5 自动升级广告
+import { SECRETARIES, SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=f00c2612';
+import { IND_BY_ID } from '../config/industries.js?v=f00c2612';
+import * as PO from '../core/posts.js?v=f00c2612';
+import * as MG from '../core/manage.js?v=f00c2612';
+import { noteUp } from '../core/upnote.js?v=f00c2612'; // V0.2.5 升级框
+import * as PW from '../core/postwork.js?v=f00c2612';
+import * as T from '../core/training.js?v=f00c2612';
+import { fmtMoney } from '../core/format.js?v=f00c2612';
+import { asset, hasAsset } from '../platform/assets.js?v=f00c2612';
+import { now } from '../core/clock.js?v=f00c2612';
+import { game } from '../game.js?v=f00c2612';
+import { h, openPanel, toast, liveRender } from './dom.js?v=f00c2612';
+import { avatarKey } from './main-screen.js?v=f00c2612';
 
 const AN = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 const icon = (k, cls = 'pc-ic') => (hasAsset(`assets/ui/${k}.webp`) ? `<img class="${cls}" src="${asset(`assets/ui/${k}.webp`)}" alt="">` : '');
@@ -104,7 +104,7 @@ export function openPost(key) {
       p.body.appendChild(sw);
       const bt = h('div', 'tabs'); for (const v of [5e4, 2e5, 1e6, 5e6, 2e7]) { const b = h('button', 'tab' + (m.host.budget === v ? ' on' : ''), `月预算 ${fmtMoney(v)}`); b.onclick = () => { m.host.budget = v; game.save(); render(); }; bt.appendChild(b); }
       const pt = h('div', 'tabs'); for (const v of [1, 3, 8, 24]) { const b = h('button', 'tab' + (m.host.paybackH === v ? ' on' : ''), `回本 ≤ ${v} 小时`); b.onclick = () => { m.host.paybackH = v; game.save(); render(); }; pt.appendChild(b); }
-      p.body.append(bt, pt, h('div', 'tr-gain', `本月已花预算 ${fmtMoney(m.host.spent || 0)}；只花公司「可用」的钱`));
+      p.body.append(bt, pt, h('div', 'tr-gain', `本月已花预算 ${fmtMoney(m.host.spent || 0)}；只花公司「可用余额」的钱（已经留够 2 个月工资房租）`));
     }
     // V0.2.5 自动升级广告（设计37 第二节 6）：默认开，跟托管放一起
     if (kind === 'manager' && who && ADS.isAdLine(s, PO.indOf(key))) {

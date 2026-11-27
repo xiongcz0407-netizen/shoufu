@@ -1,18 +1,18 @@
 // 设计96「主动要求」：在线时恋人秘书来找你 —— 卡片（立绘 + knock）「好」/「现在不行」，挂着直到点；
 // 「好」照私密约会播 open → q1 → q2 → close，背景是当前称号的办公室；「现在不行」播 refuse
-import * as AV from '../core/askvisit.js?v=701a82d3';
-import * as DL from '../core/datelib.js?v=701a82d3';
-import { SEC_BY_ID } from '../config/secretaries.js?v=701a82d3';
-import { TITLES } from '../config/titles.js?v=701a82d3';
-import { now } from '../core/clock.js?v=701a82d3';
-import { homeInfo } from '../core/home.js?v=701a82d3';
-import { asset, hasAsset } from '../platform/assets.js?v=701a82d3';
-import { game } from '../game.js?v=701a82d3';
-import { h } from './dom.js?v=701a82d3';
-import { playScene } from './scene.js?v=701a82d3';
-import { isStoryPlaying } from './story.js?v=701a82d3';
-import { confirmBox } from './confirm.js?v=701a82d3';
-import { openWallet } from './coupon.js?v=701a82d3';
+import * as AV from '../core/askvisit.js?v=f00c2612';
+import * as DL from '../core/datelib.js?v=f00c2612';
+import { SEC_BY_ID } from '../config/secretaries.js?v=f00c2612';
+import { TITLES } from '../config/titles.js?v=f00c2612';
+import { now } from '../core/clock.js?v=f00c2612';
+import { homeInfo } from '../core/home.js?v=f00c2612';
+import { asset, hasAsset } from '../platform/assets.js?v=f00c2612';
+import { game } from '../game.js?v=f00c2612';
+import { h } from './dom.js?v=f00c2612';
+import { playScene } from './scene.js?v=f00c2612';
+import { isStoryPlaying } from './story.js?v=f00c2612';
+import { confirmBox } from './confirm.js?v=f00c2612';
+import { openWallet } from './coupon.js?v=f00c2612';
 
 /** 正在看剧情、商战、约会、全屏页、弹框时不来 */
 export const askBusy = () => isStoryPlaying() || !!document.querySelector('.story, .sc-scene, .ub-mask, .cf-mask, .panel-mask, .full, .ask-mask');

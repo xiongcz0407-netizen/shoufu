@@ -1,26 +1,27 @@
 // 「财富 → 财务」（第 13 项，设计15 第三节 + 设计17 第三节、设计18 第四节 5）
 // 横滑标签：总览 | 利润表 | 个人收支 | 资产清单 | 纳税 | 流水 | 档案柜；右上角切 今天 / 本月 / 本年 / 全部
-import * as EQ from '../core/equity.js?v=701a82d3';
-import * as F from '../core/finance.js?v=701a82d3';
-import * as E from '../core/economy.js?v=701a82d3';
-import * as ST from '../core/staff.js?v=701a82d3';
-import * as AC from '../core/accrual.js?v=701a82d3';
-import * as AS from '../core/assets.js?v=701a82d3';
-import * as PO from '../core/posts.js?v=701a82d3';
-import { cityPL } from '../core/citypl.js?v=701a82d3';
-import { cityName } from '../core/cities.js?v=701a82d3';
-import { IND_BY_ID } from '../config/industries.js?v=701a82d3';
-import { CATS, WALLET_NAME } from '../core/ledger.js?v=701a82d3';
-import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=701a82d3';
-import { fmtMoney } from '../core/format.js?v=701a82d3';
-import { asset, hasAsset } from '../platform/assets.js?v=701a82d3';
-import { now } from '../core/clock.js?v=701a82d3';
-import { game } from '../game.js?v=701a82d3';
-import { h, openPanel, liveRender } from './dom.js?v=701a82d3';
-import { giftsTo, spentOn } from './secretary.js?v=701a82d3';
-import { extendFinance } from './wealth2.js?v=701a82d3';
-import { accountsHtml, bindAccounts } from './invest.js?v=701a82d3';   // 设计62 投资账户
-import { sellGain } from './earn.js?v=701a82d3';   // 设计65 小改：合同列表写赚多少
+import * as EQ from '../core/equity.js?v=f00c2612';
+import * as F from '../core/finance.js?v=f00c2612';
+import * as E from '../core/economy.js?v=f00c2612';
+import * as ST from '../core/staff.js?v=f00c2612';
+import * as AC from '../core/accrual.js?v=f00c2612';
+import * as CF from '../core/cashflow.js?v=f00c2612';   // 设计105 可用余额 = CF.room
+import * as AS from '../core/assets.js?v=f00c2612';
+import * as PO from '../core/posts.js?v=f00c2612';
+import { cityPL } from '../core/citypl.js?v=f00c2612';
+import { cityName } from '../core/cities.js?v=f00c2612';
+import { IND_BY_ID } from '../config/industries.js?v=f00c2612';
+import { CATS, WALLET_NAME } from '../core/ledger.js?v=f00c2612';
+import { SEC_BY_ID, SECRETARIES } from '../config/secretaries.js?v=f00c2612';
+import { fmtMoney } from '../core/format.js?v=f00c2612';
+import { asset, hasAsset } from '../platform/assets.js?v=f00c2612';
+import { now } from '../core/clock.js?v=f00c2612';
+import { game } from '../game.js?v=f00c2612';
+import { h, openPanel, liveRender } from './dom.js?v=f00c2612';
+import { giftsTo, spentOn } from './secretary.js?v=f00c2612';
+import { extendFinance } from './wealth2.js?v=f00c2612';
+import { accountsHtml, bindAccounts } from './invest.js?v=f00c2612';   // 设计62 投资账户
+import { sellGain } from './earn.js?v=f00c2612';   // 设计65 小改：合同列表写赚多少
 
 const TABS = [['overview', '总览'], ['pl', '利润表'], ['personal', '个人收支'], ['assets', '资产清单'], ['tax', '纳税'], ['ledger', '流水'], ['archive', '档案柜']];
 let tab = 'overview', period = 'month', lf = { wallet: '', cat: '', by: '' };
@@ -28,12 +29,14 @@ const pct = (x) => (isFinite(x) ? (x * 100).toFixed(1) + '%' : '—');
 const row = (k, v, cls = '') => `<div class="fn-row ${cls}"><span>${k}</span><b>${typeof v === 'number' ? fmtMoney(v) : v}</b></div>`;
 
 /** 财务总监点评（按性格一段话） */
+/** 设计105：可用余额下面那行小字（打工人留 1 个月工资，小老板起留 2 个月工资房租） */
+export const roomNote = (s) => ((s.title || 0) ? `已留 ${CF.CUSHION_MONTHS} 个月工资房租 ${fmtMoney(CF.cushion(s))}` : `已留 1 个月工资 ${fmtMoney(CF.cushion(s))}`);
 function cfoComment(s, pl, last) {
   const who = PO.holder(s, 'cfo');
   if (!PO.isSec(who)) return who === PO.OUT ? '<div class="fn-cfo"><b>代账公司</b>：只报税，不点评。</div>' : '<div class="fn-cfo">还没有财务总监（「公司 → 职位」安排）。</div>';
   const c = SEC_BY_ID[who]; const lr = pl.rev ? pl.labor.total / pl.rev : 0; const rr = pl.rev ? pl.rent / pl.rev : 0;
   const ch = last != null && last !== 0 ? `，环比 ${pl.profit >= last ? '+' : ''}${(((pl.profit - last) / Math.abs(last)) * 100).toFixed(1)}%` : '';
-  const advice = lr > 0.35 ? '人工占比偏高，缺编别急着招满' : rr > 0.15 ? '房租占比偏高，续约时压压价' : AC.available(s) < 0 ? '可用的钱是负的，先别升级开店' : '现金流健康，可以考虑分红或者开新店';
+  const advice = lr > 0.35 ? '人工占比偏高，缺编别急着招满' : rr > 0.15 ? '房租占比偏高，续约时压压价' : AC.available(s) < 0 ? '公司账户扣掉本月应付已经是负的了，先别升级开店' : '现金流健康，可以考虑分红或者开新店';
   const t = { 知性: `本期净利润 ${fmtMoney(pl.profit)}${ch}。人工占收入 ${pct(lr)}，房租 ${pct(rr)}。建议：${advice}。`,
     清冷: `净利润 ${fmtMoney(pl.profit)}${ch}。……${advice}。我记下了。`,
     天然呆: `净利润 ${fmtMoney(pl.profit)}${ch}。……${advice}。逻辑没问题。`,
@@ -56,14 +59,14 @@ const DRAW = {
     const pie = `conic-gradient(${parts.map((x, i) => { const a = acc; acc += x[1] / tot * 360; return `${colors[i]} ${a}deg ${acc}deg`; }).join(',')})`;
     const last = (s.monthly || []).at(-1);
     el.innerHTML = `<div class="fn-hero"${hasAsset('assets/bg/bg_finance.webp') ? ` style="background-image:linear-gradient(90deg,rgba(10,14,24,.9) 45%,rgba(10,14,24,.4)),url('${asset('assets/bg/bg_finance.webp')}')"` : ''}><small>身价</small><b>${fmtMoney(nw)}</b></div>
-      ${accountsHtml(s)}<div class="sum-card"><div><small>公司账户可用</small><b>${fmtMoney(Math.max(0, AC.available(s)))}</b>${AC.available(s) < 0 ? `<small class="neg">月底要付 ${fmtMoney(AC.payables(s).total)}，公司账户不够，可以注资</small>` : ''}</div>
+      ${accountsHtml(s)}<div class="sum-card"><div><small>可用余额</small><b>${fmtMoney(CF.room(s))}</b><small>${roomNote(s)}</small>${AC.available(s) < 0 ? `<small class="neg">月底要付 ${fmtMoney(AC.payables(s).total)}，公司账户不够，可以注资</small>` : ''}</div>
         <div><small>负债（应付${EQ.equityOwed(s) ? ' + 应付股权转让款' : ''}）</small><b class="neg">${fmtMoney(P.total + EQ.equityOwed(s))}</b></div><div><small>员工</small><b>${ST.totalStaff(s)} 人 + 秘书 ${Object.keys(s.secs).length}</b></div></div>
       <div class="fn-card">${row('公司收入', pl.rev + pl.other, 'pos')}${row('净利润', pl.profit, pl.profit < 0 ? 'neg' : 'pos')}${row('人工成本', `${fmtMoney(pl.labor.total)}（占收入 ${pct(pl.rev ? pl.labor.total / pl.rev : NaN)}）`)}${pl.train ? row('秘书培训', -pl.train, 'neg') : ''}${row('个人收入', pp.incTotal, 'pos')}${row('累计交税（全部）', tx.company + tx.personalTax)}</div>
       <div class="fn-pie"><i style="background:${pie}"></i><div>${parts.map((x, i) => `<div><em style="background:${colors[i]}"></em>${x[0]} ${pct(x[1] / tot)}</div>`).join('')}</div></div>
       ${cfoComment(s, pl, last && last.profit)}
       <div class="ind-btns"><button class="btn sm fn-inject">注资到公司</button><button class="btn sm gold fn-div">分红到个人</button></div>`;
-    el.querySelector('.fn-inject').onclick = () => import('./company.js?v=701a82d3').then((m) => m.openInject());
-    el.querySelector('.fn-div').onclick = () => import('./company.js?v=701a82d3').then((m) => m.openDividend());
+    el.querySelector('.fn-inject').onclick = () => import('./company.js?v=f00c2612').then((m) => m.openInject());
+    el.querySelector('.fn-div').onclick = () => import('./company.js?v=f00c2612').then((m) => m.openDividend());
     bindAccounts(el, () => DRAW.overview(el, game.state, from, now()));   // 设计62：三个账户 + 转账
   },
   pl(el, s, from, t) {

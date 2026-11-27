@@ -1,13 +1,13 @@
 // 设计62 投资账户（开发2）：股票页顶上的「投资账户 ¥X」条、转账弹框、钱不够一键转入、财务页三个账户、老存档第一次说明
-import * as IV from '../core/invest.js?v=701a82d3';
-import * as BK from '../core/books.js?v=701a82d3';   // 设计79 第三版
-import * as SK from '../core/stocks.js?v=701a82d3';
-import * as TR from '../core/trade.js?v=701a82d3';
-import * as IDLE from '../core/idle.js?v=701a82d3';   // 设计72
-import { fmtMoney } from '../core/format.js?v=701a82d3';
-import { game } from '../game.js?v=701a82d3';
-import { now } from '../core/clock.js?v=701a82d3';
-import { h, openPanel, toast } from './dom.js?v=701a82d3';
+import * as IV from '../core/invest.js?v=f00c2612';
+import * as BK from '../core/books.js?v=f00c2612';   // 设计79 第三版
+import * as SK from '../core/stocks.js?v=f00c2612';
+import * as TR from '../core/trade.js?v=f00c2612';
+import * as IDLE from '../core/idle.js?v=f00c2612';   // 设计72
+import { fmtMoney } from '../core/format.js?v=f00c2612';
+import { game } from '../game.js?v=f00c2612';
+import { now } from '../core/clock.js?v=f00c2612';
+import { h, openPanel, toast } from './dom.js?v=f00c2612';
 
 const DIRS = [['personal', 'invest', '个人 → 投资'], ['invest', 'personal', '投资 → 个人'], ['invest', 'company', '投资 → 公司'], ['company', 'invest', '公司 → 投资']];
 const NOTE = {
@@ -45,27 +45,44 @@ export function investBar(s, redraw) {
   return el;
 }
 
-/** 转账弹框：选方向和金额，快捷 1 万 / 10 万 / 全部 */
+// —— 设计103 金额：先选单位（万 / 十万 / 百万 / 千万 / 亿），输入框只填数字，金额 = 数字 × 单位 ——
+export const UNITS = [[1e4, '万'], [1e5, '十万'], [1e6, '百万'], [1e7, '千万'], [1e8, '亿']];
+/** 默认单位：最多能转的金额够得着的最大单位（不到 1 万也用「万」） */
+export const defaultUnit = (max) => UNITS.reduce((u, [v]) => (max >= v - 1e-9 ? v : u), UNITS[0][0]);
+/** 数字 × 单位（可以填小数、逗号；空的 / 不是正数 → 0），到分 */
+export function amountOf(txt, unit) { const n = parseFloat(String(txt == null ? '' : txt).replace(/[,，\s]/g, '')); return n > 0 ? Math.round(n * unit * 100) / 100 : 0; }
+/** 这一笔：{ v 金额, max 最多能转, over 超了, ok 能转 }（超过最多不自动改成最多） */
+export function checkAmt(s, from, txt, unit) { const v = amountOf(txt, unit); const max = IV.maxOut(s, from); const over = v > max + 1e-9; return { v, max, over, ok: v >= 0.01 && !over }; }
+
+/** 转账弹框：选方向，再选单位、填数字（设计103，六个方向都一样） */
 export function openTransfer(from = 'personal', to = 'invest', after) {
-  const s = game.state; const p = openPanel('转账'); let amt = 0;
+  const s = game.state; const p = openPanel('转账'); let unit = defaultUnit(IV.maxOut(s, from)); let num = '';
   const render = () => {
-    const max = IV.maxOut(s, from); const key = `${from}>${to}`;
-    if (!(amt > 0)) amt = Math.min(1e4, max); amt = Math.max(0, Math.min(amt, max));
+    const max = IV.maxOut(s, from); const key = `${from}>${to}`; const uName = UNITS.find(([v]) => v === unit)[1];
     p.body.innerHTML = `<div class="iv-acc3">${['personal', 'invest', 'company'].map((k) => `<div class="${k === from ? 'from' : k === to ? 'to' : ''}"><small>${IV.ACC[k]}</small><b>${fmtMoney(k === 'personal' ? s.cash : k === 'invest' ? IV.cashOf(s) : s.company)}</b></div>`).join('')}</div>
       <div class="sd-rec-title">从哪转到哪</div><div class="tabs iv-dirs">${DIRS.map(([f, t, n]) => `<button class="tab ${f === from && t === to ? 'on' : ''}" data-d="${f}>${t}">${n}</button>`).join('')}</div>
       <div class="tr-gain">${NOTE[key]}</div>
       <div class="rate">${IV.ACC[from]}最多能转 <b>${fmtMoney(max)}</b></div>
-      <div class="tabs" style="margin-top:8px">${[[1e4, '1 万'], [1e5, '10 万'], [max, '全部']].map(([v, n]) => `<button class="tab ${v === amt && amt > 0 ? 'on' : ''}" data-v="${v}" ${v > max + 1e-9 || max < 0.01 ? 'disabled' : ''}>${n}</button>`).join('')}</div>
-      <div class="sd-rec-title">金额（元）</div><input class="amt iv-amt" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="${amt}">
-      ${to === 'invest' && from === 'company' ? `<div class="tr-gain">到手 <b class="iv-net">${fmtMoney(amt * 0.8)}</b>（代扣个税 ${fmtMoney(amt * 0.2)}）</div>` : ''}
-      <button class="btn gold big go">转 ${fmtMoney(amt)}</button>`;
-    p.body.querySelectorAll('[data-d]').forEach((b) => (b.onclick = () => { [from, to] = b.dataset.d.split('>'); amt = 0; render(); }));
-    p.body.querySelectorAll('[data-v]').forEach((b) => (b.onclick = () => { amt = +b.dataset.v; render(); }));
-    const inp = p.body.querySelector('.amt'); const go = p.body.querySelector('.go'); const val = () => Math.max(0, Math.min(+inp.value || 0, IV.maxOut(s, from)));
-    inp.oninput = () => { const v = val(); go.textContent = `转 ${fmtMoney(v)}`; go.disabled = v < 0.01; const nt = p.body.querySelector('.iv-net'); if (nt) nt.textContent = fmtMoney(v * 0.8); };
-    go.disabled = amt < 0.01;
+      <div class="sd-rec-title">单位</div><div class="iv-units">${UNITS.map(([v, n]) => `<button class="btn iv-unit ${v === unit ? 'on' : ''}" data-u="${v}">${n}</button>`).join('')}</div>
+      <div class="sd-rec-title">金额</div><div class="iv-amt-row"><input class="amt iv-amt" type="text" inputmode="decimal" autocomplete="off" placeholder="填数字" value="${num}"><span class="iv-unit-lab">${uName}</span></div>
+      <div class="tr-gain iv-conv"></div>
+      ${to === 'invest' && from === 'company' ? '<div class="tr-gain">到手 <b class="iv-net"></b>（代扣个税 <span class="iv-tax"></span>）</div>' : ''}
+      <button class="btn gold big go"></button>`;
+    p.body.querySelectorAll('[data-d]').forEach((b) => (b.onclick = () => { [from, to] = b.dataset.d.split('>'); unit = defaultUnit(IV.maxOut(s, from)); num = ''; render(); }));
+    p.body.querySelectorAll('[data-u]').forEach((b) => (b.onclick = () => { unit = +b.dataset.u; render(); }));   // 换单位不清数字，只重算
+    const inp = p.body.querySelector('.amt'); const go = p.body.querySelector('.go'); const conv = p.body.querySelector('.iv-conv');
+    const upd = () => {
+      num = inp.value; const c = checkAmt(s, from, num, unit);
+      conv.textContent = c.over ? `最多能转 ${fmtMoney(c.max)}` : c.v > 0 ? `= ${fmtMoney(c.v)}` : ''; conv.classList.toggle('neg', c.over);
+      go.textContent = `转 ${fmtMoney(c.v)}`; go.disabled = !c.ok;
+      const nt = p.body.querySelector('.iv-net'); if (nt) { nt.textContent = fmtMoney(c.v * 0.8); p.body.querySelector('.iv-tax').textContent = fmtMoney(c.v * 0.2); }
+    };
+    inp.oninput = upd;
+    inp.onfocus = () => { inp.value = ''; upd(); };   // 一点进输入框就清空
+    upd();
     go.onclick = () => {
-      const v = val(); const r = IV.transfer(s, from, to, v, now()); if (!r.ok) { toast(r.why); return; }
+      const c = checkAmt(s, from, inp.value, unit); if (!c.ok) return;   // 超过最多：不转、不自动改成最多
+      const v = c.v; const r = IV.transfer(s, from, to, v, now()); if (!r.ok) { toast(r.why); return; }
       toast(from === 'company' ? `分红 ${fmtMoney(v)}，代扣个税 ${fmtMoney(r.tax)}，到手 ${fmtMoney(r.net)} 进投资账户` : to === 'company' ? `已注资 ${fmtMoney(v)}（${r.no}）` : `转好了：${fmtMoney(v)} 到${IV.ACC[to]}`, 2600);
       done(); p.close(); after && after();
     };

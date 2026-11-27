@@ -1,16 +1,16 @@
 // 服装店（按秘书分页）和衣柜；换装出场
-import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=701a82d3';
-import { outfitsOf, priceOf } from '../config/outfits.js?v=701a82d3';
-import { autoDressRow } from './secretary.js?v=701a82d3';   // 设计74
-import { LINES } from '../config/lines.js?v=701a82d3';
-import * as STY from '../core/styles.js?v=701a82d3'; // V3-05 衣服名字和款式
-import * as O from '../core/outfits.js?v=701a82d3';
-import { fmtMoney } from '../core/format.js?v=701a82d3';
-import { asset } from '../platform/assets.js?v=701a82d3';
-import { game } from '../game.js?v=701a82d3';
-import { now } from '../core/clock.js?v=701a82d3';
-import { h, openPanel, toast } from './dom.js?v=701a82d3';
-import { say, dressUp } from './main-screen.js?v=701a82d3';
+import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=f00c2612';
+import { outfitsOf, priceOf } from '../config/outfits.js?v=f00c2612';
+import { autoDressRow } from './secretary.js?v=f00c2612';   // 设计74
+import { LINES } from '../config/lines.js?v=f00c2612';
+import * as STY from '../core/styles.js?v=f00c2612'; // V3-05 衣服名字和款式
+import * as O from '../core/outfits.js?v=f00c2612';
+import { fmtMoney } from '../core/format.js?v=f00c2612';
+import { asset } from '../platform/assets.js?v=f00c2612';
+import { game } from '../game.js?v=f00c2612';
+import { now } from '../core/clock.js?v=f00c2612';
+import { h, openPanel, toast } from './dom.js?v=f00c2612';
+import { say, dressUp } from './main-screen.js?v=f00c2612';
 
 export function openShop(secId, host) {
   const s = game.state;
@@ -74,6 +74,6 @@ export function openWardrobe(id) {
     card.onclick = ok ? () => { O.chooseOutfit(s, id, o.id); p.close(); if (id === s.current) dressUp(id, o.id); game.changed(); game.save(); } : () => toast(O.needText(o.id));
     grid.appendChild(card);
   }
-  if (mine.length < all.length) { const b = h('button', 'cloth cloth-mall', '<div class="cloth-mall-in">去商场<br>买衣服 ›</div>'); b.onclick = () => { p.close(); import('./mall.js?v=701a82d3').then((m) => m.openMall(id, 'clothes')); }; grid.appendChild(b); }
+  if (mine.length < all.length) { const b = h('button', 'cloth cloth-mall', '<div class="cloth-mall-in">去商场<br>买衣服 ›</div>'); b.onclick = () => { p.close(); import('./mall.js?v=f00c2612').then((m) => m.openMall(id, 'clothes')); }; grid.appendChild(b); }
   p.body.append(h('div', 'tr-gain', `已有 <b>${mine.length} / ${all.length}</b> 套，点一套让她换上`), autoDressRow(s, id, () => { p.close(); openWardrobe(id); }), grid);   // 设计74 开关
 }

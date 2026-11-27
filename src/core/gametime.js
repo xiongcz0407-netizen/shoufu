@@ -1,5 +1,5 @@
 // 游戏月 / 季 / 年时钟：从开局算起；到点触发（发工资、报税、月报），离线回来按顺序补算
-import CFG from '../config/gametime.json?v=701a82d3' with { type: 'json' };
+import CFG from '../config/gametime.json?v=f00c2612' with { type: 'json' };
 export const YEAR_MS = CFG.yearHours * 3600e3;
 export const MONTH_MS = YEAR_MS / CFG.monthsPerYear;
 export const QUARTER_MS = YEAR_MS / CFG.quartersPerYear;

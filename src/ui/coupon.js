@@ -1,15 +1,16 @@
 // 卡包（金券 + 六种券（设计86 去掉约会券、设计53 加投资券），唯一买券的地方）、顶栏金券数、各处「用券」小块（设计39 第五节、第五之二节，开发2）
 // 各页面只用券不买券：有券写「还有 N 张 · 用一张」，没券写「去卡包买 XX」→ 跳卡包定位到那格（闪金框），右上角「返回」回原页面
 // 开发1 用：potionHtml(s) 精力不够时按钮旁那一小块；bindPotion(el, after) 绑上点击
-import * as CP from '../core/coupon.js?v=701a82d3';
-import { IND_BY_ID } from '../config/industries.js?v=701a82d3';
-import { dateText, gameDate } from '../core/gametime.js?v=701a82d3';
-import { now } from '../core/clock.js?v=701a82d3';
-import { game } from '../game.js?v=701a82d3';
-import { h, toast, openPanel } from './dom.js?v=701a82d3';
-import { openFull, openTab } from './shell.js?v=701a82d3';
-import { confirmBox } from './confirm.js?v=701a82d3';
-import { asset, hasAsset } from '../platform/assets.js?v=701a82d3';
+import * as CP from '../core/coupon.js?v=f00c2612';
+import { energy, energyMax } from '../core/manage.js?v=f00c2612';   // 设计104 精力满了先提醒
+import { IND_BY_ID } from '../config/industries.js?v=f00c2612';
+import { dateText, gameDate } from '../core/gametime.js?v=f00c2612';
+import { now } from '../core/clock.js?v=f00c2612';
+import { game } from '../game.js?v=f00c2612';
+import { h, toast, openPanel } from './dom.js?v=f00c2612';
+import { openFull, openTab } from './shell.js?v=f00c2612';
+import { confirmBox } from './confirm.js?v=f00c2612';
+import { asset, hasAsset } from '../platform/assets.js?v=f00c2612';
 
 const IT = CP.ITEMS;
 /** 图标（设计39 第七节）：有图用图，没有用表情 */
@@ -32,13 +33,28 @@ export function mountCouponChip() {
 export const goBuyHtml = (k, cls = '') => `<button class="btn sm cp-go ${cls}" data-k="${k}">去卡包买${IT[k].name}<small>没有${IT[k].name}了</small></button>`;
 export function bindGoBuy(el, after) { el.querySelectorAll('.cp-go').forEach((x) => (x.onclick = (e) => { e.stopPropagation(); openWallet({ focus: x.dataset.k, back: after }); })); }
 
+/** 设计104：界面上喝精力药水都走这里——精力 ≥ 当天上限先弹确认（还是喝 / 先不喝），没满直接喝；toast 写喝完是多少。
+ *  ask 默认是游戏自己的确认框、say 默认 toast（测试可以换）。返回 { ok, asked, why }。drinkOrBuy（精力不够自动喝）不走这里 */
+export async function drinkPotion(s = game.state, t = now(), ask = confirmBox, say = toast) {
+  if (CP.potions(s) <= 0) { say('没有药水了'); return { ok: false, why: '没有药水了' }; }
+  const e = Math.floor(energy(s, t)), mx = energyMax(s); const add = CP.ITEMS.potion.energy; let asked = false;
+  if (e >= mx) {
+    asked = true;
+    const yes = await ask({ title: '精力已经满了', body: `现在 ${e} / ${mx}。再喝会到 ${e + add}（超过上限的部分 0 点不清掉）。还要喝吗？`, ok: '还是喝', cancel: '先不喝' });
+    if (!yes) return { ok: false, asked, why: '先不喝' };
+  }
+  const r = CP.drink(s, now()); if (!r.ok) { say(r.why); return { ...r, asked }; }
+  say(`精力 +${r.energy}（现在 ${Math.floor(energy(s, now()))} / ${energyMax(s)}）`);
+  return { ...r, asked };
+}
+
 /** 精力不够时按钮旁：有药水「喝一瓶（还有 N 瓶）」；没有「去卡包买药水」 */
 export function potionHtml(s) {
   const n = CP.potions(s);
   return n > 0 ? `<button class="btn sm gold cp-pot">喝一瓶药水<small>精力 +${IT.potion.energy}（还有 ${n} 瓶）</small></button>` : goBuyHtml('potion');
 }
 export function bindPotion(el, after) {
-  el.querySelectorAll('.cp-pot').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); const r = CP.drink(game.state, now()); toast(r.ok ? `精力 +${r.energy}` : r.why); saved(after); }));
+  el.querySelectorAll('.cp-pot').forEach((b) => (b.onclick = async (e) => { e.stopPropagation(); const r = await drinkPotion(); if (r.ok) saved(after); }));   // 设计104
   bindGoBuy(el, after);
 }
 
@@ -78,13 +94,13 @@ export function bindRefill(el, after) {
 /** 「去用」：药水直接喝；商战券去商战页；互动券去秘书列表；自动券选哪条线；事件券去经营页 */
 function goUse(k, close, redraw) {
   const s = game.state;
-  if (k === 'potion') { const r = CP.drink(s, now()); toast(r.ok ? `精力 +${r.energy}` : r.why); saved(redraw); return; }
+  if (k === 'potion') { drinkPotion(s).then((r) => { if (r.ok) saved(redraw); }); return; }   // 设计104：满了先问
   if (k === 'auto') { openPickLine(redraw); return; }
   close();
   setTimeout(() => {
-    if (k === 'battle') import('./battle.js?v=701a82d3').then((u) => u.openBattle());
+    if (k === 'battle') import('./battle.js?v=f00c2612').then((u) => u.openBattle());
     else if (k === 'invest') { openTab('wealth'); setTimeout(() => { const b = [...document.querySelectorAll('button')].find((x) => x.textContent.trim().startsWith('投资')); if (b) b.click(); }, 300); }   // 设计53：投资券去看盘那里用
-    else if (k === 'event') import('./inbox.js?v=701a82d3').then((u) => u.openInbox('biz'));
+    else if (k === 'event') import('./inbox.js?v=f00c2612').then((u) => u.openInbox('biz'));
     else openTab('secretary');
   }, 220);
 }

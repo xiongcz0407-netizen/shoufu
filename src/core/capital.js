@@ -1,18 +1,18 @@
 // 阶段三 3-02：投资人融资 + 对赌 + 股东名册 + 董事会 + 施压（设计23 第一、二节）
 // 估值、持股在 core/economy.js（earningsValue / companyEquity / stakeOf），身价 = 公司估值 × 你的持股
-import { credit } from './credit.js?v=701a82d3'; // V3-01 亲自拍板攒投入度
-import CAP from '../config/capital.json?v=701a82d3' with { type: 'json' };
-import { companyEquity, stakeOf, profit12, earningsValue, lineNetMonth } from './economy.js?v=701a82d3';
-import { ensureSec } from './secretary.js?v=701a82d3';
-import { isTraining } from './training.js?v=701a82d3';
-import { receive, pay, canPay } from './ledger.js?v=701a82d3';
-import { bank } from './bank.js?v=701a82d3';
-import { addContract } from './contracts.js?v=701a82d3';
-import { addMsg } from './inbox.js?v=701a82d3';
-import { gm, profitMul } from './calib.js?v=701a82d3';
-import { MONTH_MS, YEAR_MS, monthIndex } from './gametime.js?v=701a82d3';
-import { holder, isSec, power, POSTS_CFG as P } from './posts.js?v=701a82d3';
-import { addFavor } from './affection.js?v=701a82d3';
+import { credit } from './credit.js?v=f00c2612'; // V3-01 亲自拍板攒投入度
+import CAP from '../config/capital.json?v=f00c2612' with { type: 'json' };
+import { companyEquity, stakeOf, profit12, earningsValue, lineNetMonth } from './economy.js?v=f00c2612';
+import { ensureSec } from './secretary.js?v=f00c2612';
+import { isTraining } from './training.js?v=f00c2612';
+import { receive, pay, canPay } from './ledger.js?v=f00c2612';
+import { bank } from './bank.js?v=f00c2612';
+import { addContract } from './contracts.js?v=f00c2612';
+import { addMsg } from './inbox.js?v=f00c2612';
+import { gm, profitMul } from './calib.js?v=f00c2612';
+import { MONTH_MS, YEAR_MS, monthIndex } from './gametime.js?v=f00c2612';
+import { holder, isSec, power, POSTS_CFG as P } from './posts.js?v=f00c2612';
+import { addFavor } from './affection.js?v=f00c2612';
 export { CAP };
 
 const r2 = (x) => Math.round(x * 100) / 100;
@@ -222,7 +222,7 @@ export function secWorth(s, id, t = s._now || Date.now()) {
 /** 拿了期权的秘书：职位效率 × 1.1（posts.efficiency 挂这个） */
 export const optionEff = (s, id) => (s.cap && s.cap.options && s.cap.options[id] ? PL.eff : 1);
 const LINES = { 元气: '诶？这是……公司的股份？我会更拼命的！', 清冷: '……谢谢。我会好好保管。', 天然呆: '股份？……我查一下这是什么意思。……哦。谢谢。很多钱。', 妩媚: '送我股份？……老板，这是聘礼吗？我收下了。', 高冷: '……谢谢。我不会让它贬值。', 知性: '这是对我的信任。我会让公司值得这个价。', 绿茶: '老板只给我一个人的对吧？我就知道你最懂我～', 傲娇: '哼，给这么点……算了，看在你诚意的份上。' };
-import { SEC_BY_ID } from '../config/secretaries.js?v=701a82d3';
-import { bigBonus, useBig } from './manage.js?v=701a82d3';
+import { SEC_BY_ID } from '../config/secretaries.js?v=f00c2612';
+import { bigBonus, useBig } from './manage.js?v=f00c2612';
 const fmtGm = (ms) => `${Math.max(0.1, ms / MONTH_MS).toFixed(1)} 个游戏月`;
 export const optionLine = (s, id) => LINES[(SEC_BY_ID[id] || {}).type] || '谢谢老板。';

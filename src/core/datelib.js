@@ -1,7 +1,7 @@
 // 设计83 约会剧情片段库：设计/剧情/约会_<id>.json（普通约会按爱慕阶段拼一场）、私密约会_<id>.json（车里 / 私人飞机 / 游艇，两次 3 选 1）
 // 用过的片段 / 场景记在 s.secs[id].rec.dateUsed（键：s<阶段><o|c|e>、car、jet、yacht 是下标数组；s<阶段>h 是最近 10 场的组合），这一组用完才轮回（config/caps.js 登记）
-import { DATE_LIB, PRIV_LIB } from '../config/story/index.js?v=701a82d3';
-import { ensureSec, loveStage } from './secretary.js?v=701a82d3';
+import { DATE_LIB, PRIV_LIB } from '../config/story/index.js?v=f00c2612';
+import { ensureSec, loveStage } from './secretary.js?v=f00c2612';
 
 export const SLOTS = { open: 1, chat: 2, end: 1 };   // 一场：开场 1 段、聊 2 段（不重复）、结尾 1 段
 export const PRIV_KEYS = ['car', 'jet', 'yacht'];

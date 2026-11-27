@@ -1,12 +1,12 @@
 // 老板页「设置」里的存档和素材（设计22 第二、三节）：登录名 + 口令（点眼睛看）、换个名字登录、重新开始、手机里的素材
-import { game } from '../game.js?v=701a82d3';
-import { h, openPanel, toast } from './dom.js?v=701a82d3';
-import * as CL from '../core/cloud.js?v=701a82d3';
-import * as AD from '../platform/assetdb.js?v=701a82d3';
-import { LOAD } from '../platform/assets.js?v=701a82d3';
-import { defaultState, serialize } from '../core/save.js?v=701a82d3';
-import { now } from '../core/clock.js?v=701a82d3';
-import { APP_V, versionText } from '../version.js?v=701a82d3';
+import { game } from '../game.js?v=f00c2612';
+import { h, openPanel, toast } from './dom.js?v=f00c2612';
+import * as CL from '../core/cloud.js?v=f00c2612';
+import * as AD from '../platform/assetdb.js?v=f00c2612';
+import { LOAD } from '../platform/assets.js?v=f00c2612';
+import { defaultState, serialize } from '../core/save.js?v=f00c2612';
+import { now } from '../core/clock.js?v=f00c2612';
+import { APP_V, versionText } from '../version.js?v=f00c2612';
 
 const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 /** 二次确认：底部弹层，两个按钮 */

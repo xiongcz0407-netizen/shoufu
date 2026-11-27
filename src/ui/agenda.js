@@ -1,20 +1,20 @@
 // V3-02 老板日程表界面 → 设计69 第二版：首页「日程」= 邀请箱（不分时段、不过期）：去参加 / 派人代去 / 推掉；外部事件「去处理」
 // 出席宴会、讲座、慈善、私人场合先选车 / 表 / 西装 / 女伴；参加 = 小场景（ui/scene.js）
-import * as LV from '../core/love.js?v=701a82d3';   // 设计56
-import * as AG from '../core/agenda.js?v=701a82d3';
-import { openTrip } from './trip.js?v=701a82d3';
-import * as INB from './inbox.js?v=701a82d3';
-import { SEC_BY_ID } from '../config/secretaries.js?v=701a82d3';
-import { attrs } from '../core/posts.js?v=701a82d3';
-import { game } from '../game.js?v=701a82d3';
-import { now } from '../core/clock.js?v=701a82d3';
-import { openPanel, toast, h } from './dom.js?v=701a82d3';
-import { asset, hasAsset } from '../platform/assets.js?v=701a82d3';
-import { playScene } from './scene.js?v=701a82d3';
-import { lineOf, setFavorFn } from '../core/storylib.js?v=701a82d3';
-import { favorStage } from '../core/secretary.js?v=701a82d3';
+import * as LV from '../core/love.js?v=f00c2612';   // 设计56
+import * as AG from '../core/agenda.js?v=f00c2612';
+import { openTrip } from './trip.js?v=f00c2612';
+import * as INB from './inbox.js?v=f00c2612';
+import { SEC_BY_ID } from '../config/secretaries.js?v=f00c2612';
+import { attrs } from '../core/posts.js?v=f00c2612';
+import { game } from '../game.js?v=f00c2612';
+import { now } from '../core/clock.js?v=f00c2612';
+import { openPanel, toast, h } from './dom.js?v=f00c2612';
+import { asset, hasAsset } from '../platform/assets.js?v=f00c2612';
+import { playScene } from './scene.js?v=f00c2612';
+import { lineOf, setFavorFn } from '../core/storylib.js?v=f00c2612';
+import { favorStage } from '../core/secretary.js?v=f00c2612';
 setFavorFn((id) => { const r = game.state && game.state.secs && game.state.secs[id]; return r ? favorStage(r.favor || 0) : 0; }); // V3-04：{ t, fav } 好感到了才说
-import * as STY from '../core/styles.js?v=701a82d3';
+import * as STY from '../core/styles.js?v=f00c2612';
 
 const C = AG.AGENDA_CFG;
 const OPENERS = {};
@@ -33,7 +33,7 @@ export function openAgenda(focusId = null) {   // focusId 给了就滚到那件�
       <div class="sd-rec-title">邀请箱 ${xs.length}/${AG.cap(s)}<small>　不过期，什么时候去都行；每天秘书补到满</small></div>
       ${ext.map((x) => card(s, x, t)).join('')}${xs.length ? xs.map((x) => card(s, x, t)).join('') : '<div class="ag-empty">邀请箱空了，明天秘书会再补</div>'}
       ${A.log.length ? `<div class="sd-rec-title">最近</div><div class="ag-log">${A.log.slice(0, 5).map((l) => `<div>${l.text}</div>`).join('')}</div>` : ''}`;
-    p.body.querySelectorAll('[data-bday]').forEach((b) => (b.onclick = () => { p.close(); import('./mall.js?v=701a82d3').then((u) => u.openMall(b.dataset.bday, 'gift')); }));
+    p.body.querySelectorAll('[data-bday]').forEach((b) => (b.onclick = () => { p.close(); import('./mall.js?v=f00c2612').then((u) => u.openMall(b.dataset.bday, 'gift')); }));
     p.body.querySelectorAll('[data-act]').forEach((b) => (b.onclick = () => act(b.dataset.act, +b.dataset.id, draw, p)));
   };
   draw();
@@ -95,7 +95,7 @@ export function runScene(x, sel) {
   playScene([...(inv ? [{ who: comp, text: inv }] : []), ...fl, ...v.intro.map(sub), ...round(0)], { sec: comp && SEC_BY_ID[comp] ? comp : null, outfit: fit ? fit.o : undefined, bg: BG[x.kind], title: `${C.kinds[x.kind].name} · ${x.title}` });
 }
 INB.addActionUi((s, m, a) => { if (m.type !== 'agenda' || a !== 'open') return false; openAgenda(); return true; });
-import('./meeting.js?v=701a82d3').then((M) => registerOpen('meeting', () => M.openMeeting()));
+import('./meeting.js?v=f00c2612').then((M) => registerOpen('meeting', () => M.openMeeting()));
 for (const k of ['project', 'attack', 'realestate']) registerOpen(k, () => INB.openInbox('important')); // 开发1 的消息（带按钮），设计39 起在消息中心「重要」页处理
 let last = 0;
 game.addTicker((s) => { const t = now(); if (t - last < 2000) return; last = t; AG.tick(s, t); freshTick(s); });

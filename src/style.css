@@ -1279,3 +1279,17 @@ body.has-goal .floats { top: calc(var(--safe-t) + 136px); }
 .ask-knock p { margin: 0 0 6px; line-height: 1.6; }
 .ask-btns { display: flex; gap: 10px; margin-top: 10px; }
 .ask-btns .btn { flex: 1; height: 42px; }
+
+/* 设计103 转账：单位按钮 + 只填数字 */
+.iv-units { display: flex; gap: 6px; }
+.iv-units .iv-unit { flex: 1; padding: 8px 0; font-size: 14px; }
+.iv-units .iv-unit.on { border-color: var(--gold); box-shadow: 0 0 0 1.5px var(--gold) inset; color: var(--gold); font-weight: 700; }
+.iv-amt-row { display: flex; align-items: center; gap: 8px; }
+.iv-amt-row .iv-amt { flex: 1; }
+.iv-unit-lab { font-size: 18px; font-weight: 700; color: var(--gold); min-width: 2.5em; }
+.iv-conv { min-height: 1.4em; }
+.iv-conv.neg { color: #ff6b6b; }
+/* 设计103 单位 + 数字金额框 */
+.ua-in { position: relative; } .ua-in .ua-num { width: 100%; padding: 10px 56px 10px 10px; border-radius: 8px; border: 1px solid #34425c; background: #18223a; color: var(--paper); font-size: 16px; box-sizing: border-box; }
+.ua-in .ua-unit { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--gold); font-weight: 700; }
+.ua-eq { min-height: 18px; margin: 4px 2px 8px; font-size: 13px; opacity: .75; } .ua-eq.neg { color: #ff6b6b; opacity: 1; }

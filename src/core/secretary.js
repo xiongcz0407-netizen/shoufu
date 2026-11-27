@@ -1,6 +1,6 @@
 // 秘书：加入条件、存档记录、好感 / 爱慕阶段
-import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=701a82d3';
-import { netWorth } from './economy.js?v=701a82d3';
+import { SECRETARIES, SEC_BY_ID } from '../config/secretaries.js?v=f00c2612';
+import { netWorth } from './economy.js?v=f00c2612';
 
 export const FAVOR_STAGES = ['陌生', '熟悉', '信任', '亲密', '知己']; // 每段 100 点
 export const FAVOR_MAX = 499;

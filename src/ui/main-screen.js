@@ -1,19 +1,19 @@
 // 主界面：背景（跟称号换）、顶部条、立绘、台词气泡、底部 5 个按钮
-import * as RL from '../core/richlist.js?v=701a82d3'; // 设计98 称号后带财富榜名次
-import { asset, hasAsset } from '../platform/assets.js?v=701a82d3';
-import { onTap } from '../platform/input.js?v=701a82d3';
-import { TITLES } from '../config/titles.js?v=701a82d3';
-import { SEC_BY_ID } from '../config/secretaries.js?v=701a82d3';
-import { fmtMoney, fmtNum } from '../core/format.js?v=701a82d3';
-import { gameDate, dateText } from '../core/gametime.js?v=701a82d3';
-import * as PK from '../core/pick.js?v=701a82d3'; // V2-03 进货挑品
-import { bell as bellOf } from '../core/inbox.js?v=701a82d3';
-import { now as nowFn } from '../core/clock.js?v=701a82d3';
-import { game } from '../game.js?v=701a82d3';
-import { h, openPanel, toast } from './dom.js?v=701a82d3';
-import { createPortrait } from './portrait.js?v=701a82d3';
-import { audio } from '../platform/audio.js?v=701a82d3';
-import { voiceFile } from '../config/lines.js?v=701a82d3';
+import * as RL from '../core/richlist.js?v=f00c2612'; // 设计98 称号后带财富榜名次
+import { asset, hasAsset } from '../platform/assets.js?v=f00c2612';
+import { onTap } from '../platform/input.js?v=f00c2612';
+import { TITLES } from '../config/titles.js?v=f00c2612';
+import { SEC_BY_ID } from '../config/secretaries.js?v=f00c2612';
+import { fmtMoney, fmtNum } from '../core/format.js?v=f00c2612';
+import { gameDate, dateText } from '../core/gametime.js?v=f00c2612';
+import * as PK from '../core/pick.js?v=f00c2612'; // V2-03 进货挑品
+import { bell as bellOf } from '../core/inbox.js?v=f00c2612';
+import { now as nowFn } from '../core/clock.js?v=f00c2612';
+import { game } from '../game.js?v=f00c2612';
+import { h, openPanel, toast } from './dom.js?v=f00c2612';
+import { createPortrait } from './portrait.js?v=f00c2612';
+import { audio } from '../platform/audio.js?v=f00c2612';
+import { voiceFile } from '../config/lines.js?v=f00c2612';
 
 export const NAV = [
   { key: 'industry', name: '产业', icon: 'icon_industry' },
