@@ -1,16 +1,16 @@
 // 设计42 奖励邮件：消息「重要」里点「领取」→ 到手、弹跟上课一样的升级框、马上存档上传（开发2）
-import * as GF from '../core/gift.js?v=b846574c';
-import { diffOf } from '../core/secfx.js?v=b846574c';
-import { SEC_BY_ID } from '../config/secretaries.js?v=b846574c';
-import { game } from '../game.js?v=b846574c';
-import { addActionUi } from './inbox.js?v=b846574c';
-import { upgradeBox } from './upgradebox.js?v=b846574c';
-import { toast } from './dom.js?v=b846574c';
+import * as GF from '../core/gift.js?v=6a9355f4';
+import { diffOf } from '../core/secfx.js?v=6a9355f4';
+import { SEC_BY_ID } from '../config/secretaries.js?v=6a9355f4';
+import { game } from '../game.js?v=6a9355f4';
+import { addActionUi } from './inbox.js?v=6a9355f4';
+import { upgradeBox } from './upgradebox.js?v=6a9355f4';
+import { toast } from './dom.js?v=6a9355f4';
 
 export async function takeGift(m, render = () => {}) {
   const s = game.state; const r = GF.claimGift(s, m, Date.now()); if (!r) { toast('已经领过了'); return; }
   game.changed(); game.save(); render();
-  try { const CL = await import('../core/cloud.js?v=b846574c'); if (CL.onCloud()) await CL.push(true); } catch (e) { console.warn('[礼物] 上传', e); }
+  try { const CL = await import('../core/cloud.js?v=6a9355f4'); if (CL.onCloud()) await CL.push(true); } catch (e) { console.warn('[礼物] 上传', e); }
   const gains = [];
   if (r.cash) gains.push(`个人现金 +${GF.cashText(r.cash)}`);   // 设计62
   if (r.coupons) gains.push(`金券 +${r.coupons}`);

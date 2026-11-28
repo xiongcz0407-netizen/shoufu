@@ -1,10 +1,10 @@
 // 培养：课程价格、立刻学完（设计35 第八节：不再等时间、没有培训位；存档里正在上的课读档时直接结业）；设计91：每门课现实价格 + 最多练到，不限次数
-import { COURSES, COURSE_BY_ID, PRICE_TOP, BEST_DISCOUNT } from '../config/courses.js?v=b846574c';
-import { SEC_BY_ID } from '../config/secretaries.js?v=b846574c';
-import { ensureSec } from './secretary.js?v=b846574c';
-import { bump } from './daily.js?v=b846574c';
-import { pay, canPay } from './ledger.js?v=b846574c';
-import { deduct as deductTax } from './companytax.js?v=b846574c';   // 设计93 挂钩（开发1）
+import { COURSES, COURSE_BY_ID, PRICE_TOP, BEST_DISCOUNT } from '../config/courses.js?v=6a9355f4';
+import { SEC_BY_ID } from '../config/secretaries.js?v=6a9355f4';
+import { ensureSec } from './secretary.js?v=6a9355f4';
+import { bump } from './daily.js?v=6a9355f4';
+import { pay, canPay } from './ledger.js?v=6a9355f4';
+import { deduct as deductTax } from './companytax.js?v=6a9355f4';   // 设计93 挂钩（开发1）
 
 export const ATTR_MAX = 100;
 /** 设计35 第八节：上课立刻学完，一律不占人（商战 / 踩点 / 出差 / 职位效率都不受影响） */

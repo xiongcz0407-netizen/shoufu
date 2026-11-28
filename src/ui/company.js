@@ -1,45 +1,45 @@
 // 「公司」页签：产业（摘要卡 + 产业线卡 → 产业线详情）、人事（员工、招聘、裁员）；分红到个人
-import * as BK from '../core/books.js?v=b846574c';   // 设计79 第三版
-import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=b846574c';
-import { TITLES } from '../config/titles.js?v=b846574c';
-import * as PQ from '../core/prereq.js?v=b846574c'; // V2-12 前置条件
-import { SEC_BY_ID } from '../config/secretaries.js?v=b846574c';
-import * as E from '../core/economy.js?v=b846574c';
-import * as CB from '../core/calib.js?v=b846574c';
-import * as ST from '../core/staff.js?v=b846574c';
-import * as CT from '../core/companytax.js?v=b846574c';
-import { MONTH_MS, monthIndex } from '../core/gametime.js?v=b846574c';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=b846574c';
-import { asset, hasAsset } from '../platform/assets.js?v=b846574c';
-import { now } from '../core/clock.js?v=b846574c';
-import { game } from '../game.js?v=b846574c';
-import { h, openPanel, toast, liveRender } from './dom.js?v=b846574c';
-import { unitAmount } from './unitamt.js?v=b846574c'; // 设计103
-import * as AC from '../core/accrual.js?v=b846574c';
-import * as PO from '../core/posts.js?v=b846574c';
-import { dividendAdvice } from '../core/postwork.js?v=b846574c';
-import { openPost } from './posts.js?v=b846574c';
-import { openRealEstate } from './realestate.js?v=b846574c';
-import * as RE from '../core/realestate.js?v=b846574c';
-import * as LGI from '../core/logistics.js?v=b846574c';
-import * as TC from '../core/tech.js?v=b846574c';
-import * as MD from '../core/media.js?v=b846574c';
-import * as CY from '../core/cities.js?v=b846574c';
-import * as RVY from '../core/rivalry.js?v=b846574c';
-import { hintLater } from './guide2.js?v=b846574c';
-import * as MG from '../core/manage.js?v=b846574c'; // P-05 亲自经营
-import * as PK from '../core/pick.js?v=b846574c'; // V2-03 进货挑品
-import * as LT from '../core/late.js?v=b846574c'; // V3-01 后期不挂机
-import { isTraining } from '../core/training.js?v=b846574c';
-import { bank } from '../core/bank.js?v=b846574c'; // V0.2.1 资金页签：贷款限用途
-import { openTab } from './shell.js?v=b846574c';
-import { doFill } from './fill.js?v=b846574c';
-import * as CF from '../core/cashflow.js?v=b846574c';
-import { lockState } from '../core/ledger.js?v=b846574c'; // V0.2.9 照样花 // V0.2.3 资金链（设计35）
-import * as ADS from '../core/ads.js?v=b846574c'; // V0.2.5 广告升级 // V0.2.2 开店补满人
-import { openSitePick } from './sites.js?v=b846574c'; // V2-08 选址（开发2）；设计82 分店那块去掉了
-import { confirmBox } from './confirm.js?v=b846574c'; // 设计37 第一节：游戏样式确认框
-import { autoHtml, bindAuto, potionHtml, bindPotion } from './coupon.js?v=b846574c'; // 设计39 自动上阵、精力药水（开发2）
+import * as BK from '../core/books.js?v=6a9355f4';   // 设计79 第三版
+import { INDUSTRIES, IND_BY_ID } from '../config/industries.js?v=6a9355f4';
+import { TITLES } from '../config/titles.js?v=6a9355f4';
+import * as PQ from '../core/prereq.js?v=6a9355f4'; // V2-12 前置条件
+import { SEC_BY_ID } from '../config/secretaries.js?v=6a9355f4';
+import * as E from '../core/economy.js?v=6a9355f4';
+import * as CB from '../core/calib.js?v=6a9355f4';
+import * as ST from '../core/staff.js?v=6a9355f4';
+import * as CT from '../core/companytax.js?v=6a9355f4';
+import { MONTH_MS, monthIndex } from '../core/gametime.js?v=6a9355f4';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=6a9355f4';
+import { asset, hasAsset } from '../platform/assets.js?v=6a9355f4';
+import { now } from '../core/clock.js?v=6a9355f4';
+import { game } from '../game.js?v=6a9355f4';
+import { h, openPanel, toast, liveRender } from './dom.js?v=6a9355f4';
+import { unitAmount } from './unitamt.js?v=6a9355f4'; // 设计103
+import * as AC from '../core/accrual.js?v=6a9355f4';
+import * as PO from '../core/posts.js?v=6a9355f4';
+import { dividendAdvice } from '../core/postwork.js?v=6a9355f4';
+import { openPost } from './posts.js?v=6a9355f4';
+import { openRealEstate } from './realestate.js?v=6a9355f4';
+import * as RE from '../core/realestate.js?v=6a9355f4';
+import * as LGI from '../core/logistics.js?v=6a9355f4';
+import * as TC from '../core/tech.js?v=6a9355f4';
+import * as MD from '../core/media.js?v=6a9355f4';
+import * as CY from '../core/cities.js?v=6a9355f4';
+import * as RVY from '../core/rivalry.js?v=6a9355f4';
+import { hintLater } from './guide2.js?v=6a9355f4';
+import * as MG from '../core/manage.js?v=6a9355f4'; // P-05 亲自经营
+import * as PK from '../core/pick.js?v=6a9355f4'; // V2-03 进货挑品
+import * as LT from '../core/late.js?v=6a9355f4'; // V3-01 后期不挂机
+import { isTraining } from '../core/training.js?v=6a9355f4';
+import { bank } from '../core/bank.js?v=6a9355f4'; // V0.2.1 资金页签：贷款限用途
+import { openTab } from './shell.js?v=6a9355f4';
+import { doFill } from './fill.js?v=6a9355f4';
+import * as CF from '../core/cashflow.js?v=6a9355f4';
+import { lockState } from '../core/ledger.js?v=6a9355f4'; // V0.2.9 照样花 // V0.2.3 资金链（设计35）
+import * as ADS from '../core/ads.js?v=6a9355f4'; // V0.2.5 广告升级 // V0.2.2 开店补满人
+import { openSitePick } from './sites.js?v=6a9355f4'; // V2-08 选址（开发2）；设计82 分店那块去掉了
+import { confirmBox } from './confirm.js?v=6a9355f4'; // 设计37 第一节：游戏样式确认框
+import { autoHtml, bindAuto, potionHtml, bindPotion } from './coupon.js?v=6a9355f4'; // 设计39 自动上阵、精力药水（开发2）
 
 const sum = (o) => Object.values(o || {}).reduce((a, b) => a + b, 0);
 /** 本月到现在：营收、进货、预估人工和房租、利润（月底才真正扣人工、房租、税） */
@@ -85,7 +85,7 @@ export function renderFunds(body) {
     const dmaxOf = () => Math.max(0, Math.min(CF.divMax(s), Math.floor((s.company || 0) - rs))); /* V0.2.9 留够工资 */ const dmax = dmaxOf();
     const rows = (s.ledger || []).filter((r) => r.cat === 'capital_out' || (r.wallet === 'company' && r.cat === 'dividend_out')).slice(-10).reverse(); /* 设计62：从投资账户注资（wallet invest）也算 */
     wrap.innerHTML = `<div class="sum-card"><div><small>个人现金</small><b>${fmtMoney(s.cash)}</b>${free < Math.floor(s.cash) ? `<small>能动的 ${fmtMoney(free)}（有冻结）</small>` : ''}</div>
-        <div><small>公司账户</small><b>${fmtMoney(s.company)}</b><small>可用余额 ${fmtMoney(CF.room(s))}（${CF.keepText(s)}）</small><small>本月应付 ${fmtMoney(P.total)}</small>${rs > 0 ? `<small class="neg">其中贷款 / 融资款限用途 ${fmtMoney(rs)}（不能分红）</small>` : ''}${availShort(s)}</div></div>
+        <div><small>公司账户</small><b>${fmtMoney(s.company)}</b><small>可用余额 ${CF.roomText(s)}（${CF.keepText(s)}）</small><small>本月应付 ${fmtMoney(P.total)}</small>${rs > 0 ? `<small class="neg">其中贷款 / 融资款限用途 ${fmtMoney(rs)}（不能分红）</small>` : ''}${availShort(s)}</div></div>
       <div class="sd-rec-title">注资到公司 <small>个人 → 公司，不交税；钱进了公司只能分红拿回来；最多 ${fmtMoney(free)}</small></div>
       <div class="ua-inj"></div>
       <button class="btn gold big go-inj" disabled>注资</button>
@@ -115,7 +115,7 @@ export async function okToSpend(s, cost, what) { // 设计37：返回 Promise<bo
   }
   if (CF.cushionShort(s, cost) > 0) { /* V0.2.9 工资锁只提醒：说清楚后果，玩家可以照样花 */
     const i = CF.lockInfo(s, cost);
-    const yes = await confirmBox({ title: '超过可用余额', body: `${what}要 ${fmtMoney(i.cost)}，超过可用余额 ${fmtMoney(CF.room(s))}，花了以后不够留 ${i.months} 个月${i.months > 1 ? '工资房租' : '工资'}（要留 ${fmtMoney(i.need)}，还差 ${fmtMoney(i.short)}）。\n照样花的话：发不出工资员工会走，拖两个月门店全部停业。`, ok: '照样花', cancel: '先不花', danger: true });
+    const yes = await confirmBox({ title: '超过可用余额', body: `${what}要 ${fmtMoney(i.cost)}，超过可用余额 ${CF.roomRaw(s) >= 0 ? fmtMoney(CF.roomRaw(s)) : `（已经是 −${fmtMoney(-CF.roomRaw(s))}）`}，花了以后不够留 ${i.months} 个月${i.months > 1 ? '工资房租' : '工资'}（要留 ${fmtMoney(i.need)}，还差 ${fmtMoney(i.short)}）。\n照样花的话：发不出工资员工会走，拖两个月门店全部停业。`, ok: '照样花', cancel: '先不花', danger: true });
     if (yes) { lockState.bypass = true; setTimeout(() => { lockState.bypass = false; }, 0); }
     return yes;
   }
@@ -131,7 +131,7 @@ function summary(s, t) {
   const av = s.company - m.P.total;
   const box = h('div', 'sum-card', `
     <div><small>公司账户余额</small><b class="${s.company < 0 ? 'neg' : ''}">${fmtMoney(s.company)}</b></div>
-    <div><small>可用余额</small><b>${fmtMoney(CF.room(s))}</b><small>${CF.keepText(s)}</small>${availShort(s, av)}</div>
+    <div><small>可用余额</small><b>${CF.roomRaw(s) >= 0 ? fmtMoney(CF.roomRaw(s)) : `<span class="neg">−${fmtMoney(-CF.roomRaw(s))}</span>`}</b><small>${CF.roomRaw(s) >= 0 ? CF.keepText(s) : `还差这么多才够留 ${(s.title || 0) ? '2 个月工资房租' : '1 个月工资'}（${CF.keepText(s)}）`}</small>${availShort(s, av)}</div>
     <div><small>本月营收</small><b class="pos">${fmtMoney(m.rev)}</b></div>
     <div><small>本月利润（权责）</small><b class="${m.profit < 0 ? 'neg' : 'pos'}">${fmtMoney(m.profit)}</b></div>
     <div><small>员工</small><b>${ST.totalStaff(s)} 人</b></div>
@@ -239,15 +239,15 @@ function openShoot() {
   const p = openPanel('投拍');
   const row = (label, key, opts) => `<div class="sd-rec-title">${label}</div><div class="tabs">${opts.map(([v, n]) => `<button class="tab ${o[key] === v ? 'on' : ''}" data-k="${key}" data-v="${v}">${n}</button>`).join('')}</div>`;
   const render = () => {
-    const s = game.state; const c = MD.costOf(o); const why = MD.whyNotShoot(s, o);
+    const s = game.state; const c = MD.costOf(o); const why0 = (() => { const k = lockState.click; lockState.click = false; try { return MD.whyNotShoot(s, o); } finally { lockState.click = k; } })(); /* 画框时不算「点击」（不然点「投拍一部」那一下画出来就是「公司账户不够」） */ const why = why0 === CF.LOCK_WHY ? null : why0; /* 设计112：要动工资的钱不灰掉，点开机时问 */
     p.body.innerHTML = `<div class="sd-rec-title">片名</div><input class="md-title" maxlength="12" value="${o.title}" style="width:100%;padding:10px;border-radius:8px;border:1px solid #34425c;background:#18223a;color:var(--paper);font-size:16px">` + row('种类', 'kind', Object.entries(C.kinds).map(([k, K]) => [k, K.name])) + row('题材', 'genre', C.genres.map((g) => [g, g === MD.hotGenre(s, now()) ? g + '🔥' : g]))
       + row('导演', 'dir', C.directors.map((d, i) => [i, `${d.name} ${fmtMoney(d.cost)}`])) + row('演员', 'cast', C.casts.map((d, i) => [i, `${d.name} ${fmtMoney(d.cost)}`])) + row('宣发', 'pub', C.publicity.map((d, i) => [i, `${d.name} ${fmtMoney(d.cost)}`]))
-      + `<div class="rate">总成本 ${fmtMoney(c.total)}（制作 ${fmtMoney(c.make)} + 宣发 ${fmtMoney(c.pub)}；演员占 ${Math.round(c.cast / c.total * 100)}%）${why ? `<br><span class="sc-cond">${why}</span>` : ''}</div>
+      + `<div class="rate">总成本 ${fmtMoney(c.total)}（制作 ${fmtMoney(c.make)} + 宣发 ${fmtMoney(c.pub)}；演员占 ${Math.round(c.cast / c.total * 100)}%）${why ? `<br><span class="sc-cond">${why}</span>` : why0 ? `<br><span class="sc-cond">花了以后不够留 2 个月工资房租（点开机会先问你）</span>` : ''}</div>
       <div class="tr-gain">${o.kind === 'film' ? '电影看票房：大部分不赚，少数爆款。片方拿票房的约 36%（专项资金、税金附加、院线、发行先分走）。' : '电视剧卖给视频平台：固定价约总成本 1.05 倍，拍得好再分账，稳。'}</div>
       <button class="btn gold big go" ${why ? 'disabled' : ''}>开机（${(() => { const m = MD.filmMonths(o.kind); return o.kind === 'film' ? `拍 ${+m.shoot.toFixed(1)} + 后期 ${+m.post.toFixed(1)} + 上映 ${+m.release.toFixed(1)}` : `拍 ${+m.shoot.toFixed(1)} + 交平台 ${+m.release.toFixed(1)}`; })()} 个游戏月）</button>`;
     const ti = p.body.querySelector('.md-title'); ti.oninput = () => { o.title = ti.value; };
     p.body.querySelectorAll('[data-k]').forEach((b) => (b.onclick = () => { const k = b.dataset.k; o[k] = ['dir', 'cast', 'pub'].includes(k) ? +b.dataset.v : b.dataset.v; render(); }));
-    p.body.querySelector('.go').onclick = () => { const r = MD.shoot(game.state, { ...o }, now()); if (!r.ok) { toast(r.why); return; } toast(`《${r.film.title}》开机了，合同进档案柜`); game.changed(); game.save(); p.close(); };
+    p.body.querySelector('.go').onclick = async () => { if (!(await okToSpend(game.state, MD.costOf(o).total, `投拍《${String(o.title || '').trim() || '无名之作'}》`))) return; /* 设计112：跟开分店一样先问工资提醒 */ const r = MD.shoot(game.state, { ...o }, now()); if (!r.ok) { toast(r.why); return; } toast(`《${r.film.title}》开机了，合同进档案柜`); game.changed(); game.save(); p.close(); };
   };
   render();
 }
@@ -292,13 +292,13 @@ function openCityPick(id, done) {
 /** 产业线详情（底部抽屉）：门店、升级、开分店、编制和招聘 */
 export function openLine(id, ctx) {
   const p = openPanel(IND_BY_ID[id].name);
-  if (['logistics', 'tech', 'media'].includes(id)) setTimeout(() => import('./guide.js?v=b846574c').then((G) => G.hint(id)), 400);
+  if (['logistics', 'tech', 'media'].includes(id)) setTimeout(() => import('./guide.js?v=6a9355f4').then((G) => G.hint(id)), 400);
   const render = () => {
     const s = game.state; const cfg = IND_BY_ID[id]; const ind = s.inds[id];
     const upC = E.upCostOf(s, id); const brWhy = E.whyNotBranch(s, id); const upWhy = E.whyNotUpgrade(s, id); const brC = brWhy ? null : E.brCostOf(s, id);
     const look = E.lookIndex(cfg, ind.level); const next = cfg.looks[look + 1];
     const est = ST.establishment(s, id); const short = ST.shortage(s, id);
-    p.body.innerHTML = `<div class="tr-gain">公司账户 ${fmtMoney(s.company)}（可用余额 ${fmtMoney(CF.room(s))}）${availShort(s)}　本月营收 ${fmtMoney(lineMonth(s, id).rev)}　门店 ${ind.branches} 家 × ${cfg.lookNames[look]}（${ind.level} 级）${next ? `　${next} 级升${cfg.lookNames[look + 1]}（编制会变大）` : ''}</div>
+    p.body.innerHTML = `<div class="tr-gain">公司账户 ${fmtMoney(s.company)}（可用余额 ${CF.roomText(s)}）${availShort(s)}　本月营收 ${fmtMoney(lineMonth(s, id).rev)}　门店 ${ind.branches} 家 × ${cfg.lookNames[look]}（${ind.level} 级）${next ? `　${next} 级升${cfg.lookNames[look + 1]}（编制会变大）` : ''}</div>
       ${cfg.kind ? '' : `<div class="tr-gain">城市：${Object.entries(CY.lineCities(s, id)).filter(([, n]) => n).map(([c, n]) => `${CY.cityName(c)} ${n} 家`).join(' · ')}（收入、工资、房租按城市系数）</div>`}
       ${cfg.retail ? (ind.branches ? personalHtml(s, id) : '<div class="tr-gain">先开第一家：开了以后每天自动有今天主推，也能亲自上阵。</div>') : ''}
       <div class="ads-box"></div>
@@ -320,7 +320,7 @@ export function openLine(id, ctx) {
     const sh = p.body.querySelector('.md-shoot'); if (sh) sh.onclick = () => openShoot();
     p.body.querySelectorAll('.tc-new').forEach((b) => (b.onclick = () => { const r = TC.startProduct(s, b.dataset.d, now()); if (!r.ok) toast(r.why); else { toast(`立项「${r.product.name}」，研发 ${+CB.gm(TC.TECH_CFG.directions[b.dataset.d].devMonths).toFixed(1)} 个游戏月`); game.changed(); game.save(); } }));
     p.body.querySelectorAll('.tc-close').forEach((b) => (b.onclick = async () => { if (!(await confirmBox({ body: '止损关掉这个产品？研发费收不回来。', title: '止损', ok: '关掉', danger: true }))) return; TC.closeProduct(s, +b.dataset.i, now()); game.changed(); game.save(); }));
-    const fb = p.body.querySelector('.fleet'); if (fb) fb.onclick = () => { const r = LGI.buyFleet(s, undefined, now()); if (!r.ok) toast(r.why); else { toast(`买了 ${r.n} 辆车，含购置税 ${fmtMoney(r.cost)}`); game.changed(); game.save(); } };
+    const fb = p.body.querySelector('.fleet'); if (fb) fb.onclick = async () => { if (!(await okToSpend(s, LGI.fleetGap(s).cost, '买车'))) return; /* 设计112 */ const r = LGI.buyFleet(s, undefined, now()); if (!r.ok) toast(r.why); else { toast(`买了 ${r.n} 辆车，含购置税 ${fmtMoney(r.cost)}`); game.changed(); game.save(); } };
     p.body.querySelector('.mgr').onclick = () => openPost('manager_' + id);
     bindAuto(p.body, id, () => { game.changed(); game.save(); }); // 设计39 自动上阵在这里买（开发2，ui/coupon.js）
     bindPotion(p.body, () => { game.changed(); game.save(); render(); }); // 设计39：精力不够时喝药水 / 去卡包买（设计接手开发1）
@@ -378,7 +378,7 @@ export function openHire(id, done, pre) {
     p.body.querySelector('.m').onclick = () => { n = Math.max(1, n - 1); render(); };
     p.body.querySelector('.p').onclick = () => { n += 1; render(); };
     const go = p.body.querySelector('.go'); go.disabled = !!why;
-    go.onclick = () => { const r = ST.hire(s, id, role, n, ch, now()); if (!r.ok) { toast(r.why); return; } import('../core/daily.js?v=b846574c').then((D) => D.bump(s, now(), 'hire')); toast(ch === 'agency' ? '派遣员工已到岗' : `${Math.ceil((r.at - now()) / 60000)} 分钟后到岗`); game.changed(); game.save(); p.close(); done && done(); };
+    go.onclick = () => { const r = ST.hire(s, id, role, n, ch, now()); if (!r.ok) { toast(r.why); return; } import('../core/daily.js?v=6a9355f4').then((D) => D.bump(s, now(), 'hire')); toast(ch === 'agency' ? '派遣员工已到岗' : `${Math.ceil((r.at - now()) / 60000)} 分钟后到岗`); game.changed(); game.save(); p.close(); done && done(); };
   };
   render();
 }
@@ -444,7 +444,7 @@ export function openInject(ctx, preset) { void preset;
 
 export function openDividend(ctx) {
   const s = game.state; let pct = 30;
-  setTimeout(() => import('./guide.js?v=b846574c').then((g) => g.hint('wallets')), 400);
+  setTimeout(() => import('./guide.js?v=6a9355f4').then((g) => g.hint('wallets')), 400);
   const p = openPanel('分红到个人');
   const render = () => {
     const av = CF.divMax(s); /* V0.2.9 留够工资 */

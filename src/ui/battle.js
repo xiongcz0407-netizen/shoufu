@@ -1,41 +1,44 @@
 // 商战：对手列表 → 选项目、带人 → 开战结果；赢满 3 次发起收购
-import * as RG from '../core/rivalgrow.js?v=b846574c'; // P-00 对手也在长大
-import * as EQ from '../core/equity.js?v=b846574c';
-import * as BK from '../core/bank.js?v=b846574c';
-import { gameDate, dateText } from '../core/gametime.js?v=b846574c';
-import { turfText } from '../core/rivalry.js?v=b846574c';
-import { RIVALS, RIVAL_BY_ID, PROJECTS, TEAM_MAX, WINS_TO_ACQUIRE, ACQ_DISC } from '../config/rivals.js?v=b846574c';
-import { needsBoard } from '../core/capital.js?v=b846574c';   // 设计64：协议上写董事会决议
-import * as MG from '../core/manage.js?v=b846574c'; // 设计39 精力
-import { SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=b846574c';
-import { LINES } from '../config/lines.js?v=b846574c';
-import { lineOf } from '../core/storylib.js?v=b846574c'; // V3-04 台词扩充（开发2）
-import { BOSS_LINES } from '../config/battle-lines.js?v=b846574c';
-import * as B from '../core/battle.js?v=b846574c';
-import * as W from '../core/war.js?v=b846574c'; // V2-05 商战三回合
-import { openNegotiate } from './negotiate.js?v=b846574c'; // V2-07 谈判（开发2）
-import * as LT from '../core/late.js?v=b846574c'; // V3-01 对手进攻
-import * as INB from './inbox.js?v=b846574c';
-import { isTraining as isTraining0 } from '../core/training.js?v=b846574c';
-import { isScouting } from '../core/busy.js?v=b846574c';
+import * as RG from '../core/rivalgrow.js?v=6a9355f4'; // P-00 对手也在长大
+import * as EQ from '../core/equity.js?v=6a9355f4';
+import * as BK from '../core/bank.js?v=6a9355f4';
+import { gameDate, dateText } from '../core/gametime.js?v=6a9355f4';
+import { turfText } from '../core/rivalry.js?v=6a9355f4';
+import { RIVALS, RIVAL_BY_ID, PROJECTS, TEAM_MAX, WINS_TO_ACQUIRE, ACQ_DISC } from '../config/rivals.js?v=6a9355f4';
+import { needsBoard } from '../core/capital.js?v=6a9355f4';   // 设计64：协议上写董事会决议
+import * as MG from '../core/manage.js?v=6a9355f4'; // 设计39 精力
+import { SEC_BY_ID, ATTRS } from '../config/secretaries.js?v=6a9355f4';
+import { LINES } from '../config/lines.js?v=6a9355f4';
+import { lineOf } from '../core/storylib.js?v=6a9355f4'; // V3-04 台词扩充（开发2）
+import { BOSS_LINES } from '../config/battle-lines.js?v=6a9355f4';
+import * as B from '../core/battle.js?v=6a9355f4';
+import * as W from '../core/war.js?v=6a9355f4'; // V2-05 商战三回合
+import { openNegotiate } from './negotiate.js?v=6a9355f4'; // V2-07 谈判（开发2）
+import * as LT from '../core/late.js?v=6a9355f4'; // V3-01 对手进攻
+import * as INB from './inbox.js?v=6a9355f4';
+import { isTraining as isTraining0 } from '../core/training.js?v=6a9355f4';
+import { isScouting } from '../core/busy.js?v=6a9355f4';
 const isTraining = (s, id) => isTraining0(s, id) || isScouting(s, id); // V2-08：踩点的也不能带（开发2）
-import { fmtMoney } from '../core/format.js?v=b846574c';
-import { now } from '../core/clock.js?v=b846574c';
-import { asset, hasAsset } from '../platform/assets.js?v=b846574c';
-import { game } from '../game.js?v=b846574c';
-import { h, openPanel, toast } from './dom.js?v=b846574c';
-import { say } from './main-screen.js?v=b846574c';
-import { playStory, bgOf } from './story.js?v=b846574c';
-import { openContract } from './contract.js?v=b846574c';
-import { openTab } from './shell.js?v=b846574c';
-import { nextContractNo } from '../core/contracts.js?v=b846574c';
-import { TAX } from '../core/companytax.js?v=b846574c';
-import { IND_BY_ID } from '../config/industries.js?v=b846574c';
-import { auraBattle } from '../core/boss.js?v=b846574c';
-import { hintLater } from './guide2.js?v=b846574c';
-import * as TKO from '../core/takeover.js?v=b846574c';
-import { listed as listedNow } from '../core/listing.js?v=b846574c';
-import { ticketHtml, bindTicket, potionHtml, bindPotion } from './coupon.js?v=b846574c'; // 设计39 商战券、精力药水（开发2）
+import { fmtMoney } from '../core/format.js?v=6a9355f4';
+import { now } from '../core/clock.js?v=6a9355f4';
+import { asset, hasAsset } from '../platform/assets.js?v=6a9355f4';
+import { game } from '../game.js?v=6a9355f4';
+import { h, openPanel, toast } from './dom.js?v=6a9355f4';
+import { say } from './main-screen.js?v=6a9355f4';
+import { playStory, bgOf } from './story.js?v=6a9355f4';
+import { openContract } from './contract.js?v=6a9355f4';
+import { openTab } from './shell.js?v=6a9355f4';
+import { nextContractNo } from '../core/contracts.js?v=6a9355f4';
+import { TAX } from '../core/companytax.js?v=6a9355f4';
+import { LOCK_WHY } from '../core/cashflow.js?v=6a9355f4';   // 设计112 收购首付也走工资提醒
+import { lockState } from '../core/ledger.js?v=6a9355f4';
+import { okToSpend } from './company.js?v=6a9355f4';
+import { IND_BY_ID } from '../config/industries.js?v=6a9355f4';
+import { auraBattle } from '../core/boss.js?v=6a9355f4';
+import { hintLater } from './guide2.js?v=6a9355f4';
+import * as TKO from '../core/takeover.js?v=6a9355f4';
+import { listed as listedNow } from '../core/listing.js?v=6a9355f4';
+import { ticketHtml, bindTicket, potionHtml, bindPotion } from './coupon.js?v=6a9355f4'; // 设计39 商战券、精力药水（开发2）
 
 const AN = Object.fromEntries(ATTRS.map((a) => [a.key, a.name]));
 const mergeText = (r) => { const e = r.effect || {}; return [...Object.entries(r.merge || {}).map(([k, n]) => `${IND_BY_ID[k].name} ${n} 家（连员工）`), e.fleetUnits && `货车 ${Math.ceil(e.fleetUnits / 3)} 辆`, (e.reProjects || []).map((x) => (x.stage === 'build' ? '在建项目 1 个' : '储备地 1 块')).join('、'), e.techProduct && '上线产品 1 个', e.levelUp && Object.entries(e.levelUp).map(([k, n]) => `${IND_BY_ID[k].name}团队（+${n} 级）`).join('、'), e.rights && `片库版权（授权费 ${fmtMoney(e.rights)}）`, e.boost && Object.entries(e.boost).map(([k, v]) => `${IND_BY_ID[k].name}收入 +${v * 100}%`).join('、'), e.early && e.early.map((k) => `提前开${IND_BY_ID[k].name}`).join('、')].filter(Boolean).join('、') || '—'; };
@@ -219,9 +222,11 @@ function acqPay(s, rivalId, c) {
   return { r, swap, loan };
 }
 /** 股权转让协议（设计64 第三节）：金额、付款方式、贷款、换股按收购页选好的，优惠算好；没签就关 → 消息「重要」挂一条待签 */
-export function openAcqContract(rivalId, c, done = () => {}) {
+export function openAcqContract(rivalId, c, done = () => {}, wageOk = false) {
   const s = game.state; const { r, swap: sw, loan: ln } = acqPay(s, rivalId, c); const plan = c.plan; const team = (c.team || []).filter((id) => s.secs[id] && !isTraining(s, id));
-  const why = B.whyNotAcquire(s, rivalId, team, now(), plan, ln, sw); if (why) { toast(why, 2600); openAcquire(rivalId, done, c); return; }
+  const why = B.whyNotAcquire(s, rivalId, team, now(), plan, ln, sw);
+  if (why === LOCK_WHY && !wageOk) { /* 设计112：首付超过可用余额 → 先问「照样花 / 先不花」，照样花才出协议 */ okToSpend(s, B.payNow(s, r, plan) - sw - ((ln && ln.amount) || 0), `收购${r.name}首付`).then((yes) => { if (yes) openAcqContract(rivalId, c, done, true); }); return; }
+  if (why && why !== LOCK_WHY) { toast(why, 2600); openAcquire(rivalId, done, c); return; }
   const pn = B.payNow(s, r, plan) - sw; const sch = plan === 'install' ? EQ.schedule(s, r.value, now(), pn) : [];
   const stamp = Math.round(r.value * TAX.stamp.equity * 100) / 100; const board = needsBoard(s, r.value); const d = r.disc || { k: 0, parts: [] };
   let signed = false;
@@ -236,7 +241,7 @@ export function openAcqContract(rivalId, c, done = () => {}) {
     onClose: (sg) => { if (!sg && !signed) { B.signMsg(s, rivalId, now(), { ...c, team }); game.changed(); game.save(); toast('协议先放着：消息「重要」里有待签的，随时回来签', 2600); } },
     onSign: () => {
       signed = true;
-      const res = B.acquire(s, rivalId, [...team], now(), Math.random, plan, ln, sw);
+      if (wageOk) lockState.bypass = true; let res; try { res = B.acquire(s, rivalId, [...team], now(), Math.random, plan, ln, sw); } finally { if (wageOk) lockState.bypass = false; }   /* 设计112：已经点过「照样花」 */
       if (!res.ok) { toast(res.why); B.signMsg(s, rivalId, now(), { ...c, team }); game.changed(); game.save(); return; }
       const m = (res.merged || []).map((x) => `${IND_BY_ID[x.ind].name} ${x.n} 家（${x.staff} 人）`).join('、'); const who = team[0] || s.current;
       showResult(r, team.length ? team : [who], true, `收购成功！${m ? `并进来 ${m}` : ''}`, () => {

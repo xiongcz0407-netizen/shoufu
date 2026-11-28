@@ -1,13 +1,13 @@
 // 权责发生制（验收第六节第 2 次 #1）：工资社保、房租每秒按天数计提成「应付」（流水只记备忘，不动余额），月底再实际付；
 // 增值税 + 附加按本月营收、企业所得税按本季利润估着记应付。公司账户「可用」= 余额 − 应付；身价减掉应付
-import { IND_BY_ID } from '../config/industries.js?v=b846574c';
-import { monthlyLabor, lookOf, estTotal } from './staff.js?v=b846574c';
-import { lineK } from './cities.js?v=b846574c';
-import { vatOf, TAX } from './companytax.js?v=b846574c';
-import { MONTH_MS, monthIndex } from './gametime.js?v=b846574c';
-import { post } from './ledger.js?v=b846574c';
-import { storeOther } from './calib.js?v=b846574c';
-import * as CT from './companytax.js?v=b846574c';
+import { IND_BY_ID } from '../config/industries.js?v=6a9355f4';
+import { monthlyLabor, lookOf, estTotal } from './staff.js?v=6a9355f4';
+import { lineK } from './cities.js?v=6a9355f4';
+import { vatOf, TAX } from './companytax.js?v=6a9355f4';
+import { MONTH_MS, monthIndex } from './gametime.js?v=6a9355f4';
+import { post } from './ledger.js?v=6a9355f4';
+import { storeOther } from './calib.js?v=6a9355f4';
+import * as CT from './companytax.js?v=6a9355f4';
 
 const sum = (o) => Object.values(o || {}).reduce((a, b) => a + b, 0);
 export const DAY_MS = MONTH_MS / 30; // 游戏一天

@@ -1,17 +1,18 @@
 // 「财富 → 资本」里的「上市」一节（第 3-04 项）+ 「投资」页最上面你自己的股票 + 敲钟剧情
-import * as LS from '../core/listing.js?v=b846574c';
-import { stakeOf } from '../core/economy.js?v=b846574c';
-import { SEC_BY_ID } from '../config/secretaries.js?v=b846574c';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=b846574c';
-import { game } from '../game.js?v=b846574c';
-import { now } from '../core/clock.js?v=b846574c';
-import { h, toast } from './dom.js?v=b846574c';
-import { MONTH_MS } from '../core/gametime.js?v=b846574c';
-import { playStory } from './story.js?v=b846574c';
-import { asset, hasAsset } from '../platform/assets.js?v=b846574c';
-import { CAPITAL_SECTIONS } from './capital.js?v=b846574c';
-import { HINTS } from './guide.js?v=b846574c';
-import { hintLater } from './guide2.js?v=b846574c';
+import * as LS from '../core/listing.js?v=6a9355f4';
+import { stakeOf } from '../core/economy.js?v=6a9355f4';
+import { SEC_BY_ID } from '../config/secretaries.js?v=6a9355f4';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=6a9355f4';
+import { game } from '../game.js?v=6a9355f4';
+import { now } from '../core/clock.js?v=6a9355f4';
+import { h, toast } from './dom.js?v=6a9355f4';
+import { MONTH_MS } from '../core/gametime.js?v=6a9355f4';
+import { playStory } from './story.js?v=6a9355f4';
+import { asset, hasAsset } from '../platform/assets.js?v=6a9355f4';
+import { CAPITAL_SECTIONS } from './capital.js?v=6a9355f4';
+import { HINTS } from './guide.js?v=6a9355f4';
+import { hintLater } from './guide2.js?v=6a9355f4';
+import { okToSpend } from './company.js?v=6a9355f4';   // 设计112
 
 HINTS.ipo = '上市：选板块（主板、科创板、港股、纳斯达克，条件不一样）→ 选券商 → 股改 → 辅导 1 个游戏月 → 审核 1～2 个游戏月（可能问询，派财务总监回复）→ 选发行比例 → 路演 → 敲钟。募资进公司账户，你的持股被稀释；上市以后身价按市值 × 持股，锁定期过了才能减持。';
 const pct = (x, d = 1) => `${(x * 100).toFixed(d)}%`;
@@ -35,7 +36,7 @@ function section(el) {
     el.appendChild(h('div', 'tr-gain', '选券商：贵的承销费高，材料做得好、审核问询少'));
     el.appendChild(bt);
     const why = LS.whyNotStart(s, pickBoard, t);
-    const go = h('button', 'btn gold big', `签保荐协议，开始股改（${fmtMoney(LS.LCFG.reform.fee)}）`); go.disabled = !!why; go.onclick = () => ok(LS.start(s, pickBoard, pickBroker, now()), '股改开始了'); el.appendChild(go);
+    const go = h('button', 'btn gold big', `签保荐协议，开始股改（${fmtMoney(LS.LCFG.reform.fee)}）`); go.disabled = !!why; go.onclick = async () => { if (!(await okToSpend(s, LS.LCFG.reform.fee, '股改费用'))) return; /* 设计112 */ ok(LS.start(s, pickBoard, pickBroker, now()), '股改开始了'); }; el.appendChild(go);
     if (why) el.appendChild(h('div', 'tr-gain neg', why));
     return;
   }

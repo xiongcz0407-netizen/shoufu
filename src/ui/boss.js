@@ -1,26 +1,26 @@
-import { avatarKey } from './main-screen.js?v=b846574c';
-import * as MG from '../core/manage.js?v=b846574c'; // P-05 精力
-import { asset, hasAsset } from '../platform/assets.js?v=b846574c';
+import { avatarKey } from './main-screen.js?v=6a9355f4';
+import * as MG from '../core/manage.js?v=6a9355f4'; // P-05 精力
+import { asset, hasAsset } from '../platform/assets.js?v=6a9355f4';
 // 老板页：名字和公司、老板属性、称号进度、穿戴、统计、设置（存档、重新开始在「设置」里，设计22）
-import { TITLES } from '../config/titles.js?v=b846574c';
-import { RIVALS } from '../config/rivals.js?v=b846574c';
-import * as E from '../core/economy.js?v=b846574c';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=b846574c';
-import { versionText } from '../version.js?v=b846574c';
-import { now } from '../core/clock.js?v=b846574c';
-import { game } from '../game.js?v=b846574c';
-import { h, toast, openPanel } from './dom.js?v=b846574c';
-import { openFull } from './shell.js?v=b846574c';
-import { lxPic, openLuxShop } from './luxury.js?v=b846574c';
-import { openShop } from './assets.js?v=b846574c';
-import * as LX from '../core/luxury.js?v=b846574c';
-import * as AS from '../core/assets.js?v=b846574c';
-import * as HM from '../core/home.js?v=b846574c';
-import { isRented } from '../core/postwork.js?v=b846574c';
-import { appendCloudSettings } from './cloudset.js?v=b846574c';
-import { inputBox } from './confirm.js?v=b846574c'; // 设计37 第一节：游戏样式输入框
-import * as RD from '../core/ride.js?v=b846574c';
-import * as RL from '../core/richlist.js?v=b846574c'; // 设计98 // 设计71 座驾
+import { TITLES } from '../config/titles.js?v=6a9355f4';
+import { RIVALS } from '../config/rivals.js?v=6a9355f4';
+import * as E from '../core/economy.js?v=6a9355f4';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=6a9355f4';
+import { versionText } from '../version.js?v=6a9355f4';
+import { now } from '../core/clock.js?v=6a9355f4';
+import { game } from '../game.js?v=6a9355f4';
+import { h, toast, openPanel } from './dom.js?v=6a9355f4';
+import { openFull } from './shell.js?v=6a9355f4';
+import { lxPic, openLuxShop } from './luxury.js?v=6a9355f4';
+import { openShop } from './assets.js?v=6a9355f4';
+import * as LX from '../core/luxury.js?v=6a9355f4';
+import * as AS from '../core/assets.js?v=6a9355f4';
+import * as HM from '../core/home.js?v=6a9355f4';
+import { isRented } from '../core/postwork.js?v=6a9355f4';
+import { appendCloudSettings } from './cloudset.js?v=6a9355f4';
+import { inputBox } from './confirm.js?v=6a9355f4'; // 设计37 第一节：游戏样式输入框
+import * as RD from '../core/ride.js?v=6a9355f4';
+import * as RL from '../core/richlist.js?v=6a9355f4'; // 设计98 // 设计71 座驾
 
 // 老板属性（设计09 第一节）由第 12 项提供：返回 [{ name, value, from }]
 let bossAttrs = () => [];

@@ -1,23 +1,24 @@
 // 地产详情（公司 → 产业 → 地产，全屏）：土地市场 | 我的项目 | 持有物业；举牌在底部抽屉
-import { openNegotiate } from './negotiate.js?v=b846574c'; // V2-07 谈地（开发2 的谈判）
-import { bigBonus } from '../core/manage.js?v=b846574c';
-import * as RE from '../core/realestate.js?v=b846574c';
-import * as ST from '../core/staff.js?v=b846574c';
-import * as PO from '../core/posts.js?v=b846574c';
-import { SEC_BY_ID } from '../config/secretaries.js?v=b846574c';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=b846574c';
-import { now } from '../core/clock.js?v=b846574c';
-import { game } from '../game.js?v=b846574c';
-import { h, openPanel, toast, liveRender } from './dom.js?v=b846574c';
-import { openFull } from './shell.js?v=b846574c';
-import { openHire, cityRows, bindCityRows } from './company.js?v=b846574c';
-import { CITY_IDS } from '../core/cities.js?v=b846574c';   // 设计92 小修：城市分公司（N/7）
-import { openPost } from './posts.js?v=b846574c';
-import { asset, hasAsset } from '../platform/assets.js?v=b846574c';
-import { MONTH_MS } from '../core/gametime.js?v=b846574c';
-import { gm } from '../core/calib.js?v=b846574c';
-import { hint } from './guide.js?v=b846574c';
-import { hintLater } from './guide2.js?v=b846574c';
+import { openNegotiate } from './negotiate.js?v=6a9355f4'; // V2-07 谈地（开发2 的谈判）
+import { bigBonus } from '../core/manage.js?v=6a9355f4';
+import * as RE from '../core/realestate.js?v=6a9355f4';
+import * as ST from '../core/staff.js?v=6a9355f4';
+import * as PO from '../core/posts.js?v=6a9355f4';
+import { SEC_BY_ID } from '../config/secretaries.js?v=6a9355f4';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=6a9355f4';
+import { now } from '../core/clock.js?v=6a9355f4';
+import { game } from '../game.js?v=6a9355f4';
+import { h, openPanel, toast, liveRender } from './dom.js?v=6a9355f4';
+import { openFull } from './shell.js?v=6a9355f4';
+import { openHire, cityRows, bindCityRows, okToSpend } from './company.js?v=6a9355f4';
+import { LOCK_WHY } from '../core/cashflow.js?v=6a9355f4';   // 设计112
+import { CITY_IDS } from '../core/cities.js?v=6a9355f4';   // 设计92 小修：城市分公司（N/7）
+import { openPost } from './posts.js?v=6a9355f4';
+import { asset, hasAsset } from '../platform/assets.js?v=6a9355f4';
+import { MONTH_MS } from '../core/gametime.js?v=6a9355f4';
+import { gm } from '../core/calib.js?v=6a9355f4';
+import { hint } from './guide.js?v=6a9355f4';
+import { hintLater } from './guide2.js?v=6a9355f4';
 
 const C = RE.RE_CFG;
 const city = (k) => C.cities[k].name;
@@ -122,7 +123,7 @@ function projects(body, s, t) {
     const T = C.types[p.type]; const left = p.at ? Math.max(0, (p.at - t) / 1000) : 0;
     const bm = RE.buildMonths(p) * MONTH_MS; const prog = p.stage === 'build' && p.buildEnd ? 1 - (p.buildEnd - t) / bm : null; // 建设进度
     let act = '';
-    if (p.stage === 'ready') { const why = RE.whyNotStart(s, p); act = `<button class="btn gold start" ${why ? 'disabled' : ''}>开工（总包预付 50%：${wan(Math.round(p.build * C.buildPrepay))}）</button>${why ? `<div class="sc-cond">${why}</div>` : ''}`; }
+    if (p.stage === 'ready') { const why0 = RE.whyNotStart(s, p); const why = why0 === LOCK_WHY ? null : why0; /* 设计112：要动工资的钱不灰，点了问 */ act = `<button class="btn gold start" ${why ? 'disabled' : ''}>开工（总包预付 50%：${wan(Math.round(p.build * C.buildPrepay))}）</button>${why ? `<div class="sc-cond">${why}</div>` : ''}`; }
     if (p.stage === 'built') act = `<div class="ind-btns"><button class="btn gold sell">开盘卖掉</button><button class="btn hold">自己持有收租（估值 ${wan(RE.totalInvest(p) * C.hold.valueK)}）</button></div>`;
     const R = p.result;
     const c = h('div', 'ind-card', `${imgOf(p.type)}<div class="ind-info"><div class="ind-name">${p.name}<small>${city(p.city)} · ${T.name} · ${p.gfa.toLocaleString()} ㎡</small></div>
@@ -132,7 +133,7 @@ function projects(body, s, t) {
       ${p.batch ? `<div class="ind-line">已售 ${p.sold.toLocaleString()} / ${p.gfa.toLocaleString()} ㎡ · 回款 ${wan(p.received)} · 监管 ${wan(p.escrow)}</div><div class="tr-gain">${p.batches.map((b, i) => `第${i + 1}批 ${b.area.toLocaleString()} ㎡ × ${b.price.toLocaleString()}（去化 ${Math.round(b.rate * 100)}%）`).join('；')}${p.tail ? `；尾盘特价 ${p.tail.area.toLocaleString()} ㎡ × ${p.tail.price.toLocaleString()}` : ''}</div>` : ''}
       ${R ? `<div class="tr-gain">清算：销售额 ${wan(R.sales)}，增值税 ${wan(R.vat)}，附加 ${wan(R.surcharge)}，土地增值税 ${R.latExempt ? '免征（普通住宅增值率 ≤ 20%，预征的退回）' : `${wan(R.lat)}（增值率 ${Math.round(R.latRatio * 100)}%，税率 ${Math.round(R.latRate * 100)}%）`}，所得税约 ${wan(R.citEst)}（进本季度）<br><b class="${R.net >= 0 ? 'pos' : 'neg'}">净赚约 ${wan(R.net)}（${(R.net / R.sales * 100).toFixed(1)}%）</b></div>` : ''}
       ${act}</div>`);
-    const st = c.querySelector('.start'); if (st && p.type === 'residential') st.onclick = () => openPosition(p.id); /* V2-09 住宅开工先定位 */ else if (st) st.onclick = () => { const r = RE.startBuild(game.state, p.id, now()); if (!r.ok) toast(r.why); else { toast(`开工了，${RE.buildMonths(p)} 个游戏月竣工${C.types[p.type].canHold ? '' : `，满 ${gm(C.time.presaleFrom)} 个月开盘`}`); game.changed(); game.save(); } };
+    const st = c.querySelector('.start'); if (st && p.type === 'residential') st.onclick = () => openPosition(p.id); /* V2-09 住宅开工先定位 */ else if (st) st.onclick = async () => { if (!(await okToSpend(game.state, Math.round(p.build * C.buildPrepay), `${p.name}开工预付`))) return; /* 设计112 */ const r = RE.startBuild(game.state, p.id, now()); if (!r.ok) toast(r.why); else { toast(`开工了，${RE.buildMonths(p)} 个游戏月竣工${C.types[p.type].canHold ? '' : `，满 ${gm(C.time.presaleFrom)} 个月开盘`}`); game.changed(); game.save(); } };
     const se = c.querySelector('.sell'); if (se) se.onclick = () => { RE.chooseHold(game.state, p.id, false, now()); game.changed(); game.save(); };
     const ho = c.querySelector('.hold'); if (ho) ho.onclick = () => { RE.chooseHold(game.state, p.id, true, now()); toast('转为持有，每个游戏月收租'); seg = 'held'; game.changed(); game.save(); };
     body.appendChild(c);

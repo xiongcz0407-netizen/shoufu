@@ -1,15 +1,15 @@
 // V0.2.3 资金链断裂（设计35）：花钱前留够两个月工资 + 社保 + 房租；跨样子升级先算账；可用 < 1 个月工资发急报；
 // 欠薪停业满 1 个游戏月员工自动遣散（N+1 记应付）；公司账户负数时银行给一次应急周转贷（3 个月工资，利率高一档）
-import { IND_BY_ID } from '../config/industries.js?v=b846574c';
-import B from '../config/bank.json?v=b846574c' with { type: 'json' };
-import * as ST from './staff.js?v=b846574c';
-import { available, monthlyRent, payables } from './accrual.js?v=b846574c';
-import { lineK } from './cities.js?v=b846574c';
-import { pay, receive, post, setCompanyFloor, lockState } from './ledger.js?v=b846574c';
-import { addMsg } from './inbox.js?v=b846574c';
-import { holder, isSec } from './posts.js?v=b846574c';
-import { MONTH_MS, YEAR_MS } from './gametime.js?v=b846574c';
-import { fmtMoney } from './format.js?v=b846574c';
+import { IND_BY_ID } from '../config/industries.js?v=6a9355f4';
+import B from '../config/bank.json?v=6a9355f4' with { type: 'json' };
+import * as ST from './staff.js?v=6a9355f4';
+import { available, monthlyRent, payables } from './accrual.js?v=6a9355f4';
+import { lineK } from './cities.js?v=6a9355f4';
+import { pay, receive, post, setCompanyFloor, lockState } from './ledger.js?v=6a9355f4';
+import { addMsg } from './inbox.js?v=6a9355f4';
+import { holder, isSec } from './posts.js?v=6a9355f4';
+import { MONTH_MS, YEAR_MS } from './gametime.js?v=6a9355f4';
+import { fmtMoney } from './format.js?v=6a9355f4';
 
 export const CUSHION_MONTHS = 2;
 const r2 = (x) => Math.round(x * 100) / 100;
@@ -30,7 +30,11 @@ export function cushionShort(s, cost) {
 }
 /** 花多少以后还留得够两个月工资（能花的上限） */
 /** 设计105：界面上的「可用余额」就是它（余额 − 本月应付 − 要留的工资房租垫底）；下面那行小字 keepText */
-export const room = (s) => { const P = payables(s); return Math.max(0, Math.floor(available(s) + P.labor + ((s.title || 0) ? P.rent : 0) - cushion(s))); };
+export const roomRaw = (s) => { const P = payables(s); return Math.floor(available(s) + P.labor + ((s.title || 0) ? P.rent : 0) - cushion(s)); };   /* 设计112：界面照实写（可以是负的） */
+export const roomSigned = roomRaw;   /* 开发2 财富页（设计112）认这个名字 */
+export const room = (s) => Math.max(0, roomRaw(s));   /* 要「能花多少」的地方（分红、转出最多能转）照旧夹 0 */
+/** 设计112：界面上的可用余额：负的照实写红字「−¥X（还差这么多才够留 2 个月工资房租）」 */
+export const roomText = (s) => { const r = roomRaw(s); return r >= 0 ? fmtMoney(r) : `<b class="neg">−${fmtMoney(-r)}</b><small class="neg">（还差这么多才够留 ${(s.title || 0) ? `${CUSHION_MONTHS} 个月工资房租` : '1 个月工资'}）</small>`; };
 /** V0.2.9：最多能分红多少（留够工资以后）*/
 /** 设计105：可用余额下面的小字「已留 2 个月工资房租 ¥X」（打工人「已留 1 个月工资 ¥X」） */
 export const keepText = (s) => ((s.title || 0) ? `已留 ${CUSHION_MONTHS} 个月工资房租 ${fmtMoney(cushion(s))}` : `已留 1 个月工资 ${fmtMoney(cushion(s))}`);

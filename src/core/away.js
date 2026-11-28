@@ -1,15 +1,15 @@
 // 离开期间（设计21 第六节、设计22 第七节）：离线不封顶，按游戏日一段段补算
 // 每段：产钱（营收、进货）→ 招的人到岗 → 计提工资房租 → 店长 / 财务总监干活 → 各产业到点的事 → 月结（发工资、报税、月报）
 // 回来出「离开期间」账单：这段时间流水按类别汇总（2-08c 的账单界面用同一份数据 s.awayBill）
-import ECO from '../config/economy.json?v=b846574c' with { type: 'json' };
-import { CATS, flushAccruals } from './ledger.js?v=b846574c';
-import { offlineIncome, netWorth } from './economy.js?v=b846574c';
-import { accruePayables } from './accrual.js?v=b846574c';
-import { processHires } from './staff.js?v=b846574c';
-import { tickPosts } from './postwork.js?v=b846574c';
-import { processPeriods, MONTH_MS } from './gametime.js?v=b846574c';
-import { startTap } from './books.js?v=b846574c';   // 设计79 第三版：离线这段用临时累加器出账单，不靠明细
-import { secWork } from './awaybill.js?v=b846574c';
+import ECO from '../config/economy.json?v=6a9355f4' with { type: 'json' };
+import { CATS, flushAccruals } from './ledger.js?v=6a9355f4';
+import { offlineIncome, netWorth } from './economy.js?v=6a9355f4';
+import { accruePayables } from './accrual.js?v=6a9355f4';
+import { processHires } from './staff.js?v=6a9355f4';
+import { tickPosts } from './postwork.js?v=6a9355f4';
+import { processPeriods, MONTH_MS } from './gametime.js?v=6a9355f4';
+import { startTap } from './books.js?v=6a9355f4';   // 设计79 第三版：离线这段用临时累加器出账单，不靠明细
+import { secWork } from './awaybill.js?v=6a9355f4';
 
 const DAY_MS = MONTH_MS / 30;
 

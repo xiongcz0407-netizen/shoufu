@@ -1,9 +1,9 @@
 // V3-02 / V3-03 小场景播放器（不动开发1 的 ui/story.js）：全屏、背景、立绘、一句一句点；'#黑屏' 转场；中间可以停下来让你选（选完接着播选了以后的话）
 // steps：字符串（「」开头当她说话，其余旁白）、{ who, text, fx }、'#黑屏'、{ choice: { q, opts: [label…] }, then(i) → 接下来的 steps }
-import { SEC_BY_ID } from '../config/secretaries.js?v=b846574c';
-import { asset, hasAsset } from '../platform/assets.js?v=b846574c';
-import { h } from './dom.js?v=b846574c';
-import { storyPortrait } from './portrait.js?v=b846574c';   // 设计66：立绘跟主页同一个 layout（开发1 加）
+import { SEC_BY_ID } from '../config/secretaries.js?v=6a9355f4';
+import { asset, hasAsset } from '../platform/assets.js?v=6a9355f4';
+import { h } from './dom.js?v=6a9355f4';
+import { storyPortrait } from './portrait.js?v=6a9355f4';   // 设计66：立绘跟主页同一个 layout（开发1 加）
 
 export function playScene(steps, opts = {}) {
   return new Promise((done0) => { if (document.querySelector('.story')) { const w = setInterval(() => { if (!document.querySelector('.story')) { clearInterval(w); playScene(steps, opts).then(done0); } }, 500); return; } const done = done0; // V0.2.3：有剧情在放就排队

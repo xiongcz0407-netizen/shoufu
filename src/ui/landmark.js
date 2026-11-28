@@ -1,17 +1,18 @@
 // 「资产 → 房产」里的「地标」一组（第 3-07 项）：公司持有的地标 + 「地标（公司买）」→ 委托经纪、尽调、报价 / 竞标、审批、签约
-import * as LMK from '../core/landmark.js?v=b846574c';
-import BCFG from '../config/bank.json?v=b846574c' with { type: 'json' };
-import { whyNotMa } from '../core/bank.js?v=b846574c';
-import { fmtMoney, fmtDuration } from '../core/format.js?v=b846574c';
-import { asset, hasAsset } from '../platform/assets.js?v=b846574c';
-import { game } from '../game.js?v=b846574c';
-import { now } from '../core/clock.js?v=b846574c';
-import { h, toast, liveRender } from './dom.js?v=b846574c';
-import { openFull } from './shell.js?v=b846574c';
-import { openContract } from './contract.js?v=b846574c';
-import { nextContractNo } from '../core/contracts.js?v=b846574c';
-import { hintLater } from './guide2.js?v=b846574c';
-import { HINTS } from './guide.js?v=b846574c';
+import * as LMK from '../core/landmark.js?v=6a9355f4';
+import BCFG from '../config/bank.json?v=6a9355f4' with { type: 'json' };
+import { whyNotMa } from '../core/bank.js?v=6a9355f4';
+import { fmtMoney, fmtDuration } from '../core/format.js?v=6a9355f4';
+import { asset, hasAsset } from '../platform/assets.js?v=6a9355f4';
+import { game } from '../game.js?v=6a9355f4';
+import { now } from '../core/clock.js?v=6a9355f4';
+import { h, toast, liveRender } from './dom.js?v=6a9355f4';
+import { openFull } from './shell.js?v=6a9355f4';
+import { openContract } from './contract.js?v=6a9355f4';
+import { nextContractNo } from '../core/contracts.js?v=6a9355f4';
+import { hintLater } from './guide2.js?v=6a9355f4';
+import { HINTS } from './guide.js?v=6a9355f4';
+import { okToSpend } from './company.js?v=6a9355f4';   // 设计112：定金也走工资提醒
 
 HINTS.landmark = '地标是公司买的（公司账户 + 并购贷款）：经纪牵线 → 尽调立刻出结果 → 报价或竞标 → 付 10% 定金 → 海外的要过境外投资核准和当地审查（可能被否，被否定金退回）→ 签合同。买下以后每月收租，人脉、眼光大涨。';
 const KIND = { office: '写字楼', hotel: '酒店' };
@@ -69,10 +70,10 @@ export function openLandmarks(done) {
       } else if (d.stage === 'dd') act.appendChild(h('small', '', `尽职调查中，还要 ${left(d.at)}`));
       else if (d.stage === 'offer') {
         act.appendChild(h('small', '', '报价（估值的几成，越低卖方越可能拒）'));
-        for (const [k] of LMK.LCFG.offers.negotiate) btn(`${pct(k)} ${fmtMoney(x.value * k)}`, d.tried.includes(k) ? '' : 'gold', () => { const r = LMK.offer(s, x.id, k, now()); if (ok(r) && !r.accepted) toast('卖方拒了这个价，再报高一点'); if (r.accepted) toast(r.why || `谈成了：${fmtMoney(r.price)}，定金 ${fmtMoney(r.deposit)} 进共管账户`, 2600); }, d.tried.includes(k));
+        for (const [k] of LMK.LCFG.offers.negotiate) btn(`${pct(k)} ${fmtMoney(x.value * k)}`, d.tried.includes(k) ? '' : 'gold', async () => { if (!(await okToSpend(s, Math.round(x.value * k * LMK.LCFG.depositRate), `${x.name}定金`))) return; /* 设计112 */ const r = LMK.offer(s, x.id, k, now()); if (ok(r) && !r.accepted) toast('卖方拒了这个价，再报高一点'); if (r.accepted) toast(r.why || `谈成了：${fmtMoney(r.price)}，定金 ${fmtMoney(r.deposit)} 进共管账户`, 2600); }, d.tried.includes(k));
       } else if (d.stage === 'tender') {
         act.appendChild(h('small', '', '投标（有财团一起抢，价高者得；没中标要重新委托）'));
-        for (const k of LMK.LCFG.offers.tender) btn(`${pct(k)} ${fmtMoney(x.value * k)}`, 'gold', () => { const r = LMK.tender(s, x.id, k, now()); if (ok(r)) toast(r.won ? `中标：${fmtMoney(r.price)}（财团出 ${fmtMoney(r.npc)}）` : `没中：财团出了 ${fmtMoney(r.npc)}`, 2600); });
+        for (const k of LMK.LCFG.offers.tender) btn(`${pct(k)} ${fmtMoney(x.value * k)}`, 'gold', async () => { if (!(await okToSpend(s, Math.round(x.value * k * LMK.LCFG.depositRate), `${x.name}定金`))) return; /* 设计112 */ const r = LMK.tender(s, x.id, k, now()); if (ok(r)) toast(r.won ? `中标：${fmtMoney(r.price)}（财团出 ${fmtMoney(r.npc)}）` : `没中：财团出了 ${fmtMoney(r.npc)}`, 2600); });
       } else if (d.stage === 'approve') {
         act.innerHTML = d.steps.map((st) => `<small>${LMK.LCFG.approvals[st.key].name}：${st.ok === true ? '<b class="pos">通过</b>' : st.at ? `审查中，还要 ${left(st.at)}（通过率约 ${pct(LMK.approveRate(s, x, st.key, d.price))}）` : '排队'}</small>`).join('');
         btn('放弃（定金不退）', '', () => { const r = LMK.abandon(s, x.id); ok(r, `放弃了，定金 ${fmtMoney(r.lost)} 不退`); });

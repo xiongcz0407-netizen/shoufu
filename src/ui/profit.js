@@ -1,13 +1,13 @@
 // 设计40 收益流水（开发2）：公司 →「收益」页签。顶上今天合计（进账、成本、赚），能按产业筛；
 // 下面一笔一笔往上冒（最新在上，最多 60 条）。数据在 core/flow.js，钱都是真实营收切出来的
-import * as FL from '../core/flow.js?v=b846574c';
-import { IND_BY_ID } from '../config/industries.js?v=b846574c';
-import { lookIndex } from '../core/economy.js?v=b846574c';
-import { fmtMoney } from '../core/format.js?v=b846574c';
-import { now } from '../core/clock.js?v=b846574c';
-import { asset, hasAsset } from '../platform/assets.js?v=b846574c';
-import { game } from '../game.js?v=b846574c';
-import { h } from './dom.js?v=b846574c';
+import * as FL from '../core/flow.js?v=6a9355f4';
+import { IND_BY_ID } from '../config/industries.js?v=6a9355f4';
+import { lookIndex } from '../core/economy.js?v=6a9355f4';
+import { fmtMoney } from '../core/format.js?v=6a9355f4';
+import { now } from '../core/clock.js?v=6a9355f4';
+import { asset, hasAsset } from '../platform/assets.js?v=6a9355f4';
+import { game } from '../game.js?v=6a9355f4';
+import { h } from './dom.js?v=6a9355f4';
 
 const icon = (s, id) => {
   const c = IND_BY_ID[id]; const x = s.inds && s.inds[id];

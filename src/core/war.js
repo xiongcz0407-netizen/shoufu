@@ -1,20 +1,20 @@
 // V2-05 商战三回合（设计29 第一节）：开战前看对手卡片；三回合每回合双方各出一张打法同时亮牌；克制的赢，同打法 / 不相克比带去的秘书对应属性
 // 三回合赢两回合算赢（提前分出胜负就结束）；每赢一回合你这条线当月营收 +2%、对手利润 −3%；结果落地走 battle.settleBattle
-import { capAdd } from './cap.js?v=b846574c';   // 设计79：有上限的列表（config/caps.js）
-import { WAR, RIVAL_BY_ID } from '../config/rivals.js?v=b846574c';
-import * as B from './battle.js?v=b846574c';
-import { live, monthGrowth } from './rivalgrow.js?v=b846574c';
-import { ensureSec } from './secretary.js?v=b846574c';
-import { netWorth } from './economy.js?v=b846574c';
-import * as E from './economy.js?v=b846574c';
-import { auraBattle, visionBattle } from './boss.js?v=b846574c';
-import { bizBattle } from './rivalry.js?v=b846574c';
-import { bigBonus } from './manage.js?v=b846574c';
-import { pay, canPay } from './ledger.js?v=b846574c';
-import { wage } from './staff.js?v=b846574c';
-import { DAY_MS, dayIndex } from './manage.js?v=b846574c';
-import { addMsg } from './inbox.js?v=b846574c';   // 设计64 商战自动打完留一条
-import { SEC_BY_ID } from '../config/secretaries.js?v=b846574c';
+import { capAdd } from './cap.js?v=6a9355f4';   // 设计79：有上限的列表（config/caps.js）
+import { WAR, RIVAL_BY_ID } from '../config/rivals.js?v=6a9355f4';
+import * as B from './battle.js?v=6a9355f4';
+import { live, monthGrowth } from './rivalgrow.js?v=6a9355f4';
+import { ensureSec } from './secretary.js?v=6a9355f4';
+import { netWorth } from './economy.js?v=6a9355f4';
+import * as E from './economy.js?v=6a9355f4';
+import { auraBattle, visionBattle } from './boss.js?v=6a9355f4';
+import { bizBattle } from './rivalry.js?v=6a9355f4';
+import { bigBonus } from './manage.js?v=6a9355f4';
+import { pay, canPay } from './ledger.js?v=6a9355f4';
+import { wage } from './staff.js?v=6a9355f4';
+import { DAY_MS, dayIndex } from './manage.js?v=6a9355f4';
+import { addMsg } from './inbox.js?v=6a9355f4';   // 设计64 商战自动打完留一条
+import { SEC_BY_ID } from '../config/secretaries.js?v=6a9355f4';
 
 const P = WAR.plays; export const PLAY_IDS = Object.keys(P); export { WAR };
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
